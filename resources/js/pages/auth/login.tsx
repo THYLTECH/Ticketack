@@ -1,21 +1,30 @@
 // pages/auth/login.tsx
 
+// Necessary imports
+import { Form, Head } from '@inertiajs/react';
+
+// Layout
+import AuthLayout from '@/layouts/auth-layout';
+
+// Custom components
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
+
+// Shadcn UI Components
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import AuthLayout from '@/layouts/auth-layout';
-import { Form, Head } from '@inertiajs/react';
 
-interface LoginProps {
-    status?: string;
+// Icons
+import { LogIn } from 'lucide-react';
+
+export default function Login({
+    canResetPassword,
+}: {
     canResetPassword: boolean;
-}
-
-export default function Login({ status, canResetPassword }: LoginProps) {
+}) {
     return (
         <AuthLayout
             title="Log in to your account"
@@ -24,7 +33,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
             <Head title="Log in" />
 
             <Form
-                action={route('login.store')}
+                action={route('auth.login.store')}
                 method={'POST'}
                 resetOnSuccess={['password']}
                 className="flex flex-col gap-6"
@@ -52,7 +61,9 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                     <Label htmlFor="password">Password</Label>
                                     {canResetPassword && (
                                         <TextLink
-                                            href={route('password.request')}
+                                            href={route(
+                                                'auth.password.request',
+                                            )}
                                             className="ml-auto text-sm"
                                             tabIndex={5}
                                         >
@@ -88,26 +99,23 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                 disabled={processing}
                                 data-test="login-button"
                             >
-                                {processing && <Spinner />}
+                                {processing ? <Spinner /> : <LogIn />}
                                 Log in
                             </Button>
                         </div>
 
                         <div className="text-center text-sm text-muted-foreground">
                             Don't have an account?{' '}
-                            <TextLink href={route('register')} tabIndex={5}>
+                            <TextLink
+                                href={route('auth.register')}
+                                tabIndex={5}
+                            >
                                 Sign up
                             </TextLink>
                         </div>
                     </>
                 )}
             </Form>
-
-            {status && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
-                    {status}
-                </div>
-            )}
         </AuthLayout>
     );
 }

@@ -48,7 +48,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
             <DropdownMenuItem asChild>
                 <Link
                     className="block w-full"
-                    href={route('logout')}
+                    href={route('auth.logout')}
                     as="button"
                     onClick={handleLogout}
                     data-test="logout-button"

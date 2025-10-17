@@ -16,7 +16,7 @@ require __DIR__.'/common.php';
 require __DIR__.'/auth.php';
 
 // Settings routes
-// require __DIR__.'/settings.php';
+require __DIR__.'/settings.php';
 
 
 // Todo : Tickets, assets, settings etc....

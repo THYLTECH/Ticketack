@@ -1,13 +1,19 @@
 // pages/auth/reset-password.tsx
 
+// Necessary imports
 import { Form, Head } from '@inertiajs/react';
 
+// Layout
+import AuthLayout from '@/layouts/auth-layout';
+
+// Custom components
 import InputError from '@/components/input-error';
+
+// Shadcn UI Components
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import AuthLayout from '@/layouts/auth-layout';
 
 interface ResetPasswordProps {
     token: string;
@@ -23,7 +29,7 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
             <Head title="Reset password" />
 
             <Form
-                action={route('password.store')}
+                action={route('auth.password.store')}
                 method={'POST'}
                 transform={(data) => ({ ...data, token, email })}
                 resetOnSuccess={['password', 'password_confirmation']}
@@ -36,6 +42,7 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                                 id="email"
                                 type="email"
                                 name="email"
+                                required
                                 autoComplete="email"
                                 value={email}
                                 className="mt-1 block w-full"
@@ -53,6 +60,7 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                                 id="password"
                                 type="password"
                                 name="password"
+                                required
                                 autoComplete="new-password"
                                 className="mt-1 block w-full"
                                 autoFocus

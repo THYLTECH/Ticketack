@@ -1,11 +1,20 @@
 // pages/auth/verify-email.tsx
 
-// Components
+// Necessary imports
+import { Form, Head } from '@inertiajs/react';
+
+// Layout
+import AuthLayout from '@/layouts/auth-layout';
+
+// Custom components
 import TextLink from '@/components/text-link';
+
+// Shadcn UI Components
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
-import AuthLayout from '@/layouts/auth-layout';
-import { Form, Head } from '@inertiajs/react';
+
+// Icons
+import { Send } from 'lucide-react';
 
 export default function VerifyEmail({ status }: { status?: string }) {
     return (
@@ -15,23 +24,20 @@ export default function VerifyEmail({ status }: { status?: string }) {
         >
             <Head title="Email verification" />
 
-            {status === 'verification-link-sent' && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
-                    A new verification link has been sent to the email address
-                    you provided during registration.
-                </div>
-            )}
-
-            <Form method={"POST"} action={route('password.email')} className="space-y-6 text-center">
+            <Form
+                method={'POST'}
+                action={route('auth.verification.send')}
+                className="space-y-6 text-center"
+            >
                 {({ processing }) => (
                     <>
                         <Button disabled={processing} variant="secondary">
-                            {processing && <Spinner />}
+                            {processing ? <Spinner /> : <Send />}
                             Resend verification email
                         </Button>
 
                         <TextLink
-                            href={route('logout')}
+                            href={route('auth.logout')}
                             className="mx-auto block text-sm"
                         >
                             Log out

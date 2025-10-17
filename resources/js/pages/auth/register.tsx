@@ -1,14 +1,23 @@
 // pages/auth/register.tsx
 
+// Necessary imports
 import { Form, Head } from '@inertiajs/react';
 
+// Layout
+import AuthLayout from '@/layouts/auth-layout';
+
+// Custom components
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
+
+// Shadcn UI Components
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import AuthLayout from '@/layouts/auth-layout';
+
+// Icons
+import { UserPlus } from 'lucide-react';
 
 export default function Register() {
     return (
@@ -96,8 +105,9 @@ export default function Register() {
                                 className="mt-2 w-full"
                                 tabIndex={5}
                                 data-test="register-user-button"
+                                disabled={processing}
                             >
-                                {processing && <Spinner />}
+                                {processing ? <Spinner /> : <UserPlus />}
                                 Create account
                             </Button>
                         </div>

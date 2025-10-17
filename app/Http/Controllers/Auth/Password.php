@@ -36,14 +36,11 @@ class Password extends Controller
     /**
      * Show the password reset link request page.
      * 
-     * @param \Illuminate\Http\Request $request
      * @return \Inertia\Response
      */
-    public function forget(Request $request): Response
+    public function forget(): Response
     {
-        return Inertia::render('auth/forgot-password', [
-            'status' => $request->session()->get('status'),
-        ]);
+        return Inertia::render('auth/forgot-password');
     }
 
     /**
@@ -57,11 +54,9 @@ class Password extends Controller
     {
         $data = $request->validated();
 
-        FacadesPassword::sendResetLink(
-            $data['email']
-        );
+        FacadesPassword::sendResetLink($data);
 
-        return back()->with('status', __('A reset link will be sent if the account exists.'));
+        return back()->with(['success' => [__('A reset link will be sent if the account exists.')]]);
     }
 
     /**

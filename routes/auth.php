@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\Login as ControllersLogin;
 use App\Http\Controllers\Auth\Register as ControllersRegister;
 use App\Http\Controllers\Auth\Password as ControllersPassword;
+use App\Http\Controllers\Auth\EmailVerification as ControllersEmail;
 
 Route::prefix('auth/')->name('auth.')->group(function() {
 
@@ -30,9 +31,17 @@ Route::prefix('auth/')->name('auth.')->group(function() {
 
     // Password Reset
     Route::controller(ControllersPassword::class)->middleware('guest')->group(function() {
-        Route::get('forgot-password', 'forgot')->name('password.request');
+        Route::get('forgot-password', 'forget')->name('password.request');
         Route::post('forgot-password', 'sendResetLinkEmail')->name('password.email');
         Route::get('reset-password/{token}', 'reset')->name('password.reset');
         Route::post('reset-password', 'update')->name('password.update');
+    });
+
+    // Email Verification
+    Route::controller(ControllersEmail::class)->middleware(['web', 'auth'])->group(function() {
+        Route::get('verify-email', 'notice')->name('verification.notice');
+        Route::post('verification-notification', 'sendVerificationEmail')->name('verification.send');
+
+        Route::get('verify-email/{verification_token}', 'verify')->name('verification.verify');
     });
 });

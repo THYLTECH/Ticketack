@@ -1,15 +1,22 @@
 // pages/auth/forgot-password.tsx
 
-// Components
+// Necessary imports
 import { Form, Head } from '@inertiajs/react';
-import { LoaderCircle } from 'lucide-react';
 
+// Layout
+import AuthLayout from '@/layouts/auth-layout';
+
+// Custom components
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
+
+// Shadcn UI Components
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import AuthLayout from '@/layouts/auth-layout';
+
+// Icons
+import { LoaderCircle, Send } from 'lucide-react';
 
 export default function ForgotPassword({ status }: { status?: string }) {
     return (
@@ -19,14 +26,8 @@ export default function ForgotPassword({ status }: { status?: string }) {
         >
             <Head title="Forgot password" />
 
-            {status && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
-                    {status}
-                </div>
-            )}
-
             <div className="space-y-6">
-                <Form method={'POST'} action={route('password.email')}>
+                <Form method={'POST'} action={route('auth.password.email')}>
                     {({ processing, errors }) => (
                         <>
                             <div className="grid gap-2">
@@ -35,6 +36,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                                     id="email"
                                     type="email"
                                     name="email"
+                                    required
                                     autoComplete="off"
                                     autoFocus
                                     placeholder="email@example.com"
@@ -49,10 +51,12 @@ export default function ForgotPassword({ status }: { status?: string }) {
                                     disabled={processing}
                                     data-test="email-password-reset-link-button"
                                 >
-                                    {processing && (
+                                    {processing ? (
                                         <LoaderCircle className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                        <Send className='h-4 w-4'/>
                                     )}
-                                    Email password reset link
+                                    Send email password reset link
                                 </Button>
                             </div>
                         </>
@@ -61,7 +65,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
 
                 <div className="space-x-1 text-center text-sm text-muted-foreground">
                     <span>Or, return to</span>
-                    <TextLink href={route('login')}>log in</TextLink>
+                    <TextLink href={route('auth.login')}>log in</TextLink>
                 </div>
             </div>
         </AuthLayout>

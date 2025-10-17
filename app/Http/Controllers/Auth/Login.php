@@ -28,7 +28,7 @@ class Login extends Controller
      */
     public function create()
     {
-        return Inertia::render('auth/login');
+        return Inertia::render('auth/login', ['canResetPassword' => true]);
     }
 
     /**
@@ -49,6 +49,10 @@ class Login extends Controller
 
         /** @var \Illuminate\Http\Request $request */
         $request->session()->regenerate();
+
+        if(Auth::user()->email_verified_at === null) {
+            return redirect()->route('auth.verification.notice');
+        }
 
         return redirect()->intended(route('dashboard'));
     }
