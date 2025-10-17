@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Route;
 // Controllers
 use App\Http\Controllers\Auth\Login as ControllersLogin;
 use App\Http\Controllers\Auth\Register as ControllersRegister;
-use App\Http\Controllers\Auth\PasswordReset as ControllersPasswordReset;
+use App\Http\Controllers\Auth\Password as ControllersPassword;
 
 Route::prefix('auth/')->name('auth.')->group(function() {
 
@@ -29,7 +29,7 @@ Route::prefix('auth/')->name('auth.')->group(function() {
     });
 
     // Password Reset
-    Route::controller(ControllersPasswordReset::class)->middleware('guest')->group(function() {
+    Route::controller(ControllersPassword::class)->middleware('guest')->group(function() {
         Route::get('forgot-password', 'forgot')->name('password.request');
         Route::post('forgot-password', 'sendResetLinkEmail')->name('password.email');
         Route::get('reset-password/{token}', 'reset')->name('password.reset');

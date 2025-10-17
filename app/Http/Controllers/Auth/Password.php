@@ -1,25 +1,43 @@
 <?php
 
+// app/Http/Controllers/Auth/Password.php
+
 namespace App\Http\Controllers\Auth;
 
+// Necessary imports
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Password as FacadesPassword;
 use Inertia\Inertia;
 use Inertia\Response;
-use App\Models\User;
-use Illuminate\Auth\Events\PasswordReset as EventsPasswordReset;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Validation\Rules\Password as RulesPassword;
 
+// Models
+use App\Models\User;
 
-class PasswordReset extends Controller
+// Requests
+use App\Http\Requests\Auth\SendResetLinkEmail as RequestsSendResetLinkEmail;
+use App\Http\Requests\Auth\ResetPassword as RequestsResetPassword;
+
+// Events
+use Illuminate\Auth\Events\PasswordReset as EventsPasswordReset;
+
+/**
+ * Class PasswordReset
+ * 
+ * Handles password reset functionalities including sending reset links and updating passwords.
+ * 
+ * @package App\Http\Controllers\Auth
+ */
+class Password extends Controller
 {
     /**
      * Show the password reset link request page.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * @return \Inertia\Response
      */
     public function forget(Request $request): Response
     {
@@ -32,15 +50,15 @@ class PasswordReset extends Controller
      * Handle an incoming password reset link request.
      *
      * @throws \Illuminate\Validation\ValidationException
+     * @param \App\Http\Requests\Auth\SendResetLinkEmail $request
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function sendResetLinkEmail(Request $request): RedirectResponse
+    public function sendResetLinkEmail(RequestsSendResetLinkEmail $request): RedirectResponse
     {
-        $request->validate([
-            'email' => 'required|email',
-        ]);
+        $data = $request->validated();
 
-        Password::sendResetLink(
-            $request->only('email')
+        FacadesPassword::sendResetLink(
+            $data['email']
         );
 
         return back()->with('status', __('A reset link will be sent if the account exists.'));
@@ -48,6 +66,9 @@ class PasswordReset extends Controller
 
     /**
      * Show the password reset page.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * @return \Inertia\Response
      */
     public function reset(Request $request): Response
     {
@@ -62,22 +83,18 @@ class PasswordReset extends Controller
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function update(Request $request): RedirectResponse
+    public function update(RequestsResetPassword $request): RedirectResponse
     {
-        $request->validate([
-            'token' => 'required',
-            'email' => 'required|email',
-            'password' => ['required', 'confirmed', RulesPassword::defaults()],
-        ]);
+        $data = $request->validated();
 
         // Here we will attempt to reset the user's password. If it is successful we
         // will update the password on an actual user model and persist it to the
         // database. Otherwise we will parse the error and return the response.
         $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function (User $user) use ($request) {
+            $data,
+            function (User $user) use ($data) {
                 $user->forceFill([
-                    'password' => $request->password,
+                    'password' => $data['password'],
                     'remember_token' => Str::random(60),
                 ])->save();
 
@@ -88,7 +105,7 @@ class PasswordReset extends Controller
         // If the password was successfully reset, we will redirect the user back to
         // the application's home authenticated view. If there is an error we can
         // redirect them back to where they came from with their error message.
-        if ($status == Password::PasswordReset) {
+        if ($status == FacadesPassword::PASSWORD_RESET) {
             return to_route('login')->with('status', __($status));
         }
 

@@ -6,17 +6,20 @@ namespace App\Http\Controllers\Auth;
 
 // Necessary imports
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Auth\Login as RequestsLogin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
-// Requests
 use Inertia\Inertia;
+
+// Requests
+use App\Http\Requests\Auth\Login as RequestsLogin;
 
 /**
  * Class Login
- *
+ * 
  * Handles user authentication including login and logout functionalities.
+ * 
+ * @package App\Http\Controllers\Auth
  */
 class Login extends Controller
 {
@@ -30,14 +33,15 @@ class Login extends Controller
 
     /**
      * Authenticate the user.
-     *
+     * 
+     * @param \App\Http\Requests\Auth\Login $request
      * @return \Illuminate\Http\RedirectResponse
      */
     public function store(RequestsLogin $request)
     {
         $credentials = $request->validated();
 
-        if (! Auth::attempt($credentials, $credentials['remember'] ?? false)) {
+        if (!Auth::attempt($credentials, $credentials['remember'] ?? false)) {
             throw ValidationException::withMessages([
                 'email' => __('The provided credentials are incorrect.'),
             ]);
@@ -51,7 +55,8 @@ class Login extends Controller
 
     /**
      * Log the user out of the application.
-     *
+     * 
+     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\RedirectResponse
      */
     public function logout(Request $request)

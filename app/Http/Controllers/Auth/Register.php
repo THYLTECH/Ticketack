@@ -6,17 +6,27 @@ namespace App\Http\Controllers\Auth;
 
 // Necessary imports
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Auth\Register as RequestsRegister;
-use App\Models\User;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
-// Models
 use Illuminate\Support\Facades\Auth;
-// Requests
 use Inertia\Inertia;
-// Events
 use Inertia\Response;
 
+// Models
+use App\Models\User;
+
+// Requests
+use App\Http\Requests\Auth\Register as RequestsRegister;
+
+// Events
+use Illuminate\Auth\Events\Registered;
+
+/**
+ * Class Register
+ * 
+ * Handles user registration functionalities.
+ * 
+ * @package App\Http\Controllers\Auth
+ */
 class Register extends Controller
 {
     /**
@@ -31,6 +41,8 @@ class Register extends Controller
      * Handle an incoming registration request.
      *
      * @throws \Illuminate\Validation\ValidationException
+     * @param \App\Http\Requests\Auth\Register $request
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function store(RequestsRegister $request): RedirectResponse
     {

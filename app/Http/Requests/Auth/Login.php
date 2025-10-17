@@ -31,9 +31,9 @@ class Login extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
-            'password' => ['required', 'string'],
-            'remember' => ['sometimes', 'boolean'],
+            'email'     => ['required', 'string', 'email'],
+            'password'  => ['required', 'string'],
+            'remember'  => ['sometimes', 'boolean'],
         ];
     }
 
@@ -45,12 +45,12 @@ class Login extends FormRequest
     public function messages(): array
     {
         return [
-            'email.required' => __('Email is required.'),
-            'email.string' => __('Email must be a string.'),
-            'email.email' => __('Please provide a valid email address.'),
+            'email.required'    => __('Email is required.'),
+            'email.string'      => __('Email must be a string.'),
+            'email.email'       => __('Please provide a valid email address.'),
             'password.required' => __('Password is required.'),
-            'password.string' => __('Password must be a string.'),
-            'remember.boolean' => __('Remember me must be true or false.'),
+            'password.string'   => __('Password must be a string.'),
+            'remember.boolean'  => __('Remember me must be true or false.'),
         ];
     }
 }

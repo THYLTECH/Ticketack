@@ -4,10 +4,11 @@
 
 namespace App\Http\Requests\Auth;
 
-use App\Models\User;
-use Illuminate\Foundation\Http\FormRequest;
-// Models
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Foundation\Http\FormRequest;
+
+// Models
+use App\Models\User;
 
 /**
  * Class Register
@@ -33,9 +34,9 @@ class Register extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'name'      => ['required', 'string', 'max:255'],
+            'email'     => ['required', 'string', 'email', 'max:255', 'unique:'.User::class],
+            'password'  => ['required', 'string', 'min:8', 'confirmed'],
         ];
     }
 
@@ -47,18 +48,18 @@ class Register extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => __('Name is required.'),
-            'name.string' => __('Name must be a string.'),
-            'name.max' => __('Name may not be greater than :max characters.'),
-            'email.required' => __('Email is required.'),
-            'email.string' => __('Email must be a string.'),
-            'email.email' => __('Please provide a valid email address.'),
-            'email.max' => __('Email may not be greater than :max characters.'),
-            'email.unique' => __('This email is already registered.'),
-            'password.required' => __('Password is required.'),
-            'password.string' => __('Password must be a string.'),
-            'password.min' => __('Password must be at least :min characters.'),
-            'password.confirmed' => __('Password confirmation does not match.'),
+            'name.required'         => __('Name is required.'),
+            'name.string'           => __('Name must be a string.'),
+            'name.max'              => __('Name may not be greater than :max characters.'),
+            'email.required'        => __('Email is required.'),
+            'email.string'          => __('Email must be a string.'),
+            'email.email'           => __('Please provide a valid email address.'),
+            'email.max'             => __('Email may not be greater than :max characters.'),
+            'email.unique'          => __('This email is already registered.'),
+            'password.required'     => __('Password is required.'),
+            'password.string'       => __('Password must be a string.'),
+            'password.min'          => __('Password must be at least :min characters.'),
+            'password.confirmed'    => __('Password confirmation does not match.'),
         ];
     }
 }
