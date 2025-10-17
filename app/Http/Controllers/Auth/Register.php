@@ -1,15 +1,20 @@
 <?php
 
+// app/Http/Controllers/Auth/Register.php
+
 namespace App\Http\Controllers\Auth;
 
+// Necessary imports
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\Auth\Register as RequestsRegister;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Validation\Rules;
+// Models
 use Illuminate\Support\Facades\Auth;
+// Requests
 use Inertia\Inertia;
+// Events
 use Inertia\Response;
 
 class Register extends Controller
@@ -27,24 +32,17 @@ class Register extends Controller
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function store(Request $request): RedirectResponse
+    public function store(RequestsRegister $request): RedirectResponse
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ]);
+        $data = $request->validated();
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => $request->password,
-        ]);
+        $user = User::create($data);
 
         event(new Registered($user));
 
         Auth::login($user);
 
+        /** @var \Illuminate\Http\Request $request */
         $request->session()->regenerate();
 
         return redirect()->intended(route('dashboard', absolute: false));
