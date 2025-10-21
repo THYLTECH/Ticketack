@@ -18,7 +18,7 @@ import { Label } from '@/components/ui/label';
 // Icons
 import { LoaderCircle, Send } from 'lucide-react';
 
-export default function ForgotPassword({ status }: { status?: string }) {
+export default function ForgotPassword() {
     return (
         <AuthLayout
             title="Forgot password"
@@ -40,9 +40,8 @@ export default function ForgotPassword({ status }: { status?: string }) {
                                     autoComplete="off"
                                     autoFocus
                                     placeholder="email@example.com"
+                                    aria-invalid={errors.email ? 'true' : 'false'}
                                 />
-
-                                <InputError message={errors.email} />
                             </div>
 
                             <div className="my-6 flex items-center justify-start">

@@ -47,10 +47,7 @@ export default function Register() {
                                     autoComplete="name"
                                     name="name"
                                     placeholder="Full name"
-                                />
-                                <InputError
-                                    message={errors.name}
-                                    className="mt-2"
+                                    aria-invalid={errors.name ? 'true' : 'false'}
                                 />
                             </div>
 
@@ -64,8 +61,8 @@ export default function Register() {
                                     autoComplete="email"
                                     name="email"
                                     placeholder="email@example.com"
+                                    aria-invalid={errors.email ? 'true' : 'false'}
                                 />
-                                <InputError message={errors.email} />
                             </div>
 
                             <div className="grid gap-2">
@@ -78,8 +75,8 @@ export default function Register() {
                                     autoComplete="new-password"
                                     name="password"
                                     placeholder="Password"
+                                    aria-invalid={errors.password ? 'true' : 'false'}
                                 />
-                                <InputError message={errors.password} />
                             </div>
 
                             <div className="grid gap-2">
@@ -94,9 +91,7 @@ export default function Register() {
                                     autoComplete="new-password"
                                     name="password_confirmation"
                                     placeholder="Confirm password"
-                                />
-                                <InputError
-                                    message={errors.password_confirmation}
+                                    aria-invalid={errors.password_confirmation ? 'true' : 'false'}
                                 />
                             </div>
 

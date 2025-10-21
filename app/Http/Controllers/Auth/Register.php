@@ -57,6 +57,6 @@ class Register extends Controller
         /** @var \Illuminate\Http\Request $request */
         $request->session()->regenerate();
 
-        return redirect()->route('auth.verification.notice');
+        return redirect()->intended(route('dashboard'));
     }
 }

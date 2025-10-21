@@ -16,7 +16,7 @@ import { Spinner } from '@/components/ui/spinner';
 // Icons
 import { Send } from 'lucide-react';
 
-export default function VerifyEmail({ status }: { status?: string }) {
+export default function VerifyEmail() {
     return (
         <AuthLayout
             title="Verify email"

@@ -50,11 +50,7 @@ class Login extends Controller
         /** @var \Illuminate\Http\Request $request */
         $request->session()->regenerate();
 
-        if(Auth::user()->email_verified_at === null) {
-            return redirect()->route('auth.verification.notice');
-        }
-
-        return redirect()->intended(route('dashboard'));
+        return redirect()->intended(route('dashboard'))->with(['success' => 'Logged in successfully.']);
     }
 
     /**
@@ -70,6 +66,6 @@ class Login extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('home');
+        return redirect()->route('home')->with(['success' => 'Logged out successfully.']);
     }
 }

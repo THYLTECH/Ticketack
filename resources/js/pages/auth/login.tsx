@@ -52,8 +52,8 @@ export default function Login({
                                     tabIndex={1}
                                     autoComplete="email"
                                     placeholder="email@example.com"
+                                    aria-invalid={errors.email ? 'true' : 'false'}
                                 />
-                                <InputError message={errors.email} />
                             </div>
 
                             <div className="grid gap-2">
@@ -79,8 +79,8 @@ export default function Login({
                                     tabIndex={2}
                                     autoComplete="current-password"
                                     placeholder="Password"
+                                    aria-invalid={errors.password ? 'true' : 'false'}
                                 />
-                                <InputError message={errors.password} />
                             </div>
 
                             <div className="flex items-center space-x-3">

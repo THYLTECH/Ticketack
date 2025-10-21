@@ -47,10 +47,7 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                                 value={email}
                                 className="mt-1 block w-full"
                                 readOnly
-                            />
-                            <InputError
-                                message={errors.email}
-                                className="mt-2"
+                                aria-invalid={errors.email ? 'true' : 'false'}
                             />
                         </div>
 
@@ -65,8 +62,8 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                                 className="mt-1 block w-full"
                                 autoFocus
                                 placeholder="Password"
+                                aria-invalid={errors.password ? 'true' : 'false'}
                             />
-                            <InputError message={errors.password} />
                         </div>
 
                         <div className="grid gap-2">
@@ -80,10 +77,7 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                                 autoComplete="new-password"
                                 className="mt-1 block w-full"
                                 placeholder="Confirm password"
-                            />
-                            <InputError
-                                message={errors.password_confirmation}
-                                className="mt-2"
+                                aria-invalid={errors.password_confirmation ? 'true' : 'false'}
                             />
                         </div>
 
