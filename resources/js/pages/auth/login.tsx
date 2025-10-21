@@ -7,7 +7,6 @@ import { Form, Head } from '@inertiajs/react';
 import AuthLayout from '@/layouts/auth-layout';
 
 // Custom components
-import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 
 // Shadcn UI Components

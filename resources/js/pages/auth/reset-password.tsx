@@ -6,9 +6,6 @@ import { Form, Head } from '@inertiajs/react';
 // Layout
 import AuthLayout from '@/layouts/auth-layout';
 
-// Custom components
-import InputError from '@/components/input-error';
-
 // Shadcn UI Components
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

@@ -1,11 +1,8 @@
 // layouts/auth-layout.tsx
 
 // Necessary imports
-import { type ReactNode, useEffect } from 'react';
+import { useEffect } from 'react';
 import { usePage } from '@inertiajs/react';
-
-// Types
-import { type BreadcrumbItem } from '@/types';
 
 // Layout
 import AuthLayoutTemplate from '@/layouts/auth/auth-simple-layout';
