@@ -30,18 +30,23 @@ Route::prefix('auth/')->name('auth.')->group(function() {
     });
 
     // Password Reset
-    Route::controller(ControllersPassword::class)->middleware('guest')->group(function() {
-        Route::get('forgot-password', 'forget')->name('password.request');
-        Route::post('forgot-password', 'sendResetLinkEmail')->name('password.email');
-        Route::get('reset-password/{token}', 'reset')->name('password.reset');
-        Route::post('reset-password', 'update')->name('password.update');
+    Route::controller(ControllersPassword::class)->middleware('guest')->name('password.')->group(function() {
+        Route::get('forgot-password', 'forget')->name('request');
+        Route::post('forgot-password', 'sendResetLinkEmail')->name('email');
+        Route::get('reset-password/{token}', 'reset')->name('reset');
+        Route::post('reset-password', 'update')->name('update');
     });
 
     // Email Verification
-    Route::controller(ControllersEmail::class)->middleware(['web', 'auth'])->group(function() {
-        Route::get('verify-email', 'notice')->name('verification.notice');
-        Route::post('verification-notification', 'sendVerificationEmail')->name('verification.send');
+    Route::controller(ControllersEmail::class)->name('verification.')->group(function() {
 
-        Route::get('verify-email/{verification_token}', 'verify')->name('verification.verify');
+        Route::get('verify-email/{token}', 'verify')->name('verify');
+        
+        Route::middleware(['web', 'auth'])->group(function() {
+            Route::get('verify-email', 'notice')->name('notice');
+            Route::post('verification-notification', 'sendVerificationEmail')->name('send');
+        });
+
+
     });
 });

@@ -12,6 +12,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 
+// Icons
+import { RefreshCcw } from 'lucide-react';
+
 interface ResetPasswordProps {
     token: string;
     email: string;
@@ -26,13 +29,13 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
             <Head title="Reset password" />
 
             <Form
-                action={route('auth.password.store')}
+                action={route('auth.password.update')}
                 method={'POST'}
                 transform={(data) => ({ ...data, token, email })}
                 resetOnSuccess={['password', 'password_confirmation']}
             >
                 {({ processing, errors }) => (
-                    <div className="grid gap-6">
+                    <div className="grid gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="email">Email</Label>
                             <Input
@@ -59,7 +62,9 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                                 className="mt-1 block w-full"
                                 autoFocus
                                 placeholder="Password"
-                                aria-invalid={errors.password ? 'true' : 'false'}
+                                aria-invalid={
+                                    errors.password ? 'true' : 'false'
+                                }
                             />
                         </div>
 
@@ -74,7 +79,11 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                                 autoComplete="new-password"
                                 className="mt-1 block w-full"
                                 placeholder="Confirm password"
-                                aria-invalid={errors.password_confirmation ? 'true' : 'false'}
+                                aria-invalid={
+                                    errors.password_confirmation
+                                        ? 'true'
+                                        : 'false'
+                                }
                             />
                         </div>
 
@@ -84,7 +93,7 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                             disabled={processing}
                             data-test="reset-password-button"
                         >
-                            {processing && <Spinner />}
+                            {processing ? <Spinner /> : <RefreshCcw />}
                             Reset password
                         </Button>
                     </div>

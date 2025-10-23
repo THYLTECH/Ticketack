@@ -17,8 +17,11 @@ use App\Models\User;
 // Requests
 use App\Http\Requests\Auth\Register as RequestsRegister;
 
-// Events
-use Illuminate\Auth\Events\Registered;
+// Jobs
+use App\Jobs\SendEmailJob;
+
+// Mails
+use App\Mail\Auth\RegisteredEmail;
 
 /**
  * Class Register
@@ -50,13 +53,14 @@ class Register extends Controller
 
         $user = User::create($data);
 
-        event(new Registered($user));
+        $mail = new RegisteredEmail($user);
+        SendEmailJob::dispatch($mail, $user->email);
 
         Auth::login($user);
 
         /** @var \Illuminate\Http\Request $request */
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard'));
+        return redirect()->intended(route('dashboard'))->with(['success' => __('auth.register.success')]);
     }
 }

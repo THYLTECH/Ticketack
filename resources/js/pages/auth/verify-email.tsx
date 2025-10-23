@@ -1,13 +1,12 @@
 // pages/auth/verify-email.tsx
 
 // Necessary imports
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, Link } from '@inertiajs/react';
 
 // Layout
 import AuthLayout from '@/layouts/auth-layout';
 
 // Custom components
-import TextLink from '@/components/text-link';
 
 // Shadcn UI Components
 import { Button } from '@/components/ui/button';
@@ -20,7 +19,7 @@ export default function VerifyEmail() {
     return (
         <AuthLayout
             title="Verify email"
-            description="Please verify your email address by clicking on the link we just emailed to you."
+            description="Please click on the button below to receive an email to verify your email address."
         >
             <Head title="Email verification" />
 
@@ -33,15 +32,18 @@ export default function VerifyEmail() {
                     <>
                         <Button disabled={processing} variant="secondary">
                             {processing ? <Spinner /> : <Send />}
-                            Resend verification email
+                            Send verification email
                         </Button>
-
-                        <TextLink
-                            href={route('auth.logout')}
-                            className="mx-auto block text-sm"
+                        <Button
+                            asChild
+                            variant={'link'}
+                            size={'sm'}
+                            className="block p-0"
                         >
-                            Log out
-                        </TextLink>
+                            <Link href={route('auth.logout')} tabIndex={5}>
+                                Log out
+                            </Link>
+                        </Button>
                     </>
                 )}
             </Form>

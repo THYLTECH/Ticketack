@@ -10,12 +10,17 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Inertia\Response;
+use Illuminate\Http\RedirectResponse;
 
 // Models
 use App\Models\User;
 
-// Events
-// TODO
+// Jobs
+use App\Jobs\SendEmailJob;
+
+// Mails
+use App\Mail\Auth\VerifyEmail;
 
 /**
  * Class EmailVerification
@@ -29,11 +34,9 @@ class EmailVerification extends Controller
      *
      * @return \Inertia\Response
      */
-    public function notice(Request $request)
+    public function notice(Request $request): Response
     {
         $status = $request->session()->get('status');
-
-        self::_sendVerificationEmailTo(Auth::user());
 
         return Inertia::render('auth/verify-email', [
             'status' => $status,
@@ -45,32 +48,24 @@ class EmailVerification extends Controller
      *
      * @param  App\Http\Requests\Auth\SendResetLinkEmail  $request
      */
-    public function sendVerificationEmail()
+    public function sendVerificationEmail(): RedirectResponse
     {
         // Check if users is not already verified
         if (Auth::user()->email_verified_at !== null) {
             return redirect()->route('dashboard');
         }
 
-        self::_sendVerificationEmailTo(Auth::user());
-
-        return redirect()->route('auth.verification.notice')->with([
-            'success' => __('A new verification link has been sent to the email address you provided during registration.')
-        ]);
-    }
-
-    /**
-     * Send verification email to user.
-     * 
-     * @param  User  $user
-     */
-    private static function _sendVerificationEmailTo(User $user)
-    {
         $token = Str::random(12);
+        $user = Auth::user();
 
         $user->update(['verification_token' => $token]);
 
-        // TODO : Trigger event that sends mail with token
+        $mail = new VerifyEmail($user, $token);
+        SendEmailJob::dispatch($mail);
+
+        return redirect()->route('auth.verification.notice')->with([
+            'success' => __('auth.verification.link_sent'),
+        ]);
     }
 
     /**
@@ -79,19 +74,19 @@ class EmailVerification extends Controller
      * @param  string  $verification_token
      * @return \Inertia\Response|\Illuminate\Http\RedirectResponse
      */
-    public function verify($verification_token)
-    {
+    public function verify(string $token): RedirectResponse | Response
+    {   
         // Find user by verification token
-        $user = User::where('email_verification_token', $verification_token)->first();
+        $user = User::where('verification_token', $token)->first();
 
         if (! $user) {
-            return redirect()->route('auth.verification.notice')->withErrors(['verification' => __('Invalid verification token.')]);
+            return redirect()->route('auth.verification.notice')->withErrors(['verification' => __('auth.verification.invalid_token')]);
         }
 
         // Mark the user's email as verified
         $user->update([
             'email_verified_at' => now(),
-            'email_verification_token' => null, // Clear the token
+            'verification_token' => null,
         ]);
 
         return Inertia::render('auth/email-verified');

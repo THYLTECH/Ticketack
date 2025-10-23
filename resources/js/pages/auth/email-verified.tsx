@@ -1,4 +1,4 @@
-// pages/auth/verify-email.tsx
+// pages/auth/email-verified.tsx
 
 // Necessary imports
 import { Head, Link } from '@inertiajs/react';
@@ -6,16 +6,13 @@ import { Head, Link } from '@inertiajs/react';
 // Layout
 import AuthLayout from '@/layouts/auth-layout';
 
-// Custom Components
-import TextLink from '@/components/text-link';
-
 // Shadcn UI Components
 import { Button } from '@/components/ui/button';
 
 // Icons
 import { LogIn } from 'lucide-react';
 
-export default function VerifyEmail() {
+export default function EmailVerified() {
     return (
         <AuthLayout
             title="Email verified!"
@@ -36,13 +33,16 @@ export default function VerifyEmail() {
                             Log in
                         </Link>
                     </Button>
-
-                    <TextLink
-                        href={route('home')}
-                        className="mx-auto block text-sm"
+                    <Button
+                        asChild
+                        variant={'link'}
+                        size={'sm'}
+                        className="p-0 block"
                     >
-                        Go to homepage
-                    </TextLink>
+                        <Link href={route('home')} tabIndex={5}>
+                            Go to homepage
+                        </Link>
+                    </Button>
                 </div>
             </div>
         </AuthLayout>

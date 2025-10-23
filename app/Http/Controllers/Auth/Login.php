@@ -8,8 +8,9 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
+use Illuminate\Http\RedirectResponse;
+use Inertia\Response;
 
 // Requests
 use App\Http\Requests\Auth\Login as RequestsLogin;
@@ -26,7 +27,7 @@ class Login extends Controller
     /**
      * Display the login form.
      */
-    public function create()
+    public function create(): Response
     {
         return Inertia::render('auth/login', ['canResetPassword' => true]);
     }
@@ -37,21 +38,31 @@ class Login extends Controller
      * @param \App\Http\Requests\Auth\Login $request
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function store(RequestsLogin $request)
+    public function store(RequestsLogin $request): RedirectResponse
     {
-        $credentials = $request->validated();
+        /** @var \Illuminate\Http\Request $request */
+        $data = $request->validated();
 
-        if (!Auth::attempt($credentials, $credentials['remember'] ?? false)) {
-            throw ValidationException::withMessages([
-                'email' => __('The provided credentials are incorrect.'),
-            ]);
+        $credentials = [
+            'email' => $data['email'],
+            'password' => $data['password'],
+        ];
+
+        if (!Auth::attempt($credentials, $data['remember'] ?? false)) {
+            return redirect()->back()
+                ->withInput($request->only('email', 'remember'))
+                ->with(['error' => [
+                    'title' => __('common.error'),
+                    'description' => __('auth.login.invalid_credentials')
+                ]]);
         }
 
-        /** @var \Illuminate\Http\Request $request */
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard'))->with(['success' => 'Logged in successfully.']);
+        return redirect()->intended(route('dashboard'))
+            ->with(['success' => __('auth.login.success')]);
     }
+
 
     /**
      * Log the user out of the application.
@@ -59,13 +70,13 @@ class Login extends Controller
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function logout(Request $request)
+    public function logout(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('home')->with(['success' => 'Logged out successfully.']);
+        return redirect()->route('home')->with(['success' => __('auth.logout.success')]);
     }
 }

@@ -40,13 +40,13 @@ export default function AppearanceToggleDropdown({
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => updateAppearance('light')}>
+                    <DropdownMenuItem onClick={() => updateAppearance('light')} disabled={appearance === 'light'}>
                         <span className="flex items-center gap-2">
                             <Sun className="h-5 w-5" />
                             Light
                         </span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => updateAppearance('dark')}>
+                    <DropdownMenuItem onClick={() => updateAppearance('dark')} disabled={appearance === 'dark'}>
                         <span className="flex items-center gap-2">
                             <Moon className="h-5 w-5" />
                             Dark
@@ -54,6 +54,7 @@ export default function AppearanceToggleDropdown({
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         onClick={() => updateAppearance('system')}
+                        disabled={appearance === 'system'}
                     >
                         <span className="flex items-center gap-2">
                             <Monitor className="h-5 w-5" />

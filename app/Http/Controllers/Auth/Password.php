@@ -8,11 +8,10 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Password as FacadesPassword;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Hash;
 
 // Models
 use App\Models\User;
@@ -21,8 +20,11 @@ use App\Models\User;
 use App\Http\Requests\Auth\SendResetLinkEmail as RequestsSendResetLinkEmail;
 use App\Http\Requests\Auth\ResetPassword as RequestsResetPassword;
 
-// Events
-use Illuminate\Auth\Events\PasswordReset as EventsPasswordReset;
+// Jobs
+use App\Jobs\SendEmailJob;
+
+// Mails
+use App\Mail\Auth\PasswordResetMail;
 
 /**
  * Class PasswordReset
@@ -54,9 +56,22 @@ class Password extends Controller
     {
         $data = $request->validated();
 
-        FacadesPassword::sendResetLink($data);
+        $plain_token = Str::random(64);
+        $hashed_token = hash('sha256', $plain_token);
 
-        return back()->with(['success' => [__('A reset link will be sent if the account exists.')]]);
+        $user = User::where('email', $data['email'])->first();
+
+        if($user) {
+            $user->passwordResetToken()->updateOrCreate(
+                ['email' => $user->email],
+                ['token' => $hashed_token, 'created_at' => now()]
+            );
+
+            $mail = new PasswordResetMail($user, $plain_token);
+            SendEmailJob::dispatch($mail);
+        }
+
+        return redirect()->back()->with(['success' => __('auth.password.reset_link_sent')]);
     }
 
     /**
@@ -82,30 +97,38 @@ class Password extends Controller
     {
         $data = $request->validated();
 
-        // Here we will attempt to reset the user's password. If it is successful we
-        // will update the password on an actual user model and persist it to the
-        // database. Otherwise we will parse the error and return the response.
-        $status = Password::reset(
-            $data,
-            function (User $user) use ($data) {
-                $user->forceFill([
-                    'password' => $data['password'],
-                    'remember_token' => Str::random(60),
-                ])->save();
-
-                event(new EventsPasswordReset($user));
-            }
-        );
-
-        // If the password was successfully reset, we will redirect the user back to
-        // the application's home authenticated view. If there is an error we can
-        // redirect them back to where they came from with their error message.
-        if ($status == FacadesPassword::PASSWORD_RESET) {
-            return to_route('login')->with('status', __($status));
+        // User does not exist
+        $user = User::where('email', $data['email'])->first();
+        if (!$user) {
+            return back()->with(['error' => ['title' => __('common.error'), 'description' => __('auth.password.user_not_found')]]);
         }
 
-        throw ValidationException::withMessages([
-            'email' => [__($status)],
+        // Record does not exist
+        $record = $user->passwordResetToken()->first();
+        if (!$record) {
+            return back()->with(['error' => ['title' => __('common.error'), 'description' => __('auth.password.token_missing')]]);
+        }
+
+        // Expiration (60 min)
+        if ($record->created_at && $record->created_at->lt(now()->subMinutes(60))) {
+            $record->delete();
+            return back()->with(['error' => ['title' => __('common.error'), 'description' => __('auth.password.token_expired')]]);
+        }
+
+        // Token does not match
+        if (! hash_equals($record->token, hash('sha256', $data['token']))) {
+            return back()->with(['error' => ['title' => __('common.error'), 'description' => __('auth.password.token_mismatch')]]);
+        }
+
+        // User updated
+        $user->update([
+            'password' => Hash::make($data['password']), 
+            'remember_token' => Str::random(60)
         ]);
+
+        // Invalidation of token
+        $record->delete();
+
+        return redirect()->route('auth.login')->with(['success' => __('auth.password.reset_success')]);
     }
 }

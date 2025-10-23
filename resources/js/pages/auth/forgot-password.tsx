@@ -1,13 +1,10 @@
 // pages/auth/forgot-password.tsx
 
 // Necessary imports
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, Link } from '@inertiajs/react';
 
 // Layout
 import AuthLayout from '@/layouts/auth-layout';
-
-// Custom components
-import TextLink from '@/components/text-link';
 
 // Shadcn UI Components
 import { Button } from '@/components/ui/button';
@@ -26,7 +23,11 @@ export default function ForgotPassword() {
             <Head title="Forgot password" />
 
             <div className="space-y-6">
-                <Form method={'POST'} action={route('auth.password.email')}>
+                <Form
+                    method={'POST'}
+                    action={route('auth.password.email')}
+                    resetOnSuccess
+                >
                     {({ processing, errors }) => (
                         <>
                             <div className="grid gap-2">
@@ -39,7 +40,9 @@ export default function ForgotPassword() {
                                     autoComplete="off"
                                     autoFocus
                                     placeholder="email@example.com"
-                                    aria-invalid={errors.email ? 'true' : 'false'}
+                                    aria-invalid={
+                                        errors.email ? 'true' : 'false'
+                                    }
                                 />
                             </div>
 
@@ -52,7 +55,7 @@ export default function ForgotPassword() {
                                     {processing ? (
                                         <LoaderCircle className="h-4 w-4 animate-spin" />
                                     ) : (
-                                        <Send className='h-4 w-4'/>
+                                        <Send className="h-4 w-4" />
                                     )}
                                     Send email password reset link
                                 </Button>
@@ -63,7 +66,16 @@ export default function ForgotPassword() {
 
                 <div className="space-x-1 text-center text-sm text-muted-foreground">
                     <span>Or, return to</span>
-                    <TextLink href={route('auth.login')}>log in</TextLink>
+                    <Button
+                        asChild
+                        variant={'link'}
+                        size={'sm'}
+                        className="p-0"
+                    >
+                        <Link href={route('auth.login')} tabIndex={5}>
+                            log in
+                        </Link>
+                    </Button>
                 </div>
             </div>
         </AuthLayout>
