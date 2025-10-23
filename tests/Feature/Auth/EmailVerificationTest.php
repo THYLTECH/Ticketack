@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\URL;
 test('email verification screen can be rendered', function () {
     $user = User::factory()->unverified()->create();
 
-    $response = $this->actingAs($user)->get(route('verification.notice'));
+    $response = $this->actingAs($user)->get(route('auth.verification.notice'));
 
     $response->assertStatus(200);
 });
@@ -19,7 +19,7 @@ test('email can be verified', function () {
     Event::fake();
 
     $verificationUrl = URL::temporarySignedRoute(
-        'verification.verify',
+        'auth.verification.verify',
         now()->addMinutes(60),
         ['id' => $user->id, 'hash' => sha1($user->email)]
     );
@@ -35,7 +35,7 @@ test('email is not verified with invalid hash', function () {
     $user = User::factory()->unverified()->create();
 
     $verificationUrl = URL::temporarySignedRoute(
-        'verification.verify',
+        'auth.verification.verify',
         now()->addMinutes(60),
         ['id' => $user->id, 'hash' => sha1('wrong-email')]
     );
@@ -51,7 +51,7 @@ test('email is not verified with invalid user id', function () {
     ]);
 
     $verificationUrl = URL::temporarySignedRoute(
-        'verification.verify',
+        'auth.verification.verify',
         now()->addMinutes(60),
         ['id' => 123, 'hash' => sha1($user->email)]
     );
@@ -66,7 +66,7 @@ test('verified user is redirected to dashboard from verification prompt', functi
         'email_verified_at' => now(),
     ]);
 
-    $response = $this->actingAs($user)->get(route('verification.notice'));
+    $response = $this->actingAs($user)->get(route('auth.verification.notice'));
 
     $response->assertRedirect(route('dashboard', absolute: false));
 });
@@ -79,7 +79,7 @@ test('already verified user visiting verification link is redirected without fir
     Event::fake();
 
     $verificationUrl = URL::temporarySignedRoute(
-        'verification.verify',
+        'auth.verification.verify',
         now()->addMinutes(60),
         ['id' => $user->id, 'hash' => sha1($user->email)]
     );

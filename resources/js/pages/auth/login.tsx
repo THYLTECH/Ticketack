@@ -26,7 +26,7 @@ export default function Login({
 }: {
     canResetPassword: boolean;
 }) {
-    const { props } = usePage<{ old?: Record<string, any> }>();
+    const { props } = usePage<{ old?: Record<string, string | undefined> }>();
     const old = props.old ?? {};
 
     const [visible, setVisible] = useState(false);
@@ -139,7 +139,7 @@ export default function Login({
                                     name="remember"
                                     value={'1'}
                                     tabIndex={3}
-                                    defaultChecked={old.remember ?? false}
+                                    defaultChecked={old.remember === '1'}
                                 />
                                 <Label htmlFor="remember">Remember me</Label>
                             </div>
