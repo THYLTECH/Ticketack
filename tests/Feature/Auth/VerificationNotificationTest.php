@@ -1,33 +1,36 @@
 <?php
 
+// tests/Feature/Auth/VerificationNotificationTest.php
+
 use App\Models\User;
-use Illuminate\Auth\Notifications\VerifyEmail;
-use Illuminate\Support\Facades\Notification;
+use App\Jobs\SendEmailJob;
+use Illuminate\Support\Facades\Queue;
 
 test('sends verification notification', function () {
-    Notification::fake();
+    Queue::fake();
 
     $user = User::factory()->create([
         'email_verified_at' => null,
     ]);
 
-    $this->actingAs($user)
-        ->post(route('auth.verification.send'))
-        ->assertRedirect(route('home'));
+    $response = $this->actingAs($user)->post(route('auth.verification.send'));
 
-    Notification::assertSentTo($user, VerifyEmail::class);
+    $response->assertRedirect(route('auth.verification.notice'));
+    $response->assertSessionHas('success');
+    Queue::assertPushed(SendEmailJob::class);
+
+    expect($user->fresh()->verification_token)->not->toBeNull();
 });
 
 test('does not send verification notification if email is verified', function () {
-    Notification::fake();
+    Queue::fake();
 
     $user = User::factory()->create([
         'email_verified_at' => now(),
     ]);
 
-    $this->actingAs($user)
-        ->post(route('auth.verification.send'))
-        ->assertRedirect(route('dashboard', absolute: false));
+    $response = $this->actingAs($user)->post(route('auth.verification.send'));
 
-    Notification::assertNothingSent();
+    $response->assertRedirect(route('dashboard'));
+    Queue::assertNothingPushed();
 });

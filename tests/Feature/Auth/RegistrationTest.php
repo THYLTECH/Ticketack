@@ -1,5 +1,7 @@
 <?php
 
+// tests/Feature/Auth/RegistrationTest.php
+
 test('registration screen can be rendered', function () {
     $response = $this->get(route('auth.register'));
 
