@@ -31,6 +31,7 @@ class Password extends FormRequest
     public function rules(): array
     {
         return [
+            'current_password' => ['required', 'string', 'current_password'],
             'password'  => ['required', 'string', 'min:8', 'confirmed'],
         ];
     }
@@ -43,6 +44,9 @@ class Password extends FormRequest
     public function messages(): array
     {
         return [
+            'current_password.required' => __('Current password is required.'),
+            'current_password.string'   => __('Current password must be a string.'),
+            'current_password.current_password' => __('The provided current password is incorrect.'),
             'password.required'     => __('Password is required.'),
             'password.string'       => __('Password must be a string.'),
             'password.min'          => __('Password must be at least :min characters.'),

@@ -35,6 +35,12 @@ class Password extends Controller
     {
         $data = $request->validated();
 
+        if(!Auth::validate(['id' => Auth::id(), 'password' => $data['current_password']])) {
+            return redirect()->back()->withErrors([
+                'current_password' => __('The provided current password is incorrect.'),
+            ]);
+        }
+
         Auth::user()->update([
             'password' => $data['password'],
         ]);

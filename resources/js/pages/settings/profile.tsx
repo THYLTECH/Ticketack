@@ -1,8 +1,8 @@
 // pages/settings/profile.tsx
 
 // Necessary imports
+import { Form, Head, usePage } from '@inertiajs/react';
 import { useRef } from 'react';
-import { Form, Head, Link, usePage } from '@inertiajs/react';
 
 // Layout
 import AppLayout from '@/layouts/app/layout';
@@ -13,9 +13,6 @@ import HeadingSmall from '@/components/heading-small';
 
 // Shadcn UI Components
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Spinner } from '@/components/ui/spinner';
 import {
     Dialog,
     DialogClose,
@@ -25,12 +22,16 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
+import { Separator } from '@/components/ui/separator';
 
 // Types
 import { type BreadcrumbItem, type SharedData } from '@/types';
 
 // Icons
-import { Save } from 'lucide-react';
+import { Save, Trash2 } from 'lucide-react';
 
 // Breadcrumbs
 const breadcrumbs: BreadcrumbItem[] = [
@@ -52,14 +53,14 @@ export default function Profile() {
             <Head title="Profile settings" />
 
             <SettingsLayout>
-                <div className="space-y-6">
+                <div className="space-y-6 mb-0">
                     <HeadingSmall
                         title="Profile information"
                         description="Update your name and email address"
                     />
 
                     <Form
-                        method={"PATCH"}
+                        method={'PATCH'}
                         action={route('settings.profile.update')}
                     >
                         {({ processing, errors }) => (
@@ -75,9 +76,10 @@ export default function Profile() {
                                         required
                                         autoComplete="name"
                                         placeholder="Full name"
-                                        aria-invalid={errors.name ? 'true' : 'false'}
+                                        aria-invalid={
+                                            errors.name ? 'true' : 'false'
+                                        }
                                     />
-
                                 </div>
 
                                 <div className="grid gap-2">
@@ -92,31 +94,31 @@ export default function Profile() {
                                         required
                                         autoComplete="username"
                                         placeholder="Email address"
-                                        aria-invalid={errors.email ? 'true' : 'false'}
+                                        aria-invalid={
+                                            errors.email ? 'true' : 'false'
+                                        }
                                     />
-
                                 </div>
                                 <Button
                                     disabled={processing}
-                                    type={"submit"}
-                                    className='grow-0'
+                                    type={'submit'}
+                                    className="grow-0"
                                 >
-                                    {processing ? <Spinner /> : <Save /> }
-                                    
+                                    {processing ? <Spinner /> : <Save />}
                                     Save
                                 </Button>
-                            </div>                            
+                            </div>
                         )}
                     </Form>
                 </div>
+
+                <Separator className='my-8'/>
 
                 <DeleteUser />
             </SettingsLayout>
         </AppLayout>
     );
 }
-
-
 
 function DeleteUser() {
     const passwordInput = useRef<HTMLInputElement>(null);
@@ -127,7 +129,7 @@ function DeleteUser() {
                 title="Delete account"
                 description="Delete your account and all of its resources"
             />
-            <div className="space-y-4 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10">
+            <div className="space-y-2 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10">
                 <div className="relative space-y-0.5 text-red-600 dark:text-red-100">
                     <p className="font-medium">Warning</p>
                     <p className="text-sm">
@@ -141,6 +143,7 @@ function DeleteUser() {
                             variant="destructive"
                             data-test="delete-user-button"
                         >
+                            <Trash2 />
                             Delete account
                         </Button>
                     </DialogTrigger>
@@ -156,8 +159,8 @@ function DeleteUser() {
                         </DialogDescription>
 
                         <Form
-                            method={"DELETE"}
-                            // action=TODO
+                            method={'DELETE'}
+                            action={route('settings.profile.destroy')}
                             options={{
                                 preserveScroll: true,
                             }}
@@ -182,7 +185,9 @@ function DeleteUser() {
                                             placeholder="Password"
                                             autoComplete="current-password"
                                             aria-invalid={
-                                                errors.password ? 'true' : 'false'
+                                                errors.password
+                                                    ? 'true'
+                                                    : 'false'
                                             }
                                         />
                                     </div>
@@ -202,14 +207,9 @@ function DeleteUser() {
                                         <Button
                                             variant="destructive"
                                             disabled={processing}
-                                            asChild
                                         >
-                                            <button
-                                                type="submit"
-                                                data-test="confirm-delete-user-button"
-                                            >
-                                                Delete account
-                                            </button>
+                                            <Trash2 />
+                                            Delete account
                                         </Button>
                                     </DialogFooter>
                                 </div>
