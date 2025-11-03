@@ -2,25 +2,30 @@
 
 // routes/settings.php
 
-use App\Http\Controllers\Settings\PasswordController;
-use App\Http\Controllers\Settings\ProfileController;
+// Necessary imports
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
-Route::middleware('auth')->group(function () {
-    Route::redirect('settings', '/settings/profile');
+// Controllers
+use App\Http\Controllers\Settings\Password as ControllersPassword;
+use App\Http\Controllers\Settings\Profile as ControllersProfile;
+use App\Http\Controllers\Settings\Appearance as ControllersAppearance;
 
-    Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('settings/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+Route::prefix('settings/')->name('settings.')->middleware(['auth', 'verified:auth.verification.notice'])->group(function() {
 
-    Route::get('settings/password', [PasswordController::class, 'edit'])->name('password.edit');
+    Route::controller(ControllersPassword::class)->prefix('password/')->name('password.')->group(function() {
+        Route::get('/', 'edit')->name('edit');
+        Route::put('/', 'update')->name('update');
+    });
 
-    Route::put('settings/password', [PasswordController::class, 'update'])
-        ->middleware('throttle:6,1')
-        ->name('password.update');
+    Route::controller(ControllersProfile::class)->prefix('profile/')->name('profile.')->group(function() {
+        Route::get('/', 'edit')->name('edit');
+        Route::patch('/', 'update')->name('update');
+        Route::delete('/', 'destroy')->name('destroy');
+    });
 
-    Route::get('settings/appearance', function () {
-        return Inertia::render('settings/appearance');
-    })->name('appearance.edit');
+    Route::controller(ControllersAppearance::class)->prefix('appearance/')->name('appearance.')->group(function() {
+        Route::get('/', 'edit')->name('edit');
+        // Route::put('appearance', 'update_theme')->name('appearance.update_theme');
+        // Route::put('appearance', 'update_color')->name('appearance.update_color');
+    });
 });

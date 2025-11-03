@@ -5,7 +5,7 @@ import { Form, Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
 
 // Layout
-import AuthLayout from '@/layouts/auth-layout';
+import AuthLayout from '@/layouts/auth/layout';
 
 // Shadcn UI Components
 import { Button } from '@/components/ui/button';

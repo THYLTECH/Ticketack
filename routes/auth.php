@@ -46,7 +46,5 @@ Route::prefix('auth/')->name('auth.')->group(function() {
             Route::get('verify-email', 'notice')->name('notice');
             Route::post('verification-notification', 'sendVerificationEmail')->name('send');
         });
-
-
     });
 });

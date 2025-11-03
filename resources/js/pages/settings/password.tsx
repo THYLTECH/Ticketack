@@ -1,6 +1,6 @@
 // pages/settings/password.tsx
 
-import AppLayout from '@/layouts/app-layout';
+import AppLayout from '@/layouts/app/layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import { type BreadcrumbItem } from '@/types';
 import { Transition } from '@headlessui/react';
@@ -14,8 +14,12 @@ import { Label } from '@/components/ui/label';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Password settings',
-        href: route('password.edit'),
+        title: 'Settings',
+        href: route('settings.profile.edit'),
+    },
+    {
+        title: 'Password',
+        href: route('settings.password.edit'),
     },
 ];
 
@@ -36,7 +40,7 @@ export default function Password() {
 
                     <Form
                         method={'PUT'}
-                        action={route('password.update')}
+                        action={route('settings.password.update')}
                         options={{
                             preserveScroll: true,
                         }}

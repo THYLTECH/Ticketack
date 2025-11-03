@@ -6,27 +6,22 @@ import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { type PropsWithChildren } from 'react';
+import { useEffect, type PropsWithChildren } from 'react';
 
 const sidebarNavItems: NavItem[] = [
     {
         title: 'Profile',
-        href: route('profile.edit'),
+        href: route('settings.profile.edit'),
         icon: null,
     },
     {
         title: 'Password',
-        href: route('password.edit'),
-        icon: null,
-    },
-    {
-        title: 'Two-Factor Auth',
-        href: route('two-factor.show'),
+        href: route('settings.password.edit'),
         icon: null,
     },
     {
         title: 'Appearance',
-        href: route('appearance.edit'),
+        href: route('settings.appearance.edit'),
         icon: null,
     },
 ];
@@ -37,7 +32,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
         return null;
     }
 
-    const currentPath = window.location.pathname;
+    const current_url = new URL(window.location.href).href;
 
     return (
         <div className="px-4 py-6">
@@ -56,11 +51,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                                 variant="ghost"
                                 asChild
                                 className={cn('w-full justify-start', {
-                                    'bg-muted':
-                                        currentPath ===
-                                        (typeof item.href === 'string'
-                                            ? item.href
-                                            : item.href.url),
+                                    'bg-muted': current_url === item.href,
                                 })}
                             >
                                 <Link href={item.href}>

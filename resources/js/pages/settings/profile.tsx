@@ -3,10 +3,9 @@
 // Necessary imports
 import { useRef } from 'react';
 import { Form, Head, Link, usePage } from '@inertiajs/react';
-import { Transition } from '@headlessui/react';
 
 // Layout
-import AppLayout from '@/layouts/app-layout';
+import AppLayout from '@/layouts/app/layout';
 import SettingsLayout from '@/layouts/settings/layout';
 
 // Custom components
@@ -16,6 +15,7 @@ import HeadingSmall from '@/components/heading-small';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 import {
     Dialog,
     DialogClose,
@@ -29,21 +29,22 @@ import {
 // Types
 import { type BreadcrumbItem, type SharedData } from '@/types';
 
+// Icons
+import { Save } from 'lucide-react';
+
 // Breadcrumbs
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Profile settings',
-        href: route('profile.edit'),
+        title: 'Settings',
+        href: route('settings.profile.edit'),
+    },
+    {
+        title: 'Profile',
+        href: route('settings.profile.edit'),
     },
 ];
 
-export default function Profile({
-    mustVerifyEmail,
-    status,
-}: {
-    mustVerifyEmail: boolean;
-    status?: string;
-}) {
+export default function Profile() {
     const { auth } = usePage<SharedData>().props;
 
     return (
@@ -58,15 +59,11 @@ export default function Profile({
                     />
 
                     <Form
-                        method={"PUT"}
-                        action={route('profile.update')}
-                        options={{
-                            preserveScroll: true,
-                        }}
-                        className="space-y-6"
+                        method={"PATCH"}
+                        action={route('settings.profile.update')}
                     >
-                        {({ processing, recentlySuccessful, errors }) => (
-                            <>
+                        {({ processing, errors }) => (
+                            <div className="space-y-4">
                                 <div className="grid gap-2">
                                     <Label htmlFor="name">Name</Label>
 
@@ -99,55 +96,16 @@ export default function Profile({
                                     />
 
                                 </div>
-
-                                {mustVerifyEmail &&
-                                    auth.user.email_verified_at === null && (
-                                        <div>
-                                            <p className="-mt-4 text-sm text-muted-foreground">
-                                                Your email address is
-                                                unverified.{' '}
-                                                <Link
-                                                    // href=TODO
-                                                    as="button"
-                                                    className="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
-                                                >
-                                                    Click here to resend the
-                                                    verification email.
-                                                </Link>
-                                            </p>
-
-                                            {status ===
-                                                'verification-link-sent' && (
-                                                <div className="mt-2 text-sm font-medium text-green-600">
-                                                    A new verification link has
-                                                    been sent to your email
-                                                    address.
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-
-                                <div className="flex items-center gap-4">
-                                    <Button
-                                        disabled={processing}
-                                        data-test="update-profile-button"
-                                    >
-                                        Save
-                                    </Button>
-
-                                    <Transition
-                                        show={recentlySuccessful}
-                                        enter="transition ease-in-out"
-                                        enterFrom="opacity-0"
-                                        leave="transition ease-in-out"
-                                        leaveTo="opacity-0"
-                                    >
-                                        <p className="text-sm text-neutral-600">
-                                            Saved
-                                        </p>
-                                    </Transition>
-                                </div>
-                            </>
+                                <Button
+                                    disabled={processing}
+                                    type={"submit"}
+                                    className='grow-0'
+                                >
+                                    {processing ? <Spinner /> : <Save /> }
+                                    
+                                    Save
+                                </Button>
+                            </div>                            
                         )}
                     </Form>
                 </div>
@@ -205,10 +163,9 @@ function DeleteUser() {
                             }}
                             onError={() => passwordInput.current?.focus()}
                             resetOnSuccess
-                            className="space-y-6"
                         >
                             {({ resetAndClearErrors, processing, errors }) => (
-                                <>
+                                <div className="space-y-4">
                                     <div className="grid gap-2">
                                         <Label
                                             htmlFor="password"
@@ -228,7 +185,6 @@ function DeleteUser() {
                                                 errors.password ? 'true' : 'false'
                                             }
                                         />
-
                                     </div>
 
                                     <DialogFooter className="gap-2">
@@ -256,7 +212,7 @@ function DeleteUser() {
                                             </button>
                                         </Button>
                                     </DialogFooter>
-                                </>
+                                </div>
                             )}
                         </Form>
                     </DialogContent>
