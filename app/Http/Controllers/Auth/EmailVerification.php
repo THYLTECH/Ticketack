@@ -34,13 +34,15 @@ class EmailVerification extends Controller
      *
      * @return \Inertia\Response
      */
-    public function notice(Request $request): Response
+    public function notice(): RedirectResponse|Response
     {
-        $status = $request->session()->get('status');
+        $user = Auth::user();
 
-        return Inertia::render('auth/verify-email', [
-            'status' => $status,
-        ]);
+        if ($user && $user->hasVerifiedEmail()) {
+            return redirect()->route('dashboard');
+        }
+
+        return Inertia::render('auth/verify-email');
     }
 
     /**
@@ -83,11 +85,12 @@ class EmailVerification extends Controller
             return redirect()->route('auth.verification.notice')->withErrors(['verification' => __('auth.verification.invalid_token')]);
         }
 
+        if ($user->hasVerifiedEmail()) {
+            return redirect()->route('dashboard');
+        }
+
         // Mark the user's email as verified
-        $user->update([
-            'email_verified_at' => now(),
-            'verification_token' => null,
-        ]);
+        $user->markEmailAsVerified();
 
         return Inertia::render('auth/email-verified');
     }

@@ -1,59 +1,42 @@
 <?php
 
+// tests/Feature/Auth/EmailVerificationTest.php
+
 use App\Models\User;
-use Illuminate\Auth\Events\Verified;
-use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\URL;
 
 test('email verification screen can be rendered', function () {
     $user = User::factory()->unverified()->create();
 
-    $response = $this->actingAs($user)->get(route('verification.notice'));
+    $response = $this->actingAs($user)->get(route('auth.verification.notice'));
 
     $response->assertStatus(200);
 });
 
 test('email can be verified', function () {
-    $user = User::factory()->unverified()->create();
+    $user = User::factory()->create([
+        'email_verified_at' => null,
+        'verification_token' => sha1('my_token'),
+        'email' => 'test@example.com',
+    ]);
 
-    Event::fake();
-
-    $verificationUrl = URL::temporarySignedRoute(
-        'verification.verify',
-        now()->addMinutes(60),
-        ['id' => $user->id, 'hash' => sha1($user->email)]
-    );
+    $verificationUrl = route('auth.verification.verify', ['token' => $user->verification_token]);
 
     $response = $this->actingAs($user)->get($verificationUrl);
 
-    Event::assertDispatched(Verified::class);
     expect($user->fresh()->hasVerifiedEmail())->toBeTrue();
-    $response->assertRedirect(route('dashboard', absolute: false).'?verified=1');
+    $response->assertStatus(200);
 });
 
 test('email is not verified with invalid hash', function () {
-    $user = User::factory()->unverified()->create();
-
-    $verificationUrl = URL::temporarySignedRoute(
-        'verification.verify',
-        now()->addMinutes(60),
-        ['id' => $user->id, 'hash' => sha1('wrong-email')]
-    );
-
-    $this->actingAs($user)->get($verificationUrl);
-
-    expect($user->fresh()->hasVerifiedEmail())->toBeFalse();
-});
-
-test('email is not verified with invalid user id', function () {
     $user = User::factory()->create([
         'email_verified_at' => null,
+        'verification_token' => sha1('my_token'),
+        'email' => 'test@example.com',
     ]);
 
-    $verificationUrl = URL::temporarySignedRoute(
-        'verification.verify',
-        now()->addMinutes(60),
-        ['id' => 123, 'hash' => sha1($user->email)]
+    $verificationUrl = route(
+        'auth.verification.verify',
+        ['token' => sha1('wrong-token')]
     );
 
     $this->actingAs($user)->get($verificationUrl);
@@ -66,27 +49,28 @@ test('verified user is redirected to dashboard from verification prompt', functi
         'email_verified_at' => now(),
     ]);
 
-    $response = $this->actingAs($user)->get(route('verification.notice'));
+    $response = $this->actingAs($user)->get(route('auth.verification.notice'));
 
-    $response->assertRedirect(route('dashboard', absolute: false));
+    $response->assertRedirect(route('dashboard'));
 });
 
-test('already verified user visiting verification link is redirected without firing event again', function () {
+test('already verified user visiting verification link is redirected', function () {
     $user = User::factory()->create([
-        'email_verified_at' => now(),
+        'email_verified_at' => null,
+        'verification_token' => sha1('my_token'),
+        'email' => 'test@example.com',
     ]);
 
-    Event::fake();
+    $verificationUrl = route('auth.verification.verify', ['token' => $user->verification_token]);
 
-    $verificationUrl = URL::temporarySignedRoute(
-        'verification.verify',
-        now()->addMinutes(60),
-        ['id' => $user->id, 'hash' => sha1($user->email)]
-    );
-
-    $this->actingAs($user)->get($verificationUrl)
-        ->assertRedirect(route('dashboard', absolute: false).'?verified=1');
+    $response = $this->actingAs($user)->get($verificationUrl);
 
     expect($user->fresh()->hasVerifiedEmail())->toBeTrue();
-    Event::assertNotDispatched(Verified::class);
+
+    $response->assertStatus(200);
+
+    $this->actingAs($user)->get($verificationUrl)
+        ->assertRedirect(route('dashboard', absolute: false));
+
+    expect($user->fresh()->hasVerifiedEmail())->toBeTrue();
 });

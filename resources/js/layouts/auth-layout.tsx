@@ -17,7 +17,6 @@ export default function AuthLayout({
     children,
     title,
     description,
-    ...props
 }: {
     children: React.ReactNode;
     title: string;

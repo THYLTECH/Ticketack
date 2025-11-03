@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Response;
+use Illuminate\Support\Facades\RateLimiter;
 
 // Requests
 use App\Http\Requests\Auth\Login as RequestsLogin;
@@ -43,6 +44,14 @@ class Login extends Controller
         /** @var \Illuminate\Http\Request $request */
         $data = $request->validated();
 
+        // Rate limiting
+        $key = md5('login'.implode('|', [$data['email'], $request->ip()]));
+        if (RateLimiter::tooManyAttempts($key, 5)) {
+            abort(429);
+        }
+        RateLimiter::hit($key, 60);
+
+        // Attempt to authenticate the user
         $credentials = [
             'email' => $data['email'],
             'password' => $data['password'],

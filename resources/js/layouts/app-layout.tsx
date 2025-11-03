@@ -20,7 +20,7 @@ interface AppLayoutProps {
     breadcrumbs?: BreadcrumbItem[];
 }
 
-export default ({ children, breadcrumbs, ...props }: AppLayoutProps) => {
+export default ({ children, breadcrumbs }: AppLayoutProps) => {
     const isOpen = usePage<SharedData>().props.sidebarOpen;
 
     const { props: pageProps } = usePage<{

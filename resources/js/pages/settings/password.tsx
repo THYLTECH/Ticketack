@@ -1,6 +1,5 @@
 // pages/settings/password.tsx
 
-import InputError from '@/components/input-error';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import { type BreadcrumbItem } from '@/types';
@@ -36,7 +35,7 @@ export default function Password() {
                     />
 
                     <Form
-                        method={"PUT"}
+                        method={'PUT'}
                         action={route('password.update')}
                         options={{
                             preserveScroll: true,
@@ -73,10 +72,11 @@ export default function Password() {
                                         className="mt-1 block w-full"
                                         autoComplete="current-password"
                                         placeholder="Current password"
-                                    />
-
-                                    <InputError
-                                        message={errors.current_password}
+                                        aria-invalid={
+                                            errors.current_password
+                                                ? 'true'
+                                                : 'false'
+                                        }
                                     />
                                 </div>
 
@@ -93,9 +93,10 @@ export default function Password() {
                                         className="mt-1 block w-full"
                                         autoComplete="new-password"
                                         placeholder="New password"
+                                        aria-invalid={
+                                            errors.password ? 'true' : 'false'
+                                        }
                                     />
-
-                                    <InputError message={errors.password} />
                                 </div>
 
                                 <div className="grid gap-2">
@@ -110,10 +111,11 @@ export default function Password() {
                                         className="mt-1 block w-full"
                                         autoComplete="new-password"
                                         placeholder="Confirm password"
-                                    />
-
-                                    <InputError
-                                        message={errors.password_confirmation}
+                                        aria-invalid={
+                                            errors.password_confirmation
+                                                ? 'true'
+                                                : 'false'
+                                        }
                                     />
                                 </div>
 
