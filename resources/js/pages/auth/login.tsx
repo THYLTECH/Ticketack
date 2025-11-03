@@ -4,6 +4,9 @@
 import { Form, Head, Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
+// Hooks
+import { useTrans } from '@/lib/translation';
+
 // Layout
 import AuthLayout from '@/layouts/auth/layout';
 
@@ -31,12 +34,17 @@ export default function Login({
 
     const [visible, setVisible] = useState(false);
 
+    const __ = useTrans();
+
     return (
         <AuthLayout
-            title="Log in to your account"
-            description="Enter your email and password below to log in"
+            title={__('auth.login.title', 'Log in to your account')}
+            description={__(
+                'auth.login.description',
+                'Enter your email and password below to log in',
+            )}
         >
-            <Head title="Log in" />
+            <Head title={__('auth.login.header', 'Log in')} />
 
             <Form
                 action={route('auth.login.store')}
@@ -48,7 +56,12 @@ export default function Login({
                     <>
                         <div className="grid gap-4">
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                                <Label htmlFor="email">
+                                    {__(
+                                        'auth.login.email_label',
+                                        'Email Address',
+                                    )}
+                                </Label>
                                 <InputGroup>
                                     <InputGroupInput
                                         id="email"
@@ -72,7 +85,12 @@ export default function Login({
 
                             <div className="grid gap-2">
                                 <div className="flex items-center">
-                                    <Label htmlFor="password">Password</Label>
+                                    <Label htmlFor="password">
+                                        {__(
+                                            'auth.login.password_label',
+                                            'Password',
+                                        )}
+                                    </Label>
                                     {canResetPassword && (
                                         <Button
                                             asChild
@@ -86,7 +104,10 @@ export default function Login({
                                                 )}
                                                 tabIndex={5}
                                             >
-                                                Forgot password?
+                                                {__(
+                                                    'auth.login.forgot_password',
+                                                    'Forgot your password?',
+                                                )}
                                             </Link>
                                         </Button>
                                     )}
@@ -141,7 +162,12 @@ export default function Login({
                                     tabIndex={3}
                                     defaultChecked={old.remember === '1'}
                                 />
-                                <Label htmlFor="remember">Remember me</Label>
+                                <Label htmlFor="remember">
+                                    {__(
+                                        'auth.login.remember_label',
+                                        'Remember me',
+                                    )}
+                                </Label>
                             </div>
 
                             <div className="flex flex-col items-center gap-3">
@@ -152,7 +178,7 @@ export default function Login({
                                     disabled={processing}
                                 >
                                     {processing ? <Spinner /> : <LogIn />}
-                                    Log in
+                                    {__('auth.login.submit_button', 'Log in')}
                                 </Button>
 
                                 <Button
@@ -164,14 +190,20 @@ export default function Login({
                                     asChild
                                 >
                                     <Link href={route('home')}>
-                                        Go to homepage
+                                        {__(
+                                            'auth.login.home_link',
+                                            'Go to homepage',
+                                        )}
                                     </Link>
                                 </Button>
                             </div>
                         </div>
 
                         <div className="text-center text-sm text-muted-foreground">
-                            Don't have an account?{' '}
+                            {__(
+                                'auth.login.register_link',
+                                "Don't have an account?",
+                            )}{' '}
                             <Button
                                 asChild
                                 variant={'link'}
@@ -182,7 +214,10 @@ export default function Login({
                                     href={route('auth.register')}
                                     tabIndex={5}
                                 >
-                                    Sign Up
+                                    {__(
+                                        'auth.login.register_link_text',
+                                        'Sign Up',
+                                    )}
                                 </Link>
                             </Button>
                         </div>

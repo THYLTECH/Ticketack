@@ -4,12 +4,8 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Authentication Language Lines
+    | Flash messages
     |--------------------------------------------------------------------------
-    |
-    | The following language lines are used during authentication for various
-    | messages that we need to display to the user. You are free to modify
-    | these language lines according to your application's requirements.
     |
     */
 
@@ -46,5 +42,26 @@ return [
         'guest_only' => 'You are already logged in.',
         'verified_required' => 'You must verify your email to access this resource.',
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Pages content
+    |--------------------------------------------------------------------------
+    |
+    */
+
+    'login' => [
+        'header' => 'Log in',
+        'title' => 'Login to your account',
+        'description' => 'Enter your email and password below to log in',
+        'email_label' => 'Email Address',
+        'password_label' => 'Password',
+        'remember_label' => 'Remember me',
+        'forgot_password' => 'Forgot your password?',
+        'submit_button' => 'Log in',
+        'home_link' => 'Go to homepage',
+        'register_link' => "Don't have an account?",
+        'register_link_text' => 'Sign up',
+    ]
 
 ];

@@ -3,7 +3,10 @@
 namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\File;
 use Inertia\Middleware;
+use Illuminate\Support\Facades\Cache;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -50,6 +53,25 @@ class HandleInertiaRequests extends Middleware
             'errors' => fn () => $request->session()->get('errors')
                 ? $request->session()->get('errors')->getBag('default')->getMessages()
                 : (object) [],
-        ]);
+
+            'locale' => App::getLocale(),
+            'translations' => fn () => collect(File::files(lang_path(App::getLocale())))
+                ->mapWithKeys(function ($file) {
+                    $name = pathinfo($file, PATHINFO_FILENAME);
+
+                    return [$name => trans($name)];
+                })
+                ->toArray(),
+            ]);
+
+            // 'translations' => fn () => Cache::rememberForever('translations_'.App::getLocale(), function () {
+            //     return collect(File::files(lang_path(App::getLocale())))
+            //         ->mapWithKeys(function ($file) {
+            //             $name = pathinfo($file, PATHINFO_FILENAME);
+
+            //             return [$name => trans($name)];
+            //         })
+            //         ->toArray();
+            // }),
     }
 }

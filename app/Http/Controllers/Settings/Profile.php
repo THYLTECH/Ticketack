@@ -43,7 +43,7 @@ class Profile extends Controller
             $user->update(['email_verified_at' => null]);
         }
 
-        return redirect()->route('settings.profile.edit')->with(['success' => 'Profile updated successfully.']);
+        return redirect()->route('settings.profile.edit')->with(['success' => __('profile.profile_updated')]);
     }
 
     /**
@@ -59,7 +59,7 @@ class Profile extends Controller
 
         if(!Auth::validate(['email' => $user->email, 'password' => $data['password']])) {
             return back()->withErrors([
-                'password' => __('The provided password does not match our records.'),
+                'password' => __('profile.incorrect_current_password'),
             ]);
         }
 

@@ -37,7 +37,7 @@ class Password extends Controller
 
         if(!Auth::validate(['id' => Auth::id(), 'password' => $data['current_password']])) {
             return redirect()->back()->withErrors([
-                'current_password' => __('The provided current password is incorrect.'),
+                'current_password' => __('profile.incorrect_current_password'),
             ]);
         }
 
@@ -45,6 +45,6 @@ class Password extends Controller
             'password' => $data['password'],
         ]);
 
-        return redirect()->back()->with(['success' => __('Password updated successfully.')]);
+        return redirect()->back()->with(['success' => __('profile.password_updated')]);
     }
 }

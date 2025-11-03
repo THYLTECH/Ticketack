@@ -57,7 +57,7 @@ export default function ForgotPassword() {
                                     ) : (
                                         <Send className="h-4 w-4" />
                                     )}
-                                    Send email password reset link
+                                    Send reset link
                                 </Button>
                             </div>
                         </>

@@ -64,7 +64,7 @@ export default function Profile() {
                         action={route('settings.profile.update')}
                     >
                         {({ processing, errors }) => (
-                            <div className="space-y-4">
+                            <div className="grid gap-4">
                                 <div className="grid gap-2">
                                     <Label htmlFor="name">Name</Label>
 

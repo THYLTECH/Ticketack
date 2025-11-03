@@ -72,7 +72,7 @@ export default function Password() {
                         }}
                     >
                         {({ errors, processing }) => (
-                            <div className='space-y-4'>
+                            <div className='grid gap-4'>
                                 <div className="grid gap-2">
                                     <Label htmlFor="current_password">
                                         Current password
