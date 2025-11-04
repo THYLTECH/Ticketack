@@ -64,12 +64,12 @@ export default function Login({
                                     name="email"
                                     required
                                     autoFocus
-                                    tabIndex={1}
                                     placeholder="email@example.com"
                                     defaultValue={old.email ?? ''}
                                     aria-invalid={
                                         errors.email ? 'true' : 'false'
                                     }
+                                    tabIndex={1}
                                 />
                                 <InputGroupAddon>
                                     <User />
@@ -91,12 +91,13 @@ export default function Login({
                                         variant={'link'}
                                         size={'sm'}
                                         className="ml-auto p-0"
+                                        type={'button'}
+                                        tabIndex={5}
                                     >
                                         <Link
                                             href={route(
                                                 'auth.password.request',
                                             )}
-                                            tabIndex={5}
                                         >
                                             {__(
                                                 'auth.login.forgot_password',
@@ -112,11 +113,11 @@ export default function Login({
                                     type={visible ? 'text' : 'password'}
                                     name="password"
                                     required
-                                    tabIndex={2}
                                     placeholder="Password"
                                     aria-invalid={
                                         errors.password ? 'true' : 'false'
                                     }
+                                    tabIndex={2}
                                 />
                                 <InputGroupAddon>
                                     <Lock />
@@ -152,8 +153,8 @@ export default function Login({
                                 id="remember"
                                 name="remember"
                                 value={'1'}
-                                tabIndex={3}
                                 defaultChecked={old.remember === '1'}
+                                tabIndex={3}
                             />
                             <Label htmlFor="remember">
                                 {__('auth.login.remember_label', 'Remember me')}
@@ -162,21 +163,20 @@ export default function Login({
 
                         <div className="grid gap-3">
                             <Button
-                                type="submit"
-                                tabIndex={4}
+                                type={'submit'}
                                 disabled={processing}
+                                tabIndex={4}
                             >
                                 {processing ? <Spinner /> : <LogIn />}
                                 {__('auth.login.submit_button', 'Log in')}
                             </Button>
 
                             <Button
-                                type="button"
+                                type={'button'}
                                 variant={'secondary'}
-                                className="w-full"
-                                tabIndex={7}
                                 disabled={processing}
                                 asChild
+                                tabIndex={7}
                             >
                                 <Link href={route('home')}>
                                     {__(
@@ -197,11 +197,10 @@ export default function Login({
                                     variant={'link'}
                                     size={'sm'}
                                     className="p-0"
+                                    type={'button'}
+                                    tabIndex={8}
                                 >
-                                    <Link
-                                        href={route('auth.register')}
-                                        tabIndex={8}
-                                    >
+                                    <Link href={route('auth.register')}>
                                         {__(
                                             'auth.login.register_link_text',
                                             'Sign Up',

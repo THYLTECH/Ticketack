@@ -52,12 +52,12 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                                     name="email"
                                     required
                                     disabled
-                                    tabIndex={1}
                                     placeholder="email@example.com"
                                     aria-invalid={
                                         errors.email ? 'true' : 'false'
                                     }
                                     value={email}
+                                    tabIndex={1}
                                 />
                                 <InputGroupAddon>
                                     <User />
@@ -73,11 +73,12 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                                     type={visible ? 'text' : 'password'}
                                     name="password"
                                     required
-                                    tabIndex={2}
+                                    autoFocus
                                     placeholder="Password"
                                     aria-invalid={
                                         errors.password ? 'true' : 'false'
                                     }
+                                    tabIndex={2}
                                 />
                                 <InputGroupAddon>
                                     <Lock />
@@ -118,13 +119,13 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                                     type="password"
                                     name="password_confirmation"
                                     required
-                                    tabIndex={3}
                                     placeholder="Confirm password"
                                     aria-invalid={
                                         errors.password_confirmation
                                             ? 'true'
                                             : 'false'
                                     }
+                                    tabIndex={3}
                                 />
                                 <InputGroupAddon>
                                     <Lock />

@@ -127,17 +127,18 @@ export default function ChangeEmail() {
                                     Verify email address
                                 </Link>
                             </Button>
-                            <Button
-                                asChild
-                                variant={'link'}
-                                size={'sm'}
-                                className="p-0"
-                                tabIndex={6}
-                            >
-                                <Link href={route('auth.logout')} tabIndex={5}>
-                                    Log out
-                                </Link>
-                            </Button>
+                            <div className="text-center">
+                                <Button
+                                    asChild
+                                    variant={'link'}
+                                    size={'sm'}
+                                    tabIndex={6}
+                                >
+                                    <Link href={route('auth.logout')}>
+                                        Log out
+                                    </Link>
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 )}

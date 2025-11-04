@@ -52,7 +52,7 @@ export default function VerifyEmail() {
                             </InputGroup>
                         </div>
 
-                        <div className="grid gap-3 text-center">
+                        <div className="grid gap-3">
                             <Button
                                 disabled={processing}
                                 variant="default"
@@ -74,17 +74,18 @@ export default function VerifyEmail() {
                                     Change email address
                                 </Link>
                             </Button>
-                            <Button
-                                asChild
-                                variant={'link'}
-                                size={'sm'}
-                                className="block p-0"
-                                tabIndex={3}
-                            >
-                                <Link href={route('auth.logout')} tabIndex={5}>
-                                    Log out
-                                </Link>
-                            </Button>
+                            <div className="text-center">
+                                <Button
+                                    asChild
+                                    variant={'link'}
+                                    size={'sm'}
+                                    tabIndex={3}
+                                >
+                                    <Link href={route('auth.logout')}>
+                                        Log out
+                                    </Link>
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 )}

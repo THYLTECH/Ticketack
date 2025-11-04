@@ -27,10 +27,8 @@ export default function EmailVerified() {
                         Log in
                     </Link>
                 </Button>
-                <Button asChild variant={'link'} size={'sm'}>
-                    <Link href={route('home')} tabIndex={2}>
-                        Go to homepage
-                    </Link>
+                <Button asChild variant={'secondary'} tabIndex={2}>
+                    <Link href={route('home')}>Go to homepage</Link>
                 </Button>
             </div>
         </AuthLayout>

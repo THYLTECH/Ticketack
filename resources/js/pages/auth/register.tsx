@@ -43,12 +43,12 @@ export default function Register() {
                             <Input
                                 id="name"
                                 type="text"
+                                name="name"
                                 required
                                 autoFocus
-                                tabIndex={1}
-                                name="name"
                                 placeholder="Full name"
                                 aria-invalid={errors.name ? 'true' : 'false'}
+                                tabIndex={1}
                             />
                         </div>
 
@@ -57,11 +57,11 @@ export default function Register() {
                             <Input
                                 id="email"
                                 type="email"
-                                required
-                                tabIndex={2}
                                 name="email"
+                                required
                                 placeholder="email@example.com"
                                 aria-invalid={errors.email ? 'true' : 'false'}
+                                tabIndex={2}
                             />
                         </div>
 
@@ -73,11 +73,11 @@ export default function Register() {
                                     type={visible ? 'text' : 'password'}
                                     name="password"
                                     required
-                                    tabIndex={3}
                                     placeholder="Password"
                                     aria-invalid={
                                         errors.password ? 'true' : 'false'
                                     }
+                                    tabIndex={3}
                                 />
                                 <InputGroupAddon align="inline-end">
                                     {visible ? (
@@ -112,24 +112,23 @@ export default function Register() {
                             <Input
                                 id="password_confirmation"
                                 type="password"
-                                required
-                                tabIndex={4}
                                 name="password_confirmation"
+                                required
                                 placeholder="Confirm password"
                                 aria-invalid={
                                     errors.password_confirmation
                                         ? 'true'
                                         : 'false'
                                 }
+                                tabIndex={4}
                             />
                         </div>
 
                         <div className="grid gap-3">
                             <Button
-                                type="submit"
-                                tabIndex={5}
-                                data-test="register-user-button"
+                                type={'submit'}
                                 disabled={processing}
+                                tabIndex={5}
                             >
                                 {processing ? <Spinner /> : <UserPlus />}
                                 Create account
@@ -141,11 +140,10 @@ export default function Register() {
                                     variant={'link'}
                                     size={'sm'}
                                     className="p-0"
+                                    type={'button'}
+                                    tabIndex={7}
                                 >
-                                    <Link
-                                        href={route('auth.login')}
-                                        tabIndex={7}
-                                    >
+                                    <Link href={route('auth.login')}>
                                         Log in
                                     </Link>
                                 </Button>
