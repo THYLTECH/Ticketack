@@ -41,3 +41,13 @@ export interface User {
     updated_at: string;
     [key: string]: unknown; // This allows for additional properties...
 }
+
+export interface Language {
+    code: string;
+    name: string;
+}
+
+export interface Timezone {
+    value: string;
+    utc: string;
+} ;

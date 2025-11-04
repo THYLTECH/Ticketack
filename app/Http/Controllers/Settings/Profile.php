@@ -5,16 +5,16 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Settings\ProfileUpdateRequest;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Http\Request;
+use DateTimeZone;
 
 // Requests
 use App\Http\Requests\Settings\Profile as RequestsProfile;
+use App\Http\Requests\Settings\Lang as RequestsLang;
 use App\Http\Requests\Settings\DeleteAccount as RequestsDeleteAccount;
 
 class Profile extends Controller
@@ -22,9 +22,15 @@ class Profile extends Controller
     /**
      * Show the user's profile settings page.
      */
-    public function edit(Request $request): Response
+    public function edit(): Response
     {
-        return Inertia::render('settings/profile');
+        $languages = config('preferences.languages');
+        $timezones = config('preferences.timezones');
+
+        return Inertia::render('settings/profile', [
+            'timezones' => $timezones,
+            'languages' => $languages,
+        ]);
     }
 
     /**
@@ -46,6 +52,19 @@ class Profile extends Controller
         }
 
         return redirect()->route('settings.profile.edit')->with(['success' => __('profile.flash.profile_updated')]);
+    }
+
+    public function update_lang(RequestsLang $request): RedirectResponse
+    {
+        $data = $request->validated();
+        $user = Auth::user();
+
+        $user->update([
+            'language' => $data['language'],
+            'timezone' => $data['timezone'],
+        ]);
+
+        return redirect()->back()->with(['success' => __('profile.flash.language_updated')]);
     }
 
 
