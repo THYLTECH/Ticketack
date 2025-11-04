@@ -6,7 +6,6 @@ namespace App\Http\Controllers\Auth;
 
 // Necessary imports
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -15,6 +14,7 @@ use Illuminate\Support\Facades\Hash;
 
 // Models
 use App\Models\User;
+use App\Models\PasswordResetToken;
 
 // Requests
 use App\Http\Requests\Auth\SendResetLinkEmail as RequestsSendResetLinkEmail;
@@ -71,7 +71,7 @@ class Password extends Controller
             SendEmailJob::dispatch($mail);
         }
 
-        return redirect()->back()->with(['success' => __('auth.password.reset_link_sent')]);
+        return redirect()->back()->with(['success' => __('auth.flash.password.reset_link_sent')]);
     }
 
     /**
@@ -80,11 +80,34 @@ class Password extends Controller
      * @param \Illuminate\Http\Request $request
      * @return \Inertia\Response
      */
-    public function reset(Request $request): Response
+    public function reset(string $token): RedirectResponse|Response
     {
+        $record = PasswordResetToken::get()->first(function ($r) use ($token) {
+            return hash_equals($r->token, hash('sha256', $token));
+        });
+
+        if (!$record) {
+            return redirect()->route('auth.password.request')->with([
+                'error' => [
+                    'title' => __('common.flash.error'),
+                    'description' => __('auth.flash.password.token_missing')
+                ]
+            ]);
+        }
+
+        $user = $record->user;
+        if (!$user) {
+            return redirect()->route('auth.password.request')->with([
+                'error' => [
+                    'title' => __('common.flash.error'),
+                    'description' => __('auth.flash.password.user_not_found')
+                ]
+            ]);
+        }
+
         return Inertia::render('auth/reset-password', [
-            'email' => $request->email,
-            'token' => $request->route('token'),
+            'email' => $user->email,
+            'token' => $token,
         ]);
     }
 
@@ -100,24 +123,24 @@ class Password extends Controller
         // User does not exist
         $user = User::where('email', $data['email'])->first();
         if (!$user) {
-            return back()->with(['error' => ['title' => __('common.error'), 'description' => __('auth.password.user_not_found')]]);
+            return back()->with(['error' => ['title' => __('common.flash.error'), 'description' => __('auth.flash.password.user_not_found')]]);
         }
 
         // Record does not exist
         $record = $user->passwordResetToken()->first();
         if (!$record) {
-            return back()->with(['error' => ['title' => __('common.error'), 'description' => __('auth.password.token_missing')]]);
+            return back()->with(['error' => ['title' => __('common.flash.error'), 'description' => __('auth.flash.password.token_missing')]]);
         }
 
         // Expiration (60 min)
         if ($record->created_at && $record->created_at->lt(now()->subMinutes(60))) {
             $record->delete();
-            return back()->with(['error' => ['title' => __('common.error'), 'description' => __('auth.password.token_expired')]]);
+            return back()->with(['error' => ['title' => __('common.flash.error'), 'description' => __('auth.flash.password.token_expired')]]);
         }
 
         // Token does not match
         if (! hash_equals($record->token, hash('sha256', $data['token']))) {
-            return back()->with(['error' => ['title' => __('common.error'), 'description' => __('auth.password.token_mismatch')]]);
+            return back()->with(['error' => ['title' => __('common.flash.error'), 'description' => __('auth.flash.password.token_mismatch')]]);
         }
 
         // User updated
@@ -129,6 +152,6 @@ class Password extends Controller
         // Invalidation of token
         $record->delete();
 
-        return redirect()->route('auth.login')->with(['success' => __('auth.password.reset_success')]);
+        return redirect()->route('auth.login')->with(['success' => __('auth.flash.password.reset_success')]);
     }
 }

@@ -61,15 +61,15 @@ class Login extends Controller
             return redirect()->back()
                 ->withInput($request->only('email', 'remember'))
                 ->with(['error' => [
-                    'title' => __('common.error'),
-                    'description' => __('auth.login.invalid_credentials')
+                    'title' => __('common.flash.error'),
+                    'description' => __('auth.flash.login.invalid_credentials')
                 ]]);
         }
 
         $request->session()->regenerate();
 
         return redirect()->intended(route('dashboard'))
-            ->with(['success' => __('auth.login.success')]);
+            ->with(['success' => __('auth.flash.login.success')]);
     }
 
 
@@ -86,6 +86,6 @@ class Login extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('home')->with(['success' => __('auth.logout.success')]);
+        return redirect()->route('auth.login')->with(['success' => __('auth.flash.logout.success')]);
     }
 }

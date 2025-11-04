@@ -5,7 +5,7 @@ import { Form, Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
 
 // Layout
-import AuthLayout from '@/layouts/auth-layout';
+import AuthLayout from '@/layouts/auth/layout';
 
 // Shadcn UI Components
 import { Button } from '@/components/ui/button';
@@ -35,131 +35,121 @@ export default function Register() {
                 method={'POST'}
                 resetOnSuccess={['password', 'password_confirmation']}
                 disableWhileProcessing
-                className="flex flex-col gap-6"
             >
                 {({ processing, errors }) => (
-                    <>
-                        <div className="grid gap-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="name">Name</Label>
-                                <Input
-                                    id="name"
-                                    type="text"
+                    <div className="grid gap-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="name">Name</Label>
+                            <Input
+                                id="name"
+                                type="text"
+                                name="name"
+                                required
+                                autoFocus
+                                placeholder="Full name"
+                                aria-invalid={errors.name ? 'true' : 'false'}
+                                tabIndex={1}
+                            />
+                        </div>
+
+                        <div className="grid gap-2">
+                            <Label htmlFor="email">Email address</Label>
+                            <Input
+                                id="email"
+                                type="email"
+                                name="email"
+                                required
+                                placeholder="email@example.com"
+                                aria-invalid={errors.email ? 'true' : 'false'}
+                                tabIndex={2}
+                            />
+                        </div>
+
+                        <div className="grid gap-2">
+                            <Label htmlFor="password">Password</Label>
+                            <InputGroup>
+                                <InputGroupInput
+                                    id="password"
+                                    type={visible ? 'text' : 'password'}
+                                    name="password"
                                     required
-                                    autoFocus
-                                    tabIndex={1}
-                                    autoComplete="name"
-                                    name="name"
-                                    placeholder="Full name"
+                                    placeholder="Password"
                                     aria-invalid={
-                                        errors.name ? 'true' : 'false'
+                                        errors.password ? 'true' : 'false'
                                     }
+                                    tabIndex={3}
                                 />
-                            </div>
+                                <InputGroupAddon align="inline-end">
+                                    {visible ? (
+                                        <Button
+                                            type={'button'}
+                                            variant={'ghost'}
+                                            size={'icon-sm'}
+                                            onClick={() => setVisible(false)}
+                                            tabIndex={6}
+                                        >
+                                            <EyeOff />
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            type={'button'}
+                                            variant={'ghost'}
+                                            size={'icon-sm'}
+                                            onClick={() => setVisible(true)}
+                                            tabIndex={6}
+                                        >
+                                            <Eye />
+                                        </Button>
+                                    )}
+                                </InputGroupAddon>
+                            </InputGroup>
+                        </div>
 
-                            <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    required
-                                    tabIndex={2}
-                                    autoComplete="email"
-                                    name="email"
-                                    placeholder="email@example.com"
-                                    aria-invalid={
-                                        errors.email ? 'true' : 'false'
-                                    }
-                                />
-                            </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="password_confirmation">
+                                Confirm password
+                            </Label>
+                            <Input
+                                id="password_confirmation"
+                                type="password"
+                                name="password_confirmation"
+                                required
+                                placeholder="Confirm password"
+                                aria-invalid={
+                                    errors.password_confirmation
+                                        ? 'true'
+                                        : 'false'
+                                }
+                                tabIndex={4}
+                            />
+                        </div>
 
-                            <div className="grid gap-2">
-                                <Label htmlFor="password">Password</Label>
-                                <InputGroup>
-                                    <InputGroupInput
-                                        id="password"
-                                        type={visible ? 'text' : 'password'}
-                                        name="password"
-                                        required
-                                        tabIndex={3}
-                                        autoComplete="current-password"
-                                        placeholder="Password"
-                                        aria-invalid={
-                                            errors.password ? 'true' : 'false'
-                                        }
-                                    />
-                                    <InputGroupAddon align="inline-end">
-                                        {visible ? (
-                                            <Button
-                                                type={'button'}
-                                                variant={'ghost'}
-                                                size={'icon-sm'}
-                                                onClick={() =>
-                                                    setVisible(false)
-                                                }
-                                            >
-                                                <EyeOff />
-                                            </Button>
-                                        ) : (
-                                            <Button
-                                                type={'button'}
-                                                variant={'ghost'}
-                                                size={'icon-sm'}
-                                                onClick={() => setVisible(true)}
-                                            >
-                                                <Eye />
-                                            </Button>
-                                        )}
-                                    </InputGroupAddon>
-                                </InputGroup>
-                            </div>
-
-                            <div className="grid gap-2">
-                                <Label htmlFor="password_confirmation">
-                                    Confirm password
-                                </Label>
-                                <Input
-                                    id="password_confirmation"
-                                    type="password"
-                                    required
-                                    tabIndex={4}
-                                    autoComplete="new-password"
-                                    name="password_confirmation"
-                                    placeholder="Confirm password"
-                                    aria-invalid={
-                                        errors.password_confirmation
-                                            ? 'true'
-                                            : 'false'
-                                    }
-                                />
-                            </div>
-
+                        <div className="grid gap-3">
                             <Button
-                                type="submit"
-                                className="mt-2 w-full"
-                                tabIndex={5}
-                                data-test="register-user-button"
+                                type={'submit'}
                                 disabled={processing}
+                                tabIndex={5}
                             >
                                 {processing ? <Spinner /> : <UserPlus />}
                                 Create account
                             </Button>
+                            <div className="space-x-1 text-center text-sm text-muted-foreground">
+                                <span>Already have an account?</span>
+                                <Button
+                                    asChild
+                                    variant={'link'}
+                                    size={'sm'}
+                                    className="p-0"
+                                    type={'button'}
+                                    tabIndex={7}
+                                >
+                                    <Link href={route('auth.login')}>
+                                        Log in
+                                    </Link>
+                                </Button>
+                            </div>
                         </div>
-
-                        <div className="text-center text-sm text-muted-foreground">
-                            Already have an account?{' '}
-                            <Button
-                                asChild
-                                variant={'link'}
-                                size={'sm'}
-                                className="p-0"
-                            >
-                                <Link href={route('auth.login')} tabIndex={6}>
-                                    Log in
-                                </Link>
-                            </Button>
-                        </div>
-                    </>
+                    </div>
                 )}
             </Form>
         </AuthLayout>

@@ -238,7 +238,7 @@ function UserMenuContent({ user }: UserMenuContentProps) {
                 <DropdownMenuItem asChild>
                     <Link
                         className="block w-full"
-                        href={route('profile.edit')}
+                        href={route('settings.profile.edit')}
                         as="button"
                         prefetch
                         onClick={cleanup}

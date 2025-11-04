@@ -45,8 +45,9 @@ Route::prefix('auth/')->name('auth.')->group(function() {
         Route::middleware(['web', 'auth'])->group(function() {
             Route::get('verify-email', 'notice')->name('notice');
             Route::post('verification-notification', 'sendVerificationEmail')->name('send');
+
+            Route::get('change-email', 'editEmail')->name('email.edit');
+            Route::post('change-email', 'updateEmail')->name('email.update');
         });
-
-
     });
 });
