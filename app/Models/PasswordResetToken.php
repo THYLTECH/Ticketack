@@ -19,4 +19,8 @@ class PasswordResetToken extends Model
     protected $casts = [
         'created_at' => 'datetime',
     ];
+
+    public function user() {
+        return $this->hasOne(User::class, 'email', 'email');
+    }
 }

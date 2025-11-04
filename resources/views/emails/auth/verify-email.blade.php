@@ -1,5 +1,5 @@
 @component('mail::message')
-# {{ __('mail.verify_email.subject', ['app' => config('app.name')]) }}
+# {{ __('mail.verify_email.title', ['app' => config('app.name')]) }}
 
 {{ __('mail.greeting', ['name' => $user->name ?? Str::before($user->email, '@')]) }}
 

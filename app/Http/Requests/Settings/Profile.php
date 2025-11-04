@@ -5,7 +5,6 @@
 namespace App\Http\Requests\Settings;
 
 // Necessary imports
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;

@@ -1,7 +1,7 @@
-// pages/auth/reset-password.tsx
+// pages/auth/change-email.tsx
 
 // Necessary imports
-import { Form, Head, Link } from '@inertiajs/react';
+import { Form, Head, Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
 // Layout
@@ -18,46 +18,44 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 
 // Icons
-import { Eye, EyeOff, Lock, RefreshCcw, User } from 'lucide-react';
+import { Eye, EyeOff, Lock, RefreshCcw, Send, User } from 'lucide-react';
 
-interface ResetPasswordProps {
-    token: string;
-    email: string;
-}
+// Types
+import { SharedData } from '@/types';
 
-export default function ResetPassword({ token, email }: ResetPasswordProps) {
+export default function ChangeEmail() {
+    const { auth } = usePage<SharedData>().props;
+
     const [visible, setVisible] = useState(false);
 
     return (
         <AuthLayout
-            title="Reset password"
-            description="Please enter your new password below"
+            title="Change your email address"
+            description="Update your email address to keep your account secure or if your current one is invalid."
         >
-            <Head title="Reset password" />
+            <Head title="Change email" />
 
             <Form
-                action={route('auth.password.update')}
+                action={route('auth.verification.email.update')}
                 method={'POST'}
-                transform={(data) => ({ ...data, token, email })}
-                resetOnSuccess={['password', 'password_confirmation']}
             >
                 {({ processing, errors }) => (
                     <div className="grid gap-4">
                         <div className="grid gap-2">
-                            <Label htmlFor="email">Email</Label>
+                            <Label htmlFor="email">Email Address</Label>
                             <InputGroup>
                                 <InputGroupInput
                                     id="email"
                                     type="email"
                                     name="email"
                                     required
-                                    disabled
+                                    autoFocus
                                     tabIndex={1}
                                     placeholder="email@example.com"
+                                    defaultValue={auth.user?.email}
                                     aria-invalid={
                                         errors.email ? 'true' : 'false'
                                     }
-                                    value={email}
                                 />
                                 <InputGroupAddon>
                                     <User />
@@ -66,7 +64,9 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="password">Password</Label>
+                            <div className="flex items-center">
+                                <Label htmlFor="password">Password</Label>
+                            </div>
                             <InputGroup>
                                 <InputGroupInput
                                     id="password"
@@ -89,7 +89,6 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                                             variant={'ghost'}
                                             size={'icon-sm'}
                                             onClick={() => setVisible(false)}
-                                            tabIndex={5}
                                         >
                                             <EyeOff />
                                         </Button>
@@ -99,7 +98,6 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                                             variant={'ghost'}
                                             size={'icon-sm'}
                                             onClick={() => setVisible(true)}
-                                            tabIndex={5}
                                         >
                                             <Eye />
                                         </Button>
@@ -108,53 +106,38 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                             </InputGroup>
                         </div>
 
-                        <div className="grid gap-2">
-                            <Label htmlFor="password_confirmation">
-                                Confirm password
-                            </Label>
-                            <InputGroup>
-                                <InputGroupInput
-                                    id="password_confirmation"
-                                    type="password"
-                                    name="password_confirmation"
-                                    required
-                                    tabIndex={3}
-                                    placeholder="Confirm password"
-                                    aria-invalid={
-                                        errors.password_confirmation
-                                            ? 'true'
-                                            : 'false'
-                                    }
-                                />
-                                <InputGroupAddon>
-                                    <Lock />
-                                </InputGroupAddon>
-                            </InputGroup>
-                        </div>
-
                         <div className="grid gap-3">
                             <Button
                                 type="submit"
-                                disabled={processing}
                                 tabIndex={4}
+                                disabled={processing}
                             >
                                 {processing ? <Spinner /> : <RefreshCcw />}
-                                Reset password
+                                Change email address
                             </Button>
-                            <div className="space-x-1 text-center text-sm text-muted-foreground">
-                                <span>Or, return to</span>
-                                <Button
-                                    asChild
-                                    variant={'link'}
-                                    size={'sm'}
-                                    className="p-0"
-                                    tabIndex={6}
-                                >
-                                    <Link href={route('auth.login')}>
-                                        log in
-                                    </Link>
-                                </Button>
-                            </div>
+                            <Button
+                                type="submit"
+                                tabIndex={5}
+                                disabled={processing}
+                                variant={'secondary'}
+                                asChild
+                            >
+                                <Link href={route('auth.verification.notice')}>
+                                    <Send />
+                                    Verify email address
+                                </Link>
+                            </Button>
+                            <Button
+                                asChild
+                                variant={'link'}
+                                size={'sm'}
+                                className="p-0"
+                                tabIndex={6}
+                            >
+                                <Link href={route('auth.logout')} tabIndex={5}>
+                                    Log out
+                                </Link>
+                            </Button>
                         </div>
                     </div>
                 )}

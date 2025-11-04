@@ -61,6 +61,6 @@ class Register extends Controller
         /** @var \Illuminate\Http\Request $request */
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard'))->with(['success' => __('auth.register.success')]);
+        return redirect()->intended(route('dashboard'))->with(['success' => __('auth.flash.register.success')]);
     }
 }

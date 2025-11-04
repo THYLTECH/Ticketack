@@ -208,7 +208,7 @@ function DeleteUser() {
                                             variant="destructive"
                                             disabled={processing}
                                         >
-                                            <Trash2 />
+                                            {processing ? <Spinner /> : <Trash2 />}
                                             Delete account
                                         </Button>
                                     </DialogFooter>

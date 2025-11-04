@@ -35,16 +35,19 @@ class Profile extends Controller
     public function update(RequestsProfile $request): RedirectResponse
     {
         $data = $request->validated();
-
         $user = Auth::user();
+
+        $emailChanged = array_key_exists('email', $data) && $data['email'] !== $user->email;
+
         $user->update($data);
 
-        if ($user->isDirty('email')) {
+        if ($emailChanged) {
             $user->update(['email_verified_at' => null]);
         }
 
-        return redirect()->route('settings.profile.edit')->with(['success' => __('profile.profile_updated')]);
+        return redirect()->route('settings.profile.edit')->with(['success' => __('profile.flash.profile_updated')]);
     }
+
 
     /**
      * Delete the user's account.
@@ -59,7 +62,7 @@ class Profile extends Controller
 
         if(!Auth::validate(['email' => $user->email, 'password' => $data['password']])) {
             return back()->withErrors([
-                'password' => __('profile.incorrect_current_password'),
+                'password' => __('profile.flash.incorrect_current_password'),
             ]);
         }
 
@@ -70,6 +73,6 @@ class Profile extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('home');
+        return redirect()->route('home')->with(['success' => __('profile.flash.account_deleted')]);
     }
 }

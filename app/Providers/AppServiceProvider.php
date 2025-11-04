@@ -26,7 +26,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Customizing the authentication redirect behavior
         Authenticate::redirectUsing(function ($request) {
-            return redirect()->route('auth.login')->with(['error' => ['title' => __('common.error'), 'description' => __('auth.middleware.auth_required')]])->getTargetUrl();
+            return redirect()->route('auth.login')->with(['error' => ['title' => __('common.flash.error'), 'description' => __('auth.flash.middleware.auth_required')]])->getTargetUrl();
         });
     }
 }

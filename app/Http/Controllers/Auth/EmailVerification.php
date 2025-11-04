@@ -13,6 +13,9 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\RedirectResponse;
 
+// Requests
+use App\Http\Requests\Auth\Email as RequestsEmail;
+
 // Models
 use App\Models\User;
 
@@ -66,7 +69,7 @@ class EmailVerification extends Controller
         SendEmailJob::dispatch($mail);
 
         return redirect()->route('auth.verification.notice')->with([
-            'success' => __('auth.verification.link_sent'),
+            'success' => __('auth.flash.verification.link_sent'),
         ]);
     }
 
@@ -82,7 +85,7 @@ class EmailVerification extends Controller
         $user = User::where('verification_token', $token)->first();
 
         if (! $user) {
-            return redirect()->route('auth.verification.notice')->withErrors(['verification' => __('auth.verification.invalid_token')]);
+            return redirect()->route('auth.verification.notice')->withErrors(['verification' => __('auth.flash.verification.invalid_token')]);
         }
 
         if ($user->hasVerifiedEmail()) {
@@ -93,5 +96,39 @@ class EmailVerification extends Controller
         $user->markEmailAsVerified();
 
         return Inertia::render('auth/email-verified');
+    }
+
+    public function editEmail(): Response
+    {
+        return Inertia::render('auth/change-email');
+    }
+
+    /**
+     * Update user's email
+     * 
+     * @param  \App\Http\Requests\Auth\Email  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function updateEmail(RequestsEmail $request): RedirectResponse 
+    {
+        $data = $request->validated();
+        $user = Auth::user();
+
+        if(!Auth::validate(['id' => Auth::id(), 'password' => $data['password']])) {
+            return redirect()->back()->withErrors([
+                'password' => __('profile.flash.incorrect_current_password'),
+            ]);
+        }
+
+        $emailChanged = array_key_exists('email', $data) && $data['email'] !== $user->email;
+
+        
+        if (!$emailChanged) {
+            return redirect()->back()->withErrors(['email' => __('auth.flash.email.no_change')]);
+        }
+
+        $user->update($data, ['email_verified_at' => null]);
+
+        return redirect()->route('auth.verification.notice')->with(['success' => __('auth.flash.email.change')]);
     }
 }

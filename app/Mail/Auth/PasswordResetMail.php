@@ -52,7 +52,6 @@ class PasswordResetMail extends Mailable
                 'user' => $this->user,
                 'url' => route('auth.password.reset', [
                     'token' => $this->token,
-                    'email' => $this->user->email,
                 ]),
             ],
         );
