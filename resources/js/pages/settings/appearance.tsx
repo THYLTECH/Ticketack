@@ -120,7 +120,7 @@ function ColorDropdown() {
     return (
         <RadioGroup
             className="grid grid-cols-3 gap-2"
-            defaultValue={scheme}
+            value={scheme}
             onValueChange={(v) => updateColorScheme(v as any)}
         >
             {colors.map(({ value, color }) => (
