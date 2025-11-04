@@ -121,7 +121,7 @@ function ColorDropdown() {
         <RadioGroup
             className="grid grid-cols-3 gap-2"
             value={scheme}
-            onValueChange={(v) => updateColorScheme(v as any)}
+            onValueChange={(v) => updateColorScheme(v as ColorScheme)}
         >
             {colors.map(({ value, color }) => (
                 <ColorOption

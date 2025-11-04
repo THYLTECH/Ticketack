@@ -40,7 +40,7 @@ test('users can logout', function () {
     $response = $this->actingAs($user)->get(route('auth.logout'));
 
     $this->assertGuest();
-    $response->assertRedirect(route('home'));
+    $response->assertRedirect(route('auth.login'));
 });
 
 test('users are rate limited', function () {

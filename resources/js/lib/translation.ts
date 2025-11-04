@@ -12,14 +12,16 @@ export function useTrans() {
 
   const __ = (key: string, fallback?: string): string => {
     const parts = key.split('.')
-    let value: any = translations
+    let value: unknown = translations
 
     for (const part of parts) {
-      value = value?.[part]
-      if (value === undefined) return fallback ?? key
+      if (typeof value === 'object' && value !== null && part in value)
+        value = (value as Record<string, unknown>)[part]
+      else
+        return fallback ?? key
     }
 
-    return typeof value === 'string' ? value : fallback ?? key
+    return typeof value === 'string' ? value : (fallback ?? key)
   }
 
   return __
