@@ -54,7 +54,7 @@ export default function Profile({
 }) {
     const { auth } = usePage<SharedData>().props;
     const __ = useTrans();
-    
+
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: __('settings.pages.breadcrumbs.settings'),
@@ -160,11 +160,7 @@ function InformationForm({ auth }: { auth: SharedData['auth'] }) {
                             tabIndex={2}
                         />
                     </div>
-                    <Button
-                        disabled={processing}
-                        type={'submit'}
-                        tabIndex={3}
-                    >
+                    <Button disabled={processing} type={'submit'} tabIndex={3}>
                         {processing ? <Spinner /> : <Save />}
                         {__('settings.pages.profile.info_form.buttons.submit')}
                     </Button>
@@ -291,11 +287,7 @@ function LangForm({
                             </SelectContent>
                         </Select>
                     </div>
-                    <Button
-                        disabled={processing}
-                        type={'submit'}
-                        tabIndex={6}
-                    >
+                    <Button disabled={processing} type={'submit'} tabIndex={6}>
                         {processing ? <Spinner /> : <Save />}
                         {__('settings.pages.profile.lang_form.buttons.submit')}
                     </Button>
