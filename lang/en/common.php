@@ -10,7 +10,7 @@ return [
     */
 
     'flash' => [
-        'error' => 'An error occurred.',
+        'error' => 'An error occurred',
     ],
 
     /*

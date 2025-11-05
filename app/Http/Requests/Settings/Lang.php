@@ -40,20 +40,4 @@ class Lang extends FormRequest
             'timezone' => ['required', 'string', Rule::in($timezones)],
         ];
     }
-
-    /**
-     * Custom messages for validation errors.
-     *
-     * @return array<string, string>
-     */
-    public function messages(): array
-    {
-        return [
-            'language.required'  => __('Language is required.'),
-            'language.in'        => __('Selected language is invalid.'),
-
-            'timezone.required'  => __('Timezone is required.'),
-            'timezone.in'        => __('Selected timezone is invalid.'),
-        ];
-    }
 }

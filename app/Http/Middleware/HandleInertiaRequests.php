@@ -1,13 +1,19 @@
 <?php
 
+// app/Http/Middleware/HandleInertiaRequests.php
+
 namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Lang;
 use Inertia\Middleware;
-use Illuminate\Support\Facades\Cache;
 
+/**
+ * Middleware to handle Inertia requests and share common data.
+ */
 class HandleInertiaRequests extends Middleware
 {
     /**
@@ -55,23 +61,37 @@ class HandleInertiaRequests extends Middleware
                 : (object) [],
 
             'locale' => App::getLocale(),
+            'fallback_locale' => config('app.fallback_locale'),
+
             'translations' => fn () => collect(File::files(lang_path(App::getLocale())))
                 ->mapWithKeys(function ($file) {
                     $name = pathinfo($file, PATHINFO_FILENAME);
+                    $lines = Lang::get($name);
 
-                    return [$name => trans($name)];
+                    return [$name => Arr::undot($lines)];
                 })
                 ->toArray(),
-            ]);
 
-            // 'translations' => fn () => Cache::rememberForever('translations_'.App::getLocale(), function () {
-            //     return collect(File::files(lang_path(App::getLocale())))
-            //         ->mapWithKeys(function ($file) {
-            //             $name = pathinfo($file, PATHINFO_FILENAME);
+            'translations_fallback' => fn () => collect(File::files(lang_path(config('app.fallback_locale'))))
+                ->mapWithKeys(function ($file) {
+                    $name = pathinfo($file, PATHINFO_FILENAME);
+                    $lines = Lang::get($name, [], config('app.fallback_locale'));
 
-            //             return [$name => trans($name)];
-            //         })
-            //         ->toArray();
-            // }),
+                    return [$name => Arr::undot($lines)];
+                })
+                ->toArray(),
+
+            'timezone' => date_default_timezone_get(),
+        ]);
+
+        // 'translations' => fn () => Cache::rememberForever('translations_'.App::getLocale(), function () {
+        //     return collect(File::files(lang_path(App::getLocale())))
+        //         ->mapWithKeys(function ($file) {
+        //             $name = pathinfo($file, PATHINFO_FILENAME);
+
+        //             return [$name => trans($name)];
+        //         })
+        //         ->toArray();
+        // }),
     }
 }

@@ -1,27 +1,44 @@
 import { usePage } from '@inertiajs/react'
 
-type Translations = Record<string, Record<string, string | Record<string, string>>>
+interface TranslationValue {
+  [key: string]: string | TranslationValue
+}
+type Translations = Record<string, TranslationValue>
 
 /**
- * useTrans - global translation function hook
- * @example const __ = useTrans(); __('auth.login.success')
+ * useTrans - translation hook with fallback support
+ * @example const __ = useTrans(); __('settings.pages.profile.delete_account.title')
  */
 export function useTrans() {
-  const { props } = usePage<{ translations: Translations; locale: string }>()
+  const { props } = usePage<{
+    translations: Translations
+    translations_fallback: Translations
+    locale: string
+    fallback_locale: string
+  }>()
+
   const translations = props.translations || {}
+  const translationsFallback = props.translations_fallback || {}
+
+  const findKey = (source: TranslationValue, parts: string[]): string | undefined => {
+    let value: TranslationValue | undefined = source
+    for (const part of parts) {
+      if (typeof value === 'object' && value !== null && part in value)
+        value = (value as Record<string, TranslationValue>)[part]
+      else
+        return undefined
+    }
+    return typeof value === 'string' ? value : undefined
+  }
 
   const __ = (key: string, fallback?: string): string => {
     const parts = key.split('.')
-    let value: unknown = translations
 
-    for (const part of parts) {
-      if (typeof value === 'object' && value !== null && part in value)
-        value = (value as Record<string, unknown>)[part]
-      else
-        return fallback ?? key
-    }
+    let value = findKey(translations, parts)
+    if (value === undefined)
+      value = findKey(translationsFallback, parts)
 
-    return typeof value === 'string' ? value : (fallback ?? key)
+    return value ?? fallback ?? key
   }
 
   return __

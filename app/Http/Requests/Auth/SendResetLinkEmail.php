@@ -35,18 +35,4 @@ class SendResetLinkEmail extends FormRequest
             'email' => ['required', 'string', 'email'],
         ];
     }
-
-    /**
-     * Custom messages for validation errors.
-     *
-     * @return array<string, string>
-     */
-    public function messages(): array
-    {
-        return [
-            'email.required'    => __('Email is required.'),
-            'email.string'      => __('Email must be a string.'),
-            'email.email'       => __('Please provide a valid email address.'),
-        ];
-    }
 }

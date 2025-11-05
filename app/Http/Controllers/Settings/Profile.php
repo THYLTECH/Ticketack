@@ -51,7 +51,7 @@ class Profile extends Controller
             $user->update(['email_verified_at' => null]);
         }
 
-        return redirect()->route('settings.profile.edit')->with(['success' => __('profile.flash.profile_updated')]);
+        return redirect()->route('settings.profile.edit')->with(['success' => __('settings.flash.profile_updated')]);
     }
 
     public function update_lang(RequestsLang $request): RedirectResponse
@@ -64,7 +64,7 @@ class Profile extends Controller
             'timezone' => $data['timezone'],
         ]);
 
-        return redirect()->back()->with(['success' => __('profile.flash.language_updated')]);
+        return redirect()->back()->with(['success' => __('settings.flash.language_updated', [], $data['language'])]);
     }
 
 
@@ -81,7 +81,7 @@ class Profile extends Controller
 
         if(!Auth::validate(['email' => $user->email, 'password' => $data['password']])) {
             return back()->withErrors([
-                'password' => __('profile.flash.incorrect_current_password'),
+                'password' => __('settings.flash.incorrect_current_password'),
             ]);
         }
 
@@ -92,6 +92,6 @@ class Profile extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('home')->with(['success' => __('profile.flash.account_deleted')]);
+        return redirect()->route('home')->with(['success' => __('settings.flash.account_deleted')]);
     }
 }

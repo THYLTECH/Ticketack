@@ -36,21 +36,4 @@ class Login extends FormRequest
             'remember'  => ['sometimes', 'boolean'],
         ];
     }
-
-    /**
-     * Custom messages for validation errors.
-     *
-     * @return array<string, string>
-     */
-    public function messages(): array
-    {
-        return [
-            'email.required'    => __('Email is required.'),
-            'email.string'      => __('Email must be a string.'),
-            'email.email'       => __('Please provide a valid email address.'),
-            'password.required' => __('Password is required.'),
-            'password.string'   => __('Password must be a string.'),
-            'remember.boolean'  => __('Remember me must be true or false.'),
-        ];
-    }
 }

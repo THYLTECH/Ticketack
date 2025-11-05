@@ -1,18 +1,19 @@
 <?php
 
-// app/Http/Middleware/HandleAppearance.php
+// app/Http/Middleware/SetLocale.php
 
 namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\View;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Auth;
 
 /**
- * Middleware to handle appearance settings based on cookies.
+ * Middleware to set the application locale based on the authenticated user's preference.
  */
-class HandleAppearance
+class SetLocale
 {
     /**
      * Handle an incoming request.
@@ -21,8 +22,11 @@ class HandleAppearance
      */
     public function handle(Request $request, Closure $next): Response
     {
-        View::share('appearance', $request->cookie('appearance') ?? 'system');
-        View::share('color_scheme', $request->cookie('color-scheme') ?? 'default');
+        $locale = Auth::check() && Auth::user()->language
+            ? Auth::user()->language
+            : config('app.locale');
+
+        App::setLocale($locale);
 
         return $next($request);
     }

@@ -4,6 +4,7 @@ import { useAppearance } from '@/hooks/use-appearance';
 import { Check, Info, Loader2, X } from 'lucide-react';
 import { useEffect } from 'react';
 import { toast, Toaster } from 'sonner';
+import { useTrans } from '@/lib/translation';
 
 type FlashMessage =
     | string
@@ -25,6 +26,8 @@ interface FlashProps {
 export function CustomToaster(props: FlashProps) {
     const { appearance } = useAppearance();
 
+    const __ = useTrans();
+
     useEffect(() => {
         const flashSuccess = props.flash?.success ?? props.success;
         const flashError = props.flash?.error ?? props.error;
@@ -34,7 +37,7 @@ export function CustomToaster(props: FlashProps) {
             const messages = Object.values(validationErrors);
             messages.forEach((msg) => {
                 if (msg) {
-                    toast.error('A validation error occurred', {
+                    toast.error(__('common.flash.error'), {
                         description: msg,
                     });
                 }
