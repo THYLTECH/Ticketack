@@ -48,25 +48,4 @@ class Profile extends FormRequest
             ],
         ];
     }
-
-    /**
-     * Custom messages for validation errors.
-     *
-     * @return array<string, string>
-     */
-    public function messages(): array
-    {
-        return [
-            'name.required'  => __('Name is required.'),
-            'name.string'    => __('Name must be a string.'),
-            'name.max'       => __('Name must not exceed :max characters.'),
-
-            'email.required' => __('Email is required.'),
-            'email.string'   => __('Email must be a string.'),
-            'email.lowercase'=> __('Email must be in lowercase.'),
-            'email.email'    => __('Email must be a valid email address.'),
-            'email.max'      => __('Email must not exceed :max characters.'),
-            'email.unique'   => __('This email is already taken.'),
-        ];
-    }
 }

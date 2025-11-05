@@ -38,23 +38,4 @@ class ResetPassword extends FormRequest
             'password'  => ['required', 'string', 'confirmed', Password::defaults()],
         ];
     }
-
-    /**
-     * Custom messages for validation errors.
-     *
-     * @return array<string, string>
-     */
-    public function messages(): array
-    {
-        return [
-            'token.required'      => __('Reset token is required.'),
-            'token.string'        => __('Reset token must be a string.'),
-            'email.required'      => __('Email is required.'),
-            'email.string'        => __('Email must be a string.'),
-            'email.email'         => __('Please provide a valid email address.'),
-            'password.required'   => __('Password is required.'),
-            'password.string'     => __('Password must be a string.'),
-            'password.confirmed'  => __('Password confirmation does not match.'),
-        ];
-    }
 }

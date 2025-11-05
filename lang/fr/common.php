@@ -1,6 +1,7 @@
-<?php 
+<?php
 
 return [
+
     /*
     |--------------------------------------------------------------------------
     | Flash messages
@@ -9,12 +10,8 @@ return [
     */
 
     'flash' => [
-        'profile_updated' => 'Profile updated successfully.',
-        'password_updated' => 'Password updated successfully.',
-        'incorrect_current_password' => 'The provided current password is incorrect.',
-        'account_deleted' => 'Your account has been deleted successfully.',
+        'error' => 'Une erreur est survenue',
     ],
-
 
     /*
     |--------------------------------------------------------------------------
@@ -23,7 +20,5 @@ return [
     |
     */
 
-    'pages' => [
 
-    ]
 ];

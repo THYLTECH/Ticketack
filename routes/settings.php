@@ -20,6 +20,9 @@ Route::prefix('settings/')->name('settings.')->middleware(['auth', 'verified:aut
     Route::controller(ControllersProfile::class)->prefix('profile/')->name('profile.')->group(function() {
         Route::get('/', 'edit')->name('edit');
         Route::patch('/', 'update')->name('update');
+
+        Route::patch('/language', 'update_lang')->name('update_lang');
+
         Route::delete('/', 'destroy')->name('destroy');
     });
 

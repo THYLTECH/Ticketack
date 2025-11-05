@@ -34,18 +34,4 @@ class DeleteAccount extends FormRequest
             'password'  => ['required', 'string', 'min:8'],
         ];
     }
-
-    /**
-     * Custom messages for validation errors.
-     *
-     * @return array<string, string>
-     */
-    public function messages(): array
-    {
-        return [
-            'password.required'     => __('Password is required.'),
-            'password.string'       => __('Password must be a string.'),
-            'password.min'          => __('Password must be at least :min characters.'),
-        ];
-    }
 }

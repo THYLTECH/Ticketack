@@ -36,8 +36,19 @@ export interface User {
     email: string;
     avatar?: string;
     email_verified_at: string | null;
-    two_factor_enabled?: boolean;
+    language: string;
+    timezone: string;
     created_at: string;
     updated_at: string;
     [key: string]: unknown; // This allows for additional properties...
 }
+
+export interface Language {
+    code: string;
+    name: string;
+}
+
+export interface Timezone {
+    value: string;
+    utc: string;
+} ;

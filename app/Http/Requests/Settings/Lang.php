@@ -1,19 +1,21 @@
 <?php
 
-// app/Http/Requests/Settings/Password.php
+// app/Http/Requests/Settings/Lang.php
 
 namespace App\Http\Requests\Settings;
 
-use Illuminate\Support\Facades\Auth;
+// Necessary imports
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
 
 /**
- * Class Password
- *
- * Handles the validation for user password update requests.
+ * Class Lang
+ * 
+ * Handles the validation for user language update requests.
  */
-class Password extends FormRequest
-{
+class Lang extends FormRequest
+{ 
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -30,9 +32,12 @@ class Password extends FormRequest
      */
     public function rules(): array
     {
+        $languages = array_column(config('preferences.languages'), 'code');
+        $timezones = array_column(config('preferences.timezones'), 'value');
+
         return [
-            'current_password' => ['required', 'string', 'current_password'],
-            'password'  => ['required', 'string', 'min:8', 'confirmed'],
+            'language' => ['required', 'string', Rule::in($languages)],
+            'timezone' => ['required', 'string', Rule::in($timezones)],
         ];
     }
 }

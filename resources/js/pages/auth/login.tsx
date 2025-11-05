@@ -4,7 +4,7 @@
 import { Form, Head, Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
-// Hooks
+// Translation Hook
 import { useTrans } from '@/lib/translation';
 
 // Layout

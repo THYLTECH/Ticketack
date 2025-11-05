@@ -6,7 +6,6 @@ namespace App\Http\Controllers\Auth;
 
 // Necessary imports
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -98,8 +97,19 @@ class EmailVerification extends Controller
         return Inertia::render('auth/email-verified');
     }
 
-    public function editEmail(): Response
+    /**
+     * Display change email page
+     *
+     * @return \Inertia\Response|\Illuminate\Http\RedirectResponse
+     */
+    public function editEmail(): RedirectResponse | Response
     {
+        $user = Auth::user();
+
+        if($user->hasVerifiedEmail()) {
+            return redirect()->route('settings.profile.edit');
+        }
+
         return Inertia::render('auth/change-email');
     }
 
