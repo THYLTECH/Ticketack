@@ -118,7 +118,7 @@ function InformationForm({ auth }: { auth: SharedData['auth'] }) {
                 preserveScroll: true,
             }}
         >
-            {({ processing, errors, isDirty }) => (
+            {({ processing, errors }) => (
                 <div className="grid gap-4">
                     <div className="grid gap-2">
                         <Label htmlFor="name">
@@ -161,7 +161,7 @@ function InformationForm({ auth }: { auth: SharedData['auth'] }) {
                         />
                     </div>
                     <Button
-                        disabled={processing || !isDirty}
+                        disabled={processing}
                         type={'submit'}
                         tabIndex={3}
                     >
@@ -193,7 +193,7 @@ function LangForm({
                 preserveScroll: true,
             }}
         >
-            {({ processing, errors, isDirty }) => (
+            {({ processing, errors }) => (
                 <div className="grid gap-4">
                     <div className="grid gap-2">
                         <Label htmlFor="language">
@@ -292,7 +292,7 @@ function LangForm({
                         </Select>
                     </div>
                     <Button
-                        disabled={processing || !isDirty}
+                        disabled={processing}
                         type={'submit'}
                         tabIndex={6}
                     >

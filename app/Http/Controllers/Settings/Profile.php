@@ -17,6 +17,9 @@ use App\Http\Requests\Settings\Profile as RequestsProfile;
 use App\Http\Requests\Settings\Lang as RequestsLang;
 use App\Http\Requests\Settings\DeleteAccount as RequestsDeleteAccount;
 
+// Models
+use App\Models\User;
+
 class Profile extends Controller
 {
     /**
@@ -51,6 +54,8 @@ class Profile extends Controller
             $user->update(['email_verified_at' => null]);
         }
 
+        Auth::setUser($user->fresh());
+
         return redirect()->route('settings.profile.edit')->with(['success' => __('settings.flash.profile_updated')]);
     }
 
@@ -64,7 +69,9 @@ class Profile extends Controller
             'timezone' => $data['timezone'],
         ]);
 
-        return redirect()->back()->with(['success' => __('settings.flash.language_updated', [], $data['language'])]);
+        Auth::setUser($user->fresh());
+
+        return redirect()->route('settings.profile.edit')->with(['success' => __('settings.flash.language_updated', [], $data['language'])]);
     }
 
 
