@@ -38,13 +38,12 @@ export default function Login({
 
     return (
         <AuthLayout
-            title={__('auth.login.title', 'Log in to your account')}
+            title={__('auth.pages.login.title')}
             description={__(
-                'auth.login.description',
-                'Enter your email and password below to log in',
+                'auth.pages.login.description',
             )}
         >
-            <Head title={__('auth.login.header', 'Log in')} />
+            <Head title={__('auth.pages.login.header')} />
 
             <Form
                 action={route('auth.login.store')}
@@ -55,7 +54,7 @@ export default function Login({
                     <div className="grid gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="email">
-                                {__('auth.login.email_label', 'Email Address')}
+                                {__('auth.pages.login.email_label')}
                             </Label>
                             <InputGroup>
                                 <InputGroupInput
@@ -81,8 +80,7 @@ export default function Login({
                             <div className="flex items-center">
                                 <Label htmlFor="password">
                                     {__(
-                                        'auth.login.password_label',
-                                        'Password',
+                                        'auth.pages.login.password_label',
                                     )}
                                 </Label>
                                 {canResetPassword && (
@@ -100,8 +98,7 @@ export default function Login({
                                             )}
                                         >
                                             {__(
-                                                'auth.login.forgot_password',
-                                                'Forgot your password?',
+                                                'auth.pages.login.forgot_password',
                                             )}
                                         </Link>
                                     </Button>
@@ -157,7 +154,7 @@ export default function Login({
                                 tabIndex={3}
                             />
                             <Label htmlFor="remember">
-                                {__('auth.login.remember_label', 'Remember me')}
+                                {__('auth.pages.login.remember_label')}
                             </Label>
                         </div>
 
@@ -168,7 +165,7 @@ export default function Login({
                                 tabIndex={4}
                             >
                                 {processing ? <Spinner /> : <LogIn />}
-                                {__('auth.login.submit_button', 'Log in')}
+                                {__('auth.pages.login.submit_button')}
                             </Button>
 
                             <Button
@@ -180,16 +177,14 @@ export default function Login({
                             >
                                 <Link href={route('home')}>
                                     {__(
-                                        'auth.login.home_link',
-                                        'Go to homepage',
+                                        'auth.pages.login.home_link',
                                     )}
                                 </Link>
                             </Button>
                             <div className="space-x-1 text-center text-sm text-muted-foreground">
                                 <span>
                                     {__(
-                                        'auth.login.register_link',
-                                        "Don't have an account?",
+                                        'auth.pages.login.register_link',
                                     )}
                                 </span>
                                 <Button
@@ -202,8 +197,7 @@ export default function Login({
                                 >
                                     <Link href={route('auth.register')}>
                                         {__(
-                                            'auth.login.register_link_text',
-                                            'Sign Up',
+                                            'auth.pages.login.register_link_text',
                                         )}
                                     </Link>
                                 </Button>
