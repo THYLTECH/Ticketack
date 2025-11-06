@@ -57,6 +57,10 @@ return [
     |
     */
 
+    'layout' => [
+        'description' => 'A brief description of the application.'
+    ],
+
     'pages' => [
 
         'login' => [
@@ -72,6 +76,77 @@ return [
             'register_link' => "Don't have an account?",
             'register_link_text' => 'Sign up',
         ],
+
+        'change_email' => [
+            'header' => 'Change email',
+            'title' => 'Change your email address',
+            'description' => 'Update your email address to keep your account secure or if your current one is invalid.',
+            'email_label' => 'Email Address',
+            'password_label' => 'Password',
+            'password_placeholder' => 'Password',
+            'submit_button' => 'Change email address',
+            'verify_button' => 'Verify email address',
+            'logout_link' => 'Log out',
+        ],
+
+        'email_verified' => [
+            'header' => 'Email verified',
+            'title' => 'Email verified!',
+            'description' => 'Your email address has been successfully verified.',
+            'login_button' => 'Log in',
+            'home_button' => 'Go to homepage',
+        ],
+
+        'forgot_password' => [
+            'header' => 'Forgot password',
+            'title' => 'Forgot password',
+            'description' => 'Enter your email to receive a password reset link.',
+            'email_label' => 'Email address',
+            'submit_button' => 'Send reset link',
+            'return_text' => 'Or, return to',
+            'login_link' => 'log in',
+        ],
+
+        'register' => [
+            'header' => 'Register',
+            'title' => 'Create an account',
+            'description' => 'Enter your details below to create your account.',
+            'name_label' => 'Name',
+            'name_placeholder' => 'Full name',
+            'email_label' => 'Email address',
+            'password_label' => 'Password',
+            'password_placeholder' => 'Password',
+            'password_confirm_label' => 'Confirm password',
+            'password_confirm_placeholder' => 'Confirm password',
+            'submit_button' => 'Create account',
+            'already_text' => 'Already have an account?',
+            'login_link' => 'Log in',
+        ],
+
+        'reset_password' => [
+            'header' => 'Reset password',
+            'title' => 'Reset password',
+            'description' => 'Please enter your new password below.',
+            'email_label' => 'Email',
+            'password_label' => 'Password',
+            'password_placeholder' => 'Password',
+            'password_confirm_label' => 'Confirm password',
+            'password_confirm_placeholder' => 'Confirm password',
+            'submit_button' => 'Reset password',
+            'return_text' => 'Or, return to',
+            'login_link' => 'log in',
+        ],
+
+        'verify_email' => [
+            'header' => 'Email verification',
+            'title' => 'Verify your email address',
+            'description' => 'Please click on the button below to receive an email to verify your email address.',
+            'email_label' => 'Email address',
+            'submit_button' => 'Send verification email',
+            'change_email_button' => 'Change email address',
+            'logout_link' => 'Log out',
+        ],
+
     ],
 
 ];

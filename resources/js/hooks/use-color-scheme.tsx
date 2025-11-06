@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
 
-export type ColorScheme =
-  | 'default'
-  | 'blue'
-  | 'red'
-  | 'green'
-  | 'orange'
-  | 'rose'
-  | 'violet'
-  | 'yellow';
+// export type ColorScheme =
+//   | 'default'
+//   | 'blue'
+//   | 'red'
+//   | 'green'
+//   | 'orange'
+//   | 'rose'
+//   | 'violet'
+//   | 'yellow';
+
+export type ColorScheme = string;
 
 const setCookie = (name: string, value: string, days = 365) => {
   if (typeof document === 'undefined') return;

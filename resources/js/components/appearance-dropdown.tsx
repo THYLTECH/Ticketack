@@ -9,11 +9,16 @@ import { useAppearance } from '@/hooks/use-appearance';
 import { Monitor, Moon, Sun } from 'lucide-react';
 import { HTMLAttributes } from 'react';
 
+// Translation Hook
+import { useTrans } from '@/lib/translation';
+
 export default function AppearanceToggleDropdown({
     className = '',
     ...props
 }: HTMLAttributes<HTMLDivElement>) {
     const { appearance, updateAppearance } = useAppearance();
+
+    const __  = useTrans();
 
     const getCurrentIcon = () => {
         switch (appearance) {
@@ -36,20 +41,19 @@ export default function AppearanceToggleDropdown({
                         className="h-9 w-9 rounded-md"
                     >
                         {getCurrentIcon()}
-                        <span className="sr-only">Toggle theme</span>
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => updateAppearance('light')} disabled={appearance === 'light'}>
                         <span className="flex items-center gap-2">
                             <Sun className="h-5 w-5" />
-                            Light
+                            {__('common.themes.light')}
                         </span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => updateAppearance('dark')} disabled={appearance === 'dark'}>
                         <span className="flex items-center gap-2">
                             <Moon className="h-5 w-5" />
-                            Dark
+                            {__('common.themes.dark')}
                         </span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
@@ -58,7 +62,7 @@ export default function AppearanceToggleDropdown({
                     >
                         <span className="flex items-center gap-2">
                             <Monitor className="h-5 w-5" />
-                            System
+                            {__('common.themes.system')}
                         </span>
                     </DropdownMenuItem>
                 </DropdownMenuContent>

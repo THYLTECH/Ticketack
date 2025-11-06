@@ -1,32 +1,45 @@
 // layouts/settings/layout.tsx
 
+// Necessary imports
+import { type PropsWithChildren } from 'react';
+import { Link } from '@inertiajs/react';
+import { cn } from '@/lib/utils';
+
+// Translation Hook
+import { useTrans } from '@/lib/translation';
+
+// Custom components
 import Heading from '@/components/heading';
+
+// Shadcn UI Components
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { cn } from '@/lib/utils';
-import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
-import { type PropsWithChildren } from 'react';
 
-const sidebarNavItems: NavItem[] = [
-    {
-        title: 'Profile',
-        href: route('settings.profile.edit'),
-        icon: null,
-    },
-    {
-        title: 'Password',
-        href: route('settings.password.edit'),
-        icon: null,
-    },
-    {
-        title: 'Appearance',
-        href: route('settings.appearance.edit'),
-        icon: null,
-    },
-];
+// Types
+import { type NavItem } from '@/types';
 
 export default function SettingsLayout({ children }: PropsWithChildren) {
+
+    const __ = useTrans();
+
+    const sidebarNavItems: NavItem[] = [
+        {
+            title: __('settings.pages.breadcrumbs.settings'),
+            href: route('settings.profile.edit'),
+            icon: null,
+        },
+        {
+            title: __('settings.pages.breadcrumbs.password'),
+            href: route('settings.password.edit'),
+            icon: null,
+        },
+        {
+            title: __('settings.pages.breadcrumbs.appearance'),
+            href: route('settings.appearance.edit'),
+            icon: null,
+        },
+    ];
+
     // When server-side rendering, we only render the layout on the client...
     if (typeof window === 'undefined') {
         return null;
@@ -37,8 +50,8 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
     return (
         <div className="px-4 py-6">
             <Heading
-                title="Settings"
-                description="Manage your profile and account settings"
+                title={__('settings.pages.layout.title')}
+                description={__('settings.pages.layout.description')}
             />
 
             <div className="flex flex-col lg:flex-row lg:space-x-12">

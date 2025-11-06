@@ -1,14 +1,17 @@
 // layouts/auth-layout.tsx
 
 // Necessary imports
-import { usePage, Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
+
+// Translation Hook
+import { useTrans } from '@/lib/translation';
 
 // Layout
 import { AuthHeader } from '@/layouts/auth/header';
 
 // Custom components
-import { CustomToaster } from "@/components/custom-toaster";
 import AppLogoIcon from '@/components/app-logo-icon';
+import { CustomToaster } from '@/components/custom-toaster';
 
 // Types
 import { type SharedData } from '@/types';
@@ -23,16 +26,16 @@ export default function AuthLayout({
     description: string;
 }) {
     const { props: pageProps } = usePage<{
-		flash?: { success?: string; error?: string };
-		success?: string;
-		error?: string;
+        flash?: { success?: string; error?: string };
+        success?: string;
+        error?: string;
         errors?: Record<string, string>;
-	}>();
+    }>();
 
     const { name } = usePage<SharedData>().props;
+    const __ = useTrans();
 
     return (
-        
         <main className="flex min-h-dvh flex-col">
             <div className="relative grid h-dvh flex-col items-center justify-center px-8 sm:px-0 lg:max-w-none lg:grid-cols-2 lg:px-0">
                 <div className="relative hidden h-full flex-col bg-muted p-10 text-white lg:flex dark:border-r">
@@ -43,19 +46,16 @@ export default function AuthLayout({
                     </div>
                     <div className="relative z-20 mt-auto">
                         <blockquote className="space-y-2">
-                            <p className="text-lg">
-                                Ticketack
-                            </p>
+                            <p className="text-lg">{name}</p>
                             <footer className="text-sm text-neutral-300">
-                                A brief description of the application.
+                                {__('auth.layout.description')}
                             </footer>
                         </blockquote>
                     </div>
                 </div>
 
-                <div className="w-full lg:p-8 relative h-full flex items-center">
+                <div className="relative flex h-full w-full items-center lg:p-8">
                     <AuthHeader />
-
 
                     <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
                         <Link
@@ -73,11 +73,9 @@ export default function AuthLayout({
                         {children}
                     </div>
                 </div>
-
             </div>
 
-            <CustomToaster {...pageProps}/>
+            <CustomToaster {...pageProps} />
         </main>
-        
     );
 }

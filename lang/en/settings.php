@@ -32,6 +32,11 @@ return [
             'password' => 'Password',
         ],
 
+        'layout' => [
+            'title' => 'Settings',
+            'description' => 'Manage your account settings and preferences.',
+        ],
+
         'profile' => [
             'head_title' => 'Profile settings',
 
@@ -99,10 +104,51 @@ return [
         ],
 
         'appearance' => [
+            'head_title' => 'Appearance settings',
 
+            'theme_form' => [
+                'title' => 'Theme mode',
+                'description' => 'Select the theme mode for your account',
+                'options' => [
+                    'light' => 'Light',
+                    'dark' => 'Dark',
+                    'system' => 'System',
+                ],
+            ],
+
+            'color_form' => [
+                'title' => 'Color scheme',
+                'description' => 'Choose your preferred color scheme',
+            ],
         ],
+
         'password' => [
+            'head_title' => 'Password settings',
 
+            'form' => [
+                'title' => 'Update password',
+                'description' => 'Ensure your account is using a long, random password to stay secure.',
+
+                'fields' => [
+                    'current_password' => [
+                        'label' => 'Current password',
+                        'placeholder' => 'Current password',
+                    ],
+                    'password' => [
+                        'label' => 'New password',
+                        'placeholder' => 'New password',
+                    ],
+                    'password_confirmation' => [
+                        'label' => 'Confirm password',
+                        'placeholder' => 'Confirm password',
+                    ],
+                ],
+
+                'buttons' => [
+                    'submit' => 'Save password',
+                ],
+            ],
         ],
+
     ],
 ];

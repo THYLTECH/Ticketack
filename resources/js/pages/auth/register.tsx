@@ -4,6 +4,9 @@
 import { Form, Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
 
+// Translation Hook
+import { useTrans } from '@/lib/translation';
+
 // Layout
 import AuthLayout from '@/layouts/auth/layout';
 
@@ -23,13 +26,14 @@ import { Eye, EyeOff, UserPlus } from 'lucide-react';
 
 export default function Register() {
     const [visible, setVisible] = useState(false);
+    const __ = useTrans();
 
     return (
         <AuthLayout
-            title="Create an account"
-            description="Enter your details below to create your account"
+            title={__('auth.pages.register.title')}
+            description={__('auth.pages.register.description')}
         >
-            <Head title="Register" />
+            <Head title={__('auth.pages.register.header')} />
             <Form
                 action={route('auth.register.store')}
                 method={'POST'}
@@ -39,21 +43,25 @@ export default function Register() {
                 {({ processing, errors }) => (
                     <div className="grid gap-4">
                         <div className="grid gap-2">
-                            <Label htmlFor="name">Name</Label>
+                            <Label htmlFor="name">
+                                {__('auth.pages.register.name_label')}
+                            </Label>
                             <Input
                                 id="name"
                                 type="text"
                                 name="name"
                                 required
                                 autoFocus
-                                placeholder="Full name"
+                                placeholder={__('auth.pages.register.name_placeholder')}
                                 aria-invalid={errors.name ? 'true' : 'false'}
                                 tabIndex={1}
                             />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="email">Email address</Label>
+                            <Label htmlFor="email">
+                                {__('auth.pages.register.email_label')}
+                            </Label>
                             <Input
                                 id="email"
                                 type="email"
@@ -66,14 +74,16 @@ export default function Register() {
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="password">Password</Label>
+                            <Label htmlFor="password">
+                                {__('auth.pages.register.password_label')}
+                            </Label>
                             <InputGroup>
                                 <InputGroupInput
                                     id="password"
                                     type={visible ? 'text' : 'password'}
                                     name="password"
                                     required
-                                    placeholder="Password"
+                                    placeholder={__('auth.pages.register.password_placeholder')}
                                     aria-invalid={
                                         errors.password ? 'true' : 'false'
                                     }
@@ -107,14 +117,14 @@ export default function Register() {
 
                         <div className="grid gap-2">
                             <Label htmlFor="password_confirmation">
-                                Confirm password
+                                {__('auth.pages.register.password_confirm_label')}
                             </Label>
                             <Input
                                 id="password_confirmation"
                                 type="password"
                                 name="password_confirmation"
                                 required
-                                placeholder="Confirm password"
+                                placeholder={__('auth.pages.register.password_confirm_placeholder')}
                                 aria-invalid={
                                     errors.password_confirmation
                                         ? 'true'
@@ -131,10 +141,12 @@ export default function Register() {
                                 tabIndex={5}
                             >
                                 {processing ? <Spinner /> : <UserPlus />}
-                                Create account
+                                {__('auth.pages.register.submit_button')}
                             </Button>
                             <div className="space-x-1 text-center text-sm text-muted-foreground">
-                                <span>Already have an account?</span>
+                                <span>
+                                    {__('auth.pages.register.already_text')}
+                                </span>
                                 <Button
                                     asChild
                                     variant={'link'}
@@ -144,7 +156,7 @@ export default function Register() {
                                     tabIndex={7}
                                 >
                                     <Link href={route('auth.login')}>
-                                        Log in
+                                        {__('auth.pages.register.login_link')}
                                     </Link>
                                 </Button>
                             </div>
