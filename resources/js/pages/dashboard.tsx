@@ -1,7 +1,8 @@
 // pages/dashboard.tsx
 
 // Necessary imports
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
+import { useEffect } from 'react';
 
 // Translation Hook
 import { useTrans } from '@/lib/translation';
@@ -16,7 +17,6 @@ import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import { type BreadcrumbItem } from '@/types';
 
 export default function Dashboard() {
-
     const __ = useTrans();
 
     const breadcrumbs: BreadcrumbItem[] = [
