@@ -20,7 +20,13 @@ class Appearance extends Controller
      */
     public function edit(Request $request): Response
     {
-        return Inertia::render('settings/appearance');
+        $themes = config('preferences.themes');
+        $colors = config('preferences.colors');
+
+        return Inertia::render('settings/appearance', [
+            'themes' => $themes,
+            'colors' => $colors,
+        ]);
     }
 
     /**

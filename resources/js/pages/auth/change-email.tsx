@@ -4,6 +4,9 @@
 import { Form, Head, Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
+// Translation Hook
+import { useTrans } from '@/lib/translation';
+
 // Layout
 import AuthLayout from '@/layouts/auth/layout';
 
@@ -25,15 +28,15 @@ import { SharedData } from '@/types';
 
 export default function ChangeEmail() {
     const { auth } = usePage<SharedData>().props;
-
     const [visible, setVisible] = useState(false);
+    const __ = useTrans();
 
     return (
         <AuthLayout
-            title="Change your email address"
-            description="Update your email address to keep your account secure or if your current one is invalid."
+            title={__('auth.pages.change_email.title')}
+            description={__('auth.pages.change_email.description')}
         >
-            <Head title="Change email" />
+            <Head title={__('auth.pages.change_email.header')} />
 
             <Form
                 action={route('auth.verification.email.update')}
@@ -42,7 +45,9 @@ export default function ChangeEmail() {
                 {({ processing, errors }) => (
                     <div className="grid gap-4">
                         <div className="grid gap-2">
-                            <Label htmlFor="email">Email Address</Label>
+                            <Label htmlFor="email">
+                                {__('auth.pages.change_email.email_label')}
+                            </Label>
                             <InputGroup>
                                 <InputGroupInput
                                     id="email"
@@ -65,7 +70,9 @@ export default function ChangeEmail() {
 
                         <div className="grid gap-2">
                             <div className="flex items-center">
-                                <Label htmlFor="password">Password</Label>
+                                <Label htmlFor="password">
+                                    {__('auth.pages.change_email.password_label')}
+                                </Label>
                             </div>
                             <InputGroup>
                                 <InputGroupInput
@@ -74,7 +81,7 @@ export default function ChangeEmail() {
                                     name="password"
                                     required
                                     tabIndex={2}
-                                    placeholder="Password"
+                                    placeholder={__('auth.pages.change_email.password_placeholder')}
                                     aria-invalid={
                                         errors.password ? 'true' : 'false'
                                     }
@@ -113,7 +120,7 @@ export default function ChangeEmail() {
                                 disabled={processing}
                             >
                                 {processing ? <Spinner /> : <RefreshCcw />}
-                                Change email address
+                                {__('auth.pages.change_email.submit_button')}
                             </Button>
                             <Button
                                 type="submit"
@@ -124,7 +131,7 @@ export default function ChangeEmail() {
                             >
                                 <Link href={route('auth.verification.notice')}>
                                     <Send />
-                                    Verify email address
+                                    {__('auth.pages.change_email.verify_button')}
                                 </Link>
                             </Button>
                             <div className="text-center">
@@ -135,7 +142,7 @@ export default function ChangeEmail() {
                                     tabIndex={6}
                                 >
                                     <Link href={route('auth.logout')}>
-                                        Log out
+                                        {__('auth.pages.change_email.logout_link')}
                                     </Link>
                                 </Button>
                             </div>

@@ -4,6 +4,9 @@
 import { Form, Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
 
+// Translation Hook
+import { useTrans } from '@/lib/translation';
+
 // Layout
 import AuthLayout from '@/layouts/auth/layout';
 
@@ -27,13 +30,14 @@ interface ResetPasswordProps {
 
 export default function ResetPassword({ token, email }: ResetPasswordProps) {
     const [visible, setVisible] = useState(false);
+    const __ = useTrans();
 
     return (
         <AuthLayout
-            title="Reset password"
-            description="Please enter your new password below"
+            title={__('auth.pages.reset_password.title')}
+            description={__('auth.pages.reset_password.description')}
         >
-            <Head title="Reset password" />
+            <Head title={__('auth.pages.reset_password.header')} />
 
             <Form
                 action={route('auth.password.update')}
@@ -44,7 +48,9 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                 {({ processing, errors }) => (
                     <div className="grid gap-4">
                         <div className="grid gap-2">
-                            <Label htmlFor="email">Email</Label>
+                            <Label htmlFor="email">
+                                {__('auth.pages.reset_password.email_label')}
+                            </Label>
                             <InputGroup>
                                 <InputGroupInput
                                     id="email"
@@ -66,7 +72,9 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="password">Password</Label>
+                            <Label htmlFor="password">
+                                {__('auth.pages.reset_password.password_label')}
+                            </Label>
                             <InputGroup>
                                 <InputGroupInput
                                     id="password"
@@ -74,7 +82,7 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                                     name="password"
                                     required
                                     autoFocus
-                                    placeholder="Password"
+                                    placeholder={__('auth.pages.reset_password.password_placeholder')}
                                     aria-invalid={
                                         errors.password ? 'true' : 'false'
                                     }
@@ -111,7 +119,7 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
 
                         <div className="grid gap-2">
                             <Label htmlFor="password_confirmation">
-                                Confirm password
+                                {__('auth.pages.reset_password.password_confirm_label')}
                             </Label>
                             <InputGroup>
                                 <InputGroupInput
@@ -119,7 +127,7 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                                     type="password"
                                     name="password_confirmation"
                                     required
-                                    placeholder="Confirm password"
+                                    placeholder={__('auth.pages.reset_password.password_confirm_placeholder')}
                                     aria-invalid={
                                         errors.password_confirmation
                                             ? 'true'
@@ -140,10 +148,12 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                                 tabIndex={4}
                             >
                                 {processing ? <Spinner /> : <RefreshCcw />}
-                                Reset password
+                                {__('auth.pages.reset_password.submit_button')}
                             </Button>
                             <div className="space-x-1 text-center text-sm text-muted-foreground">
-                                <span>Or, return to</span>
+                                <span>
+                                    {__('auth.pages.reset_password.return_text')}
+                                </span>
                                 <Button
                                     asChild
                                     variant={'link'}
@@ -152,7 +162,7 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                                     tabIndex={6}
                                 >
                                     <Link href={route('auth.login')}>
-                                        log in
+                                        {__('auth.pages.reset_password.login_link')}
                                     </Link>
                                 </Button>
                             </div>

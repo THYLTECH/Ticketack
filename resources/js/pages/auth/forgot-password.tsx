@@ -3,6 +3,9 @@
 // Necessary imports
 import { Form, Head, Link } from '@inertiajs/react';
 
+// Translation Hook
+import { useTrans } from '@/lib/translation';
+
 // Layout
 import AuthLayout from '@/layouts/auth/layout';
 
@@ -19,12 +22,14 @@ import { Label } from '@/components/ui/label';
 import { LoaderCircle, Send, User } from 'lucide-react';
 
 export default function ForgotPassword() {
+    const __ = useTrans();
+
     return (
         <AuthLayout
-            title="Forgot password"
-            description="Enter your email to receive a password reset link"
+            title={__('auth.pages.forgot_password.title')}
+            description={__('auth.pages.forgot_password.description')}
         >
-            <Head title="Forgot password" />
+            <Head title={__('auth.pages.forgot_password.header')} />
 
             <Form
                 method={'POST'}
@@ -34,7 +39,9 @@ export default function ForgotPassword() {
                 {({ processing, errors }) => (
                     <div className="grid gap-4">
                         <div className="grid gap-2">
-                            <Label htmlFor="email">Email address</Label>
+                            <Label htmlFor="email">
+                                {__('auth.pages.forgot_password.email_label')}
+                            </Label>
                             <InputGroup>
                                 <InputGroupInput
                                     id="email"
@@ -65,10 +72,12 @@ export default function ForgotPassword() {
                                 ) : (
                                     <Send className="h-4 w-4" />
                                 )}
-                                Send reset link
+                                {__('auth.pages.forgot_password.submit_button')}
                             </Button>
                             <div className="space-x-1 text-center text-sm text-muted-foreground">
-                                <span>Or, return to</span>
+                                <span>
+                                    {__('auth.pages.forgot_password.return_text')}
+                                </span>
                                 <Button
                                     asChild
                                     variant={'link'}
@@ -78,7 +87,7 @@ export default function ForgotPassword() {
                                     tabIndex={3}
                                 >
                                     <Link href={route('auth.login')}>
-                                        log in
+                                        {__('auth.pages.forgot_password.login_link')}
                                     </Link>
                                 </Button>
                             </div>

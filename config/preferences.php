@@ -39,4 +39,21 @@ return [
         ['value' => 'Australia/Sydney', 'utc' => '+10:00'],
         ['value' => 'Pacific/Auckland', 'utc' => '+12:00'],
     ],
+
+    'themes' => [
+        ['value' => 'light'],
+        ['value' => 'dark'],
+        ['value' => 'system'],
+    ],
+
+    'colors' => [
+        ['value' => 'default', 'color' => 'oklch(0.205 0 0)'],
+        ['value' => 'blue', 'color' => 'oklch(0.488 0.243 264.376)'],
+        ['value' => 'red', 'color' => 'oklch(0.577 0.245 27.325)'],
+        ['value' => 'green', 'color' => 'oklch(0.648 0.2 131.684)'],
+        ['value' => 'orange', 'color' => 'oklch(0.646 0.222 41.116)'],
+        ['value' => 'rose', 'color' => 'oklch(0.586 0.253 17.585)'],
+        ['value' => 'violet', 'color' => 'oklch(0.541 0.281 293.009)'],
+        ['value' => 'yellow', 'color' => 'oklch(0.852 0.199 91.936)'],
+    ],
 ];

@@ -4,6 +4,9 @@
 import { Form, Head } from '@inertiajs/react';
 import { useRef } from 'react';
 
+// Translation Hook
+import { useTrans } from '@/lib/translation';
+
 // Shadcn UI Components
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,30 +26,33 @@ import { type BreadcrumbItem } from '@/types';
 // Icons
 import { Save } from 'lucide-react';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Settings',
-        href: route('settings.profile.edit'),
-    },
-    {
-        title: 'Password',
-        href: route('settings.password.edit'),
-    },
-];
-
 export default function Password() {
     const passwordInput = useRef<HTMLInputElement>(null);
     const currentPasswordInput = useRef<HTMLInputElement>(null);
+    const __ = useTrans();
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: __('settings.pages.breadcrumbs.settings'),
+            href: route('settings.profile.edit'),
+        },
+        {
+            title: __('settings.pages.breadcrumbs.password'),
+            href: route('settings.password.edit'),
+        },
+    ];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Password settings" />
+            <Head title={__('settings.pages.password.head_title')} />
 
             <SettingsLayout>
                 <div className="space-y-6">
                     <HeadingSmall
-                        title="Update password"
-                        description="Ensure your account is using a long, random password to stay secure"
+                        title={__('settings.pages.password.form.title')}
+                        description={__(
+                            'settings.pages.password.form.description',
+                        )}
                     />
 
                     <Form
@@ -72,10 +78,12 @@ export default function Password() {
                         }}
                     >
                         {({ errors, processing }) => (
-                            <div className='grid gap-4'>
+                            <div className="grid gap-4">
                                 <div className="grid gap-2">
                                     <Label htmlFor="current_password">
-                                        Current password
+                                        {__(
+                                            'settings.pages.password.form.fields.current_password.label',
+                                        )}
                                     </Label>
 
                                     <Input
@@ -85,7 +93,9 @@ export default function Password() {
                                         type="password"
                                         className="mt-1 block w-full"
                                         autoComplete="current-password"
-                                        placeholder="Current password"
+                                        placeholder={__(
+                                            'settings.pages.password.form.fields.current_password.placeholder',
+                                        )}
                                         aria-invalid={
                                             errors.current_password
                                                 ? 'true'
@@ -96,7 +106,9 @@ export default function Password() {
 
                                 <div className="grid gap-2">
                                     <Label htmlFor="password">
-                                        New password
+                                        {__(
+                                            'settings.pages.password.form.fields.password.label',
+                                        )}
                                     </Label>
 
                                     <Input
@@ -106,7 +118,9 @@ export default function Password() {
                                         type="password"
                                         className="mt-1 block w-full"
                                         autoComplete="new-password"
-                                        placeholder="New password"
+                                        placeholder={__(
+                                            'settings.pages.password.form.fields.password.placeholder',
+                                        )}
                                         aria-invalid={
                                             errors.password ? 'true' : 'false'
                                         }
@@ -115,7 +129,9 @@ export default function Password() {
 
                                 <div className="grid gap-2">
                                     <Label htmlFor="password_confirmation">
-                                        Confirm password
+                                        {__(
+                                            'settings.pages.password.form.fields.password_confirmation.label',
+                                        )}
                                     </Label>
 
                                     <Input
@@ -124,7 +140,9 @@ export default function Password() {
                                         type="password"
                                         className="mt-1 block w-full"
                                         autoComplete="new-password"
-                                        placeholder="Confirm password"
+                                        placeholder={__(
+                                            'settings.pages.password.form.fields.password_confirmation.placeholder',
+                                        )}
                                         aria-invalid={
                                             errors.password_confirmation
                                                 ? 'true'
@@ -133,13 +151,15 @@ export default function Password() {
                                     />
                                 </div>
 
-                                    <Button
-                                        disabled={processing}
-                                        data-test="update-password-button"
-                                    >
-                                        {processing ? <Spinner /> : <Save />}
-                                        Save password
-                                    </Button>
+                                <Button
+                                    disabled={processing}
+                                    data-test="update-password-button"
+                                >
+                                    {processing ? <Spinner /> : <Save />}
+                                    {__(
+                                        'settings.pages.password.form.buttons.submit',
+                                    )}
+                                </Button>
                             </div>
                         )}
                     </Form>

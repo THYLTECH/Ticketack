@@ -1,18 +1,31 @@
 // pages/dashboard.tsx
 
-import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
-import AppLayout from '@/layouts/app/layout';
-import { type BreadcrumbItem } from '@/types';
+// Necessary imports
 import { Head } from '@inertiajs/react';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Dashboard',
-        href: route('dashboard'),
-    },
-];
+// Translation Hook
+import { useTrans } from '@/lib/translation';
+
+// Custom components
+import AppLayout from '@/layouts/app/layout';
+
+// Shadcn UI Components
+import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
+
+// Types
+import { type BreadcrumbItem } from '@/types';
 
 export default function Dashboard() {
+
+    const __ = useTrans();
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: __('dashboard.pages.breadcrumbs.dashboard'),
+            href: route('dashboard'),
+        },
+    ];
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />

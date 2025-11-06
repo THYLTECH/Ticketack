@@ -63,6 +63,7 @@ export function CustomToaster(props: FlashProps) {
                 });
             }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.flash, props.success, props.error, props.errors]);
 
     return (

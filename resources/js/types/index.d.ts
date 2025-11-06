@@ -52,3 +52,12 @@ export interface Timezone {
     value: string;
     utc: string;
 } ;
+
+export interface Theme {
+    value: string;
+}
+
+export interface Color {
+    value: string;
+    color: string;
+}

@@ -21,4 +21,29 @@ return [
     */
 
 
+    /*
+    |--------------------------------------------------------------------------
+    | Other
+    |--------------------------------------------------------------------------
+    |
+    */
+
+    'themes' => [
+        'light' => 'Light',
+        'dark' => 'Dark',
+        'system' => 'System',
+    ],
+
+    'colors' => [
+        'default' => 'Default',
+        'blue' => 'Blue',
+        'red' => 'Red',
+        'green' => 'Green',
+        'orange' => 'Orange',
+        'rose' => 'Rose',
+        'violet' => 'Violet',
+        'yellow' => 'Yellow',
+    ],
+
+
 ];

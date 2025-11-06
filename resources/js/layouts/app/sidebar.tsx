@@ -9,6 +9,9 @@ import { useInitials } from '@/hooks/use-initials';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 
+// Translation Hook
+import { useTrans } from '@/lib/translation';
+
 // Shadcn UI Components
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -41,6 +44,7 @@ import { Icon } from '@/components/icon';
 import type { NavItem, SharedData, User } from '@/types';
 
 // Icons
+import AppLogoIcon from '@/components/app-logo-icon';
 import {
     BookOpen,
     ChevronsUpDown,
@@ -49,29 +53,6 @@ import {
     LogOut,
     Settings,
 } from 'lucide-react';
-import AppLogoIcon from '@/components/app-logo-icon';
-
-// Sidebar menus
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: route('dashboard'),
-        icon: LayoutGrid,
-    },
-];
-
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: Folder,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
-    },
-];
 
 // Interfaces
 interface UserMenuContentProps {
@@ -79,6 +60,32 @@ interface UserMenuContentProps {
 }
 
 export function AppSidebar() {
+    const __ = useTrans();
+
+    // Sidebar menus
+    const mainNavItems: NavItem[] = [
+        {
+            title: __('app.layout.sidebar.menugroups.platform.items.dashboard'),
+            href: route('dashboard'),
+            icon: LayoutGrid,
+        },
+    ];
+
+    const footerNavItems: NavItem[] = [
+        {
+            title: __('app.layout.sidebar.menugroups.footer.items.repository'),
+            href: 'https://github.com/THYLTECH/Ticketack',
+            icon: Folder,
+        },
+        {
+            title: __(
+                'app.layout.sidebar.menugroups.footer.items.documentation',
+            ),
+            href: '#',
+            icon: BookOpen,
+        },
+    ];
+
     return (
         <Sidebar collapsible="icon" variant={'floating'}>
             <SidebarHeader>
@@ -226,6 +233,8 @@ function UserMenuContent({ user }: UserMenuContentProps) {
         router.flushAll();
     };
 
+    const __ = useTrans();
+
     return (
         <>
             <DropdownMenuLabel className="p-0 font-normal">
@@ -244,7 +253,7 @@ function UserMenuContent({ user }: UserMenuContentProps) {
                         onClick={cleanup}
                     >
                         <Settings className="mr-2" />
-                        Settings
+                        {__('app.layout.sidebar.usermenu.items.settings')}
                     </Link>
                 </DropdownMenuItem>
             </DropdownMenuGroup>
@@ -258,7 +267,7 @@ function UserMenuContent({ user }: UserMenuContentProps) {
                     data-test="logout-button"
                 >
                     <LogOut className="mr-2" />
-                    Log out
+                    {__('app.layout.sidebar.usermenu.items.logout')}
                 </Link>
             </DropdownMenuItem>
         </>
