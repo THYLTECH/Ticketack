@@ -10,6 +10,8 @@
     <script>
         (function() {
             const appearance = '{{ $appearance ?? 'system' }}';
+            const colorScheme = '{{ $color_scheme ?? 'default' }}';
+            const user = '{{ Auth::check() }}'
 
             if (appearance === 'system') {
                 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -18,6 +20,12 @@
                     document.documentElement.classList.add('dark');
                 }
             }
+
+            if(user) {
+                localStorage.setItem('color-scheme', colorScheme);
+                localStorage.setItem('appearance', appearance);
+            }
+            
         })();
     </script>
 

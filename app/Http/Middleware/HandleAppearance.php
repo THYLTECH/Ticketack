@@ -8,6 +8,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\View;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Middleware to handle appearance settings based on cookies.
@@ -21,8 +22,18 @@ class HandleAppearance
      */
     public function handle(Request $request, Closure $next): Response
     {
-        View::share('appearance', $request->cookie('appearance') ?? 'system');
-        View::share('color_scheme', $request->cookie('color-scheme') ?? 'default');
+        $user = Auth::user();
+
+        if($user) {
+            $appearance = $user->theme;
+            $colorScheme = $user->color_scheme;
+        } else {
+            $appearance = $request->cookie('appearance') ?? 'system';
+            $colorScheme = $request->cookie('color-scheme') ?? 'default';
+        }
+
+        View::share('appearance', $appearance);
+        View::share('color_scheme', $colorScheme);
 
         return $next($request);
     }

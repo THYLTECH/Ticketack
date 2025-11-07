@@ -4,7 +4,7 @@
 import { type Appearance, useAppearance } from '@/hooks/use-appearance';
 import { type ColorScheme, useColorScheme } from '@/hooks/use-color-scheme';
 import { cn } from '@/lib/utils';
-import { Head } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 
 // Layout
 import AppLayout from '@/layouts/app/layout';
@@ -95,19 +95,25 @@ function AppearanceToggle({ themes }: { themes: Theme[] }) {
         label: __(`common.themes.${theme.value}`),
     }));
 
+    // Form
+    const { put, processing } = useForm();
+
+    const handleChange = (value: string) => {
+        put(route('settings.appearance.update_theme', { theme: value }), {
+            preserveScroll: true,
+            onSuccess: () => updateAppearance(value as Appearance),
+        });
+    };
+
     return (
-        <Tabs
-            value={appearance}
-            onValueChange={(value: string) =>
-                updateAppearance(value as Appearance)
-            }
-        >
+        <Tabs value={appearance} onValueChange={handleChange}>
             <TabsList className="gap-2">
                 {tabs.map(({ value, icon, label }) => (
                     <TabsTrigger
                         key={value}
                         value={value}
                         className="flex gap-2 px-4 py-3"
+                        disabled={processing}
                     >
                         <Icon iconNode={icon} />
                         <span className="hidden sm:inline">{label}</span>
@@ -121,11 +127,24 @@ function AppearanceToggle({ themes }: { themes: Theme[] }) {
 function ColorDropdown({ colors }: { colors: Color[] }) {
     const { scheme, updateColorScheme } = useColorScheme();
 
+    // Form
+    const { put, processing } = useForm();
+
+    const handleChange = (value: string) => {
+        put(
+            route('settings.appearance.update_color', { color_scheme: value }),
+            {
+                preserveScroll: true,
+                onSuccess: () => updateColorScheme(value as ColorScheme),
+            },
+        );
+    };
+
     return (
         <RadioGroup
             className="grid grid-cols-3 gap-2"
             value={scheme}
-            onValueChange={(v) => updateColorScheme(v as ColorScheme)}
+            onValueChange={handleChange}
         >
             {colors.map(({ value, color }) => (
                 <ColorOption
@@ -133,6 +152,7 @@ function ColorDropdown({ colors }: { colors: Color[] }) {
                     value={value}
                     color={color}
                     isActive={scheme === value}
+                    disabled={processing}
                 />
             ))}
         </RadioGroup>
@@ -143,10 +163,12 @@ function ColorOption({
     value,
     color = '',
     isActive = false,
+    disabled = false,
 }: {
     value: string;
     color?: string;
     isActive?: boolean;
+    disabled?: boolean;
 }) {
     const __ = useTrans();
 
@@ -157,6 +179,7 @@ function ColorOption({
                 'hover:cursor-pointer hover:bg-accent',
                 'transition-all',
                 isActive && 'border-2 border-primary',
+                disabled && 'pointer-events-none opacity-50',
             )}
             htmlFor={value}
         >
@@ -166,7 +189,12 @@ function ColorOption({
             >
                 {isActive && <CheckIcon className="h-4 w-4 text-white" />}
             </div>
-            <RadioGroupItem value={value} id={value} className="sr-only" />
+            <RadioGroupItem
+                value={value}
+                id={value}
+                className="sr-only"
+                disabled={disabled}
+            />
             <span className="text-xs capitalize">
                 {__('common.colors.' + value)}
             </span>

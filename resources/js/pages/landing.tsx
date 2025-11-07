@@ -2,6 +2,7 @@
 
 // Necessary imports
 import { Head, Link, usePage } from '@inertiajs/react';
+import { useUpdateThemes } from '@/hooks/use-update-theme';
 
 // Translation Hook
 import { useTrans } from '@/lib/translation';
@@ -15,6 +16,7 @@ import { type SharedData } from '@/types';
 export default function Welcome() {
     const { auth } = usePage<SharedData>().props;
     const __ = useTrans();
+    useUpdateThemes();
 
     return (
         <>

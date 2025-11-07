@@ -1,10 +1,10 @@
 // layouts/app/custom-toaster.tsx
 
 import { useAppearance } from '@/hooks/use-appearance';
+import { useTrans } from '@/lib/translation';
 import { Check, Info, Loader2, X } from 'lucide-react';
 import { useEffect } from 'react';
 import { toast, Toaster } from 'sonner';
-import { useTrans } from '@/lib/translation';
 
 type FlashMessage =
     | string
@@ -69,20 +69,23 @@ export function CustomToaster(props: FlashProps) {
     return (
         <Toaster
             icons={{
-                success: <Check className="h-4 w-4 text-primary" />,
-                error: <X className="h-4 w-4 text-destructive" />,
-                info: <Info className="h-4 w-4 text-muted-foreground" />,
+                success: <Check className="h-4 w-4 !text-primary" />,
+                error: <X className="h-4 w-4 !text-destructive" />,
+                info: <Info className="h-4 w-4 !text-muted-foreground" />,
                 loading: (
-                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                    <Loader2 className="h-4 w-4 animate-spin !text-muted-foreground" />
                 ),
             }}
             toastOptions={{
                 classNames: {
-                    title: 'text-sm font-base text-foreground',
+                    title: 'text-sm font-base !text-foreground',
                     description: 'text-xs !text-muted-foreground',
-                    closeButton:
-                        '!right-0 !top-3 !left-auto absolute hover:!bg-accent hover:!border-border',
-                    toast: '!bg-card',
+                    closeButton: `
+                        !right-0 !top-3 !left-auto absolute
+                        hover:!bg-accent !border-border !bg-transparent !text-foreground
+                        dark:!text-foreground
+                    `,
+                    toast: '!bg-card !border !border-border',
                 },
             }}
             duration={4000}

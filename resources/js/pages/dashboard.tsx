@@ -16,7 +16,6 @@ import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import { type BreadcrumbItem } from '@/types';
 
 export default function Dashboard() {
-
     const __ = useTrans();
 
     const breadcrumbs: BreadcrumbItem[] = [

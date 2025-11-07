@@ -28,7 +28,7 @@ Route::prefix('settings/')->name('settings.')->middleware(['auth', 'verified:aut
 
     Route::controller(ControllersAppearance::class)->prefix('appearance/')->name('appearance.')->group(function() {
         Route::get('/', 'edit')->name('edit');
-        // Route::put('appearance', 'update_theme')->name('appearance.update_theme');
-        // Route::put('appearance', 'update_color')->name('appearance.update_color');
+        Route::put('theme', 'update_theme')->name('update_theme');
+        Route::put('color_scheme', 'update_color')->name('update_color');
     });
 });

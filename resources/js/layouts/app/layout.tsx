@@ -3,17 +3,18 @@
 // Necessary imports
 import { usePage } from '@inertiajs/react';
 import { type ReactNode } from 'react';
+import { useUpdateThemes } from '@/hooks/use-update-theme';
 
 // Types
 import type { BreadcrumbItem, SharedData } from '@/types';
 
 // Shadcn UI Components
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 
 // Custom components
-import { AppSidebar } from '@/layouts/app/sidebar';
-import { AppHeader } from '@/layouts/app/header';
 import { CustomToaster } from '@/components/custom-toaster';
+import { AppHeader } from '@/layouts/app/header';
+import { AppSidebar } from '@/layouts/app/sidebar';
 
 interface AppLayoutProps {
     children: ReactNode;
@@ -30,14 +31,16 @@ export default ({ children, breadcrumbs }: AppLayoutProps) => {
         errors?: Record<string, string>;
     }>();
 
+    useUpdateThemes();
+
     return (
         <SidebarProvider defaultOpen={isOpen}>
             <AppSidebar />
-			<SidebarInset className="overflow-x-hidden">
+            <SidebarInset className="overflow-x-hidden">
                 <AppHeader breadcrumbs={breadcrumbs} />
                 {children}
                 <CustomToaster {...pageProps} />
-			</SidebarInset>
+            </SidebarInset>
         </SidebarProvider>
     );
 };
