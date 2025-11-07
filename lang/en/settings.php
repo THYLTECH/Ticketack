@@ -14,6 +14,12 @@ return [
         'incorrect_current_password' => 'The provided current password is incorrect.',
         'account_deleted' => 'Your account has been deleted successfully.',
         'language_updated' => 'Language preferences updated successfully.',
+
+        'theme_loading' => 'Updating theme...',
+        'theme_updated' => 'Theme updated successfully.',
+
+        'color_scheme_loading' => 'Updating color scheme...',
+        'color_scheme_updated' => 'Color scheme updated successfully.',
     ],
 
     /*
