@@ -73,3 +73,5 @@ jobs:
             -Dsonar.tests=tests
             -Dsonar.php.coverage.reportPaths=coverage.xml
             -Dsonar.exclusions=vendor/**,database/**,bootstrap/**,storage/**,public/**
+            -Dsonar.branch.name=main
+
