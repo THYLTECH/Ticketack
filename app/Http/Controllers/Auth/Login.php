@@ -45,7 +45,7 @@ class Login extends Controller
         $data = $request->validated();
 
         // Rate limiting
-        $key = md5('login'.implode('|', [$data['email'], $request->ip()]));
+        $key = hash('sha256', 'login' . implode('|', [$data['email'], $request->ip()]));
         if (RateLimiter::tooManyAttempts($key, 5)) {
             abort(429);
         }
