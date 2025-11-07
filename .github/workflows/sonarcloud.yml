@@ -38,17 +38,25 @@ jobs:
           cp .env.example .env
           php artisan key:generate
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build frontend (Vite)
+        run: |
+          npm ci
+          npm run build
+
       - name: Run database migrations (SQLite)
         run: |
           touch database/database.sqlite
           php artisan migrate --force
 
-      # Désactivation du front Vite pour éviter l'erreur "manifest not found"
       - name: Run tests with Pest and generate coverage
         env:
           APP_ENV: testing
           APP_URL: http://localhost
-          VITE_DISABLED: true
         run: |
           ./vendor/bin/pest --coverage-clover=coverage.xml
 
