@@ -126,7 +126,6 @@ function AppearanceToggle({ themes }: { themes: Theme[] }) {
 
 function ColorDropdown({ colors }: { colors: Color[] }) {
     const { scheme, updateColorScheme } = useColorScheme();
-    const __ = useTrans();
 
     // Form
     const { put, processing } = useForm();

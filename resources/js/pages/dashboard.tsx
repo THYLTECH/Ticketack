@@ -1,8 +1,7 @@
 // pages/dashboard.tsx
 
 // Necessary imports
-import { Head, router } from '@inertiajs/react';
-import { useEffect } from 'react';
+import { Head } from '@inertiajs/react';
 
 // Translation Hook
 import { useTrans } from '@/lib/translation';
