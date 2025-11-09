@@ -30,11 +30,21 @@ export interface SharedData {
     [key: string]: unknown;
 }
 
+export interface Attachment {
+    file_path: string;
+    file_name?: string;
+    mime_type?: string;
+    file_extension?: string;
+    file_size?: number;
+    [key: string]: unknown;
+}
+
 export interface User {
     id: number;
     name: string;
     email: string;
-    avatar?: string;
+    attachment_avatar?: string;
+    avatar?: Attachment | null;
     email_verified_at: string | null;
     language: string;
     timezone: string;
