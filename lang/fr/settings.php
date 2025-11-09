@@ -38,7 +38,9 @@ return [
             'info_form' => [
                 'title' => 'Informations du profil',
                 'description' => 'Mettez à jour vos informations de profil telles que le nom et l’adresse e-mail.',
-
+                'errors' => [
+                    'avatar_too_big' => 'L’image est trop lourde. Taille maximale autorisée : :size MB.',
+                ],
                 'fields' => [
                     'name' => [
                         'label' => 'Nom',
@@ -48,10 +50,16 @@ return [
                         'label' => 'Adresse e-mail',
                         'placeholder' => 'Adresse e-mail',
                     ],
+                    'avatar' => [
+                        'label' => 'Photo de profil',
+                        'max_size' => 'Glisser un fichier ou cliquer pour en choisir un — max : :size MB',
+                    ],
                 ],
                 'buttons' => [
                     'submit' => 'Enregistrer les informations',
                 ],
+                'crop_title' => 'Recadrer l’image',
+                'crop_confirm' => 'Valider',
             ],
 
             'lang_form' => [

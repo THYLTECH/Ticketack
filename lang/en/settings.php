@@ -47,8 +47,12 @@ return [
             'head_title' => 'Profile settings',
 
             'info_form' => [
-                'title' => 'Profile informations',
-                'description' => 'Update your profile informations such as name and email address',
+                'title' => 'Profile information',
+                'description' => 'Update your profile information such as name and email address.',
+
+                'errors' => [
+                    'avatar_too_big' => 'The image is too large. Maximum allowed size: :size MB.',
+                ],
 
                 'fields' => [
                     'name' => [
@@ -59,11 +63,20 @@ return [
                         'label' => 'Email address',
                         'placeholder' => 'Email address',
                     ],
+                    'avatar' => [
+                        'label' => 'Profile picture',
+                        'max_size' => 'Drop a file or click to select one — max :size MB',
+                    ],
                 ],
+
                 'buttons' => [
-                    'submit' => 'Save informations',
+                    'submit' => 'Save information',
                 ],
+
+                'crop_title' => 'Crop image',
+                'crop_confirm' => 'Confirm',
             ],
+
 
             'lang_form' => [
                 'title' => 'Language preferences',

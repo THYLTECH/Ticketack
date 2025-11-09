@@ -14,11 +14,11 @@ use App\Models\User;
 
 /**
  * Class Profile
- * 
+ *
  * Handles the validation for user profile update requests.
  */
 class Profile extends FormRequest
-{ 
+{
     /**
      * Determine if the user is authorized to make this request.
      */

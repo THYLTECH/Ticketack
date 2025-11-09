@@ -29,7 +29,10 @@ class User extends Authenticatable implements MustVerifyEmail
         'color_scheme',
         'verification_token',
         'email_verified_at',
+        'attachment_avatar',
     ];
+
+    protected $with = ['avatar'];
 
     /**
      * The attributes that should be hidden for serialization.
