@@ -19,6 +19,7 @@ use App\Http\Requests\Settings\DeleteAccount as RequestsDeleteAccount;
 
 // Models
 use App\Models\User;
+use App\Models\Attachment;
 
 class Profile extends Controller
 {
@@ -27,6 +28,7 @@ class Profile extends Controller
      */
     public function edit(): Response
     {
+
         $languages = config('preferences.languages');
         $timezones = config('preferences.timezones');
 
@@ -38,15 +40,39 @@ class Profile extends Controller
 
     /**
      * Update the user's profile settings.
-     * 
+     *
      * @param \App\Http\Requests\Settings\Profile $request
      */
     public function update(RequestsProfile $request): RedirectResponse
     {
+
         $data = $request->validated();
         $user = Auth::user();
 
         $emailChanged = array_key_exists('email', $data) && $data['email'] !== $user->email;
+
+        // Avatar changement
+        if ($request->hasFile('avatar')) {
+            $file = $request->file('avatar');
+
+            if($user->avatar) {
+                $user->avatar->deleteFile();
+            }
+
+            $path = $file->store("users/{$user->id}/avatars", 'public');
+
+            $attachment = Attachment::create([
+                'title' => 'User\'s Avatar of ' . $user->name,
+                'description' => 'Avatar uploaded by user ' . $user->id,
+                'file_name' => $file->getClientOriginalName(),
+                'file_path' => str_replace('public/', '', $path),
+                'mime_type' => $file->getMimeType(),
+                'file_extension' => $file->getClientOriginalExtension(),
+                'file_size' => $file->getSize(),
+            ]);
+
+            $data['attachment_avatar'] = $attachment->id;
+        }
 
         $user->update($data);
 
@@ -54,7 +80,7 @@ class Profile extends Controller
             $user->update(['email_verified_at' => null]);
         }
 
-        Auth::setUser($user->fresh());
+        Auth::setUser($user->fresh(['avatar']));
 
         return redirect()->route('settings.profile.edit')->with(['success' => __('settings.flash.profile_updated')]);
     }
@@ -77,7 +103,7 @@ class Profile extends Controller
 
     /**
      * Delete the user's account.
-     * 
+     *
      * @param \App\Http\Requests\Settings\DeleteAccount $request
      */
     public function destroy(RequestsDeleteAccount $request): RedirectResponse
