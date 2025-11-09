@@ -56,7 +56,12 @@ class Profile extends Controller
             $file = $request->file('avatar');
 
             if($user->avatar) {
-                $user->avatar->deleteFile();
+                $oldPath = storage_path('app/public/' . $user->avatar->file_path);
+
+                if (file_exists($oldPath)) {
+                    unlink($oldPath);
+                }
+                $user->avatar->delete();
             }
 
             $path = $file->store("users/{$user->id}/avatars", 'public');

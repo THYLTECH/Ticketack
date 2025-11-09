@@ -123,8 +123,6 @@ function InformationForm({ auth }: { auth: SharedData['auth'] }) {
         });
     };
 
-    console.log("Avatar path:", auth.user?.avatar?.file_path);
-
 
     return (
         <form

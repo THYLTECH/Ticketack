@@ -37,24 +37,4 @@ class Attachment extends Model
     {
         return $this->hasOne(User::class, 'attachment_avatar');
     }
-
-    /**
-     * Getting the content of the file.
-     */
-    public function getFile(): string
-    {
-        return Storage::get($this->file_path);
-    }
-
-    /**
-     * Deleting the file from storage and the database record.
-     */
-    public function deleteFile(): void
-    {
-        if(Storage::exists($this->file_path)){
-            Storage::delete($this->file_path);
-        }
-        $this->delete();
-    }
-
 }
