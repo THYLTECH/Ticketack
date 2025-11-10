@@ -36,7 +36,6 @@ export interface Attachment {
     mime_type?: string;
     file_extension?: string;
     file_size?: number;
-    [key: string]: unknown;
 }
 
 export interface User {
@@ -52,7 +51,6 @@ export interface User {
     color_scheme: string;
     created_at: string;
     updated_at: string;
-    [key: string]: unknown; // This allows for additional properties...
 }
 
 export interface Language {
