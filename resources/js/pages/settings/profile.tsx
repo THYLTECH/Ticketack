@@ -175,8 +175,7 @@ function InformationForm({ auth }: { auth: SharedData['auth'] }) {
                 <AvatarUpload
                     name="avatar"
                     defaultUrl={auth.user?.avatar?.file_path || null}
-                    ratio="1:1"
-                    onFileSelect={(file) => setData('avatar', file)}
+                    onFileSelect={(file) => setData("avatar", file)}
                 />
             </div>
 
