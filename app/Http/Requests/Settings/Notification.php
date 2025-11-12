@@ -36,7 +36,8 @@ class Notification extends FormRequest
     public function rules(): array
     {
         $existing_notifications = collect(config('preferences.notification_preferences'))
-            ->flatten()
+            ->flatMap(fn ($categories) => array_keys($categories))
+            ->values()
             ->toArray();
 
         $existing_channels = config('preferences.notification_channels');
@@ -51,7 +52,7 @@ class Notification extends FormRequest
                 Rule::in($existing_notifications),
             ],
             'notification_preferences.*.value' => ['nullable', 'array'],
-            'notification_preferences.*.value.*' => ['string', Rule::in($existing_channels)],
+            'notification_preferences.*.value.*' => ['sometimes', 'string', Rule::in($existing_channels)],
         ];
     }
 }

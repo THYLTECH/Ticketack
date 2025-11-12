@@ -5,14 +5,8 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
-
-// Models
-use App\Models\Notification as ModelsNotification;
-use App\Models\NotificationPreference as ModelsNotificationPreference;
-use App\Models\User;
 
 // Requests
 use App\Http\Requests\Settings\Notification as RequestsNotification;

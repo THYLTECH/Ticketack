@@ -22,6 +22,9 @@ require __DIR__.'/auth.php';
 // Settings routes
 require __DIR__.'/settings.php';
 
+// Notifications routes
+require __DIR__.'/notifications.php';
+
 // Todo : Tickets, assets, settings etc....
 
 

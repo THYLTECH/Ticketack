@@ -34,7 +34,11 @@ import { AlertCircleIcon, Save } from 'lucide-react';
 
 // Interfaces for local use
 type NotificationProps = {
-    existing_notifications: { [category: string]: string[] };
+    existing_notifications: {
+        [category: string]: {
+            [type: string]: string[];
+        };
+    };
     existing_channels: string[];
     notification_preferences: NotificationPreference[];
 };
@@ -106,16 +110,11 @@ function PreferenceForm({
     const __ = useTrans();
     const { auth } = usePage<SharedData>().props;
 
-    const channels: ComboboxOption[] = existing_channels.map((channel) => ({
-        value: channel,
-        label: __(`notifications.channels.${channel}`),
-        // If the user has no phone number, disable the Vonage (SMS) option
-        disabled: channel == 'vonage' && !auth.user.phone,
-    }));
+    
 
     return (
         <div className="grid gap-10">
-            {Object.entries(existing_notifications).map(([category, items]) => (
+            {Object.entries(existing_notifications).map(([category, notificatios]) => (
                 <Form
                     method={'PATCH'}
                     action={route('settings.notification.update')}
@@ -128,7 +127,7 @@ function PreferenceForm({
                     {({ processing }) => (
                         <div className="grid gap-3">
                             <div className="grid gap-2">
-                                <h3>
+                                <h3 className="font-medium">
                                     {__(
                                         `notifications.preferences.${category}.title`,
                                     )}
@@ -141,24 +140,41 @@ function PreferenceForm({
                             </div>
                             <Separator />
                             <div className="grid">
-                                {items.map((item) => (
-                                    <PreferenceItem
-                                        key={item}
-                                        name={item}
-                                        title={__(
-                                            `notifications.preferences.${category}.items.${item}.title`,
-                                        )}
-                                        description={__(
-                                            `notifications.preferences.${category}.items.${item}.description`,
-                                        )}
-                                        channels={channels}
-                                        selected_channels={getSelectedChannelsForType(
-                                            existing_channels,
-                                            notification_preferences,
-                                            item,
-                                        )}
-                                    />
-                                ))}
+                                {Object.entries(notificatios).map(
+                                    ([notification, available_channels]) => {
+
+                                        // If the user has no phone number, disable the Vonage (SMS) option
+                                        // Or if the channel is not in the available channels for this item
+                                        const channelIsDisabled = (channel: string, phone: string | undefined, available_channels: string[]) => {
+                                            return (channel == 'vonage' && !phone) || !available_channels.includes(channel);
+                                        }
+
+                                        const channels: ComboboxOption[] = existing_channels.map((channel) => ({
+                                            value: channel,
+                                            label: __(`notifications.channels.${channel}`),
+                                            disabled: channelIsDisabled(channel, auth.user.phone, available_channels),
+                                        }));
+
+                                        return (
+                                            <PreferenceItem
+                                                key={notification}
+                                                name={notification}
+                                                title={__(
+                                                    `notifications.preferences.${category}.items.${notification}.title`,
+                                                )}
+                                                description={__(
+                                                    `notifications.preferences.${category}.items.${notification}.description`,
+                                                )}
+                                                channels={channels}
+                                                selected_channels={getSelectedChannelsForType(
+                                                    existing_channels,
+                                                    notification_preferences,
+                                                    notification,
+                                                )}
+                                            />
+                                        );
+                                    },
+                                )}
                             </div>
                             <Input
                                 type="hidden"
