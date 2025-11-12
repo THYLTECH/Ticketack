@@ -17,7 +17,7 @@ const Checkbox = React.forwardRef<
       "dark:bg-input/30 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
       "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
       "disabled:cursor-not-allowed disabled:opacity-50",
-      "data-[state=checked]:bg-primary data-[state=indeterminate]:bg-primary",
+      "data-[state=checked]:!bg-primary data-[state=indeterminate]:!bg-primary",
       "data-[state=checked]:border-primary data-[state=indeterminate]:border-primary",
       "data-[state=checked]:text-primary-foreground data-[state=indeterminate]:text-primary-foreground",
       className
