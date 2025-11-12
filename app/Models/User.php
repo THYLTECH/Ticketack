@@ -63,11 +63,6 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(NotificationPreference::class);
     }
 
-    public function notifications()
-    {
-        return $this->hasMany(Notification::class);
-    }
-
     // Mandatory for notification via sms
     public function routeNotificationForVonage(\Illuminate\Notifications\Notification $notification): string {
         return $this->phone;

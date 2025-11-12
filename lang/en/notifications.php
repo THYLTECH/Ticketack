@@ -90,7 +90,7 @@ return [
     'channels' => [
         'mail' => 'Email',
         'database' => 'Database',
-        'vonage' => 'SMS'
+        'vonage' => 'SMS',
     ],
 
     /*
@@ -100,8 +100,15 @@ return [
     |
     */
 
-    'index' => [
+    'pages' => [
+        'breadcrumbs' => [
+            'index' => 'Notifications',
+        ],
+        'index' => [
+            'head_title' => 'Notifications',
 
+            'title' => 'Your Notifications',
+            'description' => 'Manage and view all your notifications in one place.',
+        ],
     ],
-
 ];

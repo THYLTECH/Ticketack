@@ -24,20 +24,13 @@ return new class extends Migration
         });
 
         Schema::create('notifications', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-
-            $table->string('category'); // ex: 'auth', 'tickets'
-            $table->string('type'); // ex: 'ticket_created', 'ticket_assigned', 'account_created'
-            
-            $table->string('title');
-            $table->text('message')->nullable();
-            $table->string('action')->nullable();
-            $table->string('action_url')->nullable();
-            
-            $table->datetime('read_at')->nullable();
+            $table->uuid('id')->primary();
+            $table->string('type');
+            $table->morphs('notifiable');
+            $table->text('data');
+            $table->timestamp('read_at')->nullable();
             $table->timestamps();
-        });   
+        });
     }
 
     /**
@@ -49,3 +42,5 @@ return new class extends Migration
         Schema::dropIfExists('notification_preferences');
     }
 };
+
+

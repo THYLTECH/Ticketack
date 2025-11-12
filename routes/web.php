@@ -6,12 +6,18 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\App;
 
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
+
 Route::get('/', function () {
     return Inertia::render('landing');
 })->name('home');
 
 Route::middleware(['auth', 'verified:auth.verification.notice'])->group(function () {
     Route::get('/dashboard', function () {
+
+        Notification::send(Auth::user(), new \App\Notifications\Example());
+
         return Inertia::render('dashboard');
     })->name('dashboard');
 });

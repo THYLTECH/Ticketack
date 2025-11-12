@@ -27,6 +27,14 @@ class UserRegistered extends Notification implements shouldQueue
     }
 
     /**
+    * Get the notification's database type.
+    */
+    public function databaseType(object $notifiable): string
+    {
+        return $this->type;
+    }
+
+    /**
      * Get the notification's delivery channels.
      *
      * @return array<int, string>

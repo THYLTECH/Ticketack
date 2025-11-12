@@ -53,7 +53,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
     const current_url = new URL(window.location.href).href;
 
     return (
-        <div className="px-4 py-6">
+        <>
             <Heading
                 title={__('settings.pages.layout.title')}
                 description={__('settings.pages.layout.description')}
@@ -91,6 +91,6 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                     </section>
                 </div>
             </div>
-        </div>
+        </>
     );
 }

@@ -35,6 +35,7 @@ return [
             ],
             'usermenu' => [
                 'items' => [
+                    'notifications' => 'Notifications',
                     'settings' => 'Settings',
                     'logout' => 'Logout',
                 ],

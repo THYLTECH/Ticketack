@@ -9,6 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 use Illuminate\Mail\Mailable;
 use Illuminate\Notifications\Messages\VonageMessage;
+use App\Helpers\NotificationPreferences;
 
 class Example extends Notification implements shouldQueue
 {
@@ -22,6 +23,15 @@ class Example extends Notification implements shouldQueue
     public function __construct()
     {
         $this->type = 'example';
+    }
+
+
+    /**
+    * Get the notification's database type.
+    */
+    public function databaseType(object $notifiable): string
+    {
+        return $this->type;
     }
 
     /**
@@ -60,14 +70,15 @@ class Example extends Notification implements shouldQueue
     /**
      * Get the database representation of the notification
      */
-    public function toDatabase(object $notifiable): array
+    public function toArray(object $notifiable): array
     {
         return [
             'type' => $this->type,
-            'title' => __(""),
-            'message' => __(""),
-            'action' => __(""),
-            'action_url' => route(''),
+            'category' => NotificationPreferences::getCategoryForType($this->type) ?? 'general',
+            'title' => __("Example"),
+            'message' => __("example"),
+            'action' => __("example"),
+            'action_url' => route('dashboard'),
         ];
     }
 

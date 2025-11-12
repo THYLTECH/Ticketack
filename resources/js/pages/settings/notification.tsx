@@ -110,87 +110,109 @@ function PreferenceForm({
     const __ = useTrans();
     const { auth } = usePage<SharedData>().props;
 
-    
-
     return (
         <div className="grid gap-10">
-            {Object.entries(existing_notifications).map(([category, notificatios]) => (
-                <Form
-                    method={'PATCH'}
-                    action={route('settings.notification.update')}
-                    options={{
-                        preserveScroll: true,
-                    }}
-                    className="grid w-full gap-4"
-                    key={category}
-                >
-                    {({ processing }) => (
-                        <div className="grid gap-3">
-                            <div className="grid gap-2">
-                                <h3 className="font-medium">
-                                    {__(
-                                        `notifications.preferences.${category}.title`,
+            {Object.entries(existing_notifications).map(
+                ([category, notificatios]) => (
+                    <Form
+                        method={'PATCH'}
+                        action={route('settings.notification.update')}
+                        options={{
+                            preserveScroll: true,
+                        }}
+                        className="grid w-full gap-4"
+                        key={category}
+                    >
+                        {({ processing }) => (
+                            <div className="grid gap-3">
+                                <div className="grid gap-2">
+                                    <h3 className="font-medium">
+                                        {__(
+                                            `notifications.preferences.${category}.title`,
+                                        )}
+                                    </h3>
+                                    <p className="text-sm font-light text-muted-foreground">
+                                        {__(
+                                            `notifications.preferences.${category}.description`,
+                                        )}
+                                    </p>
+                                </div>
+                                <Separator />
+                                <div className="grid">
+                                    {Object.entries(notificatios).map(
+                                        ([
+                                            notification,
+                                            available_channels,
+                                        ]) => {
+                                            // If the user has no phone number, disable the Vonage (SMS) option
+                                            // Or if the channel is not in the available channels for this item
+                                            const channelIsDisabled = (
+                                                channel: string,
+                                                phone: string | undefined,
+                                                available_channels: string[],
+                                            ) => {
+                                                return (
+                                                    (channel == 'vonage' &&
+                                                        !phone) ||
+                                                    !available_channels.includes(
+                                                        channel,
+                                                    )
+                                                );
+                                            };
+
+                                            const channels: ComboboxOption[] =
+                                                existing_channels.map(
+                                                    (channel) => ({
+                                                        value: channel,
+                                                        label: __(
+                                                            `notifications.channels.${channel}`,
+                                                        ),
+                                                        disabled:
+                                                            channelIsDisabled(
+                                                                channel,
+                                                                auth.user.phone,
+                                                                available_channels,
+                                                            ),
+                                                    }),
+                                                );
+
+                                            return (
+                                                <PreferenceItem
+                                                    key={notification}
+                                                    name={notification}
+                                                    title={__(
+                                                        `notifications.preferences.${category}.items.${notification}.title`,
+                                                    )}
+                                                    description={__(
+                                                        `notifications.preferences.${category}.items.${notification}.description`,
+                                                    )}
+                                                    channels={channels}
+                                                    selected_channels={getSelectedChannelsForType(
+                                                        existing_channels,
+                                                        notification_preferences,
+                                                        notification,
+                                                    )}
+                                                />
+                                            );
+                                        },
                                     )}
-                                </h3>
-                                <p className="text-sm font-light text-muted-foreground">
+                                </div>
+                                <Input
+                                    type="hidden"
+                                    name="category"
+                                    value={category}
+                                />
+                                <Button disabled={processing}>
+                                    {processing ? <Spinner /> : <Save />}
                                     {__(
-                                        `notifications.preferences.${category}.description`,
+                                        'settings.pages.notification.form.buttons.submit',
                                     )}
-                                </p>
+                                </Button>
                             </div>
-                            <Separator />
-                            <div className="grid">
-                                {Object.entries(notificatios).map(
-                                    ([notification, available_channels]) => {
-
-                                        // If the user has no phone number, disable the Vonage (SMS) option
-                                        // Or if the channel is not in the available channels for this item
-                                        const channelIsDisabled = (channel: string, phone: string | undefined, available_channels: string[]) => {
-                                            return (channel == 'vonage' && !phone) || !available_channels.includes(channel);
-                                        }
-
-                                        const channels: ComboboxOption[] = existing_channels.map((channel) => ({
-                                            value: channel,
-                                            label: __(`notifications.channels.${channel}`),
-                                            disabled: channelIsDisabled(channel, auth.user.phone, available_channels),
-                                        }));
-
-                                        return (
-                                            <PreferenceItem
-                                                key={notification}
-                                                name={notification}
-                                                title={__(
-                                                    `notifications.preferences.${category}.items.${notification}.title`,
-                                                )}
-                                                description={__(
-                                                    `notifications.preferences.${category}.items.${notification}.description`,
-                                                )}
-                                                channels={channels}
-                                                selected_channels={getSelectedChannelsForType(
-                                                    existing_channels,
-                                                    notification_preferences,
-                                                    notification,
-                                                )}
-                                            />
-                                        );
-                                    },
-                                )}
-                            </div>
-                            <Input
-                                type="hidden"
-                                name="category"
-                                value={category}
-                            />
-                            <Button disabled={processing}>
-                                {processing ? <Spinner /> : <Save />}
-                                {__(
-                                    'settings.pages.notification.form.buttons.submit',
-                                )}
-                            </Button>
-                        </div>
-                    )}
-                </Form>
-            ))}
+                        )}
+                    </Form>
+                ),
+            )}
         </div>
     );
 }
