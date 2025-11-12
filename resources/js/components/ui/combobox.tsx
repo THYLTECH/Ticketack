@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check, ChevronsUpDown, Loader2, X } from "lucide-react";
+import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -236,9 +236,13 @@ export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
 		const isControlledOpen = Object.prototype.hasOwnProperty.call(props, "open");
 
 		const open = isControlledOpen ? (controlledOpen ?? false) : internalOpen;
-		const value = isControlledValue
-			? (controlledValue ?? (multiple ? [] : ""))
-			: internalValue;
+		const value = React.useMemo(
+			() =>
+				isControlledValue
+				? (controlledValue ?? (multiple ? [] : ""))
+				: internalValue,
+			[isControlledValue, controlledValue, multiple, internalValue],
+			);
 
 		const setOpen = React.useCallback(
 			(newOpen: boolean) => {
@@ -262,24 +266,27 @@ export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
 		}, [options, groups]);
 
 		// Handle selection logic
+		const memoizedValue = React.useMemo(() => value, [value]);
+
 		const handleSelect = React.useCallback(
-			(selectedValue: string) => {
-				if (multiple) {
-					const currentValues = Array.isArray(value) ? value : [];
-					const exists = currentValues.includes(selectedValue);
-					const newValues = exists
-						? currentValues.filter((v) => v !== selectedValue)
-						: [...currentValues, selectedValue];
-					setValue(newValues);
-				} else {
-					const newValue =
-						selectedValue === value && allowDeselect ? "" : selectedValue;
-					setValue(newValue);
-					setOpen(false);
-				}
-			},
-			[value, allowDeselect, multiple, setValue, setOpen],
+		(selectedValue: string) => {
+			if (multiple) {
+			const currentValues = Array.isArray(memoizedValue) ? memoizedValue : [];
+			const exists = currentValues.includes(selectedValue);
+			const newValues = exists
+				? currentValues.filter((v) => v !== selectedValue)
+				: [...currentValues, selectedValue];
+			setValue(newValues);
+			} else {
+			const newValue =
+				selectedValue === memoizedValue && allowDeselect ? "" : selectedValue;
+			setValue(newValue);
+			setOpen(false);
+			}
+		},
+		[memoizedValue, allowDeselect, multiple, setValue, setOpen],
 		);
+
 
 		const selectedOptions = multiple
 			? allOptions.filter((o) => Array.isArray(value) && value.includes(o.value))

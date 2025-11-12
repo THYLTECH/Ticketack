@@ -1,7 +1,7 @@
 // resources/js/pages/notifications/index.tsx
 
 // Necessary imports
-import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 
@@ -52,7 +52,6 @@ import type {
     BreadcrumbItem,
     Notification,
     PaginationProps,
-    SharedData,
 } from '@/types';
 
 // Icons
@@ -63,14 +62,12 @@ type NotificationsProps = PaginationProps & {
 };
 
 export default function Notifications({
-    notifications,
-    ...props
+    notifications
 }: {
     notifications: NotificationsProps;
 }) {
     const { data, ...pagination_props } = notifications;
 
-    const { auth } = usePage<SharedData>().props;
     const __ = useTrans();
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -124,7 +121,6 @@ function NotificationTable({
 
     const toggleSelect = (
         id: string,
-        e?: React.MouseEvent<HTMLButtonElement>,
     ) => {
         // e?.stopPropagation();
         setSelectedIds((prev) =>
@@ -375,10 +371,8 @@ function NotificationDetail({
     const [open, setOpen] = useState(false);
 
     useEffect(() => {
-        if (open) {
-            handleMarkAsRead(notification);
-        }
-    }, [open]);
+  if (open) handleMarkAsRead(notification);
+}, [open, handleMarkAsRead, notification]);
 
     return (
         <AlertDialog open={open} onOpenChange={setOpen}>
@@ -395,14 +389,14 @@ function NotificationDetail({
                     </p>
                 </div>
                 <AlertDialogFooter>
-                    <Button
+                    {/* <Button
                         variant={'outline'}
                         size={'icon'}
                         className="mr-auto"
                         onClick={() => handleDelete(notification)}
                     >
                         <Trash2 />
-                    </Button>
+                    </Button> */}
 
                     <div className="flex gap-2">
                         <AlertDialogCancel>Close</AlertDialogCancel>
@@ -446,7 +440,7 @@ function NotificationPagination({
     }
 
     // Add dots
-    for (let i of range) {
+    for (const i of range) {
         if (l !== undefined) {
             if (i - l === 2) {
                 rangeWithDots.push(l + 1);
