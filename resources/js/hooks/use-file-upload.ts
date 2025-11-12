@@ -1,6 +1,5 @@
 "use client"
 
-import type React from "react"
 import {
   useCallback,
   useRef,
@@ -55,7 +54,7 @@ export type FileUploadActions = {
     props?: InputHTMLAttributes<HTMLInputElement>
   ) => InputHTMLAttributes<HTMLInputElement> & {
     // Use `any` here to avoid cross-React ref type conflicts across packages
-    ref: any
+    ref: never
   }
 }
 
@@ -238,9 +237,9 @@ export const useFileUpload = (
         onFilesAdded?.(validFiles)
 
         setState((prev) => {
-          const newFiles = !multiple
-            ? validFiles
-            : [...prev.files, ...validFiles]
+          const newFiles = multiple
+              ? [...prev.files, ...validFiles]
+              : validFiles;
           onFilesChange?.(newFiles)
           return {
             ...prev,
@@ -279,12 +278,11 @@ export const useFileUpload = (
       setState((prev) => {
         const fileToRemove = prev.files.find((file) => file.id === id)
         if (
-          fileToRemove &&
-          fileToRemove.preview &&
-          fileToRemove.file instanceof File &&
-          fileToRemove.file.type.startsWith("image/")
+            fileToRemove?.preview &&
+            fileToRemove.file instanceof File &&
+            fileToRemove.file.type.startsWith('image/')
         ) {
-          URL.revokeObjectURL(fileToRemove.preview)
+            URL.revokeObjectURL(fileToRemove.preview);
         }
 
         const newFiles = prev.files.filter((file) => file.id !== id)
@@ -342,11 +340,11 @@ export const useFileUpload = (
 
       if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
         // In single file mode, only use the first file
-        if (!multiple) {
-          const file = e.dataTransfer.files[0]
-          addFiles([file])
+        if (multiple) {
+            addFiles(e.dataTransfer.files);
         } else {
-          addFiles(e.dataTransfer.files)
+            const file = e.dataTransfer.files[0];
+            addFiles([file]);
         }
       }
     },
@@ -371,14 +369,14 @@ export const useFileUpload = (
   const getInputProps = useCallback(
     (props: InputHTMLAttributes<HTMLInputElement> = {}) => {
       return {
-        ...props,
-        type: "file" as const,
-        onChange: handleFileChange,
-        accept: props.accept || accept,
-        multiple: props.multiple !== undefined ? props.multiple : multiple,
-        // Cast to `any` to prevent mismatched React ref type errors across workspaces
-        ref: inputRef as any,
-      }
+          ...props,
+          type: 'file' as const,
+          onChange: handleFileChange,
+          accept: props.accept || accept,
+          multiple: props.multiple ?? multiple,
+          // Cast to `any` to prevent mismatched React ref type errors across workspaces
+          ref: inputRef as never,
+      };
     },
     [accept, multiple, handleFileChange]
   )
@@ -406,7 +404,7 @@ export const formatBytes = (bytes: number, decimals = 2): string => {
   if (bytes === 0) return "0 Bytes"
 
   const k = 1024
-  const dm = decimals < 0 ? 0 : decimals
+  const dm = Math.max(decimals, 0);
   const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"]
 
   const i = Math.floor(Math.log(bytes) / Math.log(k))
