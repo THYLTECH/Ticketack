@@ -40,6 +40,7 @@ export interface User {
     timezone: string;
     theme: string;
     color_scheme: string;
+    phone?: string;
     created_at: string;
     updated_at: string;
     [key: string]: unknown; // This allows for additional properties...

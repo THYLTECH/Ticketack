@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('type'); // ex: 'ticket_created', 'ticket_assigned', 'account_created'
-            $table->enum('channel', ['email', 'sms', 'database'])->default('database');
+            $table->enum('channel', ['mail', 'vonage', 'database'])->default('database');
             $table->boolean('enabled')->default(true);
             $table->timestamps();
 
@@ -28,8 +28,11 @@ return new class extends Migration
             // Duplication useful for filtering and querying
             $table->string('type'); // ex: 'ticket_created', 'ticket_assigned', 'account_created'
             
+            $table->string('category');
+            
             $table->string('title');
             $table->text('message')->nullable();
+            $table->string('action')->nullable();
             $table->string('action_url')->nullable();
             
             $table->datetime('read_at')->nullable();

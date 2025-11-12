@@ -38,6 +38,11 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
             href: route('settings.appearance.edit'),
             icon: null,
         },
+        {
+            title: __('settings.pages.breadcrumbs.notification'),
+            href: route('settings.notification.edit'),
+            icon: null,
+        },
     ];
 
     // When server-side rendering, we only render the layout on the client...

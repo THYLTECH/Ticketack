@@ -9,16 +9,11 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Http\Request;
-use DateTimeZone;
 
 // Requests
 use App\Http\Requests\Settings\Profile as RequestsProfile;
 use App\Http\Requests\Settings\Lang as RequestsLang;
 use App\Http\Requests\Settings\DeleteAccount as RequestsDeleteAccount;
-
-// Models
-use App\Models\User;
 
 class Profile extends Controller
 {

@@ -36,7 +36,7 @@ class VerifyEmail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: __('mail.verify_email.subject', ['app' => config('app.name')]),
+            subject: __('notifications.mail.verify_email.subject', ['app' => config('app.name')]),
             to: [new Address($this->user->email, $this->user->name ?? null)],
         );
     }

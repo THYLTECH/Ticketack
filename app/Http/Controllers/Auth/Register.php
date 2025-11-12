@@ -8,6 +8,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -17,11 +18,8 @@ use App\Models\User;
 // Requests
 use App\Http\Requests\Auth\Register as RequestsRegister;
 
-// Jobs
-use App\Jobs\SendEmailJob;
-
-// Mails
-use App\Mail\Auth\RegisteredEmail;
+// Notifications
+use app\Notifications\UserRegistered as NotificationsUserRegistered;
 
 /**
  * Class Register
@@ -53,8 +51,7 @@ class Register extends Controller
 
         $user = User::create($data);
 
-        $mail = new RegisteredEmail($user);
-        SendEmailJob::dispatch($mail, $user->email);
+        Notification::send($user, new NotificationsUserRegistered($user));
 
         Auth::login($user);
 
