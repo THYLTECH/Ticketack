@@ -66,6 +66,7 @@ return [
                     'avatar' => [
                         'label' => 'Profile picture',
                         'max_size' => 'Drop a file or click to select one — max :size MB',
+                        'description' => 'Click or drop an image to upload.',
                     ],
                 ],
 

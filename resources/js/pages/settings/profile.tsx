@@ -167,16 +167,19 @@ function InformationForm({ auth }: { auth: SharedData['auth'] }) {
                 </div>
             </div>
 
-            <div className="space-y-2 md:col-span-1 md:max-w-[180px]">
-                <Label>
+            <div className="flex flex-col items-center justify-start gap-3 md:col-span-1 md:max-w-[180px] pt-2">
+                <Label className="text-center" htmlFor={"avatar"}>
                     {__('settings.pages.profile.info_form.fields.avatar.label')}
                 </Label>
-
+                <p className="text-xs text-muted-foreground mt-1 text-center">{__(
+                    'settings.pages.profile.info_form.fields.avatar.description',
+                )}
+                </p>
                 <AvatarUpload
-                    name="avatar"
                     defaultUrl={auth.user?.avatar?.file_path || null}
-                    onFileSelect={(file) => setData("avatar", file)}
+                    onFileChange={(file) => setData("avatar", file)}
                 />
+
             </div>
 
 

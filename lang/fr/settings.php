@@ -53,6 +53,7 @@ return [
                     'avatar' => [
                         'label' => 'Photo de profil',
                         'max_size' => 'Glisser un fichier ou cliquer pour en choisir un — max : :size MB',
+                        'description' => 'Cliquez ou déposez une image pour la télécharger.',
                     ],
                 ],
                 'buttons' => [

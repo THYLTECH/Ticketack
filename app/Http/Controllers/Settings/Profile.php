@@ -45,19 +45,30 @@ class Profile extends Controller
      */
     public function update(RequestsProfile $request): RedirectResponse
     {
-
         $data = $request->validated();
         $user = Auth::user();
 
         $emailChanged = array_key_exists('email', $data) && $data['email'] !== $user->email;
 
-        // Avatar changement
+        // If the user wants to delete their avatar so he sends null
+        if ($request->avatar === null && $user->avatar) {
+
+            $oldPath = storage_path('app/public/' . $user->avatar->file_path);
+
+            if (file_exists($oldPath)) {
+                unlink($oldPath);
+            }
+
+            $user->avatar->delete();
+
+            $data['attachment_avatar'] = null;
+        }
+
         if ($request->hasFile('avatar')) {
             $file = $request->file('avatar');
 
-            if($user->avatar) {
+            if ($user->avatar) {
                 $oldPath = storage_path('app/public/' . $user->avatar->file_path);
-
                 if (file_exists($oldPath)) {
                     unlink($oldPath);
                 }
@@ -87,8 +98,11 @@ class Profile extends Controller
 
         Auth::setUser($user->fresh(['avatar']));
 
-        return redirect()->route('settings.profile.edit')->with(['success' => __('settings.flash.profile_updated')]);
+        return redirect()
+            ->route('settings.profile.edit')
+            ->with(['success' => __('settings.flash.profile_updated')]);
     }
+
 
     public function update_lang(RequestsLang $request): RedirectResponse
     {
