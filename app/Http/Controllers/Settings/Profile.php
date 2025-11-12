@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\Request;
@@ -68,10 +69,7 @@ class Profile extends Controller
             $file = $request->file('avatar');
 
             if ($user->avatar) {
-                $oldPath = storage_path('app/public/' . $user->avatar->file_path);
-                if (file_exists($oldPath)) {
-                    unlink($oldPath);
-                }
+                Storage::disk('public')->delete($user->avatar->file_path);
                 $user->avatar->delete();
             }
 
@@ -88,6 +86,11 @@ class Profile extends Controller
             ]);
 
             $data['attachment_avatar'] = $attachment->id;
+        }
+        elseif ($request->input('avatar') === null && $user->avatar) {
+            Storage::disk('public')->delete($user->avatar->file_path);
+            $user->avatar->delete();
+            $data['attachment_avatar'] = null;
         }
 
         $user->update($data);
