@@ -51,8 +51,8 @@ class Register extends Controller
 
         $user = User::create($data);
 
-        Notification::send($user, new NotificationsUserRegistered($user));
-
+        Notification::send($user, new NotificationsUserRegistered());
+        
         Auth::login($user);
 
         /** @var \Illuminate\Http\Request $request */

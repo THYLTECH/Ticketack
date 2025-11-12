@@ -14,6 +14,12 @@ return [
     */
 
     'sms' => [
+        'Example' => [
+            'content' => 'Example',
+        ],
+    ],
+
+    'database' => [
         'registered' => [
             'title' => 'Welcome to :app!',
             'message' => 'Your account has been successfully created on :app. We’re glad to have you on board.',
@@ -63,7 +69,7 @@ return [
     'preferences' => [
         'auth' => [
             'title' => 'Authentication',
-            'description' => 'Manage notifications related to your account security and authentication events.',
+            'description' => 'Manage notifications related to your account security and authentication events. If no channels are selected, the notification will by default be sent by email.',
             'items' => [
                 'user_registered' => [
                     'title' => 'New account registration',

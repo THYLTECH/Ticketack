@@ -35,35 +35,23 @@ class Notification extends FormRequest
      */
     public function rules(): array
     {
-        $notifications = collect(config('preferences.notification_preferences'))
+        $existing_notifications = collect(config('preferences.notification_preferences'))
             ->flatten()
             ->toArray();
 
-        $channels = config('preferences.notification_channels');
+        $existing_channels = config('preferences.notification_channels');
 
         return [
+            'category' => ['required', 'string'],
+
             'notification_preferences' => ['required', 'array'],
             'notification_preferences.*.type' => [
                 'required',
                 'string',
-                Rule::in($notifications),
+                Rule::in($existing_notifications),
             ],
-            'notification_preferences.*.value' => [
-                'nullable',
-                'string',
-                function ($attribute, $value, $fail) use ($channels) {
-                    if ($value === null) {
-                        return;
-                    }
-
-                    $selected = explode(',', $value);
-                    foreach ($selected as $channel) {
-                        if (!in_array($channel, $channels)) {
-                            $fail("Invalid channel: {$channel}");
-                        }
-                    }
-                },
-            ],
+            'notification_preferences.*.value' => ['nullable', 'array'],
+            'notification_preferences.*.value.*' => ['string', Rule::in($existing_channels)],
         ];
     }
 }

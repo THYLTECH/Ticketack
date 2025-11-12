@@ -81,10 +81,18 @@ return [
 
     'notification_preferences' => [
         'auth' => [
-            'user_registered',
+            // 'user_registered',  // Not necessary as can't configure if not logged in an only called once
             'password_reset',
             'verify_email',
         ],
+        // 'tickets' => [
+        //     'ticket_created',
+        //     'ticket_updated',
+        //     'ticket_closed',
+        //     'ticket_reopened',
+        //     'new_comment',
+        //     'comment_updated',
+        // ],
     ],
 
     'notification_channels' => [

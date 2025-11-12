@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Notification;
 
 // Requests
 use App\Http\Requests\Auth\Email as RequestsEmail;
@@ -18,11 +19,8 @@ use App\Http\Requests\Auth\Email as RequestsEmail;
 // Models
 use App\Models\User;
 
-// Jobs
-use App\Jobs\SendEmailJob;
-
-// Mails
-use App\Mail\Auth\VerifyEmail;
+// Notifications
+use App\Notifications\VerifyEmail as NotificationsVerifyEmail;
 
 /**
  * Class EmailVerification
@@ -64,8 +62,7 @@ class EmailVerification extends Controller
 
         $user->update(['verification_token' => $token]);
 
-        $mail = new VerifyEmail($user, $token);
-        SendEmailJob::dispatch($mail);
+        Notification::send($user, new NotificationsVerifyEmail($token));
 
         return redirect()->route('auth.verification.notice')->with([
             'success' => __('auth.flash.verification.link_sent'),

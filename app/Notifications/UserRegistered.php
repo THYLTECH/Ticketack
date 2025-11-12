@@ -6,30 +6,24 @@ namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Mail\Mailable;
 
 // Mails
 use App\Mail\Auth\RegisteredEmail;
 
-// Models
-use App\Models\User;
-
 class UserRegistered extends Notification implements shouldQueue
 {
     use Queueable;
 
-    protected $user;
     protected $type;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct(User $user)
+    public function __construct()
     {
         $this->type = 'user_registered';
-        $this->user = $user;
     }
 
     /**
@@ -57,9 +51,9 @@ class UserRegistered extends Notification implements shouldQueue
     {
         return [
             'type' => $this->type,
-            'title' => __("notifications.sms.registered.title", ['app' => config('app.name')]),
-            'message' => __("notifications.sms.registered.message", ['app' => config('app.name')]),
-            'action' => __("notifications.sms.registered.action"),
+            'title' => __("notifications.database.registered.title", ['app' => config('app.name')]),
+            'message' => __("notifications.database.registered.message", ['app' => config('app.name')]),
+            'action' => __("notifications.database.registered.action"),
             'action_url' => route('auth.login'),
         ];
     }

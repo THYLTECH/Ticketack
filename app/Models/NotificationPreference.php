@@ -14,6 +14,7 @@ class NotificationPreference extends Model
      */
     protected $fillable = [
         'user_id',
+        'category',
         'type',
         'channel',
         'enabled',

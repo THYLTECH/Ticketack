@@ -20,47 +20,49 @@ use App\Http\Requests\Settings\Notification as RequestsNotification;
 class Notification extends Controller
 {
     public function edit() {
-        $notification_preferences = config('preferences.notification_preferences');
-        $notification_channels    = config('preferences.notification_channels');
-        $user_preferences         = Auth::user()->notificationPreferences()
-                                   ->get(['user_id', 'type', 'channel', 'enabled']);
+
+        $existing_notifications = config('preferences.notification_preferences');
+        $existing_channels      = config('preferences.notification_channels');
+
+        $notification_preferences = Auth::user()->notificationPreferences()
+                                   ->get(['user_id', 'category', 'type', 'channel', 'enabled']);
 
         return Inertia::render('settings/notification', [
-            'notification_preferences' => $notification_preferences,
-            'notification_channels' => $notification_channels,
-            'user_preferences' => $user_preferences,
+            'existing_notifications'    => $existing_notifications,
+            'existing_channels'         => $existing_channels,
+            'notification_preferences'  => $notification_preferences,
         ]);
     }
 
     public function update(RequestsNotification $request) {
         $data = $request->validated();
 
-        $preferences = collect($data['notification_preferences'])
-            ->map(fn ($pref) => [
-                'type' => $pref['type'],
-                'value' => $pref['value'] ? explode(',', $pref['value']) : [],
-            ])
-            ->values();
-        
         $user = Auth::user();
 
-        $user->notificationPreferences()->delete();
+        foreach($data['notification_preferences'] as $preference) {
+            $type = $preference['type'];
+            $values = $preference['value'] ?? [];
 
-        foreach ($preferences as $pref) {
-            foreach ($pref['value'] as $channel) {
+            // First, disable all channels for this type
+            $user->notificationPreferences()
+                ->where('category', $data['category'])
+                ->where('type', $type)
+                ->update(['enabled' => false]);
+
+            // Then, enable the selected channels
+            foreach($values as $channel) {
                 $user->notificationPreferences()->updateOrCreate(
                     [
-                        'type' => $pref['type'],
-                        'channel' => $channel,
+                        'category' => $data['category'],
+                        'type'     => $type,
+                        'channel'  => $channel,
                     ],
                     [
-                        'enabled' => true,
+                        'enabled'  => true,
                     ]
                 );
             }
         }
-
-        // TODO : Faire en sorte que le combobox "pré selectionne" ceux déjà enregistrés
 
         return redirect()
             ->route('settings.notification.edit')

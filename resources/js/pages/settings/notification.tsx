@@ -1,4 +1,4 @@
-// pages/settings/password.tsx
+// pages/settings/notification.tsx
 
 // Necessary imports
 import { Form, Head, usePage } from '@inertiajs/react';
@@ -10,13 +10,7 @@ import { useTrans } from '@/lib/translation';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Combobox } from '@/components/ui/combobox';
-import {
-    Item,
-    ItemActions,
-    ItemContent,
-    ItemDescription,
-    ItemTitle,
-} from '@/components/ui/item';
+import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
 
@@ -29,32 +23,27 @@ import SettingsLayout from '@/layouts/settings/layout';
 
 // Types
 import type { ComboboxOption } from '@/components/ui/combobox';
-import { SharedData, type BreadcrumbItem } from '@/types';
+import type {
+    BreadcrumbItem,
+    NotificationPreference,
+    SharedData,
+} from '@/types';
 
 // Icons
 import { AlertCircleIcon, Save } from 'lucide-react';
 
-// Interfaces
-type NotificationPreferences = {
-    [category: string]: string[];
+// Interfaces for local use
+type NotificationProps = {
+    existing_notifications: { [category: string]: string[] };
+    existing_channels: string[];
+    notification_preferences: NotificationPreference[];
 };
-type NotificationChannels = string[];
-interface UserPreference {
-    user_id: number;
-    type: string;
-    channel: string;
-    enabled: boolean;
-}
 
 export default function Notification({
+    existing_notifications,
+    existing_channels,
     notification_preferences,
-    notification_channels,
-    user_preferences,
-}: {
-    notification_preferences: NotificationPreferences;
-    notification_channels: NotificationChannels;
-    user_preferences: UserPreference[];
-}) {
+}: NotificationProps) {
     const __ = useTrans();
     const { auth } = usePage<SharedData>().props;
 
@@ -99,9 +88,9 @@ export default function Notification({
                     )}
 
                     <PreferenceForm
+                        existing_notifications={existing_notifications}
+                        existing_channels={existing_channels}
                         notification_preferences={notification_preferences}
-                        notification_channels={notification_channels}
-                        user_preferences={user_preferences}
                     />
                 </div>
             </SettingsLayout>
@@ -110,84 +99,82 @@ export default function Notification({
 }
 
 function PreferenceForm({
+    existing_notifications,
+    existing_channels,
     notification_preferences,
-    notification_channels,
-    user_preferences,
-}: {
-    notification_preferences: NotificationPreferences;
-    notification_channels: NotificationChannels;
-    user_preferences: UserPreference[];
-}) {
+}: NotificationProps) {
     const __ = useTrans();
     const { auth } = usePage<SharedData>().props;
 
-    const channels: ComboboxOption[] = notification_channels.map((channel) => ({
+    const channels: ComboboxOption[] = existing_channels.map((channel) => ({
         value: channel,
         label: __(`notifications.channels.${channel}`),
+        // If the user has no phone number, disable the Vonage (SMS) option
         disabled: channel == 'vonage' && !auth.user.phone,
     }));
 
     return (
-        <div className="grid gap-6">
-            {Object.entries(notification_preferences).map(
-                ([category, items]) => (
-                    <Form
-                        method={'PATCH'}
-                        action={route('settings.notification.update')}
-                        options={{
-                            preserveScroll: true,
-                        }}
-                        className="grid gap-4"
-                        key={category}
-                    >
-                        {({ processing }) => (
+        <div className="grid gap-10">
+            {Object.entries(existing_notifications).map(([category, items]) => (
+                <Form
+                    method={'PATCH'}
+                    action={route('settings.notification.update')}
+                    options={{
+                        preserveScroll: true,
+                    }}
+                    className="grid w-full gap-4"
+                    key={category}
+                >
+                    {({ processing }) => (
+                        <div className="grid gap-3">
                             <div className="grid gap-2">
                                 <h3>
                                     {__(
                                         `notifications.preferences.${category}.title`,
                                     )}
                                 </h3>
-                                <Separator />
-                                <div className="grid">
-                                    {items.map((item) => {
-                                        const selected_channels =
-                                            user_preferences
-                                                .filter(
-                                                    (pref) =>
-                                                        pref.type === item &&
-                                                        pref.enabled,
-                                                )
-                                                .map((pref) => pref.channel);
-
-                                        return (
-                                            <PreferenceItem
-                                                key={item}
-                                                name={item}
-                                                title={__(
-                                                    `notifications.preferences.${category}.items.${item}.title`,
-                                                )}
-                                                description={__(
-                                                    `notifications.preferences.${category}.items.${item}.description`,
-                                                )}
-                                                channels={channels}
-                                                selected_channels={
-                                                    selected_channels
-                                                }
-                                            />
-                                        );
-                                    })}
-                                </div>
-                                <Button disabled={processing}>
-                                    {processing ? <Spinner /> : <Save />}
+                                <p className="text-sm font-light text-muted-foreground">
                                     {__(
-                                        'settings.pages.notification.form.buttons.submit',
+                                        `notifications.preferences.${category}.description`,
                                     )}
-                                </Button>
+                                </p>
                             </div>
-                        )}
-                    </Form>
-                ),
-            )}
+                            <Separator />
+                            <div className="grid">
+                                {items.map((item) => (
+                                    <PreferenceItem
+                                        key={item}
+                                        name={item}
+                                        title={__(
+                                            `notifications.preferences.${category}.items.${item}.title`,
+                                        )}
+                                        description={__(
+                                            `notifications.preferences.${category}.items.${item}.description`,
+                                        )}
+                                        channels={channels}
+                                        selected_channels={getSelectedChannelsForType(
+                                            existing_channels,
+                                            notification_preferences,
+                                            item,
+                                        )}
+                                    />
+                                ))}
+                            </div>
+                            <Input
+                                type="hidden"
+                                name="category"
+                                value={category}
+                            />
+                            <Button disabled={processing}>
+                                {processing ? <Spinner /> : <Save />}
+                                {__(
+                                    'settings.pages.notification.form.buttons.submit',
+                                )}
+                            </Button>
+                        </div>
+                    )}
+                </Form>
+            ))}
         </div>
     );
 }
@@ -211,13 +198,15 @@ function PreferenceItem({
     }));
 
     return (
-        <Item variant={'default'} className="gap-4 px-0">
-            <ItemContent className="gap-0">
-                <ItemTitle>{title}</ItemTitle>
-                <ItemDescription>{description}</ItemDescription>
-            </ItemContent>
-            <ItemActions>
-                <input
+        <div className="grid grid-cols-6 items-center gap-6 py-2">
+            <div className="col-span-4 flex-grow-0 flex-nowrap gap-0 overflow-hidden overflow-ellipsis">
+                <h3>{title}</h3>
+                <p className="text-sm font-light text-muted-foreground">
+                    {description}
+                </p>
+            </div>
+            <div className="col-span-2 flex items-center gap-2">
+                <Input
                     type="hidden"
                     name={`notification_preferences[${name}][type]`}
                     value={name}
@@ -226,11 +215,25 @@ function PreferenceItem({
                     size={'sm'}
                     name={`notification_preferences[${name}][value]`}
                     searchable={false}
+                    className="w-full"
                     options={new_channels}
                     allowDeselect
                     multiple
                 />
-            </ItemActions>
-        </Item>
+            </div>
+        </div>
+    );
+}
+
+function getSelectedChannelsForType(
+    existing_channels: string[],
+    notification_preferences: NotificationPreference[],
+    type: string,
+): string[] {
+    return existing_channels.filter((channel) =>
+        notification_preferences.some(
+            (pref) =>
+                pref.type === type && pref.channel === channel && pref.enabled,
+        ),
     );
 }

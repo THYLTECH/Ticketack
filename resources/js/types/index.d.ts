@@ -46,6 +46,14 @@ export interface User {
     [key: string]: unknown; // This allows for additional properties...
 }
 
+export interface NotificationPreference {
+    user_id: number;
+    category: string;
+    type: string;
+    channel: string;
+    enabled: boolean;
+}
+
 export interface Language {
     code: string;
     name: string;

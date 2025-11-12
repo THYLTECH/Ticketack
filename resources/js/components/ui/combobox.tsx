@@ -288,7 +288,7 @@ export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
 		// Unified trigger rendering
 		const defaultTriggerContent = (
 			<div className="flex w-full items-center justify-between gap-2 truncate">
-				<div className="flex flex-wrap items-center gap-1 truncate text-left">
+				<div className="flex items-center gap-1 truncate text-left overflow-auto">
 					{multiple ? (
 						Array.isArray(selectedOptions) && selectedOptions.length > 0 ? (
 							selectedOptions.map((opt) => (
@@ -298,7 +298,7 @@ export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
 								>
 									{opt.icon}
 									{opt.label}
-									<button
+									{/* <button
 										type="button"
 										onClick={(e) => {
 											e.stopPropagation();
@@ -307,7 +307,7 @@ export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
 										className="ml-1 text-muted-foreground hover:text-foreground"
 									>
 										<X className="h-3 w-3" />
-									</button>
+									</button> */}
 								</span>
 							))
 						) : (

@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('notification_preferences', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->string('category'); // ex: 'auth', 'tickets'
             $table->string('type'); // ex: 'ticket_created', 'ticket_assigned', 'account_created'
             $table->enum('channel', ['mail', 'vonage', 'database'])->default('database');
             $table->boolean('enabled')->default(true);
@@ -25,10 +26,9 @@ return new class extends Migration
         Schema::create('notifications', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            // Duplication useful for filtering and querying
+
+            $table->string('category'); // ex: 'auth', 'tickets'
             $table->string('type'); // ex: 'ticket_created', 'ticket_assigned', 'account_created'
-            
-            $table->string('category');
             
             $table->string('title');
             $table->text('message')->nullable();
