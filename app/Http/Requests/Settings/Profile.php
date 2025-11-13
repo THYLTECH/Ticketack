@@ -8,6 +8,8 @@ namespace App\Http\Requests\Settings;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
+use libphonenumber\PhoneNumberUtil;
+use libphonenumber\NumberParseException;
 
 // Models
 use App\Models\User;
@@ -45,6 +47,27 @@ class Profile extends FormRequest
                 'email',
                 'max:255',
                 Rule::unique(User::class)->ignore(Auth::id()),
+            ],
+
+            'phone' => [
+                'nullable',
+                'string',
+                'max:20',
+                Rule::unique(User::class)->ignore(Auth::id()),
+                function ($attribute, $value, $fail) {
+                    if (!$value) return;
+
+                    $phoneUtil = PhoneNumberUtil::getInstance();
+
+                    try {
+                        $proto = $phoneUtil->parse($value, null);
+                        if (!$phoneUtil->isValidNumber($proto)) {
+                            $fail(__('validation.custom.phone.invalid'));
+                        }
+                    } catch (NumberParseException $e) {
+                        $fail(__('validation.custom.phone.invalid'));
+                    }
+                }
             ],
         ];
     }

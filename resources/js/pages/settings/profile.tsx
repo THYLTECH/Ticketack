@@ -2,7 +2,7 @@
 
 // Necessary imports
 import { Form, Head, usePage } from '@inertiajs/react';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 
 // Layout
 import AppLayout from '@/layouts/app/layout';
@@ -38,6 +38,7 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
+import { PhoneInput } from '@/components/ui/phone-input';
 
 // Types
 import type { BreadcrumbItem, Language, SharedData, Timezone } from '@/types';
@@ -110,6 +111,8 @@ export default function Profile({
 function InformationForm({ auth }: { auth: SharedData['auth'] }) {
     const __ = useTrans();
 
+    const [phone, setPhone] = useState(auth.user.phone || "");
+
     return (
         <Form
             method={'PATCH'}
@@ -160,7 +163,31 @@ function InformationForm({ auth }: { auth: SharedData['auth'] }) {
                             tabIndex={2}
                         />
                     </div>
-                    <Button disabled={processing} type={'submit'} tabIndex={3}>
+
+                    <div className="grid gap-2">
+                        <Label htmlFor="phone">
+                            {__(
+                                'settings.pages.profile.info_form.fields.phone.label',
+                            )}
+                        </Label>
+
+                        <PhoneInput 
+                            id="phone"
+                            name="phone"
+                            placeholder={__(
+                                'settings.pages.profile.info_form.fields.phone.placeholder',
+                            )}
+                            placeholderSearch={__(
+                                'settings.pages.profile.info_form.fields.phone.country_search_placeholder',
+                            )}
+                            aria-invalid={errors.phone ? 'true' : 'false'}
+                            flag_tabIndex={3}
+                            tabIndex={4}
+                            value={phone}
+                            onChange={setPhone}
+                        />
+                    </div>
+                    <Button disabled={processing} type={'submit'} tabIndex={5}>
                         {processing ? <Spinner /> : <Save />}
                         {__('settings.pages.profile.info_form.buttons.submit')}
                     </Button>
@@ -207,7 +234,7 @@ function LangForm({
                             }
                         >
                             <SelectTrigger
-                                tabIndex={4}
+                                tabIndex={6}
                                 id="language"
                                 className="w-full"
                             >
@@ -253,7 +280,7 @@ function LangForm({
                             }
                         >
                             <SelectTrigger
-                                tabIndex={5}
+                                tabIndex={7}
                                 id="timezone"
                                 className="w-full"
                             >
@@ -287,7 +314,7 @@ function LangForm({
                             </SelectContent>
                         </Select>
                     </div>
-                    <Button disabled={processing} type={'submit'} tabIndex={6}>
+                    <Button disabled={processing} type={'submit'} tabIndex={8}>
                         {processing ? <Spinner /> : <Save />}
                         {__('settings.pages.profile.lang_form.buttons.submit')}
                     </Button>

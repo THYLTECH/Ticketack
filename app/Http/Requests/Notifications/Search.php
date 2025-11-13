@@ -6,9 +6,14 @@ namespace App\Http\Requests\Notifications;
 
 // Necessary imports
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
 
+
+/**
+ * Class Search
+ * 
+ * Request class for handling notification search queries.
+ */
 class Search extends FormRequest
 {
     /**

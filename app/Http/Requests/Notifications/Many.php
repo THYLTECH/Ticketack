@@ -9,6 +9,11 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
 
+/**
+ * Class Many
+ * 
+ * Request class for handling multiple notifications actions.
+ */
 class Many extends FormRequest
 {
     /**

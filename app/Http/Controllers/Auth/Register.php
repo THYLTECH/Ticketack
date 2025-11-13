@@ -19,7 +19,7 @@ use App\Models\User;
 use App\Http\Requests\Auth\Register as RequestsRegister;
 
 // Notifications
-use app\Notifications\UserRegistered as NotificationsUserRegistered;
+use App\Notifications\UserRegistered as NotificationsUserRegistered;
 
 /**
  * Class Register

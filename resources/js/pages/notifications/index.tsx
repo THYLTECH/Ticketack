@@ -68,6 +68,11 @@ import { cn, formatNotificationDate } from '@/lib/utils';
 import type { BreadcrumbItem, Notification, PaginationProps } from '@/types';
 
 // Icons
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { Bell, MailOpen, RefreshCcw, Search, Trash2, X } from 'lucide-react';
 
 type NotificationsProps = PaginationProps & {
@@ -83,7 +88,7 @@ export default function Notifications({
     search?: string;
     total_notifications: number;
 }) {
-    const { data, ...pagination_props } = notifications;
+    const { ...pagination_props } = notifications;
 
     const __ = useTrans();
 
@@ -125,6 +130,7 @@ export default function Notifications({
 }
 
 function NotificationSearchForm({ search }: { search?: string }) {
+    const __ = useTrans();
     return (
         <Form
             method={'GET'}
@@ -133,10 +139,12 @@ function NotificationSearchForm({ search }: { search?: string }) {
                 preserveScroll: true,
             }}
         >
-            {({ processing, errors, submit }) => (
+            {({ processing, errors }) => (
                 <div className="flex w-full items-end justify-between gap-4">
                     <div className="grid w-full gap-2">
-                        <Label htmlFor="search">Search</Label>
+                        <Label htmlFor="search">
+                            {__('notifications.pages.index.search.label')}
+                        </Label>
 
                         <ButtonGroup className="w-full">
                             <InputGroup>
@@ -145,7 +153,9 @@ function NotificationSearchForm({ search }: { search?: string }) {
                                     name="search"
                                     className="w-full"
                                     defaultValue={search || ''}
-                                    placeholder={'Search notifications...'}
+                                    placeholder={__(
+                                        'notifications.pages.index.search.placeholder',
+                                    )}
                                     aria-invalid={
                                         errors.search ? 'true' : 'false'
                                     }
@@ -178,7 +188,7 @@ function NotificationSearchForm({ search }: { search?: string }) {
                                 tabIndex={2}
                             >
                                 {processing ? <Spinner /> : <Search />}
-                                Search
+                                {__('notifications.pages.index.search.button')}
                             </Button>
                         </ButtonGroup>
                     </div>
@@ -189,23 +199,25 @@ function NotificationSearchForm({ search }: { search?: string }) {
 }
 
 function NotificationEmpty() {
+    const __ = useTrans();
     return (
         <Empty className="h-full">
             <EmptyHeader>
                 <EmptyMedia variant="icon">
                     <Bell />
                 </EmptyMedia>
-                <EmptyTitle>No Notifications</EmptyTitle>
+                <EmptyTitle>
+                    {__('notifications.pages.index.empty.title')}
+                </EmptyTitle>
                 <EmptyDescription>
-                    You&apos;re all caught up. New notifications will appear
-                    here.
+                    {__('notifications.pages.index.empty.description')}
                 </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
                 <Button variant="outline" size="sm" asChild>
                     <Link href={route('notifications.index')}>
                         <RefreshCcw />
-                        Refresh
+                        {__('notifications.pages.index.empty.button')}
                     </Link>
                 </Button>
             </EmptyContent>
@@ -294,22 +306,31 @@ function NotificationTable({
                             transition={{ duration: 0.3 }}
                         >
                             <div className="w-full border-t border-b p-2 text-center text-sm">
-                                You selected {selectedIds.length} notifications,
-                                you can
+                                {__(
+                                    'notifications.pages.index.bulk_actions.text',
+                                    undefined,
+                                    { count: selectedIds.length },
+                                )}
                                 <Button
                                     variant="link"
                                     onClick={handleBulkMarkAsRead}
                                     className="px-1"
                                 >
-                                    {__('mark them as read')}
+                                    {__(
+                                        'notifications.pages.index.bulk_actions.mark_as_read',
+                                    )}
                                 </Button>
-                                or
+                                {__(
+                                    'notifications.pages.index.bulk_actions.or',
+                                )}
                                 <Button
                                     variant="link"
                                     onClick={handleBulkDelete}
                                     className="px-1"
                                 >
-                                    {__('delete them.')}
+                                    {__(
+                                        'notifications.pages.index.bulk_actions.delete',
+                                    )}
                                 </Button>
                             </div>
                         </motion.div>
@@ -335,11 +356,15 @@ function NotificationTable({
                             </TableHead>
                         )}
                         <TableHead className="w-[16%] text-left">
-                            Type
+                            {__('notifications.pages.index.table.columns.type')}
                         </TableHead>
-                        <TableHead className="w-[68%]">Message</TableHead>
+                        <TableHead className="w-[68%]">
+                            {__(
+                                'notifications.pages.index.table.columns.message',
+                            )}
+                        </TableHead>
                         <TableHead className="w-[12%] text-right">
-                            Date
+                            {__('notifications.pages.index.table.columns.date')}
                         </TableHead>
                     </TableRow>
                 </TableHeader>
@@ -358,7 +383,6 @@ function NotificationTable({
                                 handleMarkAsRead={() =>
                                     handleMarkAsRead(notification)
                                 }
-                                handleDelete={() => handleDelete(notification)}
                             >
                                 <TableRow
                                     className={cn(
@@ -407,30 +431,51 @@ function NotificationTable({
                                         )}
                                     >
                                         {!notification.read_at && (
-                                            <Button
-                                                variant={'ghost'}
-                                                size={'icon-sm'}
-                                                onClick={(e) =>
-                                                    handleMarkAsRead(
-                                                        notification,
-                                                        e,
-                                                    )
-                                                }
-                                                className="text-foreground"
-                                            >
-                                                <MailOpen />
-                                            </Button>
+                                            <Tooltip>
+                                                <TooltipTrigger>
+                                                    <Button
+                                                        variant={'ghost'}
+                                                        size={'icon-sm'}
+                                                        onClick={(e) =>
+                                                            handleMarkAsRead(
+                                                                notification,
+                                                                e,
+                                                            )
+                                                        }
+                                                        className="text-foreground"
+                                                    >
+                                                        <MailOpen />
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    {__(
+                                                        'notifications.pages.index.table.buttons.mark_as_read',
+                                                    )}
+                                                </TooltipContent>
+                                            </Tooltip>
                                         )}
-                                        <Button
-                                            variant={'ghost'}
-                                            size={'icon-sm'}
-                                            onClick={(e) =>
-                                                handleDelete(notification, e)
-                                            }
-                                            className="text-foreground"
-                                        >
-                                            <Trash2 />
-                                        </Button>
+                                        <Tooltip>
+                                            <TooltipTrigger>
+                                                <Button
+                                                    variant={'ghost'}
+                                                    size={'icon-sm'}
+                                                    onClick={(e) =>
+                                                        handleDelete(
+                                                            notification,
+                                                            e,
+                                                        )
+                                                    }
+                                                    className="text-foreground"
+                                                >
+                                                    <Trash2 />
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                {__(
+                                                    'notifications.pages.index.table.buttons.delete',
+                                                )}
+                                            </TooltipContent>
+                                        </Tooltip>
                                     </div>
                                 </TableRow>
                             </NotificationDetail>
@@ -439,7 +484,7 @@ function NotificationTable({
                     {data.length === 0 && (
                         <TableRow>
                             <TableCell colSpan={4} className="py-4 text-center">
-                                No notifications found.
+                                {__('notifications.pages.index.table.empty')}
                             </TableCell>
                         </TableRow>
                     )}
@@ -449,15 +494,23 @@ function NotificationTable({
                         <TableRow className="!bg-background">
                             <TableCell colSpan={4} className="py-2 text-center">
                                 <span className="flex text-sm font-light text-muted-foreground">
-                                    Showing{' '}
-                                    {(notifications.current_page - 1) *
-                                        notifications.per_page +
-                                        1}{' '}
-                                    -{' '}
-                                    {(notifications.current_page - 1) *
-                                        notifications.per_page +
-                                        data.length}{' '}
-                                    of {notifications.total} entries
+                                    {__(
+                                        'notifications.pages.index.table.footer',
+                                        undefined,
+                                        {
+                                            first:
+                                                (notifications.current_page -
+                                                    1) *
+                                                    notifications.per_page +
+                                                1,
+                                            last:
+                                                (notifications.current_page -
+                                                    1) *
+                                                    notifications.per_page +
+                                                data.length,
+                                            total: notifications.total,
+                                        },
+                                    )}
                                 </span>
                             </TableCell>
                         </TableRow>
@@ -472,12 +525,10 @@ function NotificationDetail({
     children,
     notification,
     handleMarkAsRead,
-    handleDelete,
 }: {
     children: React.ReactNode;
     notification: Notification;
     handleMarkAsRead: (notification: Notification) => void;
-    handleDelete: (notification: Notification) => void;
 }) {
     const __ = useTrans();
     const [open, setOpen] = useState(false);
@@ -501,17 +552,12 @@ function NotificationDetail({
                     </p>
                 </div>
                 <AlertDialogFooter>
-                    {/* <Button
-                        variant={'outline'}
-                        size={'icon'}
-                        className="mr-auto"
-                        onClick={() => handleDelete(notification)}
-                    >
-                        <Trash2 />
-                    </Button> */}
-
                     <div className="flex gap-2">
-                        <AlertDialogCancel>Close</AlertDialogCancel>
+                        <AlertDialogCancel>
+                            {__(
+                                'notifications.pages.index.dialog.buttons.close',
+                            )}
+                        </AlertDialogCancel>
                         {notification.data.action && (
                             <AlertDialogAction asChild>
                                 <Link

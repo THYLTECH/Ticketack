@@ -109,6 +109,45 @@ return [
 
             'title' => 'Your Notifications',
             'description' => 'Manage and view all your notifications in one place.',
+
+            'bulk_actions' => [
+                'text' => 'You selected :count notification(s), you can',
+                'mark_as_read' => 'mark them as read',
+                'or' => 'or',
+                'delete' => 'delete them.',
+            ],
+
+            'search' => [
+                'label' => 'Search',
+                'placeholder' => 'Search notifications...',
+                'button' => 'Search',
+            ],
+
+            'empty' => [
+                'title' => 'No Notifications',
+                'description' => 'You\'re all caught up. New notifications will appear here.',
+                'button' => 'Refresh',
+            ],
+
+            'table' => [
+                'columns' => [
+                    'type' => 'Type',
+                    'message' => 'Message',
+                    'date' => 'Date',
+                ],
+                'empty' => 'No notifications found.',
+                'buttons' => [
+                    'mark_as_read' => 'Mark as read',
+                    'delete' => 'Delete',
+                ],
+                'footer' => 'Showing :first to :last of :total notifications'
+            ],
+
+            'dialog' => [
+                'buttons' => [
+                    'close' => 'Close',
+                ]
+            ]
         ],
     ],
 ];

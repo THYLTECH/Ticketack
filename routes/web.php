@@ -16,7 +16,7 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified:auth.verification.notice'])->group(function () {
     Route::get('/dashboard', function () {
 
-        Notification::send(Auth::user(), new \App\Notifications\Example());
+        // Notification::send(Auth::user(), new \App\Notifications\Example());
 
         return Inertia::render('dashboard');
     })->name('dashboard');

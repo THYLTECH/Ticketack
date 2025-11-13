@@ -4,9 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class NotificationPreference extends Model
 {
+    /** @use HasFactory<\Database\Factories\NotificationPreferenceFactory> */
+    use HasFactory;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -19,6 +23,18 @@ class NotificationPreference extends Model
         'channel',
         'enabled',
     ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'enabled' => 'boolean',
+        ];
+    }
 
     /**
      * Relations

@@ -62,6 +62,11 @@ return [
                         'label' => 'Email address',
                         'placeholder' => 'Email address',
                     ],
+                    'phone' => [
+                        'label' => 'Phone number',
+                        'placeholder' => '01 23 45 67 89',
+                        'country_search_placeholder' => 'Search country...',
+                    ],
                 ],
                 'buttons' => [
                     'submit' => 'Save informations',

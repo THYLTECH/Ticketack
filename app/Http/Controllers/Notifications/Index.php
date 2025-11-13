@@ -57,7 +57,7 @@ class Index extends Controller
     public function markAsRead(DatabaseNotification $notification) {
 
         if ($notification->notifiable_id !== Auth::id()) {
-            return redirect()->back()->with(['error' => 'Unauthorized action.'])->status(403);
+            abort(403, 'Unauthorized action.');
         }
 
         $notification->markAsRead();
@@ -95,7 +95,7 @@ class Index extends Controller
     public function destroy(DatabaseNotification $notification) {
 
         if ($notification->notifiable_id !== Auth::id()) {
-            return redirect()->back()->with(['error' => 'Unauthorized action.'])->status(403);
+            abort(403, 'Unauthorized action.');
         }
 
         $notification->delete();

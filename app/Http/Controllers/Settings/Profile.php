@@ -43,6 +43,11 @@ class Profile extends Controller
 
         $emailChanged = array_key_exists('email', $data) && $data['email'] !== $user->email;
 
+        // Normalize phone number by removing spaces
+        if($data['phone']) {
+            $data['phone'] = preg_replace('/\s+/', '', $data['phone']);
+        }
+
         $user->update($data);
 
         if ($emailChanged) {
