@@ -1,7 +1,7 @@
 // resources/js/pages/notifications/index.tsx
 
 // Necessary imports
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Form, Head, Link, router, useForm } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 
@@ -20,7 +20,23 @@ import {
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button-group';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+    Empty,
+    EmptyContent,
+    EmptyDescription,
+    EmptyHeader,
+    EmptyMedia,
+    EmptyTitle,
+} from '@/components/ui/empty';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupButton,
+    InputGroupInput,
+} from '@/components/ui/input-group';
+import { Label } from '@/components/ui/label';
 import {
     Pagination,
     PaginationContent,
@@ -30,6 +46,7 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from '@/components/ui/pagination';
+import { Spinner } from '@/components/ui/spinner';
 import {
     Table,
     TableBody,
@@ -48,23 +65,23 @@ import AppLayout from '@/layouts/app/layout';
 import { cn, formatNotificationDate } from '@/lib/utils';
 
 // Types
-import type {
-    BreadcrumbItem,
-    Notification,
-    PaginationProps,
-} from '@/types';
+import type { BreadcrumbItem, Notification, PaginationProps } from '@/types';
 
 // Icons
-import { MailOpen, Trash2 } from 'lucide-react';
+import { Bell, MailOpen, RefreshCcw, Search, Trash2, X } from 'lucide-react';
 
 type NotificationsProps = PaginationProps & {
     data: Notification[];
 };
 
 export default function Notifications({
-    notifications
+    notifications,
+    search,
+    total_notifications,
 }: {
     notifications: NotificationsProps;
+    search?: string;
+    total_notifications: number;
 }) {
     const { data, ...pagination_props } = notifications;
 
@@ -90,12 +107,109 @@ export default function Notifications({
                 description={__('notifications.pages.index.description')}
             />
 
-            <div className="grid gap-6">
-                <NotificationTable notifications={notifications} />
+            {total_notifications === 0 ? (
+                <NotificationEmpty />
+            ) : (
+                <div className="grid gap-6">
+                    <NotificationSearchForm search={search} />
 
-                <NotificationPagination pagination_props={pagination_props} />
-            </div>
+                    <NotificationTable notifications={notifications} />
+
+                    <NotificationPagination
+                        pagination_props={pagination_props}
+                    />
+                </div>
+            )}
         </AppLayout>
+    );
+}
+
+function NotificationSearchForm({ search }: { search?: string }) {
+    return (
+        <Form
+            method={'GET'}
+            action={route('notifications.index')}
+            options={{
+                preserveScroll: true,
+            }}
+        >
+            {({ processing, errors, submit }) => (
+                <div className="flex w-full items-end justify-between gap-4">
+                    <div className="grid w-full gap-2">
+                        <Label htmlFor="search">Search</Label>
+
+                        <ButtonGroup className="w-full">
+                            <InputGroup>
+                                <InputGroupInput
+                                    id="search"
+                                    name="search"
+                                    className="w-full"
+                                    defaultValue={search || ''}
+                                    placeholder={'Search notifications...'}
+                                    aria-invalid={
+                                        errors.search ? 'true' : 'false'
+                                    }
+                                    tabIndex={1}
+                                />
+                                {search && (
+                                    <InputGroupAddon align="inline-end">
+                                        <InputGroupButton
+                                            size="icon-xs"
+                                            onClick={() => {
+                                                router.get(
+                                                    route(
+                                                        'notifications.index',
+                                                    ),
+                                                    {
+                                                        preserveScroll: true,
+                                                    },
+                                                );
+                                            }}
+                                        >
+                                            <X />
+                                        </InputGroupButton>
+                                    </InputGroupAddon>
+                                )}
+                            </InputGroup>
+
+                            <Button
+                                disabled={processing}
+                                type={'submit'}
+                                tabIndex={2}
+                            >
+                                {processing ? <Spinner /> : <Search />}
+                                Search
+                            </Button>
+                        </ButtonGroup>
+                    </div>
+                </div>
+            )}
+        </Form>
+    );
+}
+
+function NotificationEmpty() {
+    return (
+        <Empty className="h-full">
+            <EmptyHeader>
+                <EmptyMedia variant="icon">
+                    <Bell />
+                </EmptyMedia>
+                <EmptyTitle>No Notifications</EmptyTitle>
+                <EmptyDescription>
+                    You&apos;re all caught up. New notifications will appear
+                    here.
+                </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+                <Button variant="outline" size="sm" asChild>
+                    <Link href={route('notifications.index')}>
+                        <RefreshCcw />
+                        Refresh
+                    </Link>
+                </Button>
+            </EmptyContent>
+        </Empty>
     );
 }
 
@@ -119,9 +233,7 @@ function NotificationTable({
         else setSelectedIds(data.map((n) => n.id));
     };
 
-    const toggleSelect = (
-        id: string,
-    ) => {
+    const toggleSelect = (id: string) => {
         // e?.stopPropagation();
         setSelectedIds((prev) =>
             prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
@@ -205,7 +317,7 @@ function NotificationTable({
                 </AnimatePresence>
             </div>
 
-            <Table className="w-full table-fixed">
+            <Table className="w-full table-fixed overflow-hidden">
                 <TableHeader>
                     <TableRow className="!bg-background">
                         {notifications.data.length > 0 && (
@@ -215,8 +327,8 @@ function NotificationTable({
                                         allSelected
                                             ? true
                                             : partiallySelected
-                                            ? 'indeterminate'
-                                            : false
+                                              ? 'indeterminate'
+                                              : false
                                     }
                                     onCheckedChange={toggleSelectAll}
                                 />
@@ -371,8 +483,8 @@ function NotificationDetail({
     const [open, setOpen] = useState(false);
 
     useEffect(() => {
-  if (open) handleMarkAsRead(notification);
-}, [open, handleMarkAsRead, notification]);
+        if (open) handleMarkAsRead(notification);
+    }, [open, handleMarkAsRead, notification]);
 
     return (
         <AlertDialog open={open} onOpenChange={setOpen}>

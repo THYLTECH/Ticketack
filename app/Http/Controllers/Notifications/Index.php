@@ -6,12 +6,12 @@ namespace App\Http\Controllers\Notifications;
 
 // Necessary imports
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Notifications\DatabaseNotification;
 
 // Requests
+use App\Http\Requests\Notifications\Search as RequestsSearch;
 use App\Http\Requests\Notifications\Many as RequestsMany;
 
 /**
@@ -26,11 +26,26 @@ class Index extends Controller
     /**
      * Display a listing of the user's notifications.
      */
-    public function index() {
-        $notifications = Auth::user()->notifications()->paginate(20);
+    public function index(RequestsSearch $request) {
+
+        $data = $request->validated();
+
+        if($data['search'] ?? false) {
+            $notifications = Auth::user()->notifications()
+                ->where('data->message', 'like', '%' . $data['search'] . '%')
+                ->orwhere('data->title', 'like', '%' . $data['search'] . '%')
+                ->orwhere('data->type', 'like', '%' . __($data['search']) . '%')
+                ->paginate(20);
+        } else {
+            $notifications = Auth::user()->notifications()->paginate(20);
+        }
+
+        $total_notifications = Auth::user()->notifications()->count();
 
         return Inertia::render('notifications/index', [
             'notifications' => $notifications,
+            'search' => $data['search'] ?? null,
+            'total_notifications' => $total_notifications,
         ]);
     }
 
