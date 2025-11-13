@@ -34,7 +34,7 @@ class RegisteredEmail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: __('mail.registered.subject', ['app' => config('app.name')]),
+            subject: __('notifications.mail.registered.subject', ['app' => config('app.name')]),
             to: [new Address($this->user->email, $this->user->name ?? null)],
         );
     }

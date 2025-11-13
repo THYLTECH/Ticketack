@@ -20,6 +20,8 @@ return [
 
         'color_scheme_loading' => 'Updating color scheme...',
         'color_scheme_updated' => 'Color scheme updated successfully.',
+
+        'notifications_updated' => 'Notifications preferences updated successfully.',
     ],
 
     /*
@@ -36,6 +38,7 @@ return [
             'profile' => 'Profile',
             'appearance' => 'Appearance',
             'password' => 'Password',
+            'notification' => 'Notifications'
         ],
 
         'layout' => [
@@ -58,6 +61,11 @@ return [
                     'email' => [
                         'label' => 'Email address',
                         'placeholder' => 'Email address',
+                    ],
+                    'phone' => [
+                        'label' => 'Phone number',
+                        'placeholder' => '01 23 45 67 89',
+                        'country_search_placeholder' => 'Search country...',
                     ],
                 ],
                 'buttons' => [
@@ -156,5 +164,21 @@ return [
             ],
         ],
 
+        'notification' => [
+            'head_title' => 'Notifications settings',
+
+            'phone_number' => [
+                'title' => 'Missing phone number',
+                'description' => 'Please add a phone number to your account on the \'Settings\' tab to enable SMS notifications.'
+            ],
+
+            'form' => [
+                'title' => 'Notification preferences',
+                'description' => 'Manage how and where you receive your notifications.',
+                'buttons' => [
+                    'submit' => 'Save preferences',
+                ],
+            ],
+        ],
     ],
 ];

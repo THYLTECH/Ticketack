@@ -28,6 +28,10 @@ const buttonVariants = cva(
         "icon-sm": "size-8",
         "icon-lg": "size-10",
       },
+      disabled: {
+        true: "opacity-50 pointer-events-none",
+        false: "",
+      },
     },
     defaultVariants: {
       variant: "default",

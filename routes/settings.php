@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Settings\Password as ControllersPassword;
 use App\Http\Controllers\Settings\Profile as ControllersProfile;
 use App\Http\Controllers\Settings\Appearance as ControllersAppearance;
+use App\Http\Controllers\Settings\Notification as ControllersNotification;
 
 Route::prefix('settings/')->name('settings.')->middleware(['auth', 'verified:auth.verification.notice'])->group(function() {
 
@@ -30,5 +31,10 @@ Route::prefix('settings/')->name('settings.')->middleware(['auth', 'verified:aut
         Route::get('/', 'edit')->name('edit');
         Route::put('theme', 'update_theme')->name('update_theme');
         Route::put('color_scheme', 'update_color')->name('update_color');
+    });
+
+    Route::controller(ControllersNotification::class)->name('notification/')->name('notification.')->group(function() {
+        Route::get('/', 'edit')->name('edit');
+        Route::patch('/', 'update')->name('update');
     });
 });

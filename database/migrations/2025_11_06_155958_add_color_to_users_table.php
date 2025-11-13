@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('theme')->default('system');
-            $table->string('color_scheme')->default('default');
+            $table->string('theme')->after('name')->default('system');
+            $table->string('color_scheme')->after('theme')->default('default');
         });
     }
 

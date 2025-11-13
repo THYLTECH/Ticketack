@@ -38,6 +38,11 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
             href: route('settings.appearance.edit'),
             icon: null,
         },
+        {
+            title: __('settings.pages.breadcrumbs.notification'),
+            href: route('settings.notification.edit'),
+            icon: null,
+        },
     ];
 
     // When server-side rendering, we only render the layout on the client...
@@ -48,7 +53,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
     const current_url = new URL(window.location.href).href;
 
     return (
-        <div className="px-4 py-6">
+        <>
             <Heading
                 title={__('settings.pages.layout.title')}
                 description={__('settings.pages.layout.description')}
@@ -86,6 +91,6 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                     </section>
                 </div>
             </div>
-        </div>
+        </>
     );
 }

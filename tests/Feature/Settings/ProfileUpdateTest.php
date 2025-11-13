@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 test('profile page is displayed', function () {
     $user = User::factory()->create();
@@ -13,13 +14,17 @@ test('profile page is displayed', function () {
 });
 
 test('profile information can be updated', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+        'phone' => null,
+    ]);
 
     $response = $this
         ->actingAs($user)
         ->patch(route('settings.profile.update'), [
             'name' => 'Test User',
             'email' => 'test@example.com',
+            'phone' => '+33611223344',
         ]);
 
     $response
@@ -30,17 +35,21 @@ test('profile information can be updated', function () {
 
     expect($user->name)->toBe('Test User');
     expect($user->email)->toBe('test@example.com');
+    expect($user->phone)->toBe('+33611223344');
     expect($user->email_verified_at)->toBeNull();
 });
 
 test('email verification status is unchanged when the email address is unchanged', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+    ]);
 
     $response = $this
         ->actingAs($user)
         ->patch(route('settings.profile.update'), [
             'name' => 'Test User',
             'email' => $user->email,
+            'phone' => null,
         ]);
 
     $response
@@ -50,8 +59,62 @@ test('email verification status is unchanged when the email address is unchanged
     expect($user->refresh()->email_verified_at)->not->toBeNull();
 });
 
-test('user can delete their account', function () {
+test('language and timezone can be updated', function () {
+    $user = User::factory()->create([
+        'language' => 'en',
+        'timezone' => 'UTC',
+    ]);
+
+    $validLanguage = config('preferences.languages')[0]['code'];
+    $validTimezone = config('preferences.timezones')[0]['value'];
+
+    $response = $this
+        ->actingAs($user)
+        ->patch(route('settings.profile.update_lang'), [
+            'language' => $validLanguage,
+            'timezone' => $validTimezone,
+        ]);
+
+    $response
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('settings.profile.edit'));
+
+    $user->refresh();
+
+    expect($user->language)->toBe($validLanguage);
+    expect($user->timezone)->toBe($validTimezone);
+});
+
+test('invalid language is rejected', function () {
     $user = User::factory()->create();
+
+    $response = $this
+        ->actingAs($user)
+        ->patch(route('settings.profile.update_lang'), [
+            'language' => 'invalid_lang',
+            'timezone' => 'UTC',
+        ]);
+
+    $response->assertSessionHasErrors('language');
+});
+
+test('invalid timezone is rejected', function () {
+    $user = User::factory()->create();
+
+    $response = $this
+        ->actingAs($user)
+        ->patch(route('settings.profile.update_lang'), [
+            'language' => 'en',
+            'timezone' => 'invalid_timezone',
+        ]);
+
+    $response->assertSessionHasErrors('timezone');
+});
+
+test('user can delete their account', function () {
+    $user = User::factory()->create([
+        'password' => bcrypt('password'),
+    ]);
 
     $response = $this
         ->actingAs($user)
@@ -68,7 +131,9 @@ test('user can delete their account', function () {
 });
 
 test('correct password must be provided to delete account', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->create([
+        'password' => bcrypt('password'),
+    ]);
 
     $response = $this
         ->actingAs($user)

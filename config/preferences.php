@@ -1,9 +1,17 @@
 <?php
 
-// Returns +400 timezones, too many for a simple select
-// $timezones = DateTimeZone::listIdentifiers();
-
 return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Locals & Timezones
+    |--------------------------------------------------------------------------
+    |
+    */
+
+    // Returns +400 timezones, too many for a simple select
+    // $timezones = DateTimeZone::listIdentifiers();
+
     'languages' => [
         ['code' => 'en', 'name' => 'English'],
         ['code' => 'fr', 'name' => 'Français'],
@@ -40,6 +48,13 @@ return [
         ['value' => 'Pacific/Auckland', 'utc' => '+12:00'],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Themes & Colors
+    |--------------------------------------------------------------------------
+    |
+    */
+
     'themes' => [
         ['value' => 'light'],
         ['value' => 'dark'],
@@ -56,4 +71,32 @@ return [
         ['value' => 'violet', 'color' => 'oklch(0.541 0.281 293.009)'],
         ['value' => 'yellow', 'color' => 'oklch(0.852 0.199 91.936)'],
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Notification Preferences
+    |--------------------------------------------------------------------------
+    |
+    */
+
+    'notification_preferences' => [
+        'auth' => [
+            'password_reset' => [
+                'mail',
+                // 'database',
+                'vonage',
+            ],
+            'verify_email' => [
+                'mail',
+                // 'database',
+                'vonage',
+            ],
+        ],
+    ],
+
+    'notification_channels' => [
+        'mail', 
+        'database', 
+        'vonage',
+    ]
 ];
