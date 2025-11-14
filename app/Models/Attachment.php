@@ -37,4 +37,9 @@ class Attachment extends Model
     {
         return $this->hasOne(User::class, 'attachment_avatar');
     }
+
+    public function getUrl(): string
+    {
+        return Storage::url($this->file_path);
+    }
 }

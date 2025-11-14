@@ -36,6 +36,7 @@ export interface Attachment {
     mime_type?: string;
     file_extension?: string;
     file_size?: number;
+    url: string;
 }
 
 export interface User {
