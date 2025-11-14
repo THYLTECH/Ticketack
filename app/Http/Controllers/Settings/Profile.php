@@ -47,25 +47,28 @@ class Profile extends Controller
     public function update(RequestsProfile $request): RedirectResponse
     {
         $data = $request->validated();
+        /** @var \App\Models\User|null $user */
         $user = Auth::user();
 
         $emailChanged = array_key_exists('email', $data) && $data['email'] !== $user->email;
 
-        // If the user wants to delete their avatar so he sends null
-        if ($request->avatar === null && $user->avatar) {
+        unset($data['avatar']);
+        $user->update($data);
 
-            $oldPath = storage_path('app/public/' . $user->avatar->file_path);
-
-            if (file_exists($oldPath)) {
-                unlink($oldPath);
-            }
-
-            $user->avatar->delete();
-
-            $data['attachment_avatar'] = null;
+        if ($emailChanged) {
+            $user->update(['email_verified_at' => null]);
         }
 
-        if ($request->hasFile('avatar')) {
+        if ($request->avatar === null && $user->avatar) {
+
+            Storage::disk('public')->delete($user->avatar->file_path);
+            $user->avatar->delete();
+
+            $user->update(['attachment_avatar' => null]);
+        }
+
+        elseif ($request->hasFile('avatar')) {
+
             $file = $request->file('avatar');
 
             if ($user->avatar) {
@@ -73,30 +76,17 @@ class Profile extends Controller
                 $user->avatar->delete();
             }
 
-            $path = $file->store("users/{$user->id}/avatars", 'public');
+            $path = Storage::disk('public')->putFile("users/{$user->id}/avatars", $file);
 
             $attachment = Attachment::create([
-                'title' => 'User\'s Avatar of ' . $user->name,
-                'description' => 'Avatar uploaded by user ' . $user->id,
-                'file_name' => $file->getClientOriginalName(),
-                'file_path' => str_replace('public/', '', $path),
-                'mime_type' => $file->getMimeType(),
-                'file_extension' => $file->getClientOriginalExtension(),
-                'file_size' => $file->getSize(),
+                'file_name'     => $file->getClientOriginalName(),
+                'file_path'     => $path,
+                'mime_type'     => $file->getMimeType(),
+                'file_extension'=> $file->getClientOriginalExtension(),
+                'file_size'     => $file->getSize(),
             ]);
 
-            $data['attachment_avatar'] = $attachment->id;
-        }
-        elseif ($request->input('avatar') === null && $user->avatar) {
-            Storage::disk('public')->delete($user->avatar->file_path);
-            $user->avatar->delete();
-            $data['attachment_avatar'] = null;
-        }
-
-        $user->update($data);
-
-        if ($emailChanged) {
-            $user->update(['email_verified_at' => null]);
+            $user->update(['attachment_avatar' => $attachment->id]);
         }
 
         Auth::setUser($user->fresh(['avatar']));
@@ -105,6 +95,7 @@ class Profile extends Controller
             ->route('settings.profile.edit')
             ->with(['success' => __('settings.flash.profile_updated')]);
     }
+
 
 
     public function update_lang(RequestsLang $request): RedirectResponse

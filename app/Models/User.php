@@ -62,8 +62,9 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(PasswordResetToken::class, 'email', 'email');
     }
 
-    public function avatar(): BelongsTo
+    public function avatar(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Attachment::class, 'attachment_avatar');
     }
+
 }
