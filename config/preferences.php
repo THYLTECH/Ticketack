@@ -84,12 +84,12 @@ return [
             'password_reset' => [
                 'mail',
                 // 'database',
-                'vonage',
+                // 'vonage',
             ],
             'verify_email' => [
                 'mail',
                 // 'database',
-                'vonage',
+                // 'vonage',
             ],
         ],
     ],
