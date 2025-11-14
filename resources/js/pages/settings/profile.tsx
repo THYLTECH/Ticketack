@@ -123,18 +123,26 @@ function InformationForm({ auth }: { auth: SharedData['auth'] }) {
         });
     };
 
-
     return (
         <form
             onSubmit={handleSubmit}
             encType="multipart/form-data"
-            className="grid md:grid-cols-3 gap-y-2 gap-x-8"
+            className="grid md:grid-cols-3 gap-x-8 gap-y-4"
         >
+            <div className="md:col-span-2 flex flex-col gap-2">
+                <Label htmlFor="name">
+                    {__('settings.pages.profile.info_form.fields.name.label')}
+                </Label>
+            </div>
+
+            <div className="flex flex-col justify-end">
+                <Label htmlFor="avatar" className="text-left">
+                    {__('settings.pages.profile.info_form.fields.avatar.label')}
+                </Label>
+            </div>
+
             <div className="space-y-4 md:col-span-2">
                 <div className="grid gap-2">
-                    <Label htmlFor="name">
-                        {__('settings.pages.profile.info_form.fields.name.label')}
-                    </Label>
                     <Input
                         id="name"
                         name="name"
@@ -152,6 +160,7 @@ function InformationForm({ auth }: { auth: SharedData['auth'] }) {
                     <Label htmlFor="email">
                         {__('settings.pages.profile.info_form.fields.email.label')}
                     </Label>
+
                     <Input
                         id="email"
                         type="email"
@@ -167,31 +176,24 @@ function InformationForm({ auth }: { auth: SharedData['auth'] }) {
                 </div>
             </div>
 
-            <div className="flex flex-col items-center justify-start gap-3 md:col-span-1 md:max-w-[180px] pt-2">
-                <Label className="text-center" htmlFor={"avatar"}>
-                    {__('settings.pages.profile.info_form.fields.avatar.label')}
-                </Label>
-                <p className="text-xs text-muted-foreground mt-1 text-center">{__(
-                    'settings.pages.profile.info_form.fields.avatar.description',
-                )}
-                </p>
+            <div className="flex flex-col items-start justify-center gap-3 md:col-span-1">
                 <AvatarUpload
-                    defaultUrl={auth.user?.avatar?.file_path || null}
+                    defaultUrl={
+                        auth.user?.avatar?.url ??
+                        auth.user?.attachment_avatar ??
+                        null
+                    }
                     onFileChange={(file) => setData("avatar", file)}
                 />
-
             </div>
 
-
-            <div className="md:col-span-2 flex">
+            <div className="md:col-span-2 flex pt-2">
                 <Button disabled={processing} type="submit">
                     {processing ? <Spinner /> : <Save />}
                     {__('settings.pages.profile.info_form.buttons.submit')}
                 </Button>
             </div>
-
         </form>
-
     );
 }
 
