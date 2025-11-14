@@ -45,10 +45,32 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
 
+        $userAvatar = null;
+
+        if ($request->user()) {
+            $user = $request->user();
+
+            if ($user->avatar) {
+                $userAvatar = ['url' => $user->avatar->getUrl()];
+            } elseif (!empty($user->attachment_avatar)) {
+                $userAvatar = ['url' => Storage::url($user->attachment_avatar)];
+            }
+        }
+
         return array_merge(parent::share($request), [
             'name' => config('app.name'),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user() ? [
+                    'id' => $request->user()->id,
+                    'name' => $request->user()->name,
+                    'email' => $request->user()->email,
+                    'avatar' => $userAvatar,
+                    'email_verified_at' => $request->user()->email_verified_at,
+                    'language' => $request->user()->language,
+                    'timezone' => $request->user()->timezone,
+                    'theme' => $request->user()->theme,
+                    'color_scheme' => $request->user()->color_scheme,
+                ] : null,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'old' => fn () => session()->getOldInput(),
