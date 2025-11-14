@@ -47,7 +47,7 @@ class Profile extends FormRequest
                 Rule::unique(User::class)->ignore(Auth::id()),
             ],
 
-            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,webp,gif', 'max:2048'],
+            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:2048'],
         ];
     }
 }
