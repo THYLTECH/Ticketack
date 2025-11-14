@@ -5,11 +5,13 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\App;
+use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Notification;
 
 Route::get('/', function () {
+    // abort(404);
     return Inertia::render('landing');
 })->name('home');
 
@@ -21,6 +23,18 @@ Route::middleware(['auth', 'verified:auth.verification.notice'])->group(function
         return Inertia::render('dashboard');
     })->name('dashboard');
 });
+
+Route::get('/errors', function(Request $request) {
+    $data = $request->validate([
+        'statusCode' => 'required|integer',
+        'title' => 'nullable|string',
+    ]);
+
+    return Inertia::render('errors/show', [
+        'statusCode' => $data['statusCode'],
+        'title' => $data['title'] ?? null,
+    ]);
+})->name('errors.show');
 
 // Authentication routes
 require __DIR__.'/auth.php';
