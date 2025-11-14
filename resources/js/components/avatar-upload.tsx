@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import {
-    CircleUserRoundIcon,
     XIcon,
     ZoomInIcon,
     ZoomOutIcon,
@@ -25,6 +24,7 @@ import {
 } from "@/components/ui/dialog"
 import { Slider } from "@/components/ui/slider"
 import { toast } from 'sonner';
+import { useTrans } from '@/lib/translation';
 
 type Area = { x: number; y: number; width: number; height: number }
 
@@ -72,12 +72,14 @@ async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<File | 
 }
 
 export default function AvatarUploader({
-    onFileChange,
-    defaultUrl = null,
-}: Readonly<{
+                                           onFileChange,
+                                           defaultUrl = null,
+                                       }: Readonly<{
     onFileChange: (file: File | null) => void;
     defaultUrl?: string | null;
 }>) {
+    const __ = useTrans();
+
     const [
         { files },
         {
@@ -94,7 +96,7 @@ export default function AvatarUploader({
     });
 
     const MAX_SIZE_MB = 2
-    const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"])
+    const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"])
 
     const validateFile = (file: File): boolean => {
         if (file.size > MAX_SIZE_MB * 1024 * 1024) {
@@ -106,7 +108,7 @@ export default function AvatarUploader({
 
         if (!ALLOWED_TYPES.has(file.type)) {
             toast.error("Invalid file type", {
-                description: "Allowed formats: JPG, PNG, WEBP or GIF.",
+                description: "Allowed formats: JPG, PNG, WEBP.",
             })
             return false
         }
@@ -198,7 +200,6 @@ export default function AvatarUploader({
     }, [files]);
 
 
-
     return (
         <div className="flex flex-col items-center gap-2">
             <div className="relative inline-flex">
@@ -218,7 +219,9 @@ export default function AvatarUploader({
                             alt="avatar"
                         />
                     ) : (
-                        <CircleUserRoundIcon className="size-4 opacity-60" />
+                        <span className="text-[11px] text-muted-foreground px-3 text-center leading-tight break-words">
+                            {__('settings.pages.profile.info_form.fields.avatar.description').replace(':size', String(MAX_SIZE_MB))}
+                        </span>
                     )}
                 </button>
 
@@ -251,15 +254,44 @@ export default function AvatarUploader({
                 <input {...getInputProps()} className="sr-only" />
             </div>
 
+            {/* --- Crop Modal (version Shadcn) --- */}
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="gap-0 p-0 sm:max-w-140">
-                    <DialogHeader>
-                        <DialogTitle>Crop image</DialogTitle>
+                <DialogContent className="gap-0 p-0 sm:max-w-[640px] overflow-hidden rounded-lg [&>button]:hidden">
+                    <DialogHeader className="contents space-y-0 text-left">
+                        <DialogTitle className="flex items-center justify-between border-b p-4 text-base">
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="-my-1 opacity-60"
+                                    onClick={() => setIsDialogOpen(false)}
+                                    aria-label="Cancel"
+                                >
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="16"
+                                        height="16"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        strokeWidth={2}
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                </Button>
+                                <span>{__('settings.pages.profile.info_form.crop_title')}</span>
+
+                            </div>
+                            <Button className="-my-1" onClick={handleApply} disabled={!previewUrl} autoFocus>
+                                {__('settings.pages.profile.info_form.crop_confirm')}
+                            </Button>
+                        </DialogTitle>
                     </DialogHeader>
 
                     {previewUrl && (
                         <Cropper
-                            className="h-96 sm:h-120"
+                            className="h-96 sm:h-[480px]"
                             image={previewUrl}
                             zoom={zoom}
                             onCropChange={handleCropChange}
@@ -273,23 +305,21 @@ export default function AvatarUploader({
 
                     <DialogFooter className="border-t px-4 py-6">
                         <div className="mx-auto flex w-full max-w-80 items-center gap-4">
-                            <ZoomOutIcon size={16} />
+                            <ZoomOutIcon className="opacity-60" size={16} />
                             <Slider
+                                defaultValue={[1]}
+                                value={[zoom]}
                                 min={1}
                                 max={3}
                                 step={0.1}
-                                value={[zoom]}
                                 onValueChange={(v) => setZoom(v[0])}
                             />
-                            <ZoomInIcon size={16} />
+                            <ZoomInIcon className="opacity-60" size={16} />
                         </div>
-
-                        <Button onClick={handleApply} type="button">
-                            Apply
-                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
         </div>
     );
 }
