@@ -80,14 +80,15 @@ class Profile extends Controller
             $path = Storage::disk('public')->putFile("users/{$user->id}/avatars", $file);
 
             $attachment = Attachment::create([
-                'file_name'     => $file->getClientOriginalName(),
-                'file_path'     => $path,
-                'mime_type'     => $file->getMimeType(),
-                'file_extension'=> $file->getClientOriginalExtension(),
-                'file_size'     => $file->getSize(),
+                'file_name'      => $file->getClientOriginalName(),
+                'file_path'      => $path,
+                'mime_type'      => $file->getMimeType(),
+                'file_extension' => $file->getClientOriginalExtension(),
+                'file_size'      => $file->getSize(),
             ]);
 
-            $user->update(['attachment_avatar' => $attachment->id]);
+            $user->avatar()->associate($attachment);
+            $user->save();
         }
 
         Auth::setUser($user->fresh(['avatar']));
