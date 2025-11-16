@@ -45,7 +45,7 @@ export interface User {
     name: string;
     email: string;
     attachment_avatar?: string;
-    avatar?: Attachment | null;
+    avatar: string | null;
     email_verified_at: string | null;
     language: string;
     timezone: string;

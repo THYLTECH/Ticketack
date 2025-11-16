@@ -78,12 +78,7 @@ export default function AvatarUploader({
     const __ = useTrans();
 
     // --- Normalisation du defaultUrl (id, chemin storage, URL complète) ---
-    const normalizedDefault = defaultUrl
-        ? defaultUrl.startsWith('http') || defaultUrl.startsWith('/storage/')
-            ? defaultUrl
-            : `/storage/${defaultUrl}`
-        : null;
-
+    const normalizedDefault = typeof defaultUrl === 'string' ? defaultUrl : null;
     const [
         { files },
         {
@@ -186,7 +181,7 @@ export default function AvatarUploader({
     };
 
     const handleRemoveFinalImage = () => {
-        if (finalImageUrl?.startsWith('blob:')) {
+        if (finalImageUrl && finalImageUrl.startsWith('blob:')) {
             URL.revokeObjectURL(finalImageUrl);
         }
 
