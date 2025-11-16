@@ -4,10 +4,12 @@
 
 use App\Models\User;
 use App\Jobs\SendEmailJob;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
+use App\Notifications\VerifyEmail;
 
 test('sends verification notification', function () {
-    Queue::fake();
+    Notification::fake();
 
     $user = User::factory()->create([
         'email_verified_at' => null,
@@ -17,7 +19,7 @@ test('sends verification notification', function () {
 
     $response->assertRedirect(route('auth.verification.notice'));
     $response->assertSessionHas('success');
-    Queue::assertPushed(SendEmailJob::class);
+    Notification::assertSentTo($user, VerifyEmail::class);
 
     expect($user->fresh()->verification_token)->not->toBeNull();
 });

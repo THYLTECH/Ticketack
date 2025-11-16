@@ -1,8 +1,7 @@
-// pages/settings/profile.tsx
 
 // Necessary imports
 import { Form, Head, useForm, usePage } from '@inertiajs/react';
-import { useRef } from 'react';
+import { useCallback, useRef } from 'react';
 
 // Layout
 import AppLayout from '@/layouts/app/layout';
@@ -38,6 +37,7 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
+import { PhoneInput } from '@/components/ui/phone-input';
 
 // Types
 import type { BreadcrumbItem, Language, SharedData, Timezone } from '@/types';
@@ -108,20 +108,37 @@ export default function Profile({
 function InformationForm({ auth }: { auth: SharedData['auth'] }) {
     const __ = useTrans();
 
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors } = useForm<{
+        _method: 'PATCH';
+        name: string;
+        email: string;
+        phone: string;
+        avatar?: File | null;
+    }>({
         _method: 'PATCH',
         name: auth.user.name ?? '',
         email: auth.user.email ?? '',
-        avatar: null as File | null,
+        phone: auth.user.phone || '',
     });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
         post(route('settings.profile.update'), {
-            forceFormData: true,
             preserveScroll: true,
+            forceFormData: true,
+            onSuccess: () => {
+                setData((current) => {
+                    const { ...rest } = current;
+                    return rest as typeof current;
+                });
+            },
         });
     };
+
+    const handlePhoneChange = useCallback((v: string) => {
+        setData('phone', v);
+    }, [setData]);
 
     return (
         <form
@@ -142,25 +159,20 @@ function InformationForm({ auth }: { auth: SharedData['auth'] }) {
             </div>
 
             <div className="space-y-4 md:col-span-2">
-                <div className="grid gap-2">
-                    <Input
-                        id="name"
-                        name="name"
-                        value={data.name}
-                        onChange={(e) => setData('name', e.target.value)}
-                        required
-                        placeholder={__(
-                            'settings.pages.profile.info_form.fields.name.placeholder'
-                        )}
-                        aria-invalid={errors.name ? 'true' : 'false'}
-                    />
-                </div>
+                <Input
+                    id="name"
+                    name="name"
+                    value={data.name}
+                    onChange={(e) => setData('name', e.target.value)}
+                    required
+                    placeholder={__('settings.pages.profile.info_form.fields.name.placeholder')}
+                    aria-invalid={errors.name ? 'true' : 'false'}
+                />
 
                 <div className="grid gap-2">
                     <Label htmlFor="email">
                         {__('settings.pages.profile.info_form.fields.email.label')}
                     </Label>
-
                     <Input
                         id="email"
                         type="email"
@@ -168,10 +180,23 @@ function InformationForm({ auth }: { auth: SharedData['auth'] }) {
                         value={data.email}
                         onChange={(e) => setData('email', e.target.value)}
                         required
-                        placeholder={__(
-                            'settings.pages.profile.info_form.fields.email.placeholder'
-                        )}
+                        placeholder={__('settings.pages.profile.info_form.fields.email.placeholder')}
                         aria-invalid={errors.email ? 'true' : 'false'}
+                    />
+                </div>
+
+                <div className="grid gap-2">
+                    <Label htmlFor="phone">
+                        {__('settings.pages.profile.info_form.fields.phone.label')}
+                    </Label>
+                    <PhoneInput
+                        id="phone"
+                        name="phone"
+                        value={data.phone}
+                        onChange={handlePhoneChange}
+                        placeholder={__('settings.pages.profile.info_form.fields.phone.placeholder')}
+                        placeholderSearch={__('settings.pages.profile.info_form.fields.phone.country_search_placeholder')}
+                        aria-invalid={errors.phone ? 'true' : 'false'}
                     />
                 </div>
             </div>
@@ -183,7 +208,9 @@ function InformationForm({ auth }: { auth: SharedData['auth'] }) {
                         auth.user?.attachment_avatar ??
                         null
                     }
-                    onFileChange={(file) => setData("avatar", file)}
+                    onFileChange={(file) => {
+                        setData('avatar', file);
+                    }}
                 />
             </div>
 
@@ -232,7 +259,7 @@ function LangForm({
                             defaultValue={auth.user.language ?? languages[0].code}
                         >
                             <SelectTrigger
-                                tabIndex={4}
+                                tabIndex={6}
                                 id="language"
                                 className="w-full"
                             >
@@ -273,7 +300,7 @@ function LangForm({
                             defaultValue={auth.user.timezone ?? timezones[0].value}
                         >
                             <SelectTrigger
-                                tabIndex={5}
+                                tabIndex={7}
                                 id="timezone"
                                 className="w-full"
                             >
@@ -304,7 +331,7 @@ function LangForm({
                             </SelectContent>
                         </Select>
                     </div>
-                    <Button disabled={processing} type={'submit'} tabIndex={6}>
+                    <Button disabled={processing} type={'submit'} tabIndex={8}>
                         {processing ? <Spinner /> : <Save />}
                         {__('settings.pages.profile.lang_form.buttons.submit')}
                     </Button>
@@ -316,7 +343,6 @@ function LangForm({
 
 function DeleteUser() {
     const passwordInput = useRef<HTMLInputElement>(null);
-
     const __ = useTrans();
 
     return (

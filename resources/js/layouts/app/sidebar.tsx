@@ -46,6 +46,7 @@ import type { NavItem, SharedData, User } from '@/types';
 // Icons
 import AppLogoIcon from '@/components/app-logo-icon';
 import {
+    Bell,
     BookOpen,
     ChevronsUpDown,
     Folder,
@@ -53,10 +54,12 @@ import {
     LogOut,
     Settings,
 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 // Interfaces
 interface UserMenuContentProps {
     user: User;
+    unread_notifications: number;
 }
 
 export function AppSidebar() {
@@ -188,7 +191,7 @@ function NavMain({ items = [] }: { items: NavItem[] }) {
 }
 
 function NavUser() {
-    const { auth } = usePage<SharedData>().props;
+    const { auth, unread_notifications } = usePage<SharedData>().props;
     const { state } = useSidebar();
     const isMobile = useIsMobile();
 
@@ -217,7 +220,7 @@ function NavUser() {
                                   : 'bottom'
                         }
                     >
-                        <UserMenuContent user={auth.user} />
+                        <UserMenuContent user={auth.user} unread_notifications={unread_notifications} />
                     </DropdownMenuContent>
                 </DropdownMenu>
             </SidebarMenuItem>
@@ -225,7 +228,7 @@ function NavUser() {
     );
 }
 
-function UserMenuContent({ user }: UserMenuContentProps) {
+function UserMenuContent({ user, unread_notifications }: UserMenuContentProps) {
     const cleanup = useMobileNavigation();
 
     const handleLogout = () => {
@@ -247,12 +250,28 @@ function UserMenuContent({ user }: UserMenuContentProps) {
                 <DropdownMenuItem asChild>
                     <Link
                         className="block w-full"
+                        href={route('notifications.index')}
+                        as="button"
+                    >
+                        <Bell />
+                        {__('app.layout.sidebar.usermenu.items.notifications')}
+
+                        {unread_notifications > 0 && (
+                            <Badge variant={'default'} className='ml-auto'>
+                                {unread_notifications}
+                            </Badge>
+                        )}
+                    </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                    <Link
+                        className="block w-full"
                         href={route('settings.profile.edit')}
                         as="button"
                         prefetch
                         onClick={cleanup}
                     >
-                        <Settings className="mr-2" />
+                        <Settings />
                         {__('app.layout.sidebar.usermenu.items.settings')}
                     </Link>
                 </DropdownMenuItem>

@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Lang;
 use Inertia\Middleware;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Middleware to handle Inertia requests and share common data.
@@ -70,6 +71,7 @@ class HandleInertiaRequests extends Middleware
                     'timezone' => $request->user()->timezone,
                     'theme' => $request->user()->theme,
                     'color_scheme' => $request->user()->color_scheme,
+                    'phone' => $request->user()->phone,
                 ] : null,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
@@ -104,6 +106,8 @@ class HandleInertiaRequests extends Middleware
                 ->toArray(),
 
             'timezone' => date_default_timezone_get(),
+
+            'unread_notifications' => $request->user() ? $request->user()->notifications()->whereNull('read_at')->count() : 0,
         ]);
 
         // 'translations' => fn () => Cache::rememberForever('translations_'.App::getLocale(), function () {

@@ -20,6 +20,8 @@ return [
 
         'color_scheme_loading' => 'Updating color scheme...',
         'color_scheme_updated' => 'Color scheme updated successfully.',
+
+        'notifications_updated' => 'Notifications preferences updated successfully.',
     ],
 
     /*
@@ -36,6 +38,7 @@ return [
             'profile' => 'Profile',
             'appearance' => 'Appearance',
             'password' => 'Password',
+            'notification' => 'Notifications'
         ],
 
         'layout' => [
@@ -50,9 +53,14 @@ return [
                 'title' => 'Profile information',
                 'description' => 'Update your profile information such as name and email address.',
 
-                'errors' => [
-                    'avatar_too_big' => 'The image is too large. Maximum allowed size: :size MB.',
-                ],
+                // NEW FRONT ERRORS (React)
+                'avatar_too_big_title' => 'The image is too large',
+                'avatar_too_big_description' => 'The maximum allowed size is :size MB.',
+
+                'avatar_error_type' => 'Unsupported file type.',
+                'avatar_error_type_description' => 'Allowed formats: JPG, PNG, WEBP.',
+
+                'avatar_error_crop' => 'An error occurred while cropping the image.',
 
                 'fields' => [
                     'name' => [
@@ -66,6 +74,11 @@ return [
                     'avatar' => [
                         'label' => 'Profile picture',
                         'description' => 'Drop a file or click to select one — max :size MB',
+                    ],
+                    'phone' => [
+                        'label' => 'Phone number',
+                        'placeholder' => '01 23 45 67 89',
+                        'country_search_placeholder' => 'Search country...',
                     ],
                 ],
 
@@ -169,5 +182,21 @@ return [
             ],
         ],
 
+        'notification' => [
+            'head_title' => 'Notifications settings',
+
+            'phone_number' => [
+                'title' => 'Missing phone number',
+                'description' => 'Please add a phone number to your account on the \'Settings\' tab to enable SMS notifications.'
+            ],
+
+            'form' => [
+                'title' => 'Notification preferences',
+                'description' => 'Manage how and where you receive your notifications.',
+                'buttons' => [
+                    'submit' => 'Save preferences',
+                ],
+            ],
+        ],
     ],
 ];

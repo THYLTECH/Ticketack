@@ -181,6 +181,9 @@ return [
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],
+        'phone' => [
+            'invalid' => 'The phone number is invalid.',
+        ],
     ],
 
     /*

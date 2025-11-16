@@ -10,8 +10,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Http\Request;
-use DateTimeZone;
 
 // Requests
 use App\Http\Requests\Settings\Profile as RequestsProfile;
@@ -29,7 +27,6 @@ class Profile extends Controller
      */
     public function edit(): Response
     {
-
         $languages = config('preferences.languages');
         $timezones = config('preferences.timezones');
 
@@ -53,19 +50,23 @@ class Profile extends Controller
         $emailChanged = array_key_exists('email', $data) && $data['email'] !== $user->email;
 
         unset($data['avatar']);
+        // Normalize phone number by removing spaces
+        if($data['phone']) {
+            $data['phone'] = preg_replace('/\s+/', '', $data['phone']);
+        }
+
         $user->update($data);
 
         if ($emailChanged) {
             $user->update(['email_verified_at' => null]);
         }
 
-        if ($request->avatar === null && $user->avatar) {
-
+        if ($request->exists('avatar') && $request->avatar === null && $user->avatar) {
             Storage::disk('public')->delete($user->avatar->file_path);
             $user->avatar->delete();
-
             $user->update(['attachment_avatar' => null]);
         }
+
 
         elseif ($request->hasFile('avatar')) {
 

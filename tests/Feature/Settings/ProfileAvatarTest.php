@@ -34,6 +34,7 @@ class ProfileAvatarTest extends TestCase
             'name' => $user->name,
             'email' => $user->email,
             'avatar' => $file,
+            'phone' => null,
         ]);
 
         $response->assertRedirect(route('settings.profile.edit'));
@@ -78,6 +79,7 @@ class ProfileAvatarTest extends TestCase
             'name' => $user->name,
             'email' => $user->email,
             'avatar' => null,
+            'phone' => null,
         ]);
 
         $response->assertRedirect(route('settings.profile.edit'));

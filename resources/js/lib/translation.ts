@@ -31,15 +31,24 @@ export function useTrans() {
     return typeof value === 'string' ? value : undefined
   }
 
-  const __ = (key: string, fallback?: string): string => {
-    const parts = key.split('.')
+  const __ = (key: string, fallback?: string, replacements?: Record<string, string | number>): string => {
+  const parts = key.split('.')
 
-    let value = findKey(translations, parts)
-    if (value === undefined)
-      value = findKey(translationsFallback, parts)
+  let value = findKey(translations, parts)
+  if (value === undefined)
+    value = findKey(translationsFallback, parts)
 
-    return value ?? fallback ?? key
+  let text = value ?? fallback ?? key
+
+  if (replacements) {
+    for (const [k, v] of Object.entries(replacements)) {
+      text = text.replace(`:${k}`, String(v))
+    }
   }
+
+  return text
+}
+
 
   return __
 }

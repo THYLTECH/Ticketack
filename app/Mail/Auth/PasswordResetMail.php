@@ -36,7 +36,7 @@ class PasswordResetMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: __('mail.password_reset.subject', ['app' => config('app.name')]),
+            subject: __('notifications.mail.password_reset.subject', ['app' => config('app.name')]),
             to: [new Address($this->user->email, $this->user->name ?? null)],
         );
     }

@@ -21,12 +21,13 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $fillable = [
         'name',
-        'email',
-        'password',
-        'language',
         'timezone',
         'theme',
         'color_scheme',
+        'phone',
+        'email',
+        'password',
+        'language',
         'verification_token',
         'email_verified_at',
         'attachment_avatar',
@@ -58,6 +59,22 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
+    /**
+     * Relations
+     */
+    public function notificationPreferences()
+    {
+        return $this->hasMany(NotificationPreference::class);
+    }
+
+    // Mandatory for notification via sms
+    public function routeNotificationForVonage(\Illuminate\Notifications\Notification $notification): string {
+        return $this->phone;
+    }
+
+    /**
+     * Custom methods
+     */
     public function passwordResetToken() {
         return $this->hasOne(PasswordResetToken::class, 'email', 'email');
     }

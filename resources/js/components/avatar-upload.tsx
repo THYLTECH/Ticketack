@@ -1,52 +1,47 @@
-"use client"
+"use client";
 
-import { useCallback, useEffect, useRef, useState } from "react"
-import {
-    XIcon,
-    ZoomInIcon,
-    ZoomOutIcon,
-} from "lucide-react"
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ArrowLeftIcon, XIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
 
-import { useFileUpload } from "@/hooks/use-file-upload"
-import { Button } from "@/components/ui/button"
+import { useFileUpload } from "@/hooks/use-file-upload";
+import { Button } from "@/components/ui/button";
 import {
     Cropper,
     CropperCropArea,
-    CropperDescription,
     CropperImage,
-} from "@/components/ui/cropper"
+} from "@/components/ui/cropper";
 import {
     Dialog,
     DialogContent,
     DialogFooter,
     DialogHeader,
     DialogTitle,
-} from "@/components/ui/dialog"
-import { Slider } from "@/components/ui/slider"
-import { toast } from 'sonner';
-import { useTrans } from '@/lib/translation';
+} from "@/components/ui/dialog";
+import { Slider } from "@/components/ui/slider";
+import { toast } from "sonner";
+import { useTrans } from "@/lib/translation";
 
-type Area = { x: number; y: number; width: number; height: number }
+type Area = { x: number; y: number; width: number; height: number };
 
 const createImage = (url: string): Promise<HTMLImageElement> =>
     new Promise((resolve, reject) => {
-        const image = new Image()
-        image.addEventListener("load", () => resolve(image))
-        image.addEventListener("error", (error) => reject(error))
-        image.setAttribute("crossOrigin", "anonymous")
-        image.src = url
-    })
+        const image = new Image();
+        image.addEventListener("load", () => resolve(image));
+        image.addEventListener("error", (error) => reject(error));
+        image.setAttribute("crossOrigin", "anonymous");
+        image.src = url;
+    });
 
 async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<File | null> {
     try {
-        const image = await createImage(imageSrc)
-        const canvas = document.createElement("canvas")
-        const ctx = canvas.getContext("2d")
+        const image = await createImage(imageSrc);
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
 
-        if (!ctx) return null
+        if (!ctx) return null;
 
-        canvas.width = pixelCrop.width
-        canvas.height = pixelCrop.height
+        canvas.width = pixelCrop.width;
+        canvas.height = pixelCrop.height;
 
         ctx.drawImage(
             image,
@@ -57,28 +52,37 @@ async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<File | 
             0,
             0,
             pixelCrop.width,
-            pixelCrop.height
-        )
+            pixelCrop.height,
+        );
 
         return new Promise((resolve) => {
             canvas.toBlob((blob) => {
-                if (!blob) return resolve(null)
-                resolve(new File([blob], "avatar.jpg", { type: "image/jpeg" }))
-            }, "image/jpeg")
-        })
+                if (!blob) return resolve(null);
+                resolve(new File([blob], "avatar.jpg", { type: "image/jpeg" }));
+            }, "image/jpeg");
+        });
     } catch {
-        return null
+        return null;
     }
 }
 
-export default function AvatarUploader({
-                                           onFileChange,
-                                           defaultUrl = null,
-                                       }: Readonly<{
-    onFileChange: (file: File | null) => void;
+interface AvatarUploaderProps {
     defaultUrl?: string | null;
-}>) {
+    onFileChange?: (file: File | null) => void;
+}
+
+export default function AvatarUploader({
+    defaultUrl = null,
+    onFileChange,
+}: Readonly<AvatarUploaderProps>) {
     const __ = useTrans();
+
+    // --- Normalisation du defaultUrl (id, chemin storage, URL complète) ---
+    const normalizedDefault = defaultUrl
+        ? defaultUrl.startsWith('http') || defaultUrl.startsWith('/storage/')
+            ? defaultUrl
+            : `/storage/${defaultUrl}`
+        : null;
 
     const [
         { files },
@@ -95,45 +99,43 @@ export default function AvatarUploader({
         accept: 'image/*',
     });
 
-    const MAX_SIZE_MB = 2
-    const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"])
+    const MAX_SIZE_MB = 2;
+    const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
     const validateFile = (file: File): boolean => {
         if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-            toast.error("File too large", {
-                description: "Please choose an image under 2 MB.",
-            })
-            return false
+            toast.error(
+                __('settings.pages.profile.info_form.avatar_too_big_title'),
+                {
+                    description: __(
+                        'settings.pages.profile.info_form.avatar_too_big_description',
+                    ).replace(':size', String(MAX_SIZE_MB)),
+                },
+            );
+            return false;
         }
 
         if (!ALLOWED_TYPES.has(file.type)) {
-            toast.error("Invalid file type", {
-                description: "Allowed formats: JPG, PNG, WEBP.",
-            })
-            return false
+            toast.error(
+                __('settings.pages.profile.info_form.avatar_error_type') ||
+                    'Invalid file type',
+                {
+                    description:
+                        __(
+                            'settings.pages.profile.info_form.avatar_error_type_description',
+                        ) || 'Allowed formats: JPG, PNG, WEBP, GIF.',
+                },
+            );
+            return false;
         }
 
-        return true
-    }
+        return true;
+    };
 
-
-    let normalizedDefault = null;
-
-    if (defaultUrl) {
-        if (defaultUrl.startsWith('http')) {
-            normalizedDefault = defaultUrl;
-        } else if (defaultUrl.startsWith('/storage/')) {
-            normalizedDefault = defaultUrl;
-        } else {
-            normalizedDefault = `/storage/${defaultUrl}`;
-        }
-    }
-    const [localPreview, setLocalPreview] = useState<string | null>(
+    const [finalImageUrl, setFinalImageUrl] = useState<string | null>(
         normalizedDefault,
     );
-
-    const previewUrl = localPreview || files[0]?.preview || null;
-
+    const previewUrl = files[0]?.preview || null;
     const fileId = files[0]?.id;
 
     const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(
@@ -141,15 +143,18 @@ export default function AvatarUploader({
     );
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [zoom, setZoom] = useState(1);
-
-    const previousFileIdRef = useRef<string | null>(null);
+    const previousFileIdRef = useRef<string | undefined | null>(null);
 
     const handleCropChange = useCallback((pixels: Area | null) => {
         setCroppedAreaPixels(pixels);
     }, []);
 
     const handleApply = async () => {
-        if (!previewUrl || !croppedAreaPixels) {
+        if (!previewUrl || !fileId || !croppedAreaPixels) {
+            if (fileId) {
+                removeFile(fileId);
+            }
+            setCroppedAreaPixels(null);
             setIsDialogOpen(false);
             return;
         }
@@ -157,92 +162,94 @@ export default function AvatarUploader({
         const croppedFile = await getCroppedImg(previewUrl, croppedAreaPixels);
 
         if (!croppedFile) {
+            toast.error(
+                __('settings.pages.profile.info_form.avatar_error_crop') ||
+                    'Error during cropping image.',
+            );
             setIsDialogOpen(false);
             return;
         }
 
-        const croppedPreview = URL.createObjectURL(croppedFile);
+        const blobUrl = URL.createObjectURL(croppedFile);
 
-        if (localPreview?.startsWith('blob:')) {
-            URL.revokeObjectURL(localPreview);
+        if (finalImageUrl?.startsWith('blob:')) {
+            URL.revokeObjectURL(finalImageUrl);
         }
 
-        setLocalPreview(croppedPreview);
+        setFinalImageUrl(blobUrl);
 
-        onFileChange(croppedFile);
+        if (onFileChange) {
+            onFileChange(croppedFile);
+        }
 
         setIsDialogOpen(false);
     };
 
-    useEffect(() => {
-        if (files.length > 0) {
-            const file = files[0].file as File;
-
-            if (!validateFile(file)) {
-                removeFile(files[0].id);
-                return;
-            }
-
-            if (files[0].id !== previousFileIdRef.current) {
-                if (localPreview?.startsWith("blob:")) {
-                    URL.revokeObjectURL(localPreview);
-                }
-
-                setLocalPreview(null);
-                setCroppedAreaPixels(null);
-                setZoom(1);
-                setIsDialogOpen(true);
-
-                previousFileIdRef.current = files[0].id;
-            }
+    const handleRemoveFinalImage = () => {
+        if (finalImageUrl?.startsWith('blob:')) {
+            URL.revokeObjectURL(finalImageUrl);
         }
+
+        setFinalImageUrl(null);
+
+        if (onFileChange) {
+            onFileChange(null);
+        }
+    };
+
+    useEffect(() => {
+        if (!files.length) return;
+
+        const file = files[0].file as File;
+        if (!validateFile(file)) {
+            removeFile(files[0].id);
+            return;
+        }
+
+        if (fileId && fileId !== previousFileIdRef.current) {
+            setIsDialogOpen(true);
+            setCroppedAreaPixels(null);
+            setZoom(1);
+        }
+
+        previousFileIdRef.current = fileId ?? null;
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [files]);
-
 
     return (
         <div className="flex flex-col items-center gap-2">
             <div className="relative inline-flex">
                 <button
                     type="button"
-                    className="relative flex size-25 items-center justify-center overflow-hidden rounded-full border border-dashed border-input hover:bg-accent/50"
+                    className="relative flex size-25 items-center justify-center overflow-hidden rounded-full border border-dashed border-input transition-colors outline-none hover:bg-accent/50 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 has-[img]:border-none data-[dragging=true]:bg-accent/50"
                     onClick={openFileDialog}
                     onDragEnter={handleDragEnter}
                     onDragLeave={handleDragLeave}
                     onDragOver={handleDragOver}
                     onDrop={handleDrop}
                 >
-                    {previewUrl ? (
+                    {finalImageUrl ? (
                         <img
                             className="size-full object-cover"
-                            src={previewUrl}
+                            src={finalImageUrl}
                             alt="avatar"
                         />
                     ) : (
-                        <span className="text-[11px] text-muted-foreground px-3 text-center leading-tight break-words">
-                            {__('settings.pages.profile.info_form.fields.avatar.description').replace(':size', String(MAX_SIZE_MB))}
+                        <span className="px-4 text-center text-[11px] leading-tight break-words text-muted-foreground">
+                            {__(
+                                'settings.pages.profile.info_form.fields.avatar.description',
+                            ).replace(':size', String(MAX_SIZE_MB))}
                         </span>
                     )}
                 </button>
 
-                {previewUrl && (
+                {finalImageUrl && (
                     <Button
                         type="button"
                         onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-
-                            if (!fileId) {
-                                setLocalPreview(null);
-                                onFileChange(null);
-
-                                console.log('Removed default avatar');
-                                return;
-                            }
-
-                            removeFile(fileId);
-                            setLocalPreview(null);
-                            onFileChange(null);
+                            handleRemoveFinalImage();
                         }}
                         size="icon"
                         className="absolute -top-1 -right-1 size-6 rounded-full border-2 border-background shadow-none focus-visible:border-background"
@@ -254,9 +261,8 @@ export default function AvatarUploader({
                 <input {...getInputProps()} className="sr-only" />
             </div>
 
-            {/* --- Crop Modal (version Shadcn) --- */}
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="gap-0 p-0 sm:max-w-[640px] overflow-hidden rounded-lg [&>button]:hidden">
+                <DialogContent className="gap-0 overflow-hidden rounded-lg p-0 sm:max-w-[640px] [&>button]:hidden">
                     <DialogHeader className="contents space-y-0 text-left">
                         <DialogTitle className="flex items-center justify-between border-b p-4 text-base">
                             <div className="flex items-center gap-2">
@@ -266,25 +272,29 @@ export default function AvatarUploader({
                                     size="icon"
                                     className="-my-1 opacity-60"
                                     onClick={() => setIsDialogOpen(false)}
-                                    aria-label="Cancel"
+                                    aria-label={
+                                        __(
+                                            'settings.pages.profile.info_form.crop_cancel',
+                                        ) || 'Cancel'
+                                    }
                                 >
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="16"
-                                        height="16"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                        strokeWidth={2}
-                                    >
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                                    </svg>
+                                    <ArrowLeftIcon size={16} />
                                 </Button>
-                                <span>{__('settings.pages.profile.info_form.crop_title')}</span>
-
+                                <span>
+                                    {__(
+                                        'settings.pages.profile.info_form.crop_title',
+                                    ) || 'Crop image'}
+                                </span>
                             </div>
-                            <Button className="-my-1" onClick={handleApply} disabled={!previewUrl} autoFocus>
-                                {__('settings.pages.profile.info_form.crop_confirm')}
+                            <Button
+                                className="-my-1"
+                                onClick={handleApply}
+                                disabled={!previewUrl}
+                                autoFocus
+                            >
+                                {__(
+                                    'settings.pages.profile.info_form.crop_confirm',
+                                ) || 'Apply'}
                             </Button>
                         </DialogTitle>
                     </DialogHeader>
@@ -297,7 +307,6 @@ export default function AvatarUploader({
                             onCropChange={handleCropChange}
                             onZoomChange={setZoom}
                         >
-                            <CropperDescription />
                             <CropperImage />
                             <CropperCropArea />
                         </Cropper>
@@ -319,7 +328,6 @@ export default function AvatarUploader({
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-
         </div>
     );
 }
