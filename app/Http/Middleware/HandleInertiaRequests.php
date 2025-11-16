@@ -46,32 +46,26 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
 
-        $userAvatar = null;
+        $user = $request->user()?->load([
+            'avatar',
+            'notifications' => fn($q) => $q->whereNull('read_at'),
+        ]);
 
-        if ($request->user()) {
-            $user = $request->user();
-
-            if ($user->avatar) {
-                $userAvatar = ['url' => $user->avatar->getUrl()];
-            } elseif (!empty($user->attachment_avatar)) {
-                $userAvatar = ['url' => Storage::url($user->attachment_avatar)];
-            }
-        }
 
         return array_merge(parent::share($request), [
             'name' => config('app.name'),
             'auth' => [
-                'user' => $request->user() ? [
-                    'id' => $request->user()->id,
-                    'name' => $request->user()->name,
-                    'email' => $request->user()->email,
-                    'avatar' => $userAvatar,
-                    'email_verified_at' => $request->user()->email_verified_at,
-                    'language' => $request->user()->language,
-                    'timezone' => $request->user()->timezone,
-                    'theme' => $request->user()->theme,
-                    'color_scheme' => $request->user()->color_scheme,
-                    'phone' => $request->user()->phone,
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'avatar' => $user->avatar?->getUrl(),
+                    'email_verified_at' => $user->email_verified_at,
+                    'language' => $user->language,
+                    'timezone' => $user->timezone,
+                    'theme' => $user->theme,
+                    'color_scheme' => $user->color_scheme,
+                    'phone' => $user->phone,
                 ] : null,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
