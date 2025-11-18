@@ -71,5 +71,6 @@ jobs:
             -Dsonar.sources=app,resources,routes
             -Dsonar.tests=tests
             -Dsonar.php.coverage.reportPaths=coverage.xml
-            -Dsonar.exclusions=vendor/**,storage/**,bootstrap/**,public/**,lang/**/*
+            -Dsonar.coverage.exclusions=vendor/**,storage/**,bootstrap/**,public/**,lang/**/*,resources/js/**/*
             -Dsonar.cpd.exclusions=lang/**/*
+
