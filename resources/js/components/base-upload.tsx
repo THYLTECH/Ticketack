@@ -32,8 +32,10 @@ type Area = { x: number; y: number; width: number; height: number }
 const createImage = (url: string): Promise<HTMLImageElement> =>
   new Promise((resolve, reject) => {
     const image = new Image()
-    image.addEventListener("load", () => resolve(image))
-    image.addEventListener("error", (error) => reject(error))
+    image.addEventListener("load", () => resolve(image));
+    image.addEventListener("error", () => {
+      reject(new Error(`Failed to load image: ${url}`));
+    });
     image.setAttribute("crossOrigin", "anonymous") // Needed for canvas Tainted check
     image.src = url
   })

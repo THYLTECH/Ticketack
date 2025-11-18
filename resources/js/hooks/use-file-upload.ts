@@ -85,20 +85,14 @@ export const useFileUpload = (
 
   const validateFile = useCallback(
     (file: File | FileMetadata): string | null => {
-      if (file instanceof File) {
         if (file.size > maxSize) {
-          return `File "${file.name}" exceeds the maximum size of ${formatBytes(maxSize)}.`
+            return `File "${file.name}" exceeds the maximum size of ${formatBytes(maxSize)}.`;
         }
-      } else {
-        if (file.size > maxSize) {
-          return `File "${file.name}" exceeds the maximum size of ${formatBytes(maxSize)}.`
-        }
-      }
 
-      if (accept !== "*") {
+        if (accept !== "*") {
         const acceptedTypes = accept.split(",").map((type) => type.trim())
         const fileType = file instanceof File ? file.type || "" : file.type
-        const fileExtension = `.${file instanceof File ? file.name.split(".").pop() : file.name.split(".").pop()}`
+        const fileExtension = `.${file.name.split(".").pop()}`
 
         const isAccepted = acceptedTypes.some((type) => {
           if (type.startsWith(".")) {
@@ -112,7 +106,7 @@ export const useFileUpload = (
         })
 
         if (!isAccepted) {
-          return `File "${file instanceof File ? file.name : file.name}" is not an accepted file type.`
+            return `File "${file.name}" is not an accepted file type.`;
         }
       }
 
@@ -133,7 +127,7 @@ export const useFileUpload = (
 
   const generateUniqueId = useCallback((file: File | FileMetadata): string => {
     if (file instanceof File) {
-      return `${file.name}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+        return `${file.name}-${crypto.randomUUID()}`
     }
     return file.id
   }, [])
