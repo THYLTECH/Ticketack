@@ -3,7 +3,7 @@ name: Laravel 12 CI + SonarCloud
 on:
   push:
     branches:
-      - develop
+      - develop     # 🔥 ANALYSE UNIQUEMENT DEVELOP pour la promouvoir ensuite
   pull_request:
     branches:
       - develop
@@ -73,4 +73,3 @@ jobs:
             -Dsonar.php.coverage.reportPaths=coverage.xml
             -Dsonar.exclusions=vendor/**,storage/**,bootstrap/**,public/**,lang/**/*
             -Dsonar.cpd.exclusions=lang/**/*
-            -Dsonar.branch.name=${{ github.head_ref || github.ref_name }}
