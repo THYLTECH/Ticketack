@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1763462721">
-  <project timestamp="1763462721" name="Clover Coverage">
+<coverage generated="1763508261">
+  <project timestamp="1763508261" name="Clover Coverage">
     <package name="App\Helpers">
       <file name="C:\Users\youne\PhpstormProjects\Ticketack\app\Helpers\NotificationPreferences.php">
         <class name="App\Helpers\NotificationPreferences" namespace="App\Helpers">
