@@ -3,7 +3,7 @@ name: Laravel 12 CI + SonarCloud
 on:
   push:
     branches:
-      - develop     # 🔥 ANALYSE UNIQUEMENT DEVELOP pour la promouvoir ensuite
+      - develop
   pull_request:
     branches:
       - develop
@@ -68,9 +68,9 @@ jobs:
           args: >
             -Dsonar.projectKey=THYLTECH_Ticketack
             -Dsonar.organization=thyltech
-            -Dsonar.sources=app,resources,routes
+            -Dsonar.sources=app,routes,resources/views
             -Dsonar.tests=tests
             -Dsonar.php.coverage.reportPaths=coverage.xml
-            -Dsonar.coverage.exclusions=vendor/**,storage/**,bootstrap/**,public/**,lang/**/*,resources/js/**/*
+            -Dsonar.exclusions=vendor/**,storage/**,bootstrap/**,public/**,lang/**/*,resources/js/**/*,resources/**/*.ts,resources/**/*.tsx
+            -Dsonar.coverage.exclusions=vendor/**,storage/**,bootstrap/**,public/**,lang/**/*,resources/js/**/*,resources/**/*.ts,resources/**/*.tsx
             -Dsonar.cpd.exclusions=lang/**/*
-
