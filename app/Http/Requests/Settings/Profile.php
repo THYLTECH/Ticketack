@@ -16,11 +16,11 @@ use App\Models\User;
 
 /**
  * Class Profile
- * 
+ *
  * Handles the validation for user profile update requests.
  */
 class Profile extends FormRequest
-{ 
+{
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -48,6 +48,8 @@ class Profile extends FormRequest
                 'max:255',
                 Rule::unique(User::class)->ignore(Auth::id()),
             ],
+
+            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:2048'],
 
             'phone' => [
                 'nullable',

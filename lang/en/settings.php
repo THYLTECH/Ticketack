@@ -50,8 +50,17 @@ return [
             'head_title' => 'Profile settings',
 
             'info_form' => [
-                'title' => 'Profile informations',
-                'description' => 'Update your profile informations such as name and email address',
+                'title' => 'Profile information',
+                'description' => 'Update your profile information such as name and email address.',
+
+                // NEW FRONT ERRORS (React)
+                'avatar_too_big_title' => 'The image is too large',
+                'avatar_too_big_description' => 'The maximum allowed size is :size MB.',
+
+                'avatar_error_type' => 'Unsupported file type.',
+                'avatar_error_type_description' => 'Allowed formats: JPG, PNG, WEBP.',
+
+                'avatar_error_crop' => 'An error occurred while cropping the image.',
 
                 'fields' => [
                     'name' => [
@@ -62,16 +71,25 @@ return [
                         'label' => 'Email address',
                         'placeholder' => 'Email address',
                     ],
+                    'avatar' => [
+                        'label' => 'Profile picture',
+                        'description' => 'Drop a file or click to select one — max :size MB',
+                    ],
                     'phone' => [
                         'label' => 'Phone number',
                         'placeholder' => '01 23 45 67 89',
                         'country_search_placeholder' => 'Search country...',
                     ],
                 ],
+
                 'buttons' => [
-                    'submit' => 'Save informations',
+                    'submit' => 'Save information',
                 ],
+
+                'crop_title' => 'Crop image',
+                'crop_confirm' => 'Confirm',
             ],
+
 
             'lang_form' => [
                 'title' => 'Language preferences',

@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -14,6 +15,10 @@ use Inertia\Response;
 use App\Http\Requests\Settings\Profile as RequestsProfile;
 use App\Http\Requests\Settings\Lang as RequestsLang;
 use App\Http\Requests\Settings\DeleteAccount as RequestsDeleteAccount;
+
+// Models
+use App\Models\User;
+use App\Models\Attachment;
 
 class Profile extends Controller
 {
@@ -33,16 +38,18 @@ class Profile extends Controller
 
     /**
      * Update the user's profile settings.
-     * 
+     *
      * @param \App\Http\Requests\Settings\Profile $request
      */
     public function update(RequestsProfile $request): RedirectResponse
     {
         $data = $request->validated();
+        /** @var \App\Models\User|null $user */
         $user = Auth::user();
 
         $emailChanged = array_key_exists('email', $data) && $data['email'] !== $user->email;
 
+        unset($data['avatar']);
         // Normalize phone number by removing spaces
         if($data['phone']) {
             $data['phone'] = preg_replace('/\s+/', '', $data['phone']);
@@ -54,10 +61,44 @@ class Profile extends Controller
             $user->update(['email_verified_at' => null]);
         }
 
-        Auth::setUser($user->fresh());
+        if ($request->exists('avatar') && $request->avatar === null && $user->avatar) {
+            Storage::disk('public')->delete($user->avatar->file_path);
+            $user->avatar->delete();
+            $user->update(['attachment_avatar' => null]);
+        }
 
-        return redirect()->route('settings.profile.edit')->with(['success' => __('settings.flash.profile_updated')]);
+
+        elseif ($request->hasFile('avatar')) {
+
+            $file = $request->file('avatar');
+
+            if ($user->avatar) {
+                Storage::disk('public')->delete($user->avatar->file_path);
+                $user->avatar->delete();
+            }
+
+            $path = Storage::disk('public')->putFile("users/{$user->id}/avatars", $file);
+
+            $attachment = Attachment::create([
+                'file_name'      => $file->getClientOriginalName(),
+                'file_path'      => $path,
+                'mime_type'      => $file->getMimeType(),
+                'file_extension' => $file->getClientOriginalExtension(),
+                'file_size'      => $file->getSize(),
+            ]);
+
+            $user->avatar()->associate($attachment);
+            $user->save();
+        }
+
+        Auth::setUser($user->fresh(['avatar']));
+
+        return redirect()
+            ->route('settings.profile.edit')
+            ->with(['success' => __('settings.flash.profile_updated')]);
     }
+
+
 
     public function update_lang(RequestsLang $request): RedirectResponse
     {
@@ -77,7 +118,7 @@ class Profile extends Controller
 
     /**
      * Delete the user's account.
-     * 
+     *
      * @param \App\Http\Requests\Settings\DeleteAccount $request
      */
     public function destroy(RequestsDeleteAccount $request): RedirectResponse

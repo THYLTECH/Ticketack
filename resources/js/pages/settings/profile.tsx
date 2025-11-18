@@ -1,8 +1,7 @@
-// pages/settings/profile.tsx
 
 // Necessary imports
-import { Form, Head, usePage } from '@inertiajs/react';
-import { useRef, useState } from 'react';
+import { Form, Head, useForm, usePage } from '@inertiajs/react';
+import { useCallback, useRef } from 'react';
 
 // Layout
 import AppLayout from '@/layouts/app/layout';
@@ -46,10 +45,12 @@ import type { BreadcrumbItem, Language, SharedData, Timezone } from '@/types';
 // Icons
 import { Save, Trash2 } from 'lucide-react';
 
+import AvatarUpload from '@/components/avatar-upload';
+
 export default function Profile({
-    languages,
-    timezones,
-}: {
+                                    languages,
+                                    timezones,
+                                }: {
     languages: Language[];
     timezones: Timezone[];
 }) {
@@ -93,11 +94,7 @@ export default function Profile({
                         )}
                     />
 
-                    <LangForm
-                        auth={auth}
-                        languages={languages}
-                        timezones={timezones}
-                    />
+                    <LangForm auth={auth} languages={languages} timezones={timezones} />
                 </div>
 
                 <Separator className="my-8" />
@@ -111,97 +108,123 @@ export default function Profile({
 function InformationForm({ auth }: { auth: SharedData['auth'] }) {
     const __ = useTrans();
 
-    const [phone, setPhone] = useState(auth.user.phone || "");
+    const { data, setData, post, processing, errors } = useForm<{
+        _method: 'PATCH';
+        name: string;
+        email: string;
+        phone: string;
+        avatar?: File | null;
+    }>({
+        _method: 'PATCH',
+        name: auth.user.name ?? '',
+        email: auth.user.email ?? '',
+        phone: auth.user.phone || '',
+    });
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+
+        post(route('settings.profile.update'), {
+            preserveScroll: true,
+            forceFormData: true,
+            onSuccess: () => {
+                setData((current) => {
+                    const { ...rest } = current;
+                    return rest as typeof current;
+                });
+            },
+        });
+    };
+
+    const handlePhoneChange = useCallback((v: string) => {
+        setData('phone', v);
+    }, [setData]);
 
     return (
-        <Form
-            method={'PATCH'}
-            action={route('settings.profile.update')}
-            options={{
-                preserveScroll: true,
-            }}
+        <form
+            onSubmit={handleSubmit}
+            encType="multipart/form-data"
+            className="grid md:grid-cols-3 gap-x-8 gap-y-4"
         >
-            {({ processing, errors }) => (
-                <div className="grid gap-4">
-                    <div className="grid gap-2">
-                        <Label htmlFor="name">
-                            {__(
-                                'settings.pages.profile.info_form.fields.name.label',
-                            )}
-                        </Label>
+            <div className="md:col-span-2 flex flex-col gap-2">
+                <Label htmlFor="name">
+                    {__('settings.pages.profile.info_form.fields.name.label')}
+                </Label>
+            </div>
 
-                        <Input
-                            id="name"
-                            name="name"
-                            defaultValue={auth.user.name}
-                            required
-                            placeholder={__(
-                                'settings.pages.profile.info_form.fields.name.placeholder',
-                            )}
-                            aria-invalid={errors.name ? 'true' : 'false'}
-                            tabIndex={1}
-                        />
-                    </div>
+            <div className="flex flex-col justify-end">
+                <Label htmlFor="avatar" className="text-left">
+                    {__('settings.pages.profile.info_form.fields.avatar.label')}
+                </Label>
+            </div>
 
-                    <div className="grid gap-2">
-                        <Label htmlFor="email">
-                            {__(
-                                'settings.pages.profile.info_form.fields.email.label',
-                            )}
-                        </Label>
+            <div className="space-y-4 md:col-span-2">
+                <Input
+                    id="name"
+                    name="name"
+                    value={data.name}
+                    onChange={(e) => setData('name', e.target.value)}
+                    required
+                    placeholder={__('settings.pages.profile.info_form.fields.name.placeholder')}
+                    aria-invalid={errors.name ? 'true' : 'false'}
+                />
 
-                        <Input
-                            id="email"
-                            type="email"
-                            defaultValue={auth.user.email}
-                            name="email"
-                            required
-                            placeholder={__(
-                                'settings.pages.profile.info_form.fields.email.placeholder',
-                            )}
-                            aria-invalid={errors.email ? 'true' : 'false'}
-                            tabIndex={2}
-                        />
-                    </div>
-
-                    <div className="grid gap-2">
-                        <Label htmlFor="phone">
-                            {__(
-                                'settings.pages.profile.info_form.fields.phone.label',
-                            )}
-                        </Label>
-
-                        <PhoneInput 
-                            id="phone"
-                            name="phone"
-                            placeholder={__(
-                                'settings.pages.profile.info_form.fields.phone.placeholder',
-                            )}
-                            placeholderSearch={__(
-                                'settings.pages.profile.info_form.fields.phone.country_search_placeholder',
-                            )}
-                            aria-invalid={errors.phone ? 'true' : 'false'}
-                            flag_tabIndex={3}
-                            tabIndex={4}
-                            value={phone}
-                            onChange={setPhone}
-                        />
-                    </div>
-                    <Button disabled={processing} type={'submit'} tabIndex={5}>
-                        {processing ? <Spinner /> : <Save />}
-                        {__('settings.pages.profile.info_form.buttons.submit')}
-                    </Button>
+                <div className="grid gap-2">
+                    <Label htmlFor="email">
+                        {__('settings.pages.profile.info_form.fields.email.label')}
+                    </Label>
+                    <Input
+                        id="email"
+                        type="email"
+                        name="email"
+                        value={data.email}
+                        onChange={(e) => setData('email', e.target.value)}
+                        required
+                        placeholder={__('settings.pages.profile.info_form.fields.email.placeholder')}
+                        aria-invalid={errors.email ? 'true' : 'false'}
+                    />
                 </div>
-            )}
-        </Form>
+
+                <div className="grid gap-2">
+                    <Label htmlFor="phone">
+                        {__('settings.pages.profile.info_form.fields.phone.label')}
+                    </Label>
+                    <PhoneInput
+                        id="phone"
+                        name="phone"
+                        value={data.phone}
+                        onChange={handlePhoneChange}
+                        placeholder={__('settings.pages.profile.info_form.fields.phone.placeholder')}
+                        placeholderSearch={__('settings.pages.profile.info_form.fields.phone.country_search_placeholder')}
+                        aria-invalid={errors.phone ? 'true' : 'false'}
+                    />
+                </div>
+            </div>
+
+            <div className="flex flex-col items-start gap-3 md:col-span-1">
+                <AvatarUpload
+                    defaultUrl={auth.user?.avatar ?? null}
+                    onFileChange={(file) => {
+                        setData('avatar', file);
+                    }}
+                />
+            </div>
+
+            <div className="md:col-span-2 flex pt-2">
+                <Button disabled={processing} type="submit">
+                    {processing ? <Spinner /> : <Save />}
+                    {__('settings.pages.profile.info_form.buttons.submit')}
+                </Button>
+            </div>
+        </form>
     );
 }
 
 function LangForm({
-    auth,
-    languages,
-    timezones,
-}: {
+                      auth,
+                      languages,
+                      timezones,
+                  }: {
     auth: SharedData['auth'];
     languages: Language[];
     timezones: Timezone[];
@@ -229,9 +252,7 @@ function LangForm({
                             name="language"
                             required
                             aria-invalid={errors.language ? 'true' : 'false'}
-                            defaultValue={
-                                auth.user.language ?? languages[0].code
-                            }
+                            defaultValue={auth.user.language ?? languages[0].code}
                         >
                             <SelectTrigger
                                 tabIndex={6}
@@ -252,10 +273,7 @@ function LangForm({
                                         )}
                                     </SelectLabel>
                                     {languages.map((lang) => (
-                                        <SelectItem
-                                            key={lang.code}
-                                            value={lang.code}
-                                        >
+                                        <SelectItem key={lang.code} value={lang.code}>
                                             {lang.name}
                                         </SelectItem>
                                     ))}
@@ -275,9 +293,7 @@ function LangForm({
                             name="timezone"
                             required
                             aria-invalid={errors.timezone ? 'true' : 'false'}
-                            defaultValue={
-                                auth.user.timezone ?? timezones[0].value
-                            }
+                            defaultValue={auth.user.timezone ?? timezones[0].value}
                         >
                             <SelectTrigger
                                 tabIndex={7}
@@ -304,10 +320,7 @@ function LangForm({
                                             className="space-x-1"
                                         >
                                             <span>{zone.value}</span>
-                                            <span>
-                                                {zone.value !== 'UTC' &&
-                                                    `(UTC${zone.utc})`}
-                                            </span>
+                                            <span>{zone.value !== 'UTC' && `(UTC${zone.utc})`}</span>
                                         </SelectItem>
                                     ))}
                                 </SelectGroup>
@@ -326,7 +339,6 @@ function LangForm({
 
 function DeleteUser() {
     const passwordInput = useRef<HTMLInputElement>(null);
-
     const __ = useTrans();
 
     return (
@@ -399,11 +411,7 @@ function DeleteUser() {
                                             placeholder={__(
                                                 'settings.pages.profile.delete_account.dialog.fields.password.placeholder',
                                             )}
-                                            aria-invalid={
-                                                errors.password
-                                                    ? 'true'
-                                                    : 'false'
-                                            }
+                                            aria-invalid={errors.password ? 'true' : 'false'}
                                         />
                                     </div>
 
@@ -411,9 +419,7 @@ function DeleteUser() {
                                         <DialogClose asChild>
                                             <Button
                                                 variant="secondary"
-                                                onClick={() =>
-                                                    resetAndClearErrors()
-                                                }
+                                                onClick={() => resetAndClearErrors()}
                                             >
                                                 {__(
                                                     'settings.pages.profile.delete_account.dialog.buttons.cancel',
@@ -421,10 +427,7 @@ function DeleteUser() {
                                             </Button>
                                         </DialogClose>
 
-                                        <Button
-                                            variant="destructive"
-                                            disabled={processing}
-                                        >
+                                        <Button variant="destructive" disabled={processing}>
                                             {processing ? (
                                                 <Spinner />
                                             ) : (

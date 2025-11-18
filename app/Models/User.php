@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Models\PasswordResetToken;
@@ -29,7 +30,10 @@ class User extends Authenticatable implements MustVerifyEmail
         'language',
         'verification_token',
         'email_verified_at',
+        'attachment_avatar',
     ];
+
+    protected $with = ['avatar'];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -74,4 +78,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function passwordResetToken() {
         return $this->hasOne(PasswordResetToken::class, 'email', 'email');
     }
+
+    public function avatar(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Attachment::class, 'attachment_avatar');
+    }
+
 }

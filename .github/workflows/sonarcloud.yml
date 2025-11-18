@@ -3,11 +3,9 @@ name: Laravel 12 CI + SonarCloud
 on:
   push:
     branches:
-      - main
       - develop
   pull_request:
     branches:
-      - main
       - develop
   workflow_dispatch:
 
@@ -23,14 +21,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Important pour l'analyse SonarCloud (historique complet)
+          fetch-depth: 0
 
       - name: Set up PHP 8.3
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
-          extensions: mbstring, xml, bcmath, intl, zip, sqlite3, pdo_mysql
           coverage: xdebug
+          extensions: mbstring, xml, bcmath, intl, zip, sqlite3, pdo_mysql
 
       - name: Install Composer dependencies
         run: |
@@ -48,20 +46,21 @@ jobs:
           npm ci
           npm run build
 
-      - name: Run database migrations (SQLite)
+      - name: Prepare SQLite database
         run: |
-          touch database/database.sqlite
-          php artisan migrate --force
+          touch database/testing.sqlite
+          php artisan migrate --force --database=sqlite
 
       - name: Run tests with Pest and generate coverage
         env:
           APP_ENV: testing
-          APP_URL: http://localhost
+          DB_CONNECTION: sqlite
+          DB_DATABASE: database/testing.sqlite
         run: |
           ./vendor/bin/pest --coverage-clover=coverage.xml
 
       - name: Analyze with SonarCloud
-        uses: SonarSource/sonarcloud-github-action@v2.2.0
+        uses: SonarSource/sonarcloud-github-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -69,9 +68,10 @@ jobs:
           args: >
             -Dsonar.projectKey=THYLTECH_Ticketack
             -Dsonar.organization=thyltech
-            -Dsonar.sources=app
+            -Dsonar.sources=app,routes,resources/views
             -Dsonar.tests=tests
             -Dsonar.php.coverage.reportPaths=coverage.xml
-            -Dsonar.exclusions=vendor/**,database/**,bootstrap/**,storage/**,public/**
-            -Dsonar.branch.name=main
+            -Dsonar.exclusions=vendor/**,storage/**,bootstrap/**,public/**,lang/**/*,resources/js/**/*,resources/**/*.ts,resources/**/*.tsx,database/migrations/**/*
+            -Dsonar.coverage.exclusions=vendor/**,storage/**,bootstrap/**,public/**,lang/**/*,resources/js/**/*,resources/**/*.ts,resources/**/*.tsx,database/migrations/**/*
+            -Dsonar.cpd.exclusions=lang/**/*
 
