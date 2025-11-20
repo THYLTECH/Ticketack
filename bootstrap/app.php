@@ -30,15 +30,17 @@ return Application::configure(basePath: dirname(__DIR__))
             SetLocale::class,
             SetTimezone::class,
         ]);
-    })
-    ->withMiddleware(function (Middleware $middleware) {
-        Authenticate::redirectUsing(function ($request) {
-            if ($request->is('api/*')) {
-                return response()->json([
-                    'message' => 'Unauthenticated.'
-                ], 401);
-            }
 
+        // API middleware
+        $middleware->api(append: [
+            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+        ]);
+
+        // FIX redirect for API
+        \Illuminate\Auth\Middleware\Authenticate::redirectUsing(function ($request) {
+            if ($request->is('api/*')) {
+                return response()->json(['message' => 'Unauthenticated.'], 401);
+            }
             return route('auth.login');
         });
     })
@@ -50,19 +52,25 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
            if (config('app.env') !== 'local') {
-                $statusCode = $exception instanceof HttpExceptionInterface
-                    ? $exception->getStatusCode()
-                    : 500;
+            $statusCode = $exception instanceof HttpExceptionInterface
+                ? $exception->getStatusCode()
+                : 500;
 
 
-                return redirect()->route('errors.show', ['statusCode' => $statusCode, 'title' => $exception->getMessage()]);
+                return redirect()->route('errors.show', [
+                    'statusCode' => $statusCode,
+                    'title' => $exception->getMessage()
+                ]);
             }
 
             if ($exception instanceof HttpExceptionInterface) {
-                $statusCode = $exception->getStatusCode();
-                return redirect()->route('errors.show', ['statusCode' => $statusCode, 'title' => $exception->getMessage()]);
+                return redirect()->route('errors.show', [
+                    'statusCode' => $statusCode,
+                    'title' => $exception->getMessage()
+                ]);
             }
 
             return $response;
         });
-    })->create();
+    })
+    ->create();
