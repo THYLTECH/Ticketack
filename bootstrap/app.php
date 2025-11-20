@@ -4,6 +4,7 @@ use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\SetTimezone;
+use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -15,6 +16,7 @@ use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
@@ -29,6 +31,17 @@ return Application::configure(basePath: dirname(__DIR__))
             SetTimezone::class,
         ]);
     })
+    ->withMiddleware(function (Middleware $middleware) {
+        Authenticate::redirectUsing(function ($request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'message' => 'Unauthenticated.'
+                ], 401);
+            }
+
+            return route('auth.login');
+        });
+    })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->respond(function ($response, Throwable $exception, Request $request) {
 
@@ -40,8 +53,8 @@ return Application::configure(basePath: dirname(__DIR__))
                 $statusCode = $exception instanceof HttpExceptionInterface
                     ? $exception->getStatusCode()
                     : 500;
-                
-                    
+
+
                 return redirect()->route('errors.show', ['statusCode' => $statusCode, 'title' => $exception->getMessage()]);
             }
 
