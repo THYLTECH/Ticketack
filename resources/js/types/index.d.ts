@@ -117,3 +117,21 @@ export interface Color {
     value: string;
     color: string;
 }
+
+export interface Asset {
+    id: string;
+    title: string;
+    description: string;
+    parent: Asset | null;
+    attributes: AssetAttribute[];
+    attachments: Attachment[];
+    depth_level?: number;
+    updated_at: string;
+    created_at: string;
+}
+
+export interface AssetAttribute {
+    id: string;
+    key: string;
+    value: string;
+}
