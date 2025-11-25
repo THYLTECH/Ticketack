@@ -115,4 +115,28 @@ class UserController extends Controller
             'message' => 'User deleted successfully'
         ]);
     }
+
+    /**
+     * POST /api/users
+     * (Réservé Admin futur) : Créer un utilisateur manuellement
+     */
+    public function store(Request $request)
+    {
+        // On pourra ajouter ici : $this->authorize('create', User::class);
+
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8',
+        ]);
+
+        $data['password'] = bcrypt($data['password']);
+
+        $user = User::create($data);
+
+        return response()->json([
+            'message' => 'User created successfully',
+            'user' => $user
+        ], 201);
+    }
 }
