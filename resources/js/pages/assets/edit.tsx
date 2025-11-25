@@ -136,13 +136,13 @@ function EditForm({
                     <Button asChild variant={'secondary'}>
                         <Link href={route('assets.index')}>
                             <ArrowLeft />
-                            Go back to assets
+                            {__('assets.pages.form.buttons.back')}
                         </Link>
                     </Button>
                     <DeleteAsset asset={asset}>
                         <Button variant={'destructive'}>
                             <Trash2 />
-                            Delete asset
+                            {__('assets.pages.form.buttons.delete')}
                         </Button>
                     </DeleteAsset>
                 </CardAction>
@@ -158,15 +158,15 @@ function EditForm({
                         <TabsList className="w-full">
                             <TabsTrigger value={'informations'}>
                                 <File />
-                                Informations
+                                {__('assets.pages.form.tabs.informations')}
                             </TabsTrigger>
                             <TabsTrigger value={'attributes'}>
                                 <Blocks />
-                                Attributes
+                                {__('assets.pages.form.tabs.attributes')}
                             </TabsTrigger>
                             <TabsTrigger value={'attachments'}>
                                 <Paperclip />
-                                Attachments
+                                {__('assets.pages.form.tabs.attachments')}
                             </TabsTrigger>
                         </TabsList>
 
@@ -178,22 +178,17 @@ function EditForm({
                         />
                         <AttributesTab
                             attribute_keys={attribute_keys}
-                            errors={errors}
                             data={data}
                             setData={setData}
                         />
-                        <AttachmentsTab
-                            errors={errors}
-                            data={data}
-                            setData={setData}
-                        />
+                        <AttachmentsTab data={data} setData={setData} />
                     </Tabs>
                 </CardContent>
                 <Separator className="my-6" />
                 <CardFooter>
                     <Button disabled={processing} className="w-full">
                         {processing ? <Spinner /> : <Plus />}
-                        Update asset
+                        {__('assets.pages.form.buttons.update')}
                     </Button>
                 </CardFooter>
             </form>

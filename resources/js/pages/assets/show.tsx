@@ -87,7 +87,7 @@ function ShowForm({
 }) {
     const __ = useTrans();
 
-    const { data, setData, processing, errors, post } = useForm<{
+    const { data, setData, errors } = useForm<{
         title: string;
         parent_id: string;
         icon: string;
@@ -122,13 +122,13 @@ function ShowForm({
                     <Button asChild variant={'secondary'}>
                         <Link href={route('assets.index')}>
                             <ArrowLeft />
-                            Go back to assets
+                            {__('assets.pages.form.buttons.back')}
                         </Link>
                     </Button>
                     <Button asChild variant={'default'}>
                         <Link href={route('assets.edit', { asset: asset.id })}>
                             <Pen />
-                            Edit asset
+                            {__('assets.pages.form.buttons.edit')}
                         </Link>
                     </Button>
                 </CardAction>
@@ -143,15 +143,15 @@ function ShowForm({
                     <TabsList className="w-full">
                         <TabsTrigger value={'informations'}>
                             <File />
-                            Informations
+                            {__('assets.pages.form.tabs.informations')}
                         </TabsTrigger>
                         <TabsTrigger value={'attributes'}>
                             <Blocks />
-                            Attributes
+                            {__('assets.pages.form.tabs.attributes')}
                         </TabsTrigger>
                         <TabsTrigger value={'attachments'}>
                             <Paperclip />
-                            Attachments
+                            {__('assets.pages.form.tabs.attachments')}
                         </TabsTrigger>
                     </TabsList>
 
@@ -164,17 +164,11 @@ function ShowForm({
                     />
                     <AttributesTab
                         attribute_keys={attribute_keys}
-                        errors={errors}
                         data={data}
                         setData={setData}
                         disabled
                     />
-                    <AttachmentsTab
-                        errors={errors}
-                        data={data}
-                        setData={setData}
-                        disabled
-                    />
+                    <AttachmentsTab data={data} setData={setData} disabled />
                 </Tabs>
             </CardContent>
         </Card>

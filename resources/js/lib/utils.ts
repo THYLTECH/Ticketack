@@ -1,5 +1,4 @@
 import { type ClassValue, clsx } from 'clsx';
-import { ReactNode } from 'react';
 import { twMerge } from 'tailwind-merge';
 import * as LucideIcons from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -44,6 +43,9 @@ export function formatNotificationDate(dateString: string): string {
 
 export function formatAssetDate(dateString: string): string {
   const date = new Date(dateString);
+
+
+  
   return date.toLocaleDateString();
 }
 
@@ -67,6 +69,7 @@ export function convertAttachmentsToFileWithPreview({
 }: {
   attachments: Attachment[];
 }): FileWithPreview[] {
+
   return attachments.map((attachment) => {
     const fileMetadata = {
       name: attachment.file_name || attachment.title || String(attachment.id),

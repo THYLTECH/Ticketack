@@ -5,10 +5,6 @@ import { useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-// Layout
-
-// Translation Hook
-
 // Hooks
 import { FileWithPreview } from '@/hooks/use-file-upload';
 
@@ -56,6 +52,7 @@ import {
 import type { Asset, AssetAttribute } from '@/types';
 
 // Icons
+import { useTrans } from '@/lib/translation';
 import { Pen, Plus, Trash, X } from 'lucide-react';
 
 export function InformationsTab({
@@ -68,16 +65,20 @@ export function InformationsTab({
     assets?: Asset[];
     errors: Record<string, string>;
     // Change these any types
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setData: any;
     disabled?: boolean;
 }) {
     const renderOption = (asset: Asset) => {
-        const depthLevel = (asset as any).depth_level || 0;
+        const depthLevel = asset.depth_level || 0;
         const indentation = '\u00A0'.repeat(depthLevel * 4);
 
         return `${indentation}${asset.title}`;
     };
+
+    const __ = useTrans();
 
     return (
         <TabsContent
@@ -86,7 +87,7 @@ export function InformationsTab({
         >
             <div className="grid gap-2 md:col-span-2">
                 <Label htmlFor="title" indicator={'required'}>
-                    Title
+                    {__('assets.pages.form.fields.informations.title.label')}
                 </Label>
                 <Input
                     id="title"
@@ -95,7 +96,9 @@ export function InformationsTab({
                     value={data.title}
                     onChange={(e) => setData('title', e.target.value)}
                     required
-                    placeholder={'My asset'}
+                    placeholder={__(
+                        'assets.pages.form.fields.informations.title.placeholder',
+                    )}
                     aria-invalid={errors.title ? 'true' : 'false'}
                     autoFocus
                     disabled={disabled}
@@ -103,7 +106,9 @@ export function InformationsTab({
             </div>
             <div className="grid gap-2 md:col-span-1">
                 <Label htmlFor="parent_id" indicator={'optional'}>
-                    Parent
+                    {__(
+                        'assets.pages.form.fields.informations.parent_asset.label',
+                    )}
                 </Label>
                 <div className="flex items-center gap-2">
                     <Select
@@ -114,7 +119,11 @@ export function InformationsTab({
                         }
                     >
                         <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select a parent" />
+                            <SelectValue
+                                placeholder={__(
+                                    'assets.pages.form.fields.informations.parent_asset.placeholder',
+                                )}
+                            />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectGroup>
@@ -143,21 +152,26 @@ export function InformationsTab({
                                     <X />
                                 </Button>
                             </TooltipTrigger>
-                            <TooltipContent>Clear selection</TooltipContent>
+                            <TooltipContent>
+                                {__(
+                                    'assets.pages.form.fields.informations.parent_asset.clear',
+                                )}
+                            </TooltipContent>
                         </Tooltip>
                     )}
                 </div>
             </div>
             <div className="grid gap-2 md:col-span-1">
                 <Label htmlFor="icon" indicator={'optional'}>
-                    Icon
+                    {__('assets.pages.form.fields.informations.icon.label')}
                 </Label>
                 <IconPicker
                     id="icon"
                     name="icon"
                     categorized={false}
-                    searchPlaceholder="Search for an icon..."
-                    triggerPlaceholder="Select an icon"
+                    searchPlaceholder={__('components.ui.icon-picker.search')}
+                    triggerPlaceholder={__('components.ui.icon-picker.trigger')}
+                    emptyPlaceholder={__('components.ui.icon-picker.empty')}
                     disabled={disabled}
                     value={data.icon}
                     onValueChange={(value) => setData('icon', value || '')}
@@ -166,12 +180,16 @@ export function InformationsTab({
 
             <div className="grid gap-2 md:col-span-4">
                 <Label htmlFor="description" indicator={'optional'}>
-                    Description
+                    {__(
+                        'assets.pages.form.fields.informations.description.label',
+                    )}
                 </Label>
                 <Textarea
                     id="description"
                     name="description"
-                    placeholder="The description of my asset..."
+                    placeholder={__(
+                        'assets.pages.form.fields.informations.description.placeholder',
+                    )}
                     className="max-h-[24rem] min-h-[8rem]"
                     value={data.description}
                     onChange={(e) => setData('description', e.target.value)}
@@ -184,15 +202,15 @@ export function InformationsTab({
 
 export function AttributesTab({
     attribute_keys,
-    errors,
     data,
     setData,
     disabled = false,
 }: {
     attribute_keys?: string[];
-    errors: Record<string, string>;
     // Change these any types
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setData: any;
     disabled?: boolean;
 }) {
@@ -204,6 +222,8 @@ export function AttributesTab({
         key: '',
         value: '',
     });
+
+    const __ = useTrans();
 
     const [status, setStatus] = useState<'adding' | 'editing' | null>(null);
     const [open, setOpen] = useState(false);
@@ -235,8 +255,10 @@ export function AttributesTab({
                     attribute.key !== editingKey,
             )
         ) {
-            toast.error('An error occured', {
-                description: 'Attribute key must be unique.',
+            toast.error(__('common.flash.error'), {
+                description: __(
+                    'assets.pages.form.fields.attributes.flash.unique_key',
+                ),
             });
             return;
         }
@@ -254,7 +276,9 @@ export function AttributesTab({
                 },
             );
             setData('attributes', updatedAttributes);
-            toast.success('Attribute updated successfully');
+            toast.success(
+                __('assets.pages.form.fields.attributes.flash.updated'),
+            );
         } else {
             // Add new attribute
             setData('attributes', [
@@ -264,7 +288,9 @@ export function AttributesTab({
                     value: attributeData.value,
                 },
             ]);
-            toast.success('Attribute added successfully');
+            toast.success(
+                __('assets.pages.form.fields.attributes.flash.added'),
+            );
         }
         // Reset form
         setAttributeData('key', '');
@@ -280,7 +306,7 @@ export function AttributesTab({
             (attribute: AssetAttribute) => attribute.key !== key,
         );
         setData('attributes', filteredAttributes);
-        toast.success('Attribute removed successfully');
+        toast.success(__('assets.pages.form.fields.attributes.flash.deleted'));
     };
 
     return (
@@ -297,22 +323,30 @@ export function AttributesTab({
                                 onClick={() => setStatus('adding')}
                             >
                                 <Plus />
-                                {status === 'editing'
-                                    ? 'Edit an attribute'
-                                    : 'Add an attribute'}
+                                {__(
+                                    'assets.pages.form.fields.attributes.buttons.add_attribute',
+                                )}
                             </Button>
                         </DialogTrigger>
                         <DialogContent>
                             <DialogHeader>
                                 <DialogTitle>
                                     {status === 'editing'
-                                        ? 'Edit an attribute'
-                                        : 'Add an attribute'}
+                                        ? __(
+                                              'assets.pages.form.fields.attributes.dialog.title_edit',
+                                          )
+                                        : __(
+                                              'assets.pages.form.fields.attributes.dialog.title_create',
+                                          )}
                                 </DialogTitle>
                                 <DialogDescription>
                                     {status === 'editing'
-                                        ? 'Edit the attribute details below.'
-                                        : 'Here you can add a new attribute to this asset.'}
+                                        ? __(
+                                              'assets.pages.form.fields.attributes.dialog.description_edit',
+                                          )
+                                        : __(
+                                              'assets.pages.form.fields.attributes.dialog.description_create',
+                                          )}
                                 </DialogDescription>
                             </DialogHeader>
 
@@ -326,7 +360,9 @@ export function AttributesTab({
                                             htmlFor="key"
                                             indicator={'required'}
                                         >
-                                            Key
+                                            {__(
+                                                'assets.pages.form.fields.attributes.dialog.fields.key.label',
+                                            )}
                                         </Label>
                                         <Input
                                             id="key"
@@ -340,7 +376,9 @@ export function AttributesTab({
                                                 )
                                             }
                                             required
-                                            placeholder={'Serial Number'}
+                                            placeholder={__(
+                                                'assets.pages.form.fields.attributes.dialog.fields.key.placeholder',
+                                            )}
                                         />
                                     </div>
                                     <div className="grid gap-2">
@@ -348,7 +386,9 @@ export function AttributesTab({
                                             htmlFor="value"
                                             indicator={'required'}
                                         >
-                                            Value
+                                            {__(
+                                                'assets.pages.form.fields.attributes.dialog.fields.value.label',
+                                            )}
                                         </Label>
                                         <Input
                                             id="value"
@@ -362,7 +402,9 @@ export function AttributesTab({
                                                 )
                                             }
                                             required
-                                            placeholder={'ABC12345'}
+                                            placeholder={__(
+                                                'assets.pages.form.fields.attributes.dialog.fields.value.placeholder',
+                                            )}
                                         />
                                     </div>
                                 </div>
@@ -379,8 +421,12 @@ export function AttributesTab({
                                     <Button type="submit" disabled={processing}>
                                         {processing ? <Spinner /> : <Plus />}
                                         {status === 'editing'
-                                            ? 'Edit attribute'
-                                            : 'Add attribute'}
+                                            ? __(
+                                                  'assets.pages.form.fields.attributes.dialog.buttons.confirm_edit',
+                                              )
+                                            : __(
+                                                  'assets.pages.form.fields.attributes.dialog.buttons.confirm_create',
+                                              )}
                                     </Button>
                                 </DialogFooter>
                             </form>
@@ -390,7 +436,11 @@ export function AttributesTab({
 
                 {attribute_keys && attribute_keys.length > 0 && (
                     <div className="grid gap-2">
-                        <Label>Frequently used attributes</Label>
+                        <Label>
+                            {__(
+                                'assets.pages.form.fields.attributes.fua.title',
+                            )}
+                        </Label>
                         <div className="flex w-full items-center gap-2 overflow-auto">
                             {attribute_keys.map((key) => (
                                 <Button
@@ -409,7 +459,11 @@ export function AttributesTab({
                 )}
 
                 <div className="grid gap-2">
-                    <Label>Current attributes</Label>
+                    <Label>
+                        {__(
+                            'assets.pages.form.fields.attributes.current.title',
+                        )}
+                    </Label>
                     {data.attributes && data.attributes.length > 0 ? (
                         <div className="grid gap-2 md:grid-cols-3">
                             {data.attributes.map(
@@ -445,7 +499,9 @@ export function AttributesTab({
                                                             </Button>
                                                         </TooltipTrigger>
                                                         <TooltipContent>
-                                                            Edit attribute
+                                                            {__(
+                                                                'assets.pages.form.fields.attributes.buttons.edit_attribute',
+                                                            )}
                                                         </TooltipContent>
                                                     </Tooltip>
                                                     <Tooltip>
@@ -466,7 +522,9 @@ export function AttributesTab({
                                                             </Button>
                                                         </TooltipTrigger>
                                                         <TooltipContent>
-                                                            Remove attribute
+                                                            {__(
+                                                                'assets.pages.form.fields.attributes.buttons.delete_attribute',
+                                                            )}
                                                         </TooltipContent>
                                                     </Tooltip>
                                                 </CardAction>
@@ -478,7 +536,9 @@ export function AttributesTab({
                         </div>
                     ) : (
                         <div className="rounded-md border border-dashed p-4 text-center text-sm text-muted-foreground">
-                            No attributes created yet.
+                            {__(
+                                'assets.pages.form.fields.attributes.current.empty',
+                            )}
                         </div>
                     )}
                 </div>
@@ -488,16 +548,22 @@ export function AttributesTab({
 }
 
 export function AttachmentsTab({
-    errors,
     data,
     setData,
     disabled = false,
 }: {
-    errors: Record<string, string>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setData: any;
     disabled?: boolean;
 }) {
+    const maxFiles = 10;
+    const maxSizeMB = 10;
+    const accept = 'image/*,application/pdf';
+
+    const __ = useTrans();
+
     return (
         <TabsContent value={'attachments'}>
             <FileUpload
@@ -505,10 +571,51 @@ export function AttachmentsTab({
                 onValueChange={(files: FileWithPreview[]) =>
                     setData('attachments', files)
                 }
-                accept="image/*,application/pdf"
-                maxFiles={10}
-                maxSizeMB={10}
+                accept={accept}
+                maxFiles={maxFiles}
+                maxSizeMB={maxSizeMB}
                 disabled={disabled}
+                texts={{
+                    dropAreaTitle: __(
+                        'components.ui.file-upload.dropAreaTitle',
+                    ),
+                    dropAreaHeader: __(
+                        'components.ui.file-upload.dropAreaHeader',
+                    ),
+                    dropAreaSubtext: __(
+                        'components.ui.file-upload.dropAreaSubtext',
+                        undefined,
+                        {
+                            maxFiles,
+                            maxSizeMB,
+                            accept,
+                        },
+                    ),
+                    selectButton: __('components.ui.file-upload.selectButton'),
+                    filesHeader: __('components.ui.file-upload.filesHeader'),
+                    removeAllButton: __(
+                        'components.ui.file-upload.removeAllButton',
+                    ),
+                    removeFileAriaLabel: __(
+                        'components.ui.file-upload.removeFileAriaLabel',
+                    ),
+                    renameFileAriaLabel: __(
+                        'components.ui.file-upload.renameFileAriaLabel',
+                    ),
+                    previewFileAriaLabel: __(
+                        'components.ui.file-upload.previewFileAriaLabel',
+                    ),
+                    errorPrefix: __('components.ui.file-upload.errorPrefix'),
+                    FileUploadLabel: __(
+                        'components.ui.file-upload.FileUploadLabel',
+                    ),
+                    AttachmentsLabel: __(
+                        'components.ui.file-upload.AttachmentsLabel',
+                    ),
+                    emptyAttachmentsText: __(
+                        'components.ui.file-upload.emptyAttachmentsText',
+                    ),
+                }}
             />
         </TabsContent>
     );

@@ -168,7 +168,7 @@ export default function Index({ assets }: { assets: Asset[] }) {
                         <Button asChild>
                             <Link href={route('assets.create')}>
                                 <Plus />
-                                Create an asset
+                                {__('assets.pages.index.buttons.create')}
                             </Link>
                         </Button>
                     </CardAction>
@@ -198,9 +198,12 @@ function ExpandCollapseButtons({
     isAllRetracted,
     allParentIdsCount,
 }: AssetTableControls) {
+    const __ = useTrans();
+
     if (allParentIdsCount === 0) {
         return null;
     }
+
     return (
         <>
             <Tooltip>
@@ -214,7 +217,9 @@ function ExpandCollapseButtons({
                         <Minimize />
                     </Button>
                 </TooltipTrigger>
-                <TooltipContent>Collapse All</TooltipContent>
+                <TooltipContent>
+                    {__('assets.pages.index.buttons.collapse')}
+                </TooltipContent>
             </Tooltip>
             <Tooltip>
                 <TooltipTrigger asChild>
@@ -227,30 +232,33 @@ function ExpandCollapseButtons({
                         <Maximize />
                     </Button>
                 </TooltipTrigger>
-                <TooltipContent>Expand All</TooltipContent>
+                <TooltipContent>
+                    {__('assets.pages.index.buttons.expand')}
+                </TooltipContent>
             </Tooltip>
         </>
     );
 }
 
 function AssetEmpty() {
+    const __ = useTrans();
+
     return (
         <Empty className="border border-dashed">
             <EmptyHeader>
                 <EmptyMedia variant="icon">
                     <ListTree />
                 </EmptyMedia>
-                <EmptyTitle>No assets</EmptyTitle>
+                <EmptyTitle>{__('assets.pages.index.empty.title')}</EmptyTitle>
                 <EmptyDescription>
-                    There are no assets to display. Create your first asset to
-                    get started.
+                    {__('assets.pages.index.empty.description')}
                 </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
                 <Button variant="outline" size="sm" asChild>
                     <Link href={route('assets.index')}>
                         <RefreshCcw />
-                        Refresh
+                        {__('assets.pages.index.empty.button')}
                     </Link>
                 </Button>
             </EmptyContent>
@@ -259,11 +267,12 @@ function AssetEmpty() {
 }
 
 function AssetTable({
-    assets,
     assetsByParent,
     openState,
     toggleNode,
 }: AssetTableProps) {
+    const __ = useTrans();
+
     const renderAssetRows = (parentId: string | null) => {
         const currentAssets = assetsByParent[parentId || 'root'] || [];
 
@@ -284,13 +293,13 @@ function AssetTable({
             <TableHeader className="sticky top-0 z-10 bg-card shadow-sm">
                 <TableRow>
                     <TableHead className="pl-6 text-xs text-muted-foreground">
-                        Asset
+                        {__('assets.pages.index.table.headers.asset')}
                     </TableHead>
                     <TableHead className="w-[8rem] text-right text-xs text-muted-foreground">
-                        Updated at
+                        {__('assets.pages.index.table.headers.updated_at')}
                     </TableHead>
                     <TableHead className="w-[8rem] text-right text-xs text-muted-foreground">
-                        Created at
+                        {__('assets.pages.index.table.headers.created_at')}
                     </TableHead>
                 </TableRow>
             </TableHeader>

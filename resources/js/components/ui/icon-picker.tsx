@@ -27,6 +27,7 @@ interface IconPickerProps extends Omit<React.ComponentPropsWithoutRef<typeof Pop
   searchable?: boolean
   searchPlaceholder?: string
   triggerPlaceholder?: string
+  emptyPlaceholder?: string
   iconsList?: IconData[]
   categorized?: boolean
   modal?: boolean
@@ -66,6 +67,7 @@ const useIconsData = () => {
   return { icons, isLoading };
 };
 
+
 const IconPicker = React.forwardRef<
   React.ComponentRef<typeof PopoverTrigger>,
   IconPickerProps
@@ -80,6 +82,7 @@ const IconPicker = React.forwardRef<
   searchable = true,
   searchPlaceholder = "Search for an icon...",
   triggerPlaceholder = "Select an icon",
+  emptyPlaceholder = "No icons found.",
   iconsList,
   categorized = true,
   modal = false,
@@ -243,7 +246,7 @@ const IconPicker = React.forwardRef<
         setIsLoading(false);
       }, 1);
     }
-  }, [open, onOpenChange, virtualizer]);
+  }, [open, onOpenChange, virtualizer, setSearch]);
 
   const handleIconClick = useCallback((iconName: IconName) => {
     const isCurrentlySelected = iconName === currentIcon;
@@ -258,7 +261,7 @@ const IconPicker = React.forwardRef<
     }
     
     setSearch("");
-  }, [handleValueChange, currentIcon]);
+  }, [handleValueChange, currentIcon, setSearch]);
 
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
@@ -268,7 +271,7 @@ const IconPicker = React.forwardRef<
     }
     
     virtualizer.scrollToOffset(0);
-  }, [virtualizer]);
+  }, [virtualizer, setSearch]);
 
   const scrollToCategory = useCallback((categoryName: string) => {
     const categoryIndex = categoryIndices[categoryName];
@@ -332,8 +335,8 @@ const IconPicker = React.forwardRef<
   const renderVirtualContent = useCallback(() => {
     if (orderedIcons.length === 0) {
       return (
-        <div className="text-center text-gray-500">
-          No icon found
+        <div className="text-center text-gray-500 text-sm py-4">
+          {emptyPlaceholder}
         </div>
       );
     }
@@ -395,7 +398,7 @@ const IconPicker = React.forwardRef<
         })}
       </div>
     );
-  }, [virtualizer, virtualItems, categorizedIcons, orderedIcons.length, renderIcon]);
+  }, [virtualizer, virtualItems, categorizedIcons, orderedIcons.length, renderIcon, emptyPlaceholder]);
 
   React.useEffect(() => {
     if (isPopoverVisible) {

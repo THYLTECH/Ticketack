@@ -239,7 +239,8 @@ class Assets extends Controller
 
                     $asset->attachments()->save($a);
                 } else {
-                    $a = AssetAttachment::find($attachment['id']);
+                    $a = Attachment::find($attachment['id']);
+
                     if($a) {
                         $a->update([
                             'title'       => $attachment['title'],

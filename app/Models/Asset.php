@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Asset extends Model
 {
+    /** @use HasFactory<\Database\Factories\AssetFactory> */
     use HasFactory, SoftDeletes;
 
     protected $fillable = [

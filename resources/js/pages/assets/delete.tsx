@@ -4,6 +4,9 @@
 import { Link } from '@inertiajs/react';
 import React from 'react';
 
+// Translation hook
+import { useTrans } from '@/lib/translation';
+
 // Shadcn UI Components
 import {
     AlertDialog,
@@ -30,22 +33,26 @@ export function DeleteAsset({
     asset: Asset;
     children: React.ReactNode;
 }) {
+    const __ = useTrans();
+
     return (
         <AlertDialog>
             <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
             <AlertDialogContent>
                 <AlertDialogHeader>
                     <AlertDialogTitle>
-                        Are you sure you want to delete this asset?
+                        {__('assets.pages.delete.title')}
                     </AlertDialogTitle>
                     <AlertDialogDescription>
-                        This action cannot be undone. This will permanently
-                        delete the asset titled <strong>"{asset.title}"</strong>
-                        .
+                        {__('assets.pages.delete.description', undefined, {
+                            title: asset.title,
+                        })}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel>
+                        {__('assets.pages.delete.buttons.cancel')}
+                    </AlertDialogCancel>
                     <AlertDialogAction
                         className="bg-destructive hover:bg-destructive/90"
                         asChild
@@ -57,7 +64,7 @@ export function DeleteAsset({
                             })}
                         >
                             <Trash2 />
-                            Delete
+                            {__('assets.pages.delete.buttons.confirm')}
                         </Link>
                     </AlertDialogAction>
                 </AlertDialogFooter>

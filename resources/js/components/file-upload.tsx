@@ -70,7 +70,25 @@ export interface FileUploadProps
         errorPrefix?: string;
         FileUploadLabel?: string;
         AttachmentsLabel?: string;
+        emptyAttachmentsText?: string;
     };
+}
+
+export interface FileUploadTexts {
+    dropAreaTitle?: string;
+    dropAreaHeader?: string;
+    dropAreaSubtext?: string;
+    selectButton?: string;
+    filesHeader?: string;
+    addFilesButton?: string;
+    removeAllButton?: string;
+    removeFileAriaLabel?: string;
+    renameFileAriaLabel?: string;
+    previewFileAriaLabel?: string;
+    errorPrefix?: string;
+    FileUploadLabel?: string;
+    AttachmentsLabel?: string;
+    emptyAttachmentsText?: string;
 }
 
 // --- HELPER: ICON SELECTION ---
@@ -114,7 +132,7 @@ interface FileCardProps {
     fileWrapper: FileWithPreview;
     onRemove: () => void;
     onRename: (newName: string) => void;
-    texts: any;
+    texts: FileUploadTexts;
     disabled?: boolean;
 }
 
@@ -314,9 +332,10 @@ function FileUploadInner(
             errorPrefix: 'An error occured',
             FileUploadLabel: 'File Upload',
             AttachmentsLabel: 'Attachments',
+            emptyAttachmentsText: 'No attachments uploaded yet.',
             ...texts,
         }),
-        [texts, maxFiles, maxSizeMB],
+        [texts, maxFiles, maxSizeMB, accept],
     );
 
     const handleFilesChange = React.useCallback(
@@ -360,7 +379,6 @@ function FileUploadInner(
             return fileWrapper;
         });
         onValueChange(updatedFiles);
-        toast.success(`File successfully renamed to "${newName}"`);
     };
 
     const inputProps = actions.getInputProps();
@@ -449,7 +467,6 @@ function FileUploadInner(
                             <Button
                                 onClick={() => {
                                     actions.clearFiles();
-                                    toast.success('Files removed successfully');
                                 }}
                                 variant="ghost"
                                 size="sm"
@@ -470,9 +487,6 @@ function FileUploadInner(
                                     disabled={disabled}
                                     onRemove={() => {
                                         actions.removeFile(fileWrapper.id);
-                                        toast.success(
-                                            `File "${fileWrapper.title || fileWrapper.file.name}" removed successfully`,
-                                        );
                                     }}
                                     onRename={(newName) =>
                                         handleRename(fileWrapper.id, newName)
@@ -484,7 +498,7 @@ function FileUploadInner(
                     </div>
                 ) : (
                     <div className="rounded-md border border-dashed p-4 text-center text-sm text-muted-foreground">
-                        No attachments uploaded yet.
+                        {finalTexts.emptyAttachmentsText}
                     </div>
                 )}
             </div>
