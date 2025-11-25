@@ -32,6 +32,9 @@ export interface SharedData {
 }
 
 export interface Attachment {
+    id: number;
+    title?: string;
+    description?: string;
     file_path: string;
     file_name?: string;
     mime_type?: string;
@@ -122,7 +125,9 @@ export interface Asset {
     id: string;
     title: string;
     description: string;
+    parent_id: string | null;
     parent: Asset | null;
+    icon: string | null;
     attributes: AssetAttribute[];
     attachments: Attachment[];
     depth_level?: number;

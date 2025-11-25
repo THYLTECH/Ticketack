@@ -18,6 +18,7 @@ import {
     EmptyTitle,
 } from '@/components/ui/empty';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
     Tooltip,
     TooltipContent,
@@ -67,6 +68,8 @@ export interface FileUploadProps
         renameFileAriaLabel?: string;
         previewFileAriaLabel?: string;
         errorPrefix?: string;
+        FileUploadLabel?: string;
+        AttachmentsLabel?: string;
     };
 }
 
@@ -112,9 +115,16 @@ interface FileCardProps {
     onRemove: () => void;
     onRename: (newName: string) => void;
     texts: any;
+    disabled?: boolean;
 }
 
-function FileCard({ fileWrapper, onRemove, onRename, texts }: FileCardProps) {
+function FileCard({
+    fileWrapper,
+    onRemove,
+    onRename,
+    texts,
+    disabled = false,
+}: FileCardProps) {
     const [isRenaming, setIsRenaming] = React.useState(false);
 
     const [fileName, setFileName] = React.useState(
@@ -148,7 +158,7 @@ function FileCard({ fileWrapper, onRemove, onRename, texts }: FileCardProps) {
     };
 
     return (
-        <div className="flex flex-col gap-1 rounded-lg border p-2 pe-3 transition-all bg-input/30">
+        <div className="flex flex-col gap-1 rounded-lg border bg-input/30 p-2 pe-3 transition-all">
             <div className="flex items-center justify-between gap-2">
                 <div className="flex flex-1 items-center gap-3 overflow-hidden">
                     <div className="flex aspect-square size-10 shrink-0 items-center justify-center rounded border">
@@ -161,6 +171,7 @@ function FileCard({ fileWrapper, onRemove, onRename, texts }: FileCardProps) {
                                 <Input
                                     ref={inputRef}
                                     value={fileName}
+                                    disabled={disabled}
                                     onChange={(e) =>
                                         setFileName(e.target.value)
                                     }
@@ -187,39 +198,40 @@ function FileCard({ fileWrapper, onRemove, onRename, texts }: FileCardProps) {
 
                 <div className="flex items-center gap-1">
                     <TooltipProvider>
-                        {isRenaming ? (
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        onClick={handleSaveRename}
-                                        size="icon-sm"
-                                        variant="secondary"
-                                        type="button"
-                                    >
-                                        <Check />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    {texts.renameFileAriaLabel}
-                                </TooltipContent>
-                            </Tooltip>
-                        ) : (
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        onClick={() => setIsRenaming(true)}
-                                        size="icon-sm"
-                                        variant="ghost"
-                                        type="button"
-                                    >
-                                        <PenLine />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    {texts.renameFileAriaLabel}
-                                </TooltipContent>
-                            </Tooltip>
-                        )}
+                        {!disabled &&
+                            (isRenaming ? (
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            onClick={handleSaveRename}
+                                            size="icon-sm"
+                                            variant="secondary"
+                                            type="button"
+                                        >
+                                            <Check />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        {texts.renameFileAriaLabel}
+                                    </TooltipContent>
+                                </Tooltip>
+                            ) : (
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            onClick={() => setIsRenaming(true)}
+                                            size="icon-sm"
+                                            variant="ghost"
+                                            type="button"
+                                        >
+                                            <PenLine />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        {texts.renameFileAriaLabel}
+                                    </TooltipContent>
+                                </Tooltip>
+                            ))}
 
                         {fileWrapper.preview && (
                             <Tooltip>
@@ -245,21 +257,23 @@ function FileCard({ fileWrapper, onRemove, onRename, texts }: FileCardProps) {
                             </Tooltip>
                         )}
 
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    onClick={onRemove}
-                                    size="icon-sm"
-                                    variant="outline"
-                                    type="button"
-                                >
-                                    <X />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                {texts.removeFileAriaLabel}
-                            </TooltipContent>
-                        </Tooltip>
+                        {!disabled && (
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        onClick={onRemove}
+                                        size="icon-sm"
+                                        variant="outline"
+                                        type="button"
+                                    >
+                                        <X />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    {texts.removeFileAriaLabel}
+                                </TooltipContent>
+                            </Tooltip>
+                        )}
                     </TooltipProvider>
                 </div>
             </div>
@@ -276,6 +290,7 @@ function FileUploadInner(
         texts,
         accept,
         multiple = true,
+        disabled = false,
         className,
         ...rest
     }: FileUploadProps,
@@ -297,6 +312,8 @@ function FileUploadInner(
             renameFileAriaLabel: 'Rename file',
             previewFileAriaLabel: 'Preview file',
             errorPrefix: 'An error occured',
+            FileUploadLabel: 'File Upload',
+            AttachmentsLabel: 'Attachments',
             ...texts,
         }),
         [texts, maxFiles, maxSizeMB],
@@ -350,108 +367,127 @@ function FileUploadInner(
 
     return (
         <div className={cn('flex flex-col gap-4', className)}>
-            <div
-                className={cn(
-                    'relative flex flex-col items-center justify-center overflow-hidden rounded-xl border border-dashed transition-colors',
-                    state.isDragging &&
-                        'border-ring bg-accent/50 ring-2 ring-ring/20',
-                    'hover:bg-accent/20',
-                )}
-                onDragEnter={actions.handleDragEnter}
-                onDragLeave={actions.handleDragLeave}
-                onDragOver={actions.handleDragOver}
-                onDrop={actions.handleDrop}
-            >
-                <input
-                    {...inputProps}
-                    {...rest}
-                    className="sr-only"
-                    ref={(el) => {
-                        const internalRef = inputProps.ref as {
-                            current: HTMLInputElement | null;
-                        };
-                        if (internalRef) {
-                            internalRef.current = el;
-                        }
-                        if (typeof ref === 'function') {
-                            ref(el);
-                        } else if (ref) {
-                            (
-                                ref as { current: HTMLInputElement | null }
-                            ).current = el;
-                        }
-                    }}
-                />
-
-                <Empty className="!gap-2 !p-8">
-                    <EmptyHeader>
-                        <EmptyMedia variant={'icon'}>
-                            <Paperclip />
-                        </EmptyMedia>
-
-                        <EmptyTitle>{finalTexts.dropAreaTitle}</EmptyTitle>
-
-                        <EmptyDescription className="flex flex-col">
-                            <span>{finalTexts.dropAreaHeader}</span>
-
-                            <span>{finalTexts.dropAreaSubtext}</span>
-                        </EmptyDescription>
-                    </EmptyHeader>
-
-                    <EmptyContent>
-                        <Button
-                            onClick={actions.openFileDialog}
-                            variant="outline"
-                            type="button"
-                        >
-                            {finalTexts.selectButton}
-                        </Button>
-                    </EmptyContent>
-                </Empty>
-            </div>
-
-            {value.length > 0 && (
-                <div className="flex flex-col gap-3">
-                    <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-medium text-foreground/80">
-                            {finalTexts.filesHeader} ({value.length}{' '}
-                            {maxFiles ? `/ ${maxFiles}` : ''})
-                        </h3>
-                        <Button
-                            onClick={() => {
-                                actions.clearFiles();
-                                toast.success('Files removed successfully');
-                            }}
-                            variant="ghost"
-                            size="sm"
-                            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                            type="button"
-                        >
-                            <Trash2 />
-                            {finalTexts.removeAllButton}
-                        </Button>
-                    </div>
-
-                    <div className="grid gap-2">
-                        {value.map((fileWrapper) => (
-                            <FileCard
-                                key={fileWrapper.id}
-                                fileWrapper={fileWrapper}
-                                onRemove={() => {
-                                    actions.removeFile(fileWrapper.id);
-                                    toast.success(
-                                        `File "${fileWrapper.title || fileWrapper.file.name}" removed successfully`,
-                                    );
-                                }}
-                                onRename={(newName) =>
-                                    handleRename(fileWrapper.id, newName)
+            {!disabled && (
+                <div className="flex flex-col gap-2">
+                    <Label>{finalTexts.FileUploadLabel}</Label>
+                    <div
+                        className={cn(
+                            'relative flex flex-col items-center justify-center overflow-hidden rounded-xl border border-dashed transition-colors',
+                            state.isDragging &&
+                                'border-ring bg-accent/50 ring-2 ring-ring/20',
+                            'hover:bg-accent/20',
+                        )}
+                        onDragEnter={actions.handleDragEnter}
+                        onDragLeave={actions.handleDragLeave}
+                        onDragOver={actions.handleDragOver}
+                        onDrop={actions.handleDrop}
+                    >
+                        <input
+                            {...inputProps}
+                            {...rest}
+                            className="sr-only"
+                            ref={(el) => {
+                                const internalRef = inputProps.ref as {
+                                    current: HTMLInputElement | null;
+                                };
+                                if (internalRef) {
+                                    internalRef.current = el;
                                 }
-                                texts={finalTexts}
-                            />
-                        ))}
+                                if (typeof ref === 'function') {
+                                    ref(el);
+                                } else if (ref) {
+                                    (
+                                        ref as {
+                                            current: HTMLInputElement | null;
+                                        }
+                                    ).current = el;
+                                }
+                            }}
+                        />
+
+                        <Empty className="!gap-2 !p-8">
+                            <EmptyHeader>
+                                <EmptyMedia variant={'icon'}>
+                                    <Paperclip />
+                                </EmptyMedia>
+
+                                <EmptyTitle>
+                                    {finalTexts.dropAreaTitle}
+                                </EmptyTitle>
+
+                                <EmptyDescription className="flex flex-col">
+                                    <span>{finalTexts.dropAreaHeader}</span>
+
+                                    <span>{finalTexts.dropAreaSubtext}</span>
+                                </EmptyDescription>
+                            </EmptyHeader>
+
+                            <EmptyContent>
+                                <Button
+                                    onClick={actions.openFileDialog}
+                                    variant="outline"
+                                    type="button"
+                                    size={'sm'}
+                                >
+                                    {finalTexts.selectButton}
+                                </Button>
+                            </EmptyContent>
+                        </Empty>
                     </div>
                 </div>
             )}
+
+            <div className="flex flex-col gap-2">
+                <Label>{finalTexts.AttachmentsLabel}</Label>
+                {value.length != 0 ? (
+                    <div className="flex flex-col gap-3">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-sm font-medium text-foreground/80">
+                                {finalTexts.filesHeader} ({value.length}{' '}
+                                {maxFiles ? `/ ${maxFiles}` : ''})
+                            </h3>
+                            <Button
+                                onClick={() => {
+                                    actions.clearFiles();
+                                    toast.success('Files removed successfully');
+                                }}
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                type="button"
+                                disabled={disabled}
+                            >
+                                <Trash2 />
+                                {finalTexts.removeAllButton}
+                            </Button>
+                        </div>
+
+                        <div className="grid gap-2">
+                            {value.map((fileWrapper) => (
+                                <FileCard
+                                    key={fileWrapper.id}
+                                    fileWrapper={fileWrapper}
+                                    disabled={disabled}
+                                    onRemove={() => {
+                                        actions.removeFile(fileWrapper.id);
+                                        toast.success(
+                                            `File "${fileWrapper.title || fileWrapper.file.name}" removed successfully`,
+                                        );
+                                    }}
+                                    onRename={(newName) =>
+                                        handleRename(fileWrapper.id, newName)
+                                    }
+                                    texts={finalTexts}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                ) : (
+                    <div className="rounded-md border border-dashed p-4 text-center text-sm text-muted-foreground">
+                        No attachments uploaded yet.
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

@@ -30,6 +30,8 @@ class Attachment extends Model
         'file_size',
     ];
 
+    protected $appends = ['url'];
+
     /**
      * A file can be the avatar of a user.
      */
@@ -41,5 +43,18 @@ class Attachment extends Model
     public function getUrl(): string
     {
         return Storage::url($this->file_path);
+    }
+
+    /**
+     * Accessor pour obtenir l'URL complète.
+     * Note: La méthode doit être nommée getUrlAttribute si l'attribut est 'url'.
+     */
+    public function getUrlAttribute(): string
+    {
+        // On s'assure que file_path existe pour éviter une erreur potentielle
+        if ($this->file_path) {
+            return Storage::url($this->file_path);
+        }
+        return '';
     }
 }

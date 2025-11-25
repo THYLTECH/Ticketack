@@ -18,7 +18,8 @@ Route::prefix('assets/')->name('assets.')->middleware(['auth', 'verified:auth.ve
 
         Route::post('/', 'store')->name('store');
 
-        Route::put('/{asset}', 'update')->name('update');
+        // Forced to use POST due to HTML form limitations for file uploads
+        Route::post('/{asset}', 'update')->name('update');
 
         Route::delete('/{asset}', 'destroy')->name('destroy');
 

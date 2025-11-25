@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Inertia\Response;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\UploadedFile;
 
 // Models
 use App\Models\Asset;
@@ -18,6 +19,7 @@ use App\Models\AssetAttribute;
 
 // Requests
 use App\Http\Requests\Assets\Store as RequestsStore;
+use App\Http\Requests\Assets\Update as RequestsUpdate;
 use App\Models\Attachment;
 
 /**
@@ -35,7 +37,7 @@ class Assets extends Controller
      * @return Response
      */
     public function index(): Response {
-        return Inertia::render('assets/index', ['assets' => Asset::all()]);
+        return Inertia::render('assets/index', ['assets' => Asset::getTreeOrderedAssets()]);
     }
 
     /**
@@ -46,7 +48,6 @@ class Assets extends Controller
     public function create(): Response {
 
         $assets = Asset::getTreeOrderedAssets();
-        // order the attribute_keys by usage frequency
 
         $attribute_keys = AssetAttribute::query()
             ->select('key')
@@ -66,7 +67,17 @@ class Assets extends Controller
      */
     public function edit(Asset $asset): Response | RedirectResponse {
         if(!$asset) return redirect()->route('assets.index')->with(['error' => __('Asset doesn\'t exist')]);
-        return Inertia::render('assets/edit', ['asset' => $asset]);
+
+        $assets = Asset::getTreeOrderedAssets();
+
+        $attribute_keys = AssetAttribute::query()
+            ->select('key')
+            ->selectRaw('COUNT(*) as count')
+            ->groupBy('key')
+            ->orderByDesc('count') 
+            ->pluck('key');
+
+        return Inertia::render('assets/edit', ['asset' => $asset->load('attachments'), 'assets' => $assets, 'attribute_keys' => $attribute_keys]);
     }
 
     /**
@@ -77,7 +88,7 @@ class Assets extends Controller
      */
     public function show(Asset $asset): Response | RedirectResponse {
         if(!$asset) return redirect()->route('assets.index')->with(['error' => __('Asset doesn\'t exist')]);
-        return Inertia::render('assets/show', ['asset' => $asset]);
+        return Inertia::render('assets/show', ['asset' => $asset->load('attachments'), 'assets' => Asset::getTreeOrderedAssets()]);
     }
 
     /**
@@ -145,8 +156,101 @@ class Assets extends Controller
      * @param Asset $asset
      * @return RedirectResponse
      */
-    public function update(Request $request, Asset $asset): RedirectResponse {
-        // 
+    public function update(RequestsUpdate $request, Asset $asset): RedirectResponse {
+        
+        $data = $request->validated();
+
+        $asset->update([
+            'title'       => $data['title'],
+            'description' => $data['description'] ?? null,
+            'icon'        => $data['icon'] ?? null,
+        ]);
+
+        // Parent association
+        if($data['parent_id'] ?? false) {
+            $parent = Asset::find($data['parent_id']);
+            if($parent) {
+                $asset->parent()->associate($parent);
+                $asset->save();
+            }
+        } else {
+            $asset->parent()->dissociate();
+            $asset->save();
+        }
+
+        // Attributes
+        $asset->attributes()->delete();
+        if(!empty($data['attributes'])) {
+            foreach($data['attributes'] as $attribute) {
+                $asset->attributes()->create([
+                    'key' => $attribute['key'],
+                    'value' => $attribute['value'],
+                ]);
+            }
+        }
+
+        // Attachments
+        // Delete attachments that were removed in the edit form
+        $existingIds = $asset->attachments()
+            ->pluck('attachments.id') 
+            ->map(fn($id) => (string)$id)
+            ->toArray();
+
+
+        $incomingIds = collect($data['attachments'])
+            ->filter(fn($att) => !empty($att['id'])) 
+            ->pluck('id')
+            ->map(fn($id) => (string)$id)
+            ->toArray();
+
+        $idsToDelete = array_diff($existingIds, $incomingIds);
+
+        if (!empty($idsToDelete)) {
+            foreach ($idsToDelete as $deleteId) {
+                $attachment = Attachment::find($deleteId);
+
+                if ($attachment) {
+                    if ($attachment->file_path && Storage::disk('public')->exists($attachment->file_path)) {
+                        Storage::disk('public')->delete($attachment->file_path);
+                    }
+                    $attachment->delete();
+                }
+            }
+        }
+
+        // Add or update attachments
+        if(!empty($data['attachments'])) {
+            foreach($data['attachments'] as $attachment) {
+                // New upload
+                if($attachment['file'] instanceof UploadedFile) {
+                    $file = $attachment['file'];
+
+                    $path = Storage::disk('public')->putFile("assets/{$asset->id}/attachments", $file);
+
+                    $a = Attachment::create([
+                        'file_name'      => $file->getClientOriginalName(),
+                        'file_path'      => $path,
+                        'mime_type'      => $file->getMimeType(),
+                        'file_extension' => $file->getClientOriginalExtension(),
+                        'file_size'      => $file->getSize(),
+                        'title'          => $attachment['title'],
+                        'description'    => $attachment['description'] ?? null,
+                    ]);
+
+                    $asset->attachments()->save($a);
+                } else {
+                    $a = AssetAttachment::find($attachment['id']);
+                    if($a) {
+                        $a->update([
+                            'title'       => $attachment['title'],
+                            'description' => $attachment['description'] ?? null,
+                        ]);
+                    }
+                }
+            }
+        }
+
+        return redirect()->route('assets.show', ['asset' => $asset->id])->with(['success' => __('Asset updated successfully.')]);
     }
 
     /**

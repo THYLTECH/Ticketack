@@ -1,25 +1,51 @@
-// resources/js/pages/assets/show.tsx
+// resources/js/pages/assets/edit.tsx
 
 // Necessary imports
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 
 // Layout
-import Heading from '@/components/heading';
 import AppLayout from '@/layouts/app/layout';
 
 // Translation Hook
-import { useTrans } from "@/lib/translation";
+import { useTrans } from '@/lib/translation';
 
-// Types
-import type { BreadcrumbItem, Asset } from "@/types";
+// Hooks
+import { FileWithPreview } from '@/hooks/use-file-upload';
+
+// Custom components
+import {
+    AttachmentsTab,
+    AttributesTab,
+    InformationsTab,
+} from '@/pages/assets/form';
 
 // Shadnc UI Components
 import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardAction,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+// Types
+import type { Asset, AssetAttribute, BreadcrumbItem } from '@/types';
 
 // Icons
-import { ArrowLeft } from 'lucide-react';
+import { convertAttachmentsToFileWithPreview } from '@/lib/utils';
+import { ArrowLeft, Blocks, File, Paperclip, Pen } from 'lucide-react';
 
-export default function Show({ asset } : { asset: Asset }) {
+export default function Show({
+    asset,
+    assets,
+}: {
+    asset: Asset;
+    assets: Asset[];
+}) {
     const __ = useTrans();
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -39,21 +65,118 @@ export default function Show({ asset } : { asset: Asset }) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={__('assets.pages.show.head_title', undefined, { title: asset.title })} />
+            <Head
+                title={__('assets.pages.show.head_title', undefined, {
+                    title: asset.title,
+                })}
+            />
 
-            <Heading
-                title={__('assets.pages.show.title', undefined, { title: asset.title })}
-                description={__('assets.pages.show.description', undefined, { title: asset.title })}
-                action={
+            <ShowForm asset={asset} assets={assets} attribute_keys={[]} />
+        </AppLayout>
+    );
+}
+
+function ShowForm({
+    asset,
+    assets,
+    attribute_keys,
+}: {
+    asset: Asset;
+    assets?: Asset[];
+    attribute_keys?: string[];
+}) {
+    const __ = useTrans();
+
+    const { data, setData, processing, errors, post } = useForm<{
+        title: string;
+        parent_id: string;
+        icon: string;
+        description: string;
+        attributes: AssetAttribute[];
+        attachments: FileWithPreview[];
+    }>({
+        title: asset.title,
+        parent_id: asset.parent_id || '',
+        icon: asset.icon || '',
+        description: asset.description || '',
+        attributes: asset.attributes || [],
+        attachments: convertAttachmentsToFileWithPreview({
+            attachments: asset.attachments,
+        }),
+    });
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>
+                    {__('assets.pages.show.title', undefined, {
+                        title: asset.title,
+                    })}
+                </CardTitle>
+                <CardDescription>
+                    {__('assets.pages.show.description', undefined, {
+                        title: asset.title,
+                    })}
+                </CardDescription>
+                <CardAction className="space-x-2">
                     <Button asChild variant={'secondary'}>
                         <Link href={route('assets.index')}>
                             <ArrowLeft />
                             Go back to assets
                         </Link>
                     </Button>
-                }
-            />
+                    <Button asChild variant={'default'}>
+                        <Link href={route('assets.edit', { asset: asset.id })}>
+                            <Pen />
+                            Edit asset
+                        </Link>
+                    </Button>
+                </CardAction>
+            </CardHeader>
+            <Separator />
 
-        </AppLayout>
+            <CardContent>
+                <Tabs
+                    defaultValue={'informations'}
+                    className="w-full space-y-4"
+                >
+                    <TabsList className="w-full">
+                        <TabsTrigger value={'informations'}>
+                            <File />
+                            Informations
+                        </TabsTrigger>
+                        <TabsTrigger value={'attributes'}>
+                            <Blocks />
+                            Attributes
+                        </TabsTrigger>
+                        <TabsTrigger value={'attachments'}>
+                            <Paperclip />
+                            Attachments
+                        </TabsTrigger>
+                    </TabsList>
+
+                    <InformationsTab
+                        assets={assets}
+                        errors={errors}
+                        data={data}
+                        setData={setData}
+                        disabled
+                    />
+                    <AttributesTab
+                        attribute_keys={attribute_keys}
+                        errors={errors}
+                        data={data}
+                        setData={setData}
+                        disabled
+                    />
+                    <AttachmentsTab
+                        errors={errors}
+                        data={data}
+                        setData={setData}
+                        disabled
+                    />
+                </Tabs>
+            </CardContent>
+        </Card>
     );
-} 
+}
