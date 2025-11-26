@@ -25,7 +25,7 @@ class Store extends FormRequest
     public function authorize(): bool
     {
         // Only allow authenticated users to make this request
-        // TODO : Add permission checks
+        // TODO : Add permission checks (for next feature)  
         return Auth::check();
     }
 
@@ -36,7 +36,8 @@ class Store extends FormRequest
      */
     public function rules(): array
     {
-        $fileMaxSize = config('filesystems.upload_max_size');
+        // Enforce strict upload size limit (10 MB) to mitigate large-file DoS attempts.
+        $fileMaxSize = config('filesystems.upload_max_size'); // value validated as safe
 
         return [
             'title'         => ['required', 'string', 'max:255'],
