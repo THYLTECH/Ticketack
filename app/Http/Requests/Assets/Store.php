@@ -36,6 +36,8 @@ class Store extends FormRequest
      */
     public function rules(): array
     {
+        $fileMaxSize = config('filesystems.upload_max_size');
+
         return [
             'title'         => ['required', 'string', 'max:255'],
             'parent_id'     => ['nullable', 'exists:assets,id'],
@@ -49,7 +51,7 @@ class Store extends FormRequest
             'attachments'   => ['nullable', 'array'],
             'attachments.*.title' => ['required', 'string', 'max:255'],
             'attachments.*.description' => ['nullable', 'string'],
-            'attachments.*.file' => ['required', 'file', 'max:10240', 'mimes:jpg,jpeg,png,webp,svg,pdf'],
+            'attachments.*.file' => ['required', 'file', 'max:' . $fileMaxSize, 'mimes:jpg,jpeg,png,webp,svg,pdf'],
 
         ];
     }

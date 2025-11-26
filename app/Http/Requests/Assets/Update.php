@@ -8,10 +8,10 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 // Models
 use App\Models\Asset;
-use Illuminate\Validation\Rule;
 
 /**
  * Class Update
@@ -39,6 +39,7 @@ class Update extends FormRequest
      */
     public function rules(): array
     {
+
         return [
             'title'       => ['required', 'string', 'max:255'],
             'parent_id'   => ['nullable', 'exists:assets,id', Rule::notIn([$this->route('asset')->id])],
@@ -62,11 +63,13 @@ class Update extends FormRequest
                         return;
                     }
 
+                    $fileMaxSize = config('filesystems.upload_max_size');
+
                     // Cas nouveau fichier: on applique les règles classiques
                     if ($value instanceof UploadedFile) {
                         $validator = Validator::make(
                             ['file' => $value],
-                            ['file' => 'file|max:10240|mimes:jpg,jpeg,png,webp,svg,pdf'],
+                            ['file' => 'file|max:' . $fileMaxSize . '|mimes:jpg,jpeg,png,webp,svg,pdf'],
                         );
 
                         if ($validator->fails()) {
