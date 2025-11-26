@@ -77,4 +77,9 @@ return [
         public_path('storage') => storage_path('app/public'),
     ],
 
+    /**
+     * Maximum upload size in KB
+     */
+
+    'upload_max_size' => 10 * 1024, // 10 MB in KB
 ];
