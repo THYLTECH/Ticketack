@@ -21,6 +21,8 @@ export type FileWithPreview = {
   file: File | FileMetadata
   id: string
   preview?: string
+  title?: string 
+  description?: string
 }
 
 export type FileUploadOptions = {
@@ -76,6 +78,9 @@ export const useFileUpload = (
       file,
       id: file.id,
       preview: file.url,
+      // file.name but without extension
+      title: file.name ? file.name.replace(/\.[^/.]+$/, '') : '',
+      description: '',
     })),
     isDragging: false,
     errors: [],
@@ -199,6 +204,7 @@ export const useFileUpload = (
 
           // Skip duplicate files silently
           if (isDuplicate) {
+            errors.push(`File "${file.name}" already exists.`)
             return
           }
         }
@@ -221,6 +227,8 @@ export const useFileUpload = (
             file,
             id: generateUniqueId(file),
             preview: createPreview(file),
+            title: file.name ? file.name.replace(/\.[^/.]+$/, '') : '',
+            description: '',
           })
         }
       })

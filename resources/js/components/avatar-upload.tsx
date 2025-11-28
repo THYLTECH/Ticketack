@@ -218,7 +218,7 @@ export default function AvatarUploader({
             <div className="relative inline-flex">
                 <button
                     type="button"
-                    className="relative flex size-25 items-center justify-center overflow-hidden rounded-full border border-dashed border-input transition-colors outline-none hover:bg-accent/50 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 has-[img]:border-none data-[dragging=true]:bg-accent/50"
+                    className="w-full relative flex aspect-square items-center justify-center overflow-hidden rounded-full border border-dashed border-input transition-colors outline-none hover:bg-accent/50 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 has-[img]:border-none data-[dragging=true]:bg-accent/50"
                     onClick={openFileDialog}
                     onDragEnter={handleDragEnter}
                     onDragLeave={handleDragLeave}

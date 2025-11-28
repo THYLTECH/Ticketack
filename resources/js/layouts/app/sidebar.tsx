@@ -51,6 +51,7 @@ import {
     ChevronsUpDown,
     Folder,
     LayoutGrid,
+    ListTree,
     LogOut,
     Settings,
 } from 'lucide-react';
@@ -71,6 +72,11 @@ export function AppSidebar() {
             title: __('app.layout.sidebar.menugroups.platform.items.dashboard'),
             href: route('dashboard'),
             icon: LayoutGrid,
+        },
+        {
+            title: __('app.layout.sidebar.menugroups.platform.items.assets'),
+            href: route('assets.index'),
+            icon: ListTree,
         },
     ];
 
