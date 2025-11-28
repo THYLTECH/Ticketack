@@ -7,10 +7,9 @@ use App\Http\Middleware\SetTimezone;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
-use Illuminate\Http\Response;
-use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -32,24 +31,43 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->respond(function ($response, Throwable $exception, Request $request) {
 
-            if (app()->environment('testing')) {
-                return $response;
-            }
+            if ($exception instanceof \Illuminate\Auth\Access\AuthorizationException ||
+        ($exception instanceof HttpExceptionInterface && $exception->getStatusCode() === 403)) {
 
-           if (config('app.env') !== 'local') {
-                $statusCode = $exception instanceof HttpExceptionInterface
-                    ? $exception->getStatusCode()
-                    : 500;
-                
-                    
-                return redirect()->route('errors.show', ['statusCode' => $statusCode, 'title' => $exception->getMessage()]);
-            }
+                $statusCode = 403;
+                $title = $exception->getMessage() ?: null;
 
-            if ($exception instanceof HttpExceptionInterface) {
-                $statusCode = $exception->getStatusCode();
-                return redirect()->route('errors.show', ['statusCode' => $statusCode, 'title' => $exception->getMessage()]);
+                $redirectResponse = redirect()->route('errors.show', [
+                    'statusCode' => $statusCode,
+                    'title' => $title,
+                ]);
+
+                if ($request->header('X-Inertia')) {
+                    return $redirectResponse->setStatusCode(303); 
+                }
+
+                return $redirectResponse;
             }
 
             return $response;
+
+            //     if (app()->environment('testing')) {
+            //         return $response;
+            //     }
+
+            //    if (config('app.env') !== 'local') {
+            //         $statusCode = $exception instanceof HttpExceptionInterface
+            //             ? $exception->getStatusCode()
+            //             : 500;
+
+            //         return redirect()->route('errors.show', ['statusCode' => $statusCode, 'title' => $exception->getMessage()]);
+            //     }
+
+            //     if ($exception instanceof HttpExceptionInterface) {
+            //         $statusCode = $exception->getStatusCode();
+            //         return redirect()->route('errors.show', ['statusCode' => $statusCode, 'title' => $exception->getMessage()]);
+            //     }
+
+            //     return $response;
         });
     })->create();
