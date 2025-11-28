@@ -346,6 +346,11 @@ function AssetRow({
                     className="font-medium"
                     style={{ paddingLeft: `1.5rem` }}
                 >
+                    <Link
+                        href={route('assets.show', { asset: asset.id })}
+                        className="absolute inset-0 z-0"
+                    />
+
                     <div
                         className={`flex items-center gap-2`}
                         style={{ marginLeft: `${indentation}rem` }}
@@ -388,11 +393,6 @@ function AssetRow({
                 <TableCell className="w-[8rem] text-right">
                     {formatDate(asset.created_at)}
                 </TableCell>
-
-                <Link
-                    href={route('assets.show', { asset: asset.id })}
-                    className="absolute inset-0 z-0"
-                />
             </TableRow>
 
             {isOpen && hasChildren && renderAssetRows(asset.id)}

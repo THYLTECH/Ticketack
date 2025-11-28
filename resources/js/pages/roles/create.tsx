@@ -10,7 +10,7 @@ import AppLayout from '@/layouts/app/layout';
 import { useTrans } from '@/lib/translation';
 
 // Custom components
-import { InformationsTab, PermissionsTab } from '@/pages/roles/form';
+import { InformationsTab, PermissionsTab, UsersTab } from '@/pages/roles/form';
 
 // Shadnc UI Components
 import { Button } from '@/components/ui/button';
@@ -28,12 +28,18 @@ import { Spinner } from '@/components/ui/spinner';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Types
-import type { BreadcrumbItem, Permission } from '@/types';
+import type { BreadcrumbItem, Permission, User } from '@/types';
 
 // Icons
-import { ArrowLeft, File, Plus, Shield } from 'lucide-react';
+import { ArrowLeft, File, Plus, Shield, UserIcon } from 'lucide-react';
 
-export default function Create({ permissions }: { permissions: Permission[] }) {
+export default function Create({
+    permissions,
+    usersWithoutRole,
+}: {
+    permissions: Permission[];
+    usersWithoutRole: User[];
+}) {
     const __ = useTrans();
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -53,22 +59,33 @@ export default function Create({ permissions }: { permissions: Permission[] }) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Create a Role" />
+            <Head title={__('roles.pages.create.head_title')} />
 
-            <CreateForm permissions={permissions} />
+            <CreateForm
+                permissions={permissions}
+                usersWithoutRole={usersWithoutRole}
+            />
         </AppLayout>
     );
 }
 
-function CreateForm({ permissions }: { permissions: Permission[] }) {
+function CreateForm({
+    permissions,
+    usersWithoutRole,
+}: {
+    permissions: Permission[];
+    usersWithoutRole: User[];
+}) {
     const __ = useTrans();
 
     const { data, setData, processing, errors, post } = useForm<{
         name: string;
-        permissions: string[];
+        permissions: Permission[];
+        users: User[];
     }>({
         name: '',
         permissions: [],
+        users: [],
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -79,15 +96,15 @@ function CreateForm({ permissions }: { permissions: Permission[] }) {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Create a role</CardTitle>
+                <CardTitle>{__('roles.pages.create.title')}</CardTitle>
                 <CardDescription>
-                    Fill in the form below to create a new role.
+                    {__('roles.pages.create.description')}
                 </CardDescription>
                 <CardAction>
                     <Button asChild variant={'secondary'}>
                         <Link href={route('roles.index')}>
                             <ArrowLeft />
-                            Go back to roles
+                            {__('roles.pages.form.buttons.back')}
                         </Link>
                     </Button>
                 </CardAction>
@@ -103,11 +120,15 @@ function CreateForm({ permissions }: { permissions: Permission[] }) {
                         <TabsList className="w-full">
                             <TabsTrigger value={'informations'}>
                                 <File />
-                                Informations
+                                {__('roles.pages.form.tabs.informations')}
                             </TabsTrigger>
                             <TabsTrigger value={'permissions'}>
                                 <Shield />
-                                Permissions
+                                {__('roles.pages.form.tabs.permissions')}
+                            </TabsTrigger>
+                            <TabsTrigger value={'users'}>
+                                <UserIcon />
+                                {__('roles.pages.form.tabs.users')}
                             </TabsTrigger>
                         </TabsList>
 
@@ -115,11 +136,19 @@ function CreateForm({ permissions }: { permissions: Permission[] }) {
                             data={data}
                             setData={setData}
                             errors={errors}
+                            disabled={processing}
                         />
                         <PermissionsTab
                             data={data}
                             setData={setData}
                             permissions={permissions}
+                            disabled={processing}
+                        />
+                        <UsersTab
+                            data={data}
+                            setData={setData}
+                            usersWithoutRole={usersWithoutRole}
+                            disabled={processing}
                         />
                     </Tabs>
                 </CardContent>
@@ -127,7 +156,7 @@ function CreateForm({ permissions }: { permissions: Permission[] }) {
                 <CardFooter>
                     <Button disabled={processing} className="w-full">
                         {processing ? <Spinner /> : <Plus />}
-                        Store Role
+                        {__('roles.pages.form.buttons.store')}
                     </Button>
                 </CardFooter>
             </form>

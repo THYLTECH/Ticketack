@@ -66,6 +66,7 @@ export interface Role {
     nbrOfUsers: number;
     permissions: Permission[];
     nbrOfUsers?: number;
+    users: User[];
     created_at: string;
     updated_at: string;
 }

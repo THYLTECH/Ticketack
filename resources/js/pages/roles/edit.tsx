@@ -1,4 +1,4 @@
-// resources/js/pages/assets/edit.tsx
+// resources/js/pages/roles/edit.tsx
 
 // Necessary imports
 import { Head, Link, useForm } from '@inertiajs/react';
@@ -9,16 +9,9 @@ import AppLayout from '@/layouts/app/layout';
 // Translation Hook
 import { useTrans } from '@/lib/translation';
 
-// Hooks
-import { FileWithPreview } from '@/hooks/use-file-upload';
-
 // Custom components
-import { DeleteAsset } from '@/pages/assets/delete';
-import {
-    AttachmentsTab,
-    AttributesTab,
-    InformationsTab,
-} from '@/pages/assets/form';
+import { DeleteRole } from '@/pages/roles/delete';
+import { InformationsTab, PermissionsTab, UsersTab } from '@/pages/roles/form';
 
 // Shadnc UI Components
 import { Button } from '@/components/ui/button';
@@ -36,20 +29,19 @@ import { Spinner } from '@/components/ui/spinner';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Types
-import type { Asset, AssetAttribute, BreadcrumbItem } from '@/types';
+import type { BreadcrumbItem, Permission, Role, User } from '@/types';
 
 // Icons
-import { convertAttachmentsToFileWithPreview } from '@/lib/utils';
-import { ArrowLeft, Blocks, File, Paperclip, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, File, Pen, Shield, Trash2, UserIcon } from 'lucide-react';
 
 export default function Edit({
-    asset,
-    assets,
-    attribute_keys,
+    role,
+    permissions,
+    usersWithoutRole,
 }: {
-    asset: Asset;
-    assets: Asset[];
-    attribute_keys: string[];
+    role: Role;
+    permissions: Permission[];
+    usersWithoutRole: User[];
 }) {
     const __ = useTrans();
 
@@ -59,11 +51,11 @@ export default function Edit({
             href: route('dashboard'),
         },
         {
-            title: __('assets.pages.breadcrumbs.index'),
-            href: route('assets.index'),
+            title: __('roles.pages.breadcrumbs.index'),
+            href: route('roles.index'),
         },
         {
-            title: __('assets.pages.breadcrumbs.edit'),
+            title: __('roles.pages.breadcrumbs.edit'),
             href: '#',
         },
     ];
@@ -71,85 +63,75 @@ export default function Edit({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head
-                title={__('assets.pages.edit.head_title', undefined, {
-                    title: asset.title,
+                title={__('roles.pages.edit.head_title', undefined, {
+                    title: role.name,
                 })}
             />
 
             <EditForm
-                asset={asset}
-                assets={assets}
-                attribute_keys={attribute_keys}
+                role={role}
+                permissions={permissions}
+                usersWithoutRole={usersWithoutRole}
             />
         </AppLayout>
     );
 }
 
 function EditForm({
-    asset,
-    assets,
-    attribute_keys,
+    role,
+    permissions,
+    usersWithoutRole,
 }: {
-    asset: Asset;
-    assets?: Asset[];
-    attribute_keys?: string[];
+    role: Role;
+    permissions: Permission[];
+    usersWithoutRole: User[];
 }) {
     const __ = useTrans();
 
-    const { data, setData, processing, errors, post } = useForm<{
-        title: string;
-        parent_id: string;
-        icon: string;
-        description: string;
-        attributes: AssetAttribute[];
-        attachments: FileWithPreview[];
+    const { data, setData, errors, processing, patch } = useForm<{
+        name: string;
+        permissions: Permission[];
+        users: User[];
     }>({
-        title: asset.title,
-        parent_id: asset.parent_id || '',
-        icon: asset.icon || '',
-        description: asset.description || '',
-        attributes: asset.attributes || [],
-        attachments: convertAttachmentsToFileWithPreview({
-            attachments: asset.attachments,
-        }),
+        name: role.name,
+        permissions: role.permissions || [],
+        users: role.users || [],
     });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route('assets.update', { asset: asset.id }));
+        patch(route('roles.update', { role: role.id }));
     };
 
     return (
         <Card>
             <CardHeader>
                 <CardTitle>
-                    {__('assets.pages.edit.title', undefined, {
-                        title: asset.title,
+                    {__('roles.pages.edit.title', undefined, {
+                        title: role.name,
                     })}
                 </CardTitle>
                 <CardDescription>
-                    {__('assets.pages.edit.description', undefined, {
-                        title: asset.title,
-                    })}
+                    {__('roles.pages.edit.description')}
                 </CardDescription>
                 <CardAction className="space-x-2">
                     <Button asChild variant={'secondary'}>
-                        <Link href={route('assets.index')}>
+                        <Link href={route('roles.index')}>
                             <ArrowLeft />
-                            {__('assets.pages.form.buttons.back')}
+                            {__('roles.pages.form.buttons.back')}
                         </Link>
                     </Button>
-                    <DeleteAsset asset={asset}>
-                        <Button variant={'destructive'}>
+                    <DeleteRole role={role}>
+                        <Button variant="destructive">
                             <Trash2 />
-                            {__('assets.pages.form.buttons.delete')}
+                            {__('roles.pages.form.buttons.delete')}
                         </Button>
-                    </DeleteAsset>
+                    </DeleteRole>
                 </CardAction>
             </CardHeader>
             <Separator />
 
-            <form onSubmit={handleSubmit} encType="multipart/form-data">
+            <form onSubmit={handleSubmit}>
                 <CardContent>
                     <Tabs
                         defaultValue={'informations'}
@@ -158,37 +140,43 @@ function EditForm({
                         <TabsList className="w-full">
                             <TabsTrigger value={'informations'}>
                                 <File />
-                                {__('assets.pages.form.tabs.informations')}
+                                {__('roles.pages.form.tabs.informations')}
                             </TabsTrigger>
-                            <TabsTrigger value={'attributes'}>
-                                <Blocks />
-                                {__('assets.pages.form.tabs.attributes')}
+                            <TabsTrigger value={'permissions'}>
+                                <Shield />
+                                {__('roles.pages.form.tabs.permissions')}
                             </TabsTrigger>
-                            <TabsTrigger value={'attachments'}>
-                                <Paperclip />
-                                {__('assets.pages.form.tabs.attachments')}
+                            <TabsTrigger value={'users'}>
+                                <UserIcon />
+                                {__('roles.pages.form.tabs.users')}
                             </TabsTrigger>
                         </TabsList>
 
                         <InformationsTab
-                            assets={assets}
+                            data={data}
+                            setData={setData}
                             errors={errors}
+                            disabled={processing}
+                        />
+                        <PermissionsTab
                             data={data}
                             setData={setData}
+                            permissions={permissions}
+                            disabled={processing}
                         />
-                        <AttributesTab
-                            attribute_keys={attribute_keys}
+                        <UsersTab
                             data={data}
                             setData={setData}
+                            usersWithoutRole={usersWithoutRole}
+                            disabled={processing}
                         />
-                        <AttachmentsTab data={data} setData={setData} />
                     </Tabs>
                 </CardContent>
                 <Separator className="my-6" />
                 <CardFooter>
                     <Button disabled={processing} className="w-full">
-                        {processing ? <Spinner /> : <Plus />}
-                        {__('assets.pages.form.buttons.update')}
+                        {processing ? <Spinner /> : <Pen />}
+                        {__('roles.pages.form.buttons.update')}
                     </Button>
                 </CardFooter>
             </form>

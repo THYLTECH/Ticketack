@@ -13,6 +13,7 @@ use Inertia\Inertia;
 // Models
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use App\Models\User;
 
 // Requests
 use App\Http\Requests\Roles\Store as RequestsStore;
@@ -52,7 +53,7 @@ class Roles extends Controller
      * @return Response
      */
     public function create(): Response {
-        return Inertia::render('roles/create', ['permissions' => Permission::all()]);
+        return Inertia::render('roles/create', ['permissions' => Permission::all(), 'usersWithoutRole' => User::all()]);
     }
 
     /**
@@ -62,17 +63,27 @@ class Roles extends Controller
      * @return Response | RedirectResponse
      */
     public function edit(Role $role): Response | RedirectResponse {
-        return Inertia::render('roles/edit', ['role' => $role, 'permissions' => Permission::all()]);
-    }
+        // Users who don't have this role
+        $usersWithoutRole = User::whereDoesntHave('roles', function ($query) use ($role) {
+            $query->where('id', $role->id);
+        })->get();
 
+        return Inertia::render('roles/edit', ['role' => $role->load('permissions', 'users'), 'permissions' => Permission::all(), 'usersWithoutRole' => $usersWithoutRole]);
+    }
+    
     /**
      * Display the specified role.
      * 
      * @param Role $role
      * @return Response | RedirectResponse
-     */
+    */
     public function show(Role $role): Response | RedirectResponse {
-        return Inertia::render('roles/show', ['role' => $role, 'permissions' => Permission::all()]);
+        // Users who don't have this role
+        $usersWithoutRole = User::whereDoesntHave('roles', function ($query) use ($role) {
+            $query->where('id', $role->id);
+        })->get();
+
+        return Inertia::render('roles/show', ['role' => $role->load('permissions', 'users'), 'permissions' => Permission::all(), 'usersWithoutRole' => $usersWithoutRole]);
     }
 
     /**
@@ -82,12 +93,16 @@ class Roles extends Controller
      * @return RedirectResponse
      */
     public function store(RequestsStore $request): RedirectResponse {
-        $data = $request->all();
+        $data = $request->validated();
 
+        // Create role
         $role = Role::create($data);
+        // Sync permissions
         $role->syncPermissions($data['permissions']);
+        // Sync users
+        $role->users()->sync(collect($data['users'])->pluck('id')->toArray());
 
-        return redirect()->route('roles.index')->with(['success' => __('Role created successfully.')]);
+        return redirect()->route('roles.show', ['role' => $role->id])->with(['success' => __('roles.flash.created')]);
     }
 
     /**
@@ -98,12 +113,16 @@ class Roles extends Controller
      * @return RedirectResponse
      */
     public function update(RequestsUpdate $request, Role $role): RedirectResponse {    
-        $data = $request->all();
+        $data = $request->validated();
 
+        // Update role details
         $role->update($data);
+        // Sync permissions
         $role->syncPermissions($data['permissions']);
+        // Sync users
+        $role->users()->sync(collect($data['users'])->pluck('id')->toArray());
 
-        return redirect()->route('roles.index')->with(['success' => __('Role updated successfully.')]);
+        return redirect()->route('roles.show', ['role' => $role->id])->with(['success' => __('roles.flash.updated')]);
     }
 
     /**
@@ -113,8 +132,13 @@ class Roles extends Controller
      * @return RedirectResponse
      */
     public function destroy(Role $role): RedirectResponse {
+        $users_count = $role->users()->count();
+        if ($users_count > 0) {
+            return redirect()->route('roles.index')->with(['error' => __('roles.flash.delete_error')]);
+        }
+
         $role->delete();
 
-        return redirect()->route('roles.index')->with(['success' => __('Role deleted successfully.')]);
+        return redirect()->route('roles.index')->with(['success' => __('roles.flash.deleted')]);
     }
 }

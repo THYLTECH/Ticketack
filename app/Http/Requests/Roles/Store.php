@@ -6,6 +6,7 @@ namespace App\Http\Requests\Roles;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 /**
  * Class Store
@@ -33,9 +34,13 @@ class Store extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'permissions' => ['required', 'array'],
-            'permissions.*' => ['integer', 'exists:permissions,id'],
+            'name' => ['required', 'string', 'max:255', Rule::unique('roles', 'name')],
+
+            'permissions' => ['array'],
+            'permissions.*.id' => ['integer', 'exists:permissions,id'],
+
+            'users' => ['array'],
+            'users.*.id' => ['integer', 'exists:users,id'],
         ];
     }
 }

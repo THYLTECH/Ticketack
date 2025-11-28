@@ -47,7 +47,7 @@ class Role
      */
     public function update(User $user, ModelsRole $role): bool
     {
-        return $user->can('edit roles');
+        return $user->can('update roles');
     }
 
     /**

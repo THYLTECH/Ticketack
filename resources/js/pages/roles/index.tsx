@@ -131,7 +131,7 @@ function RoleTable({ roles }: { roles: Role[] }) {
 
     return (
         <Table>
-            <TableHeader className="sticky top-0 z-10 bg-card shadow-sm">
+            <TableHeader>
                 <TableRow>
                     <TableHead className="text-xs text-muted-foreground">
                         Role
@@ -160,6 +160,11 @@ function RoleTable({ roles }: { roles: Role[] }) {
                         }
                     >
                         <TableCell>
+                            <Link
+                                href={route('roles.show', { role: role.id })}
+                                className="absolute inset-0 z-0"
+                            />
+
                             <div className="font-medium">{role.name}</div>
                         </TableCell>
                         <TableCell>{role.nbrOfUsers || 0}</TableCell>
@@ -170,10 +175,6 @@ function RoleTable({ roles }: { roles: Role[] }) {
                         <TableCell className="text-right">
                             {formatDate(role.created_at)}
                         </TableCell>
-                        <Link
-                            href={route('roles.show', { role: role.id })}
-                            className="absolute inset-0 z-0"
-                        />
                     </TableRow>
                 ))}
             </TableBody>
