@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\API\AssetController;
 use App\Http\Controllers\API\AttachmentController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\UserAvatarController;
@@ -76,7 +77,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Users
     // On ne garde que 'show' (voir un profil public).
-    // Update, Destroy, Store et Index sont masqués ici (réservés aux futurs Admins via /api/users/{id})
+    // On préfixe aussi pour éviter tout conflit futur : 'api.users.show'
     Route::apiResource('users', UserController::class)
-        ->only(['show']);
+        ->only(['show'])
+        ->names(['show' => 'api.users.show']);
+
+    // Assets
+    // Gestion complète (Index, Store, Show, Update, Destroy)
+    // FIX : Ajout de ['as' => 'api'] pour que les noms deviennent 'api.assets.index', etc.
+    Route::apiResource('assets', AssetController::class, ['as' => 'api']);
+
+    // Attachments
+    Route::apiResource('attachments', AttachmentController::class, ['as' => 'api'])->only(['destroy']);
 });
