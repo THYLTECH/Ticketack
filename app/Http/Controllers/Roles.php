@@ -134,7 +134,10 @@ class Roles extends Controller
     public function destroy(Role $role): RedirectResponse {
         $users_count = $role->users()->count();
         if ($users_count > 0) {
-            return redirect()->route('roles.index')->with(['error' => __('roles.flash.delete_error')]);
+            return redirect()->route('roles.index')->with(['error' => [
+                'title' => __('common.flash.error'),
+                'description' => __('roles.flash.delete_error')
+            ]]);
         }
 
         $role->delete();

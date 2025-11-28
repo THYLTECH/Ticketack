@@ -298,7 +298,7 @@ export function UsersTab({
     };
 
     return (
-        <TabsContent value={'users'} className="grid gap-6">
+        <TabsContent value={'users'} className="grid gap-4">
             <AlertDialog open={open} onOpenChange={setOpen}>
                 <AlertDialogTrigger asChild>
                     {data.users.length !== 0 && !disabled && (
@@ -313,9 +313,11 @@ export function UsersTab({
                         </Button>
                     )}
                 </AlertDialogTrigger>
-                <AlertDialogContent>
+                <AlertDialogContent className="max-w-8lg">
                     <AlertDialogHeader>
-                        <AlertDialogTitle>{__('roles.pages.form.users.dialog.title')}</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            {__('roles.pages.form.users.dialog.title')}
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
                             {__('roles.pages.form.users.dialog.description')}
                         </AlertDialogDescription>
@@ -326,14 +328,24 @@ export function UsersTab({
                                 <EmptyMedia variant="icon">
                                     <UserMinus />
                                 </EmptyMedia>
-                                <EmptyTitle>{__('roles.pages.form.users.dialog.empty.title')}</EmptyTitle>
+                                <EmptyTitle>
+                                    {__(
+                                        'roles.pages.form.users.dialog.empty.title',
+                                    )}
+                                </EmptyTitle>
                                 <EmptyDescription>
-                                    {__('roles.pages.form.users.dialog.empty.description')}
+                                    {__(
+                                        'roles.pages.form.users.dialog.empty.description',
+                                    )}
                                 </EmptyDescription>
                             </EmptyHeader>
                             <EmptyContent>
                                 {!disabled && (
-                                    <AlertDialogCancel>{__('roles.pages.form.users.dialog.buttons.close')}</AlertDialogCancel>
+                                    <AlertDialogCancel>
+                                        {__(
+                                            'roles.pages.form.users.dialog.buttons.close',
+                                        )}
+                                    </AlertDialogCancel>
                                 )}
                             </EmptyContent>
                         </Empty>
@@ -343,8 +355,16 @@ export function UsersTab({
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
-                                            <TableHead>{__('roles.pages.form.users.dialog.table.columns.name')}</TableHead>
-                                            <TableHead>{__('roles.pages.form.users.dialog.table.columns.email')}</TableHead>
+                                            <TableHead>
+                                                {__(
+                                                    'roles.pages.form.users.dialog.table.columns.name',
+                                                )}
+                                            </TableHead>
+                                            <TableHead>
+                                                {__(
+                                                    'roles.pages.form.users.dialog.table.columns.email',
+                                                )}
+                                            </TableHead>
                                             <TableHead></TableHead>
                                         </TableRow>
                                     </TableHeader>
@@ -357,7 +377,9 @@ export function UsersTab({
                                                         {user.id ===
                                                             auth.user.id && (
                                                             <Badge>
-                                                                {__('roles.pages.form.users.you')}
+                                                                {__(
+                                                                    'roles.pages.form.users.you',
+                                                                )}
                                                             </Badge>
                                                         )}
                                                     </TableCell>
@@ -376,7 +398,9 @@ export function UsersTab({
                                                                 }
                                                             >
                                                                 <PlusCircle />
-                                                                {__('roles.pages.form.users.dialog.table.actions.add')}
+                                                                {__(
+                                                                    'roles.pages.form.users.dialog.table.actions.add',
+                                                                )}
                                                             </Button>
                                                         )}
                                                     </TableCell>
@@ -387,7 +411,11 @@ export function UsersTab({
                                 </Table>
                             </div>
                             <AlertDialogFooter>
-                                <AlertDialogCancel>{__('roles.pages.form.users.dialog.buttons.close')}</AlertDialogCancel>
+                                <AlertDialogCancel>
+                                    {__(
+                                        'roles.pages.form.users.dialog.buttons.close',
+                                    )}
+                                </AlertDialogCancel>
                             </AlertDialogFooter>
                         </>
                     )}
@@ -400,7 +428,9 @@ export function UsersTab({
                         <EmptyMedia variant="icon">
                             <UserMinus />
                         </EmptyMedia>
-                        <EmptyTitle>{__('roles.pages.form.users.empty.title')}</EmptyTitle>
+                        <EmptyTitle>
+                            {__('roles.pages.form.users.empty.title')}
+                        </EmptyTitle>
                         <EmptyDescription>
                             {__('roles.pages.form.users.empty.description')}
                         </EmptyDescription>
@@ -424,8 +454,16 @@ export function UsersTab({
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>{__('roles.pages.form.users.table.columns.name')}</TableHead>
-                                <TableHead>{__('roles.pages.form.users.table.columns.email')}</TableHead>
+                                <TableHead>
+                                    {__(
+                                        'roles.pages.form.users.table.columns.name',
+                                    )}
+                                </TableHead>
+                                <TableHead>
+                                    {__(
+                                        'roles.pages.form.users.table.columns.email',
+                                    )}
+                                </TableHead>
                                 <TableHead></TableHead>
                             </TableRow>
                         </TableHeader>
@@ -435,7 +473,11 @@ export function UsersTab({
                                     <TableCell className="space-x-3">
                                         <span>{user.name}</span>
                                         {user.id === auth.user.id && (
-                                            <Badge>{__('roles.pages.form.users.you')}</Badge>
+                                            <Badge>
+                                                {__(
+                                                    'roles.pages.form.users.you',
+                                                )}
+                                            </Badge>
                                         )}
                                     </TableCell>
                                     <TableCell>{user.email}</TableCell>
@@ -450,7 +492,9 @@ export function UsersTab({
                                                 }
                                             >
                                                 <MinusCircle />
-                                                {__('roles.pages.form.users.table.actions.remove')}
+                                                {__(
+                                                    'roles.pages.form.users.table.actions.remove',
+                                                )}
                                             </Button>
                                         )}
                                     </TableCell>
