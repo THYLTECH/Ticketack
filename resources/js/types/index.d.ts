@@ -55,9 +55,29 @@ export interface User {
     theme: string;
     color_scheme: string;
     phone?: string;
+    permissions: Permission[];
     created_at: string;
     updated_at: string;
 }
+
+export interface Role {
+    id: number;
+    name: string;
+    nbrOfUsers: number;
+    permissions: Permission[];
+    nbrOfUsers?: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface Permission {
+    id: number;
+    name: string;
+    guard_name: string;
+    created_at: string;
+    updated_at: string;
+}
+
 
 export interface Notification {
     id: string;

@@ -35,17 +35,15 @@ class RolesAndPermissionsSeeder extends Seeder
         Permission::create(['name' => 'view assets']); // Index
         Permission::create(['name' => 'show assets']); // Show
         Permission::create(['name' => 'create assets']); // Create
-        Permission::create(['name' => 'edit assets']); // Edit
-        Permission::create(['name' => 'store assets']); // Store
         Permission::create(['name' => 'update assets']); // Update
         Permission::create(['name' => 'delete assets']); // Delete
+        Permission::create(['name' => 'restore assets']); // Restore
+        Permission::create(['name' => 'force delete assets']); // Force Delete
 
         // Users
         Permission::create(['name' => 'view users']); // Index
         Permission::create(['name' => 'show users']); // Show
         Permission::create(['name' => 'create users']); // Create
-        Permission::create(['name' => 'edit users']); // Edit
-        Permission::create(['name' => 'store users']); // Store
         Permission::create(['name' => 'update users']); // Update
         Permission::create(['name' => 'delete users']); // Delete
 
@@ -53,8 +51,6 @@ class RolesAndPermissionsSeeder extends Seeder
         Permission::create(['name' => 'view roles']); // Index
         Permission::create(['name' => 'show roles']); // Show
         Permission::create(['name' => 'create roles']); // Create
-        Permission::create(['name' => 'edit roles']); // Edit
-        Permission::create(['name' => 'store roles']); // Store
         Permission::create(['name' => 'update roles']); // Update
         Permission::create(['name' => 'delete roles']); // Delete
 

@@ -1,8 +1,8 @@
 // resources/js/pages/assets/index.tsx
 
 // Necessary imports
-import { cn } from '@/lib/utils';
-import { Head, Link, router } from '@inertiajs/react';
+import { cn, userHasPermission } from '@/lib/utils';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 
 // Layout
@@ -12,10 +12,10 @@ import AppLayout from '@/layouts/app/layout';
 import { useTrans } from '@/lib/translation';
 
 // Custom functions
-import { formatAssetDate, getIcon } from '@/lib/utils';
+import { formatDate, getIcon } from '@/lib/utils';
 
 // Types
-import type { Asset, BreadcrumbItem } from '@/types';
+import type { Asset, BreadcrumbItem, SharedData } from '@/types';
 
 // Custom components
 
@@ -151,6 +151,8 @@ export default function Index({ assets }: { assets: Asset[] }) {
         },
     ];
 
+    const { auth } = usePage<SharedData>().props;
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={__('assets.pages.index.head_title')} />
@@ -165,12 +167,15 @@ export default function Index({ assets }: { assets: Asset[] }) {
                     <CardAction className="flex items-center gap-2">
                         <ExpandCollapseButtons {...controls} />
 
-                        <Button asChild>
-                            <Link href={route('assets.create')}>
-                                <Plus />
-                                {__('assets.pages.index.buttons.create')}
-                            </Link>
-                        </Button>
+                        {userHasPermission({ user: auth.user, permission: 'create assets' }) && (
+                            <Button asChild>
+                                <Link href={route('assets.create')}>
+                                    <Plus />
+                                    {__('assets.pages.index.buttons.create')}
+                                </Link>
+                            </Button>
+                        )}
+
                     </CardAction>
                 </CardHeader>
                 <Separator />
@@ -378,10 +383,10 @@ function AssetRow({
                 </TableCell>
 
                 <TableCell className="w-[8rem] text-right">
-                    {formatAssetDate(asset.updated_at)}
+                    {formatDate(asset.updated_at)}
                 </TableCell>
                 <TableCell className="w-[8rem] text-right">
-                    {formatAssetDate(asset.created_at)}
+                    {formatDate(asset.created_at)}
                 </TableCell>
 
                 <Link

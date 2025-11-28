@@ -50,24 +50,5 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             return $response;
-
-            //     if (app()->environment('testing')) {
-            //         return $response;
-            //     }
-
-            //    if (config('app.env') !== 'local') {
-            //         $statusCode = $exception instanceof HttpExceptionInterface
-            //             ? $exception->getStatusCode()
-            //             : 500;
-
-            //         return redirect()->route('errors.show', ['statusCode' => $statusCode, 'title' => $exception->getMessage()]);
-            //     }
-
-            //     if ($exception instanceof HttpExceptionInterface) {
-            //         $statusCode = $exception->getStatusCode();
-            //         return redirect()->route('errors.show', ['statusCode' => $statusCode, 'title' => $exception->getMessage()]);
-            //     }
-
-            //     return $response;
         });
     })->create();

@@ -21,7 +21,7 @@ class Asset
     /**
      * Determine whether the user can view any models.
      */
-    public function index(User $user): bool
+    public function viewAny(User $user): bool
     {
         return $user->can('view assets');
     }
@@ -29,7 +29,7 @@ class Asset
     /**
      * Determine whether the user can view the model.
      */
-    public function show(User $user, ModelsAsset $asset): bool
+    public function view(User $user, ModelsAsset $asset): bool
     {
         return $user->can('show assets');
     }
@@ -40,19 +40,6 @@ class Asset
     public function create(User $user): bool
     {
         return $user->can('create assets');
-    }
-
-    /**
-     * Determine whether the user can update the model.
-     */
-    public function edit(User $user, ModelsAsset $asset): bool
-    {
-        return $user->can('edit assets');
-    }
-
-    public function store(User $user): bool
-    {
-        return $user->can('store assets');
     }
 
     /**

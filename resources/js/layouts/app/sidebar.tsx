@@ -54,6 +54,7 @@ import {
     ListTree,
     LogOut,
     Settings,
+    Shield
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
@@ -77,6 +78,11 @@ export function AppSidebar() {
             title: __('app.layout.sidebar.menugroups.platform.items.assets'),
             href: route('assets.index'),
             icon: ListTree,
+        },
+        {
+            title: __('app.layout.sidebar.menugroups.platform.items.roles'),
+            href: route('roles.index'),
+            icon: Shield,
         },
     ];
 

@@ -48,6 +48,9 @@ require __DIR__.'/notifications.php';
 // Assets routes
 require __DIR__.'/assets.php';
 
+// Roles routes
+require __DIR__.'/roles.php';
+
 // Todo : Tickets, assets, settings etc....
 
 

@@ -42,10 +42,6 @@ class Assets extends Controller
      * @return Response
      */
     public function index(): Response {
-
-        // Authorization
-        $this->authorize('index', Asset::class);
-
         return Inertia::render('assets/index', ['assets' => Asset::getTreeOrderedAssets()]);
     }
 
@@ -55,10 +51,6 @@ class Assets extends Controller
      * @return Response
      */
     public function create(): Response {
-
-        // Authorization
-        $this->authorize('create', Asset::class);
-
         $assets = Asset::getTreeOrderedAssets();
 
         $attribute_keys = AssetAttribute::query()
@@ -78,12 +70,6 @@ class Assets extends Controller
      * @return Response | RedirectResponse
      */
     public function edit(Asset $asset): Response | RedirectResponse {
-
-        // Authorization
-        $this->authorize('edit', $asset);
-
-        if(!$asset) return redirect()->route('assets.index')->with(['error' => __('Asset doesn\'t exist')]);
-
         $assets = Asset::getTreeOrderedAssets();
 
         $attribute_keys = AssetAttribute::query()
@@ -103,11 +89,6 @@ class Assets extends Controller
      * @return Response | RedirectResponse
      */
     public function show(Asset $asset): Response | RedirectResponse {
-
-        // Authorization
-        $this->authorize('show', $asset);
-
-        if(!$asset) return redirect()->route('assets.index')->with(['error' => __('Asset doesn\'t exist')]);
         return Inertia::render('assets/show', ['asset' => $asset->load('attachments'), 'assets' => Asset::getTreeOrderedAssets()]);
     }
 
@@ -118,10 +99,6 @@ class Assets extends Controller
      * @return RedirectResponse
      */
     public function store(RequestsStore $request): RedirectResponse {
-
-        // Authorization
-        $this->authorize('store', Asset::class);
-
         $data = $request->validated();
 
         $asset = Asset::create([
@@ -181,10 +158,6 @@ class Assets extends Controller
      * @return RedirectResponse
      */
     public function update(RequestsUpdate $request, Asset $asset): RedirectResponse {
-
-        // Authorization
-        $this->authorize('update', $asset);
-        
         $data = $request->validated();
 
         $asset->update([
@@ -288,10 +261,6 @@ class Assets extends Controller
      * @return RedirectResponse
      */
     public function destroy(Asset $asset): RedirectResponse {
-
-        // Authorization
-        $this->authorize('delete', $asset);
-
         $asset->delete();
         return redirect()->route('assets.index')->with(['success' => __('Asset deleted successfully.')]);
     }
@@ -303,10 +272,6 @@ class Assets extends Controller
      * @return RedirectResponse
      */
     public function restore(Asset $asset): RedirectResponse {
-        
-        // Authorization
-        $this->authorize('restore', $asset);
-        
         $asset->restore();
         return redirect()->route('assets.index')->with(['success' => __('Asset restored successfully.')]);
     }
@@ -318,10 +283,6 @@ class Assets extends Controller
      * @return RedirectResponse
      */
     public function forceDelete(Asset $asset): RedirectResponse {
-
-        // Authorization
-        $this->authorize('forceDelete', $asset);
-
         $asset->forceDelete();
         return redirect()->route('assets.index')->with(['success' => __('Asset permanently deleted successfully.')]);
     }
