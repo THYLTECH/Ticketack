@@ -147,7 +147,7 @@ class Assets extends Controller
             }
         }
 
-        return redirect()->route('assets.index')->with(['success' => __('Asset created successfully.')]);
+        return redirect()->route('assets.index')->with(['success' => __('assets.flash.created')]);
     }
 
     /**
@@ -251,7 +251,7 @@ class Assets extends Controller
             }
         }
 
-        return redirect()->route('assets.show', ['asset' => $asset->id])->with(['success' => __('Asset updated successfully.')]);
+        return redirect()->route('assets.show', ['asset' => $asset->id])->with(['success' => __('assets.flash.updated')]);
     }
 
     /**
@@ -262,7 +262,7 @@ class Assets extends Controller
      */
     public function destroy(Asset $asset): RedirectResponse {
         $asset->delete();
-        return redirect()->route('assets.index')->with(['success' => __('Asset deleted successfully.')]);
+        return redirect()->route('assets.index')->with(['success' => __('assets.flash.deleted')]);
     }
 
     /**
@@ -273,7 +273,7 @@ class Assets extends Controller
      */
     public function restore(Asset $asset): RedirectResponse {
         $asset->restore();
-        return redirect()->route('assets.index')->with(['success' => __('Asset restored successfully.')]);
+        return redirect()->route('assets.index')->with(['success' => __('assets.flash.restored')]);
     }
 
     /**
@@ -284,6 +284,6 @@ class Assets extends Controller
      */
     public function forceDelete(Asset $asset): RedirectResponse {
         $asset->forceDelete();
-        return redirect()->route('assets.index')->with(['success' => __('Asset permanently deleted successfully.')]);
+        return redirect()->route('assets.index')->with(['success' => __('assets.flash.forced_deleted')]);
     }
 }
