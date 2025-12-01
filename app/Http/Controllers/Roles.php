@@ -98,9 +98,11 @@ class Roles extends Controller
         // Create role
         $role = Role::create($data);
         // Sync permissions
-        $role->syncPermissions($data['permissions']);
+        $permissions = collect(data_get($data, 'permissions', []))->pluck('id')->toArray();
+        $role->syncPermissions($permissions);
         // Sync users
-        $role->users()->sync(collect($data['users'])->pluck('id')->toArray());
+        $users = collect(data_get($data, 'users', []))->pluck('id')->toArray();
+        $role->users()->sync($users);
 
         return redirect()->route('roles.show', ['role' => $role->id])->with(['success' => __('roles.flash.created')]);
     }
@@ -118,9 +120,11 @@ class Roles extends Controller
         // Update role details
         $role->update($data);
         // Sync permissions
-        $role->syncPermissions($data['permissions']);
+        $permissions = collect(data_get($data, 'permissions', []))->pluck('id')->toArray();
+        $role->syncPermissions($permissions);
         // Sync users
-        $role->users()->sync(collect($data['users'])->pluck('id')->toArray());
+        $users = collect(data_get($data, 'users', []))->pluck('id')->toArray();
+        $role->users()->sync($users);
 
         return redirect()->route('roles.show', ['role' => $role->id])->with(['success' => __('roles.flash.updated')]);
     }

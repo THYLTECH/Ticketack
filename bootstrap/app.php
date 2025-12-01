@@ -10,6 +10,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+use Inertia\Inertia;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -37,10 +38,16 @@ return Application::configure(basePath: dirname(__DIR__))
                 $statusCode = 403;
                 $title = $exception->getMessage() ?: null;
 
-                $redirectResponse = redirect()->route('errors.show', [
+                // $redirectResponse = redirect()->route('errors.show', [
+                //     'statusCode' => $statusCode,
+                //     'title' => $title,
+                // ]);
+
+                return Inertia::render('errors/show', [
                     'statusCode' => $statusCode,
                     'title' => $title,
-                ]);
+                ])->toResponse($request)
+                  ->setStatusCode($statusCode);
 
                 if ($request->header('X-Inertia')) {
                     return $redirectResponse->setStatusCode(303); 

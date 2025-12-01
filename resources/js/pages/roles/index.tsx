@@ -132,6 +132,8 @@ function RoleEmpty() {
 function RoleTable({ roles }: { roles: Role[] }) {
     const __ = useTrans();
 
+    const auth = usePage<SharedData>().props.auth;
+
     return (
         <Table>
             <TableHeader>
@@ -161,7 +163,7 @@ function RoleTable({ roles }: { roles: Role[] }) {
                         onClick={() => {
                             if (
                                 userHasPermission({
-                                    user: usePage<SharedData>().props.auth.user,
+                                    user: auth.user,
                                     permission: 'show roles',
                                 })
                             ) {
@@ -173,7 +175,7 @@ function RoleTable({ roles }: { roles: Role[] }) {
                     >
                         <TableCell>
                             {userHasPermission({
-                                user: usePage<SharedData>().props.auth.user,
+                                user: auth.user,
                                 permission: 'show roles',
                             }) && (
                                 <Link
