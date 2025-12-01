@@ -31,36 +31,31 @@ class RolesAndPermissionsSeeder extends Seeder
          * Permissions
          */
 
-        // Assets
-        Permission::create(['name' => 'view assets']); // Index
-        Permission::create(['name' => 'show assets']); // Show
-        Permission::create(['name' => 'create assets']); // Create
-        Permission::create(['name' => 'update assets']); // Update
-        Permission::create(['name' => 'delete assets']); // Delete
-        Permission::create(['name' => 'restore assets']); // Restore
-        Permission::create(['name' => 'force delete assets']); // Force Delete
-
-        // Users
-        Permission::create(['name' => 'view users']); // Index
-        Permission::create(['name' => 'show users']); // Show
-        Permission::create(['name' => 'create users']); // Create
-        Permission::create(['name' => 'update users']); // Update
-        Permission::create(['name' => 'delete users']); // Delete
-
-        // Roles
-        Permission::create(['name' => 'view roles']); // Index
-        Permission::create(['name' => 'show roles']); // Show
-        Permission::create(['name' => 'create roles']); // Create
-        Permission::create(['name' => 'update roles']); // Update
-        Permission::create(['name' => 'delete roles']); // Delete
+        $permissions = [
+            // Assets
+            'view assets', 'show assets', 'create assets', 'update assets',
+            'delete assets', 'restore assets', 'force delete assets',
+            // Users
+            'view users', 'show users', 'create users', 'update users',
+            'delete users',
+            // Roles
+            'view roles', 'show roles', 'create roles', 'update roles',
+            'delete roles',
+        ];
+    
+        foreach ($permissions as $permission) {
+            Permission::firstOrCreate(['name' => $permission]);
+        }
 
         /**
          * Roles
          */
 
         // Admin
-        $roleAdmin = Role::create(['name' => 'admin']);
-        $roleAdmin->givePermissionTo(Permission::all());
+        $roleAdmin = Role::firstOrCreate(['name' => 'admin']);
+
+        // Sync permissions (avoid duplicates)
+        $roleAdmin->syncPermissions(Permission::all());
         
         // Solver
 

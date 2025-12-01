@@ -1,4 +1,4 @@
-FROM php:8.2-fpm
+FROM php:8.3-fpm
 
 # Arguments defined in docker-compose.yml
 ARG user
@@ -35,5 +35,12 @@ WORKDIR /var/www/html
 
 USER $user
 
+# Copie du script d'entrypoint
+COPY --chown=$user:$user docker-compose/entrypoint.sh /usr/local/bin/start-container
+RUN chmod +x /usr/local/bin/start-container
 
+# On repasse en user normal
+USER $user
 
+# On définit le point d'entrée
+ENTRYPOINT ["start-container"]
