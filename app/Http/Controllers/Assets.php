@@ -31,6 +31,11 @@ use App\Models\Attachment;
  */
 class Assets extends Controller
 {
+
+    public function __construct() {
+        $this->authorizeResource(Asset::class, 'asset');
+    }
+
     /**
      * Display a listing of the assets.
      * 
@@ -46,7 +51,6 @@ class Assets extends Controller
      * @return Response
      */
     public function create(): Response {
-
         $assets = Asset::getTreeOrderedAssets();
 
         $attribute_keys = AssetAttribute::query()
@@ -66,8 +70,6 @@ class Assets extends Controller
      * @return Response | RedirectResponse
      */
     public function edit(Asset $asset): Response | RedirectResponse {
-        if(!$asset) return redirect()->route('assets.index')->with(['error' => __('Asset doesn\'t exist')]);
-
         $assets = Asset::getTreeOrderedAssets();
 
         $attribute_keys = AssetAttribute::query()
@@ -87,7 +89,6 @@ class Assets extends Controller
      * @return Response | RedirectResponse
      */
     public function show(Asset $asset): Response | RedirectResponse {
-        if(!$asset) return redirect()->route('assets.index')->with(['error' => __('Asset doesn\'t exist')]);
         return Inertia::render('assets/show', ['asset' => $asset->load('attachments'), 'assets' => Asset::getTreeOrderedAssets()]);
     }
 
@@ -146,7 +147,7 @@ class Assets extends Controller
             }
         }
 
-        return redirect()->route('assets.index')->with(['success' => __('Asset created successfully.')]);
+        return redirect()->route('assets.index')->with(['success' => __('assets.flash.created')]);
     }
 
     /**
@@ -157,7 +158,6 @@ class Assets extends Controller
      * @return RedirectResponse
      */
     public function update(RequestsUpdate $request, Asset $asset): RedirectResponse {
-        
         $data = $request->validated();
 
         $asset->update([
@@ -170,6 +170,15 @@ class Assets extends Controller
         if($data['parent_id'] ?? false) {
             $parent = Asset::find($data['parent_id']);
             if($parent) {
+
+
+                // The parent cannot be the asset itself or one of its descendants
+                if($parent->id === $asset->id || $parent->isDescendantOf($asset)) {
+                    $asset->parent()->dissociate();
+                    $asset->save();
+                    return redirect()->route('assets.edit', ['asset' => $asset->id])->with(['error' => __('assets.flash.invalid_parent')]);
+                }
+
                 $asset->parent()->associate($parent);
                 $asset->save();
             }
@@ -251,7 +260,7 @@ class Assets extends Controller
             }
         }
 
-        return redirect()->route('assets.show', ['asset' => $asset->id])->with(['success' => __('Asset updated successfully.')]);
+        return redirect()->route('assets.show', ['asset' => $asset->id])->with(['success' => __('assets.flash.updated')]);
     }
 
     /**
@@ -262,7 +271,7 @@ class Assets extends Controller
      */
     public function destroy(Asset $asset): RedirectResponse {
         $asset->delete();
-        return redirect()->route('assets.index')->with(['success' => __('Asset deleted successfully.')]);
+        return redirect()->route('assets.index')->with(['success' => __('assets.flash.deleted')]);
     }
 
     /**
@@ -273,7 +282,7 @@ class Assets extends Controller
      */
     public function restore(Asset $asset): RedirectResponse {
         $asset->restore();
-        return redirect()->route('assets.index')->with(['success' => __('Asset restored successfully.')]);
+        return redirect()->route('assets.index')->with(['success' => __('assets.flash.restored')]);
     }
 
     /**
@@ -284,6 +293,6 @@ class Assets extends Controller
      */
     public function forceDelete(Asset $asset): RedirectResponse {
         $asset->forceDelete();
-        return redirect()->route('assets.index')->with(['success' => __('Asset permanently deleted successfully.')]);
+        return redirect()->route('assets.index')->with(['success' => __('assets.flash.forced_deleted')]);
     }
 }

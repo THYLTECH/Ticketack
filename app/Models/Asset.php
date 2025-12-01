@@ -57,6 +57,20 @@ class Asset extends Model
         return $this->hasMany(Asset::class, 'parent_id');
     }
 
+    public function isDescendantOf(Asset $asset): bool
+    {
+        $current = $this->parent;
+
+        while ($current) {
+            if ($current->id === $asset->id) {
+                return true;
+            }
+            $current = $current->parent;
+        }
+
+        return false;
+    }
+
     /**
      * Get all children recursively.
      */

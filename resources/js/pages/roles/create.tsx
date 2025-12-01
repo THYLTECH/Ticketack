@@ -1,4 +1,4 @@
-// resources/js/pages/assets/create.tsx
+// resources/js/pages/roles/create.tsx
 
 // Necessary imports
 import { userHasPermission } from '@/lib/utils';
@@ -10,15 +10,8 @@ import AppLayout from '@/layouts/app/layout';
 // Translation Hook
 import { useTrans } from '@/lib/translation';
 
-// Hooks
-import { FileWithPreview } from '@/hooks/use-file-upload';
-
 // Custom components
-import {
-    AttachmentsTab,
-    AttributesTab,
-    InformationsTab,
-} from '@/pages/assets/form';
+import { InformationsTab, PermissionsTab, UsersTab } from '@/pages/roles/form';
 
 // Shadnc UI Components
 import { Button } from '@/components/ui/button';
@@ -36,22 +29,17 @@ import { Spinner } from '@/components/ui/spinner';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Types
-import type {
-    Asset,
-    AssetAttribute,
-    BreadcrumbItem,
-    SharedData,
-} from '@/types';
+import type { BreadcrumbItem, Permission, SharedData, User } from '@/types';
 
 // Icons
-import { ArrowLeft, Blocks, File, Paperclip, Plus } from 'lucide-react';
+import { ArrowLeft, File, Plus, Shield, UserIcon } from 'lucide-react';
 
 export default function Create({
-    assets,
-    attribute_keys,
+    permissions,
+    usersWithoutRole,
 }: {
-    assets: Asset[];
-    attribute_keys: string[];
+    permissions: Permission[];
+    usersWithoutRole: User[];
 }) {
     const __ = useTrans();
 
@@ -61,66 +49,63 @@ export default function Create({
             href: route('dashboard'),
         },
         {
-            title: __('assets.pages.breadcrumbs.index'),
-            href: route('assets.index'),
+            title: __('roles.pages.breadcrumbs.index'),
+            href: route('roles.index'),
         },
         {
-            title: __('assets.pages.breadcrumbs.create'),
+            title: __('roles.pages.breadcrumbs.create'),
             href: '#',
         },
     ];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={__('assets.pages.create.head_title')} />
+            <Head title={__('roles.pages.create.head_title')} />
 
-            <CreateForm assets={assets} attribute_keys={attribute_keys} />
+            <CreateForm
+                permissions={permissions}
+                usersWithoutRole={usersWithoutRole}
+            />
         </AppLayout>
     );
 }
 
 function CreateForm({
-    assets,
-    attribute_keys,
+    permissions,
+    usersWithoutRole,
 }: {
-    assets?: Asset[];
-    attribute_keys?: string[];
+    permissions: Permission[];
+    usersWithoutRole: User[];
 }) {
     const __ = useTrans();
 
     const { data, setData, processing, errors, post } = useForm<{
-        title: string;
-        parent_id: string;
-        icon: string;
-        description: string;
-        attributes: AssetAttribute[];
-        attachments: FileWithPreview[];
+        name: string;
+        permissions: Permission[];
+        users: User[];
     }>({
-        title: '',
-        parent_id: '',
-        icon: '',
-        description: '',
-        attributes: [],
-        attachments: [],
+        name: '',
+        permissions: [],
+        users: [],
     });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route('assets.store'));
+        post(route('roles.store'));
     };
 
     return (
         <Card>
             <CardHeader>
-                <CardTitle>{__('assets.pages.create.title')}</CardTitle>
+                <CardTitle>{__('roles.pages.create.title')}</CardTitle>
                 <CardDescription>
-                    {__('assets.pages.create.description')}
+                    {__('roles.pages.create.description')}
                 </CardDescription>
                 <CardAction>
                     <Button asChild variant={'secondary'}>
-                        <Link href={route('assets.index')}>
+                        <Link href={route('roles.index')}>
                             <ArrowLeft />
-                            {__('assets.pages.form.buttons.back')}
+                            {__('roles.pages.form.buttons.back')}
                         </Link>
                     </Button>
                 </CardAction>
@@ -136,42 +121,47 @@ function CreateForm({
                         <TabsList className="w-full">
                             <TabsTrigger value={'informations'}>
                                 <File />
-                                {__('assets.pages.form.tabs.informations')}
+                                {__('roles.pages.form.tabs.informations')}
                             </TabsTrigger>
-                            <TabsTrigger value={'attributes'}>
-                                <Blocks />
-                                {__('assets.pages.form.tabs.attributes')}
+                            <TabsTrigger value={'permissions'}>
+                                <Shield />
+                                {__('roles.pages.form.tabs.permissions')}
                             </TabsTrigger>
-                            <TabsTrigger value={'attachments'}>
-                                <Paperclip />
-                                {__('assets.pages.form.tabs.attachments')}
+                            <TabsTrigger value={'users'}>
+                                <UserIcon />
+                                {__('roles.pages.form.tabs.users')}
                             </TabsTrigger>
                         </TabsList>
 
                         <InformationsTab
-                            assets={assets}
+                            data={data}
+                            setData={setData}
                             errors={errors}
+                            disabled={processing}
+                        />
+                        <PermissionsTab
                             data={data}
                             setData={setData}
+                            permissions={permissions}
+                            disabled={processing}
                         />
-                        <AttributesTab
-                            attribute_keys={attribute_keys}
+                        <UsersTab
                             data={data}
                             setData={setData}
+                            usersWithoutRole={usersWithoutRole}
+                            disabled={processing}
                         />
-                        <AttachmentsTab data={data} setData={setData} />
                     </Tabs>
                 </CardContent>
                 <Separator className="my-6" />
-
                 {userHasPermission({
                     user: usePage<SharedData>().props.auth.user,
-                    permission: 'create assets',
+                    permission: 'create roles',
                 }) && (
                     <CardFooter>
                         <Button disabled={processing} className="w-full">
                             {processing ? <Spinner /> : <Plus />}
-                            {__('assets.pages.form.buttons.store')}
+                            {__('roles.pages.form.buttons.store')}
                         </Button>
                     </CardFooter>
                 )}

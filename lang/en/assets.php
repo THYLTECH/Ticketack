@@ -9,6 +9,15 @@ return [
     |
     */
 
+    'flash' => [
+        'created' => 'Asset created successfully.',
+        'updated' => 'Asset updated successfully.',
+        'deleted' => 'Asset deleted successfully.',
+        'restored' => 'Asset restored successfully.',
+        'forced_deleted' => 'Asset permanently deleted successfully.',
+        'invalid_parent' => 'The selected parent asset is invalid.',
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Pages

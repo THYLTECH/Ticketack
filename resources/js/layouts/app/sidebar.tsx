@@ -40,6 +40,9 @@ import {
 // Custom components
 import { Icon } from '@/components/icon';
 
+// Custom functions
+import { userHasPermission } from '@/lib/utils';
+
 // Types
 import type { NavItem, SharedData, User } from '@/types';
 
@@ -54,6 +57,7 @@ import {
     ListTree,
     LogOut,
     Settings,
+    Shield
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
@@ -65,6 +69,7 @@ interface UserMenuContentProps {
 
 export function AppSidebar() {
     const __ = useTrans();
+    const { auth } = usePage<SharedData>().props;
 
     // Sidebar menus
     const mainNavItems: NavItem[] = [
@@ -73,12 +78,25 @@ export function AppSidebar() {
             href: route('dashboard'),
             icon: LayoutGrid,
         },
-        {
+    ];
+
+    // Assets
+    if(userHasPermission({ user: auth.user, permission: 'view assets' })) {
+        mainNavItems.push({
             title: __('app.layout.sidebar.menugroups.platform.items.assets'),
             href: route('assets.index'),
             icon: ListTree,
-        },
-    ];
+        });
+    }
+
+    // Roles
+    if(userHasPermission({ user: auth.user, permission: 'view roles' })) {
+        mainNavItems.push({
+            title: __('app.layout.sidebar.menugroups.platform.items.roles'),
+            href: route('roles.index'),
+            icon: Shield,
+        });
+    }
 
     const footerNavItems: NavItem[] = [
         {

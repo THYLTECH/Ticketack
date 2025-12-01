@@ -1,10 +1,7 @@
-// resources/js/pages/assets/edit.tsx
+// resources/js/pages/roles/show.tsx
 
 // Necessary imports
-import {
-    convertAttachmentsToFileWithPreview,
-    userHasPermission,
-} from '@/lib/utils';
+import { userHasPermission } from '@/lib/utils';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 
 // Layout
@@ -13,15 +10,8 @@ import AppLayout from '@/layouts/app/layout';
 // Translation Hook
 import { useTrans } from '@/lib/translation';
 
-// Hooks
-import { FileWithPreview } from '@/hooks/use-file-upload';
-
 // Custom components
-import {
-    AttachmentsTab,
-    AttributesTab,
-    InformationsTab,
-} from '@/pages/assets/form';
+import { InformationsTab, PermissionsTab, UsersTab } from '@/pages/roles/form';
 
 // Shadnc UI Components
 import { Button } from '@/components/ui/button';
@@ -38,21 +28,24 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Types
 import type {
-    Asset,
-    AssetAttribute,
     BreadcrumbItem,
+    Permission,
+    Role,
     SharedData,
+    User,
 } from '@/types';
 
 // Icons
-import { ArrowLeft, Blocks, File, Paperclip, Pen } from 'lucide-react';
+import { ArrowLeft, File, Pen, Shield, UserIcon } from 'lucide-react';
 
 export default function Show({
-    asset,
-    assets,
+    role,
+    permissions,
+    usersWithoutRole,
 }: {
-    asset: Asset;
-    assets: Asset[];
+    role: Role;
+    permissions: Permission[];
+    usersWithoutRole: User[];
 }) {
     const __ = useTrans();
 
@@ -62,11 +55,11 @@ export default function Show({
             href: route('dashboard'),
         },
         {
-            title: __('assets.pages.breadcrumbs.index'),
-            href: route('assets.index'),
+            title: __('roles.pages.breadcrumbs.index'),
+            href: route('roles.index'),
         },
         {
-            title: __('assets.pages.breadcrumbs.show'),
+            title: __('roles.pages.breadcrumbs.show'),
             href: '#',
         },
     ];
@@ -74,75 +67,67 @@ export default function Show({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head
-                title={__('assets.pages.show.head_title', undefined, {
-                    title: asset.title,
+                title={__('roles.pages.show.head_title', undefined, {
+                    title: role.name,
                 })}
             />
 
-            <ShowForm asset={asset} assets={assets} attribute_keys={[]} />
+            <ShowForm
+                role={role}
+                permissions={permissions}
+                usersWithoutRole={usersWithoutRole}
+            />
         </AppLayout>
     );
 }
 
 function ShowForm({
-    asset,
-    assets,
-    attribute_keys,
+    role,
+    permissions,
+    usersWithoutRole,
 }: {
-    asset: Asset;
-    assets?: Asset[];
-    attribute_keys?: string[];
+    role: Role;
+    permissions: Permission[];
+    usersWithoutRole: User[];
 }) {
     const __ = useTrans();
 
     const { data, setData, errors } = useForm<{
-        title: string;
-        parent_id: string;
-        icon: string;
-        description: string;
-        attributes: AssetAttribute[];
-        attachments: FileWithPreview[];
+        name: string;
+        permissions: Permission[];
+        users: User[];
     }>({
-        title: asset.title,
-        parent_id: asset.parent_id || '',
-        icon: asset.icon || '',
-        description: asset.description || '',
-        attributes: asset.attributes || [],
-        attachments: convertAttachmentsToFileWithPreview({
-            attachments: asset.attachments,
-        }),
+        name: role.name,
+        permissions: role.permissions || [],
+        users: role.users || [],
     });
 
     return (
         <Card>
             <CardHeader>
                 <CardTitle>
-                    {__('assets.pages.show.title', undefined, {
-                        title: asset.title,
+                    {__('roles.pages.show.title', undefined, {
+                        title: role.name,
                     })}
                 </CardTitle>
                 <CardDescription>
-                    {__('assets.pages.show.description', undefined, {
-                        title: asset.title,
-                    })}
+                    {__('roles.pages.show.description')}
                 </CardDescription>
                 <CardAction className="space-x-2">
                     <Button asChild variant={'secondary'}>
-                        <Link href={route('assets.index')}>
+                        <Link href={route('roles.index')}>
                             <ArrowLeft />
-                            {__('assets.pages.form.buttons.back')}
+                            {__('roles.pages.form.buttons.back')}
                         </Link>
                     </Button>
                     {userHasPermission({
                         user: usePage<SharedData>().props.auth.user,
-                        permission: 'update assets',
+                        permission: 'update roles',
                     }) && (
                         <Button asChild variant={'default'}>
-                            <Link
-                                href={route('assets.edit', { asset: asset.id })}
-                            >
+                            <Link href={route('roles.edit', { role: role.id })}>
                                 <Pen />
-                                {__('assets.pages.form.buttons.edit')}
+                                {__('roles.pages.form.buttons.edit')}
                             </Link>
                         </Button>
                     )}
@@ -158,32 +143,36 @@ function ShowForm({
                     <TabsList className="w-full">
                         <TabsTrigger value={'informations'}>
                             <File />
-                            {__('assets.pages.form.tabs.informations')}
+                            {__('roles.pages.form.tabs.informations')}
                         </TabsTrigger>
-                        <TabsTrigger value={'attributes'}>
-                            <Blocks />
-                            {__('assets.pages.form.tabs.attributes')}
+                        <TabsTrigger value={'permissions'}>
+                            <Shield />
+                            {__('roles.pages.form.tabs.permissions')}
                         </TabsTrigger>
-                        <TabsTrigger value={'attachments'}>
-                            <Paperclip />
-                            {__('assets.pages.form.tabs.attachments')}
+                        <TabsTrigger value={'users'}>
+                            <UserIcon />
+                            {__('roles.pages.form.tabs.users')}
                         </TabsTrigger>
                     </TabsList>
 
                     <InformationsTab
-                        assets={assets}
+                        data={data}
+                        setData={setData}
                         errors={errors}
-                        data={data}
-                        setData={setData}
                         disabled
                     />
-                    <AttributesTab
-                        attribute_keys={attribute_keys}
+                    <PermissionsTab
                         data={data}
                         setData={setData}
+                        permissions={permissions}
                         disabled
                     />
-                    <AttachmentsTab data={data} setData={setData} disabled />
+                    <UsersTab
+                        data={data}
+                        setData={setData}
+                        usersWithoutRole={usersWithoutRole}
+                        disabled
+                    />
                 </Tabs>
             </CardContent>
         </Card>
