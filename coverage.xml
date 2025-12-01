@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1764607891">
-  <project timestamp="1764607891" name="Clover Coverage">
+<coverage generated="1764602404">
+  <project timestamp="1764602404" name="Clover Coverage">
     <package name="App\Helpers">
       <file name="/home/m0by/Documents/cours-ig2i/pfe/ticketack/app/Helpers/NotificationPreferences.php">
         <class name="App\Helpers\NotificationPreferences" namespace="App\Helpers">
@@ -18,7 +18,7 @@
     <package name="App\Http\Controllers">
       <file name="/home/m0by/Documents/cours-ig2i/pfe/ticketack/app/Http/Controllers/Assets.php">
         <class name="App\Http\Controllers\Assets" namespace="App\Http\Controllers">
-          <metrics complexity="29" methods="10" coveredmethods="9" conditionals="0" coveredconditionals="0" statements="116" coveredstatements="90" elements="126" coveredelements="99"/>
+          <metrics complexity="31" methods="10" coveredmethods="9" conditionals="0" coveredconditionals="0" statements="120" coveredstatements="91" elements="130" coveredelements="100"/>
         </class>
         <line num="35" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="16"/>
         <line num="36" type="stmt" count="16"/>
@@ -77,7 +77,7 @@
         <line num="144" type="stmt" count="1"/>
         <line num="146" type="stmt" count="1"/>
         <line num="150" type="stmt" count="4"/>
-        <line num="160" type="method" name="update" visibility="public" complexity="14" crap="30.77" count="3"/>
+        <line num="160" type="method" name="update" visibility="public" complexity="16" crap="40.97" count="3"/>
         <line num="161" type="stmt" count="3"/>
         <line num="163" type="stmt" count="3"/>
         <line num="164" type="stmt" count="3"/>
@@ -87,66 +87,70 @@
         <line num="170" type="stmt" count="3"/>
         <line num="171" type="stmt" count="1"/>
         <line num="172" type="stmt" count="1"/>
-        <line num="173" type="stmt" count="1"/>
-        <line num="174" type="stmt" count="1"/>
-        <line num="177" type="stmt" count="3"/>
-        <line num="178" type="stmt" count="3"/>
-        <line num="182" type="stmt" count="3"/>
-        <line num="183" type="stmt" count="3"/>
-        <line num="184" type="stmt" count="1"/>
-        <line num="185" type="stmt" count="1"/>
-        <line num="186" type="stmt" count="1"/>
-        <line num="187" type="stmt" count="1"/>
-        <line num="188" type="stmt" count="1"/>
-        <line num="194" type="stmt" count="3"/>
-        <line num="195" type="stmt" count="3"/>
-        <line num="196" type="stmt" count="3"/>
-        <line num="197" type="stmt" count="3"/>
-        <line num="200" type="stmt" count="3"/>
-        <line num="201" type="stmt" count="3"/>
-        <line num="202" type="stmt" count="3"/>
+        <line num="176" type="stmt" count="1"/>
+        <line num="177" type="stmt" count="0"/>
+        <line num="178" type="stmt" count="0"/>
+        <line num="179" type="stmt" count="0"/>
+        <line num="182" type="stmt" count="1"/>
+        <line num="183" type="stmt" count="1"/>
+        <line num="186" type="stmt" count="3"/>
+        <line num="187" type="stmt" count="3"/>
+        <line num="191" type="stmt" count="3"/>
+        <line num="192" type="stmt" count="3"/>
+        <line num="193" type="stmt" count="1"/>
+        <line num="194" type="stmt" count="1"/>
+        <line num="195" type="stmt" count="1"/>
+        <line num="196" type="stmt" count="1"/>
+        <line num="197" type="stmt" count="1"/>
         <line num="203" type="stmt" count="3"/>
         <line num="204" type="stmt" count="3"/>
+        <line num="205" type="stmt" count="3"/>
         <line num="206" type="stmt" count="3"/>
-        <line num="208" type="stmt" count="3"/>
-        <line num="209" type="stmt" count="0"/>
-        <line num="210" type="stmt" count="0"/>
-        <line num="212" type="stmt" count="0"/>
-        <line num="213" type="stmt" count="0"/>
-        <line num="214" type="stmt" count="0"/>
-        <line num="216" type="stmt" count="0"/>
-        <line num="222" type="stmt" count="3"/>
+        <line num="209" type="stmt" count="3"/>
+        <line num="210" type="stmt" count="3"/>
+        <line num="211" type="stmt" count="3"/>
+        <line num="212" type="stmt" count="3"/>
+        <line num="213" type="stmt" count="3"/>
+        <line num="215" type="stmt" count="3"/>
+        <line num="217" type="stmt" count="3"/>
+        <line num="218" type="stmt" count="0"/>
+        <line num="219" type="stmt" count="0"/>
+        <line num="221" type="stmt" count="0"/>
+        <line num="222" type="stmt" count="0"/>
         <line num="223" type="stmt" count="0"/>
         <line num="225" type="stmt" count="0"/>
-        <line num="226" type="stmt" count="0"/>
-        <line num="228" type="stmt" count="0"/>
-        <line num="230" type="stmt" count="0"/>
-        <line num="231" type="stmt" count="0"/>
+        <line num="231" type="stmt" count="3"/>
         <line num="232" type="stmt" count="0"/>
-        <line num="233" type="stmt" count="0"/>
         <line num="234" type="stmt" count="0"/>
         <line num="235" type="stmt" count="0"/>
-        <line num="236" type="stmt" count="0"/>
         <line num="237" type="stmt" count="0"/>
-        <line num="238" type="stmt" count="0"/>
+        <line num="239" type="stmt" count="0"/>
         <line num="240" type="stmt" count="0"/>
+        <line num="241" type="stmt" count="0"/>
         <line num="242" type="stmt" count="0"/>
+        <line num="243" type="stmt" count="0"/>
         <line num="244" type="stmt" count="0"/>
         <line num="245" type="stmt" count="0"/>
         <line num="246" type="stmt" count="0"/>
         <line num="247" type="stmt" count="0"/>
-        <line num="248" type="stmt" count="0"/>
-        <line num="254" type="stmt" count="3"/>
-        <line num="263" type="method" name="destroy" visibility="public" complexity="1" crap="1" count="1"/>
-        <line num="264" type="stmt" count="1"/>
-        <line num="265" type="stmt" count="1"/>
-        <line num="274" type="method" name="restore" visibility="public" complexity="1" crap="1" count="1"/>
-        <line num="275" type="stmt" count="1"/>
-        <line num="276" type="stmt" count="1"/>
-        <line num="285" type="method" name="forceDelete" visibility="public" complexity="1" crap="1" count="1"/>
-        <line num="286" type="stmt" count="1"/>
-        <line num="287" type="stmt" count="1"/>
-        <metrics loc="290" ncloc="218" classes="1" methods="10" coveredmethods="9" conditionals="0" coveredconditionals="0" statements="116" coveredstatements="90" elements="126" coveredelements="99"/>
+        <line num="249" type="stmt" count="0"/>
+        <line num="251" type="stmt" count="0"/>
+        <line num="253" type="stmt" count="0"/>
+        <line num="254" type="stmt" count="0"/>
+        <line num="255" type="stmt" count="0"/>
+        <line num="256" type="stmt" count="0"/>
+        <line num="257" type="stmt" count="0"/>
+        <line num="263" type="stmt" count="3"/>
+        <line num="272" type="method" name="destroy" visibility="public" complexity="1" crap="1" count="1"/>
+        <line num="273" type="stmt" count="1"/>
+        <line num="274" type="stmt" count="1"/>
+        <line num="283" type="method" name="restore" visibility="public" complexity="1" crap="1" count="1"/>
+        <line num="284" type="stmt" count="1"/>
+        <line num="285" type="stmt" count="1"/>
+        <line num="294" type="method" name="forceDelete" visibility="public" complexity="1" crap="1" count="1"/>
+        <line num="295" type="stmt" count="1"/>
+        <line num="296" type="stmt" count="1"/>
+        <metrics loc="299" ncloc="226" classes="1" methods="10" coveredmethods="9" conditionals="0" coveredconditionals="0" statements="120" coveredstatements="91" elements="130" coveredelements="100"/>
       </file>
       <file name="/home/m0by/Documents/cours-ig2i/pfe/ticketack/app/Http/Controllers/Controller.php">
         <class name="App\Http\Controllers\Controller" namespace="App\Http\Controllers">
@@ -1083,7 +1087,7 @@
     <package name="App\Models">
       <file name="/home/m0by/Documents/cours-ig2i/pfe/ticketack/app/Models/Asset.php">
         <class name="App\Models\Asset" namespace="App\Models">
-          <metrics complexity="10" methods="8" coveredmethods="8" conditionals="0" coveredconditionals="0" statements="29" coveredstatements="29" elements="37" coveredelements="37"/>
+          <metrics complexity="13" methods="9" coveredmethods="8" conditionals="0" coveredconditionals="0" statements="35" coveredstatements="32" elements="44" coveredelements="40"/>
         </class>
         <line num="27" type="method" name="casts" visibility="protected" complexity="1" crap="1" count="16"/>
         <line num="29" type="stmt" count="16"/>
@@ -1100,29 +1104,36 @@
         <line num="52" type="stmt" count="4"/>
         <line num="55" type="method" name="children" visibility="public" complexity="1" crap="1" count="3"/>
         <line num="57" type="stmt" count="3"/>
-        <line num="63" type="method" name="childrenRecursive" visibility="public" complexity="1" crap="1" count="3"/>
-        <line num="65" type="stmt" count="3"/>
-        <line num="68" type="method" name="attributes" visibility="public" complexity="1" crap="1" count="12"/>
-        <line num="70" type="stmt" count="12"/>
-        <line num="73" type="method" name="attachments" visibility="public" complexity="1" crap="1" count="6"/>
-        <line num="75" type="stmt" count="6"/>
-        <line num="76" type="stmt" count="6"/>
-        <line num="77" type="stmt" count="6"/>
-        <line num="86" type="method" name="getTreeOrderedAssets" visibility="public" complexity="2" crap="2" count="4"/>
-        <line num="88" type="stmt" count="4"/>
-        <line num="89" type="stmt" count="4"/>
-        <line num="90" type="stmt" count="4"/>
-        <line num="91" type="stmt" count="4"/>
-        <line num="93" type="stmt" count="4"/>
-        <line num="95" type="stmt" count="4"/>
-        <line num="96" type="stmt" count="4"/>
-        <line num="97" type="stmt" count="3"/>
-        <line num="99" type="stmt" count="3"/>
-        <line num="101" type="stmt" count="3"/>
+        <line num="60" type="method" name="isDescendantOf" visibility="public" complexity="3" crap="4.12" count="1"/>
+        <line num="62" type="stmt" count="1"/>
+        <line num="64" type="stmt" count="1"/>
+        <line num="65" type="stmt" count="0"/>
+        <line num="66" type="stmt" count="0"/>
+        <line num="68" type="stmt" count="0"/>
+        <line num="71" type="stmt" count="1"/>
+        <line num="77" type="method" name="childrenRecursive" visibility="public" complexity="1" crap="1" count="3"/>
+        <line num="79" type="stmt" count="3"/>
+        <line num="82" type="method" name="attributes" visibility="public" complexity="1" crap="1" count="12"/>
+        <line num="84" type="stmt" count="12"/>
+        <line num="87" type="method" name="attachments" visibility="public" complexity="1" crap="1" count="6"/>
+        <line num="89" type="stmt" count="6"/>
+        <line num="90" type="stmt" count="6"/>
+        <line num="91" type="stmt" count="6"/>
+        <line num="100" type="method" name="getTreeOrderedAssets" visibility="public" complexity="2" crap="2" count="4"/>
+        <line num="102" type="stmt" count="4"/>
         <line num="103" type="stmt" count="4"/>
+        <line num="104" type="stmt" count="4"/>
         <line num="105" type="stmt" count="4"/>
         <line num="107" type="stmt" count="4"/>
-        <metrics loc="109" ncloc="93" classes="1" methods="8" coveredmethods="8" conditionals="0" coveredconditionals="0" statements="29" coveredstatements="29" elements="37" coveredelements="37"/>
+        <line num="109" type="stmt" count="4"/>
+        <line num="110" type="stmt" count="4"/>
+        <line num="111" type="stmt" count="3"/>
+        <line num="113" type="stmt" count="3"/>
+        <line num="115" type="stmt" count="3"/>
+        <line num="117" type="stmt" count="4"/>
+        <line num="119" type="stmt" count="4"/>
+        <line num="121" type="stmt" count="4"/>
+        <metrics loc="123" ncloc="107" classes="1" methods="9" coveredmethods="8" conditionals="0" coveredconditionals="0" statements="35" coveredstatements="32" elements="44" coveredelements="40"/>
       </file>
       <file name="/home/m0by/Documents/cours-ig2i/pfe/ticketack/app/Models/AssetAttachment.php">
         <class name="App\Models\AssetAttachment" namespace="App\Models">
@@ -1355,6 +1366,6 @@
         <metrics loc="46" ncloc="35" classes="1" methods="2" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="7" coveredstatements="6" elements="9" coveredelements="7"/>
       </file>
     </package>
-    <metrics files="54" loc="3655" ncloc="2640" classes="52" methods="161" coveredmethods="118" conditionals="0" coveredconditionals="0" statements="837" coveredstatements="675" elements="998" coveredelements="793"/>
+    <metrics files="54" loc="3678" ncloc="2662" classes="52" methods="162" coveredmethods="118" conditionals="0" coveredconditionals="0" statements="847" coveredstatements="679" elements="1009" coveredelements="797"/>
   </project>
 </coverage>

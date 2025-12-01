@@ -170,6 +170,15 @@ class Assets extends Controller
         if($data['parent_id'] ?? false) {
             $parent = Asset::find($data['parent_id']);
             if($parent) {
+
+
+                // The parent cannot be the asset itself or one of its descendants
+                if($parent->id === $asset->id || $parent->isDescendantOf($asset)) {
+                    $asset->parent()->dissociate();
+                    $asset->save();
+                    return redirect()->route('assets.edit', ['asset' => $asset->id])->with(['error' => __('assets.flash.invalid_parent')]);
+                }
+
                 $asset->parent()->associate($parent);
                 $asset->save();
             }

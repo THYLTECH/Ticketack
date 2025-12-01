@@ -15,6 +15,7 @@ return [
         'deleted' => 'Asset deleted successfully.',
         'restored' => 'Asset restored successfully.',
         'forced_deleted' => 'Asset permanently deleted successfully.',
+        'invalid_parent' => 'The selected parent asset is invalid.',
     ],
 
     /*
