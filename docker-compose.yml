@@ -1,0 +1,29 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        user: laravel
+        uid: 1000
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    networks:
+      - laravel
+
+  nginx:
+    image: nginx:1.25-alpine
+    depends_on:
+      - app
+    ports:
+      - "8000:80"
+    volumes:
+      - ./:/var/www/html
+      - ./docker-compose/nginx/laravel.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - laravel
+
+networks:
+  laravel:
+    driver: bridge
