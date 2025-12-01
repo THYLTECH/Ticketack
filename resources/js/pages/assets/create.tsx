@@ -1,7 +1,8 @@
 // resources/js/pages/assets/create.tsx
 
 // Necessary imports
-import { Head, Link, useForm } from '@inertiajs/react';
+import { userHasPermission } from '@/lib/utils';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 
 // Layout
 import AppLayout from '@/layouts/app/layout';
@@ -35,7 +36,12 @@ import { Spinner } from '@/components/ui/spinner';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Types
-import type { Asset, AssetAttribute, BreadcrumbItem } from '@/types';
+import type {
+    Asset,
+    AssetAttribute,
+    BreadcrumbItem,
+    SharedData,
+} from '@/types';
 
 // Icons
 import { ArrowLeft, Blocks, File, Paperclip, Plus } from 'lucide-react';
@@ -157,12 +163,18 @@ function CreateForm({
                     </Tabs>
                 </CardContent>
                 <Separator className="my-6" />
-                <CardFooter>
-                    <Button disabled={processing} className="w-full">
-                        {processing ? <Spinner /> : <Plus />}
-                        {__('assets.pages.form.buttons.store')}
-                    </Button>
-                </CardFooter>
+
+                {userHasPermission({
+                    user: usePage<SharedData>().props.auth.user,
+                    permission: 'create assets',
+                }) && (
+                    <CardFooter>
+                        <Button disabled={processing} className="w-full">
+                            {processing ? <Spinner /> : <Plus />}
+                            {__('assets.pages.form.buttons.store')}
+                        </Button>
+                    </CardFooter>
+                )}
             </form>
         </Card>
     );

@@ -1,7 +1,8 @@
 // resources/js/pages/roles/show.tsx
 
 // Necessary imports
-import { Head, Link, useForm } from '@inertiajs/react';
+import { userHasPermission } from '@/lib/utils';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 
 // Layout
 import AppLayout from '@/layouts/app/layout';
@@ -26,7 +27,13 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Types
-import type { BreadcrumbItem, Permission, Role, User } from '@/types';
+import type {
+    BreadcrumbItem,
+    Permission,
+    Role,
+    SharedData,
+    User,
+} from '@/types';
 
 // Icons
 import { ArrowLeft, File, Pen, Shield, UserIcon } from 'lucide-react';
@@ -113,12 +120,17 @@ function ShowForm({
                             {__('roles.pages.form.buttons.back')}
                         </Link>
                     </Button>
-                    <Button asChild variant={'default'}>
-                        <Link href={route('roles.edit', { role: role.id })}>
-                            <Pen />
-                            {__('roles.pages.form.buttons.edit')}
-                        </Link>
-                    </Button>
+                    {userHasPermission({
+                        user: usePage<SharedData>().props.auth.user,
+                        permission: 'update roles',
+                    }) && (
+                        <Button asChild variant={'default'}>
+                            <Link href={route('roles.edit', { role: role.id })}>
+                                <Pen />
+                                {__('roles.pages.form.buttons.edit')}
+                            </Link>
+                        </Button>
+                    )}
                 </CardAction>
             </CardHeader>
             <Separator />

@@ -167,7 +167,10 @@ export default function Index({ assets }: { assets: Asset[] }) {
                     <CardAction className="flex items-center gap-2">
                         <ExpandCollapseButtons {...controls} />
 
-                        {userHasPermission({ user: auth.user, permission: 'create assets' }) && (
+                        {userHasPermission({
+                            user: auth.user,
+                            permission: 'create assets',
+                        }) && (
                             <Button asChild>
                                 <Link href={route('assets.create')}>
                                     <Plus />
@@ -175,7 +178,6 @@ export default function Index({ assets }: { assets: Asset[] }) {
                                 </Link>
                             </Button>
                         )}
-
                     </CardAction>
                 </CardHeader>
                 <Separator />
@@ -334,22 +336,36 @@ function AssetRow({
         toggleNode(id);
     };
 
+    const auth = usePage<SharedData>().props.auth;
+
     return (
         <>
             <TableRow
                 className="group relative cursor-pointer transition-colors"
-                onClick={() =>
-                    router.get(route('assets.show', { asset: asset.id }))
-                }
+                onClick={() => {
+                    if (
+                        userHasPermission({
+                            user: auth.user,
+                            permission: 'show assets',
+                        })
+                    ) {
+                        router.get(route('assets.show', { asset: asset.id }));
+                    }
+                }}
             >
                 <TableCell
                     className="font-medium"
                     style={{ paddingLeft: `1.5rem` }}
                 >
-                    <Link
-                        href={route('assets.show', { asset: asset.id })}
-                        className="absolute inset-0 z-0"
-                    />
+                    {userHasPermission({
+                        user: auth.user,
+                        permission: 'show assets',
+                    }) && (
+                        <Link
+                            href={route('assets.show', { asset: asset.id })}
+                            className="absolute inset-0 z-0"
+                        />
+                    )}
 
                     <div
                         className={`flex items-center gap-2`}

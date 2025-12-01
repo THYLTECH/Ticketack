@@ -10,7 +10,7 @@ import AppLayout from '@/layouts/app/layout';
 import { useTrans } from '@/lib/translation';
 
 // Custom functions
-import { formatDate } from '@/lib/utils';
+import { formatDate, userHasPermission } from '@/lib/utils';
 
 // Types
 import type { BreadcrumbItem, Role, SharedData } from '@/types';
@@ -76,14 +76,17 @@ export default function Index({ roles }: { roles: Role[] }) {
                     </CardDescription>
 
                     <CardAction className="flex items-center gap-2">
-                        {/* {userHasPermission({ user: auth.user, permission: 'create roles' }) && ( */}
-                        <Button asChild>
-                            <Link href={route('roles.create')}>
-                                <Plus />
-                                Create a Role
-                            </Link>
-                        </Button>
-                        {/* )} */}
+                        {userHasPermission({
+                            user: auth.user,
+                            permission: 'create roles',
+                        }) && (
+                            <Button asChild>
+                                <Link href={route('roles.create')}>
+                                    <Plus />
+                                    {__('roles.pages.index.buttons.create')}
+                                </Link>
+                            </Button>
+                        )}
                     </CardAction>
                 </CardHeader>
                 <Separator />
@@ -109,16 +112,16 @@ function RoleEmpty() {
                 <EmptyMedia variant="icon">
                     <Shield />
                 </EmptyMedia>
-                <EmptyTitle>No roles found</EmptyTitle>
+                <EmptyTitle>{__('roles.pages.index.empty.title')}</EmptyTitle>
                 <EmptyDescription>
-                    Get started by creating a new role.
+                    {__('roles.pages.index.empty.description')}
                 </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
                 <Button variant="outline" size="sm" asChild>
                     <Link href={route('roles.index')}>
                         <RefreshCcw />
-                        Refresh
+                        {__('roles.pages.index.empty.button')}
                     </Link>
                 </Button>
             </EmptyContent>
@@ -134,19 +137,19 @@ function RoleTable({ roles }: { roles: Role[] }) {
             <TableHeader>
                 <TableRow>
                     <TableHead className="text-xs text-muted-foreground">
-                        Role
+                        {__('roles.pages.index.table.columns.name')}
                     </TableHead>
                     <TableHead className="text-xs text-muted-foreground">
-                        Nbr of Users
+                        {__('roles.pages.index.table.columns.users')}
                     </TableHead>
                     <TableHead className="text-xs text-muted-foreground">
-                        Nbr of Permissions
+                        {__('roles.pages.index.table.columns.permissions')}
                     </TableHead>
                     <TableHead className="w-[8rem] text-right text-xs text-muted-foreground">
-                        Updated at
+                        {__('roles.pages.index.table.columns.updated_at')}
                     </TableHead>
                     <TableHead className="w-[8rem] text-right text-xs text-muted-foreground">
-                        Created at
+                        {__('roles.pages.index.table.columns.created_at')}
                     </TableHead>
                 </TableRow>
             </TableHeader>
@@ -155,15 +158,31 @@ function RoleTable({ roles }: { roles: Role[] }) {
                     <TableRow
                         className="relative cursor-pointer"
                         key={role.id}
-                        onClick={() =>
-                            router.get(route('roles.show', { role: role.id }))
-                        }
+                        onClick={() => {
+                            if (
+                                userHasPermission({
+                                    user: usePage<SharedData>().props.auth.user,
+                                    permission: 'show roles',
+                                })
+                            ) {
+                                router.get(
+                                    route('roles.show', { role: role.id }),
+                                );
+                            }
+                        }}
                     >
                         <TableCell>
-                            <Link
-                                href={route('roles.show', { role: role.id })}
-                                className="absolute inset-0 z-0"
-                            />
+                            {userHasPermission({
+                                user: usePage<SharedData>().props.auth.user,
+                                permission: 'show roles',
+                            }) && (
+                                <Link
+                                    href={route('roles.show', {
+                                        role: role.id,
+                                    })}
+                                    className="absolute inset-0 z-0"
+                                />
+                            )}
 
                             <div className="font-medium">{role.name}</div>
                         </TableCell>

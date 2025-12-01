@@ -1,7 +1,11 @@
 // resources/js/pages/assets/edit.tsx
 
 // Necessary imports
-import { Head, Link, useForm } from '@inertiajs/react';
+import {
+    convertAttachmentsToFileWithPreview,
+    userHasPermission,
+} from '@/lib/utils';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 
 // Layout
 import AppLayout from '@/layouts/app/layout';
@@ -36,10 +40,14 @@ import { Spinner } from '@/components/ui/spinner';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Types
-import type { Asset, AssetAttribute, BreadcrumbItem } from '@/types';
+import type {
+    Asset,
+    AssetAttribute,
+    BreadcrumbItem,
+    SharedData,
+} from '@/types';
 
 // Icons
-import { convertAttachmentsToFileWithPreview } from '@/lib/utils';
 import { ArrowLeft, Blocks, File, Paperclip, Plus, Trash2 } from 'lucide-react';
 
 export default function Edit({
@@ -139,12 +147,17 @@ function EditForm({
                             {__('assets.pages.form.buttons.back')}
                         </Link>
                     </Button>
-                    <DeleteAsset asset={asset}>
-                        <Button variant={'destructive'}>
-                            <Trash2 />
-                            {__('assets.pages.form.buttons.delete')}
-                        </Button>
-                    </DeleteAsset>
+                    {userHasPermission({
+                        user: usePage<SharedData>().props.auth.user,
+                        permission: 'delete assets',
+                    }) && (
+                        <DeleteAsset asset={asset}>
+                            <Button variant={'destructive'}>
+                                <Trash2 />
+                                {__('assets.pages.form.buttons.delete')}
+                            </Button>
+                        </DeleteAsset>
+                    )}
                 </CardAction>
             </CardHeader>
             <Separator />
@@ -185,12 +198,17 @@ function EditForm({
                     </Tabs>
                 </CardContent>
                 <Separator className="my-6" />
-                <CardFooter>
-                    <Button disabled={processing} className="w-full">
-                        {processing ? <Spinner /> : <Plus />}
-                        {__('assets.pages.form.buttons.update')}
-                    </Button>
-                </CardFooter>
+                {userHasPermission({
+                    user: usePage<SharedData>().props.auth.user,
+                    permission: 'update assets',
+                }) && (
+                    <CardFooter>
+                        <Button disabled={processing} className="w-full">
+                            {processing ? <Spinner /> : <Plus />}
+                            {__('assets.pages.form.buttons.update')}
+                        </Button>
+                    </CardFooter>
+                )}
             </form>
         </Card>
     );

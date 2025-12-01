@@ -1,7 +1,8 @@
 // resources/js/pages/roles/delete.tsx
 
 // Necessary imports
-import { Link } from '@inertiajs/react';
+import { userHasPermission } from '@/lib/utils';
+import { Link, usePage } from '@inertiajs/react';
 import React from 'react';
 
 // Translation hook
@@ -21,7 +22,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 // Types
-import { Role } from '@/types';
+import { Role, SharedData } from '@/types';
 
 // Icons
 import { Trash2 } from 'lucide-react';
@@ -53,20 +54,25 @@ export function DeleteRole({
                     <AlertDialogCancel>
                         {__('roles.pages.delete.buttons.cancel')}
                     </AlertDialogCancel>
-                    <AlertDialogAction
-                        className="bg-destructive hover:bg-destructive/90"
-                        asChild
-                    >
-                        <Link
-                            method={'delete'}
-                            href={route('roles.destroy', {
-                                role: role.id,
-                            })}
+                    {userHasPermission({
+                        user: usePage<SharedData>().props.auth.user,
+                        permission: 'delete roles',
+                    }) && (
+                        <AlertDialogAction
+                            className="bg-destructive hover:bg-destructive/90"
+                            asChild
                         >
-                            <Trash2 />
-                            {__('roles.pages.delete.buttons.confirm')}
-                        </Link>
-                    </AlertDialogAction>
+                            <Link
+                                method={'delete'}
+                                href={route('roles.destroy', {
+                                    role: role.id,
+                                })}
+                            >
+                                <Trash2 />
+                                {__('roles.pages.delete.buttons.confirm')}
+                            </Link>
+                        </AlertDialogAction>
+                    )}
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>

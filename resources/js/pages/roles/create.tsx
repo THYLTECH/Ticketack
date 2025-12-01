@@ -1,7 +1,8 @@
 // resources/js/pages/roles/create.tsx
 
 // Necessary imports
-import { Head, Link, useForm } from '@inertiajs/react';
+import { userHasPermission } from '@/lib/utils';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 
 // Layout
 import AppLayout from '@/layouts/app/layout';
@@ -28,7 +29,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Types
-import type { BreadcrumbItem, Permission, User } from '@/types';
+import type { BreadcrumbItem, Permission, SharedData, User } from '@/types';
 
 // Icons
 import { ArrowLeft, File, Plus, Shield, UserIcon } from 'lucide-react';
@@ -153,12 +154,17 @@ function CreateForm({
                     </Tabs>
                 </CardContent>
                 <Separator className="my-6" />
-                <CardFooter>
-                    <Button disabled={processing} className="w-full">
-                        {processing ? <Spinner /> : <Plus />}
-                        {__('roles.pages.form.buttons.store')}
-                    </Button>
-                </CardFooter>
+                {userHasPermission({
+                    user: usePage<SharedData>().props.auth.user,
+                    permission: 'create roles',
+                }) && (
+                    <CardFooter>
+                        <Button disabled={processing} className="w-full">
+                            {processing ? <Spinner /> : <Plus />}
+                            {__('roles.pages.form.buttons.store')}
+                        </Button>
+                    </CardFooter>
+                )}
             </form>
         </Card>
     );

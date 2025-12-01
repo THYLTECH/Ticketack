@@ -44,6 +44,16 @@ return [
                 'description' => 'Get started by creating your first role.',
                 'button' => 'Refresh',
             ],
+
+            'table' => [
+                'columns' => [
+                    'name' => 'Name',
+                    'users' => 'Nbr of Users',
+                    'permissions' => 'Nbr of Permissions',
+                    'updated_at' => 'Last Updated',
+                    'created_at' => 'Created At',
+                ],
+            ],
         ],
         'create' => [
             'head_title' => 'Create a Role',

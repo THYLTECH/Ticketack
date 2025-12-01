@@ -1,7 +1,8 @@
 // resources/js/pages/roles/edit.tsx
 
 // Necessary imports
-import { Head, Link, useForm } from '@inertiajs/react';
+import { userHasPermission } from '@/lib/utils';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 
 // Layout
 import AppLayout from '@/layouts/app/layout';
@@ -29,7 +30,13 @@ import { Spinner } from '@/components/ui/spinner';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Types
-import type { BreadcrumbItem, Permission, Role, User } from '@/types';
+import type {
+    BreadcrumbItem,
+    Permission,
+    Role,
+    SharedData,
+    User,
+} from '@/types';
 
 // Icons
 import { ArrowLeft, File, Pen, Shield, Trash2, UserIcon } from 'lucide-react';
@@ -121,12 +128,17 @@ function EditForm({
                             {__('roles.pages.form.buttons.back')}
                         </Link>
                     </Button>
-                    <DeleteRole role={role}>
-                        <Button variant="destructive">
-                            <Trash2 />
-                            {__('roles.pages.form.buttons.delete')}
-                        </Button>
-                    </DeleteRole>
+                    {userHasPermission({
+                        user: usePage<SharedData>().props.auth.user,
+                        permission: 'delete roles',
+                    }) && (
+                        <DeleteRole role={role}>
+                            <Button variant="destructive">
+                                <Trash2 />
+                                {__('roles.pages.form.buttons.delete')}
+                            </Button>
+                        </DeleteRole>
+                    )}
                 </CardAction>
             </CardHeader>
             <Separator />
@@ -173,12 +185,17 @@ function EditForm({
                     </Tabs>
                 </CardContent>
                 <Separator className="my-6" />
-                <CardFooter>
-                    <Button disabled={processing} className="w-full">
-                        {processing ? <Spinner /> : <Pen />}
-                        {__('roles.pages.form.buttons.update')}
-                    </Button>
-                </CardFooter>
+                {userHasPermission({
+                    user: usePage<SharedData>().props.auth.user,
+                    permission: 'update roles',
+                }) && (
+                    <CardFooter>
+                        <Button disabled={processing} className="w-full">
+                            {processing ? <Spinner /> : <Pen />}
+                            {__('roles.pages.form.buttons.update')}
+                        </Button>
+                    </CardFooter>
+                )}
             </form>
         </Card>
     );
