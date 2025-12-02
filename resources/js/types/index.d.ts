@@ -48,7 +48,25 @@ export interface User {
     name: string;
     email: string;
     attachment_avatar?: string;
-    avatar: string | null;
+    avatar: { url: string } | null;
+    email_verified_at: string | null;
+    language: string;
+    timezone: string;
+    theme: string;
+    color_scheme: string;
+    phone?: string;
+    permissions: Permission[];
+    roles?: Role[];
+    created_at: string;
+    updated_at: string;
+}
+
+export interface UserSimplified {
+    id: number;
+    name: string;
+    email: string;
+    attachment_avatar?: string;
+    avatar: { url: string } | null;
     email_verified_at: string | null;
     language: string;
     timezone: string;
@@ -66,7 +84,7 @@ export interface Role {
     nbrOfUsers: number;
     permissions: Permission[];
     nbrOfUsers?: number;
-    users: User[];
+    users: UserSimplified[];
     created_at: string;
     updated_at: string;
 }

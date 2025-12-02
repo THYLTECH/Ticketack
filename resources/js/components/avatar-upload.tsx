@@ -71,10 +71,12 @@ async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<File | 
 interface AvatarUploaderProps {
     defaultUrl?: string | null;
     onFileChange?: (file: File | null) => void;
+    disabled?: boolean;
 }
 
 export default function AvatarUploader({
     defaultUrl = null,
+    disabled = false,
     onFileChange,
 }: Readonly<AvatarUploaderProps>) {
     const __ = useTrans();
@@ -240,7 +242,7 @@ export default function AvatarUploader({
                     )}
                 </button>
 
-                {finalImageUrl && (
+                {finalImageUrl && !disabled && (
                     <Button
                         type="button"
                         onClick={(e) => {
@@ -255,7 +257,7 @@ export default function AvatarUploader({
                     </Button>
                 )}
 
-                <input {...getInputProps()} className="sr-only" />
+                <input {...getInputProps()} className="sr-only" disabled={disabled} />
             </div>
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

@@ -51,6 +51,9 @@ require __DIR__.'/assets.php';
 // Roles routes
 require __DIR__.'/roles.php';
 
+// Users routes
+require __DIR__.'/users.php';
+
 // Todo : Tickets, assets, settings etc....
 
 

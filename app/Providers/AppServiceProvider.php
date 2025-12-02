@@ -11,10 +11,12 @@ use Illuminate\Support\Facades\Gate;
 // Models
 use App\Models\Asset;
 use Spatie\Permission\Models\Role;
+use App\Models\User;
 
 // Policies
 use App\Policies\Asset as AssetPolicy;
 use App\Policies\Role as RolePolicy;
+use App\Policies\User as UserPolicy;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -36,6 +38,7 @@ class AppServiceProvider extends ServiceProvider
         // Policies
         Gate::policy(Asset::class, AssetPolicy::class);
         Gate::policy(Role::class, RolePolicy::class);
+        Gate::policy(User::class, UserPolicy::class);
 
         // Customizing the authentication redirect behavior
         Authenticate::redirectUsing(function ($request) {

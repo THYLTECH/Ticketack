@@ -59,7 +59,7 @@ class HandleInertiaRequests extends Middleware
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
-                    'avatar' => $user->avatar?->getUrl(),
+                    'avatar' => $user->avatar,
                     'email_verified_at' => $user->email_verified_at,
                     'language' => $user->language,
                     'timezone' => $user->timezone,

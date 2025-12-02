@@ -19,13 +19,15 @@ class RegisteredEmail extends Mailable
     use Queueable, SerializesModels;
 
     protected $user;
+    protected $plain_password;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(User $user)
+    public function __construct(User $user, ?string $plain_password = null)
     {
         $this->user = $user;
+        $this->plain_password = $plain_password;
     }
 
     /**
@@ -49,6 +51,7 @@ class RegisteredEmail extends Mailable
             with: [
                 'user' => $this->user,
                 'url' => route('auth.login'),
+                'plain_password' => $this->plain_password,
             ],
         );
     }

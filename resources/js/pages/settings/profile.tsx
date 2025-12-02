@@ -203,7 +203,7 @@ function InformationForm({ auth }: { auth: SharedData['auth'] }) {
 
             <div className="flex flex-col items-start gap-3 md:col-span-1">
                 <AvatarUpload
-                    defaultUrl={auth.user?.avatar ?? null}
+                    defaultUrl={auth.user?.avatar?.url ?? null}
                     onFileChange={(file) => {
                         setData('avatar', file);
                     }}
