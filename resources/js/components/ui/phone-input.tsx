@@ -91,7 +91,7 @@ const InputComponent = React.forwardRef<HTMLInputElement, InputComponentProps>(
       <InputGroup className={cn("rounded-e-lg rounded-s-none", className)}>
         <InputGroupInput {...props} ref={ref} value={value} />
 
-        {showClear && (
+        {showClear && !props.disabled && (
           <InputGroupAddon align="inline-end">
             <InputGroupButton
               size="icon-xs"

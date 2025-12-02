@@ -1,4 +1,4 @@
-// resources/js/pages/roles/delete.tsx
+// resources/js/pages/users/delete.tsx
 
 // Necessary imports
 import { userHasPermission } from '@/lib/utils';
@@ -22,16 +22,16 @@ import {
 } from '@/components/ui/alert-dialog';
 
 // Types
-import { Role, SharedData } from '@/types';
+import { SharedData, User } from '@/types';
 
 // Icons
 import { Trash2 } from 'lucide-react';
 
-export function DeleteRole({
-    role,
+export function DeleteUser({
+    user,
     children,
 }: {
-    role: Role;
+    user: User;
     children: React.ReactNode;
 }) {
     const __ = useTrans();
@@ -42,21 +42,21 @@ export function DeleteRole({
             <AlertDialogContent>
                 <AlertDialogHeader>
                     <AlertDialogTitle>
-                        {__('roles.pages.delete.title')}
+                        {__('users.pages.delete.title')}
                     </AlertDialogTitle>
                     <AlertDialogDescription>
-                        {__('roles.pages.delete.description', undefined, {
-                            title: role.name,
+                        {__('users.pages.delete.description', undefined, {
+                            name: user.name,
                         })}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel>
-                        {__('roles.pages.delete.buttons.cancel')}
+                        {__('users.pages.delete.buttons.cancel')}
                     </AlertDialogCancel>
                     {userHasPermission({
                         user: usePage<SharedData>().props.auth.user,
-                        permission: 'delete roles',
+                        permission: 'delete users',
                     }) && (
                         <AlertDialogAction
                             className="bg-destructive hover:bg-destructive/90"
@@ -64,12 +64,12 @@ export function DeleteRole({
                         >
                             <Link
                                 method={'delete'}
-                                href={route('roles.destroy', {
-                                    role: role.id,
+                                href={route('users.destroy', {
+                                    user: user.id,
                                 })}
                             >
                                 <Trash2 />
-                                {__('roles.pages.delete.buttons.confirm')}
+                                {__('users.pages.delete.buttons.confirm')}
                             </Link>
                         </AlertDialogAction>
                     )}

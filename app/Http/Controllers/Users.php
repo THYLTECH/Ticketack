@@ -21,7 +21,7 @@ use App\Models\Attachment;
 
 // Requests
 use App\Http\Requests\Users\Store as RequestsStore;
-// use App\Http\Requests\Users\Update as RequestsUpdate;
+use App\Http\Requests\Users\Update as RequestsUpdate;
 
 // Notifications
 use App\Notifications\UserRegistered as NotificationsUserRegistered;
@@ -69,7 +69,10 @@ class Users extends Controller
      * @return Response | RedirectResponse
      */
     public function edit(User $user): Response | RedirectResponse {
-        // 
+        return Inertia::render('users/edit', [
+            'user' => $user->load('roles', 'avatar'),
+            'roles' => Role::all(),
+        ]);
     }
     
     /**
@@ -79,7 +82,10 @@ class Users extends Controller
      * @return Response | RedirectResponse
     */
     public function show(User $user): Response | RedirectResponse {
-        // 
+        return Inertia::render('users/show', [
+            'user' => $user->load('roles', 'avatar'),
+            'roles' => Role::all(),
+        ]);
     }
 
     /**
@@ -146,8 +152,57 @@ class Users extends Controller
      * @param User $user
      * @return RedirectResponse
      */
-    public function update(Request $request, User $user): RedirectResponse {  
-        // 
+    public function update(RequestsUpdate $request, User $user): RedirectResponse {  
+        $data = $request->validated();
+
+        unset($data['avatar']);
+
+        if ($request->exists('avatar') && $request->avatar === null && $user->avatar) {
+            // Delete existing avatar
+
+            Storage::disk('public')->delete($user->avatar->file_path);
+            $user->avatar->delete();
+            $user->update(['attachment_avatar' => null]);
+
+        } elseif ($request->hasFile('avatar')) {
+
+            $file = $request->file('avatar');
+
+            if ($user->avatar) {
+                Storage::disk('public')->delete($user->avatar->file_path);
+                $user->avatar->delete();
+            }
+
+            $path = Storage::disk('public')->putFile("users/{$user->id}/avatars", $file);
+
+            $attachment = Attachment::create([
+                'file_name'      => $file->getClientOriginalName(),
+                'file_path'      => $path,
+                'mime_type'      => $file->getMimeType(),
+                'file_extension' => $file->getClientOriginalExtension(),
+                'file_size'      => $file->getSize(),
+            ]);
+
+            $user->avatar()->associate($attachment);
+            $user->save();
+        }
+
+        // Update email verified attribute
+        if ($data['email_verified']) {
+            $data['email_verified_at'] = now();
+        } else {
+            $data['email_verified_at'] = null;
+        }
+        unset($data['email_verified']);
+
+        $user->update($data);
+
+        // Update roles
+        if (isset($data['roles']) && is_array($data['roles'])) {
+            $roles = Role::whereIn('id', $data['roles'])->get();
+            $user->syncRoles($roles);
+        }
+        return redirect()->route('users.index')->with(['success' => __('users.flash.updated')]);
     }
 
     /**
@@ -157,6 +212,15 @@ class Users extends Controller
      * @return RedirectResponse
      */
     public function destroy(User $user): RedirectResponse {
-        // 
+        
+        // avatar
+        if ($user->avatar) {
+            Storage::disk('public')->delete($user->avatar->file_path);
+            $user->avatar->delete();
+        }
+        
+        $user->delete();
+
+        return redirect()->route('users.index')->with(['success' => __('users.flash.deleted')]);
     }
 }

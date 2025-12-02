@@ -62,6 +62,7 @@ export function InformationsTab({
     const options: ComboboxOption[] = roles.map((role) => ({
         label: role.name,
         value: role.id.toString(),
+        selected: data.roles.includes(role.id.toString()),
     }));
 
     return (
@@ -190,7 +191,8 @@ export function InformationsTab({
 
                 <div className="md:max-w-[250px]">
                     <AvatarUploader
-                        defaultUrl={null}
+                        defaultUrl={data.avatar_url}
+                        disabled={disabled}
                         onFileChange={(file) => {
                             setData('avatar', file);
                         }}
@@ -199,23 +201,4 @@ export function InformationsTab({
             </div>
         </TabsContent>
     );
-}
-
-export function SecurityTab({
-    errors,
-    data,
-    setData,
-    disabled = false,
-}: {
-    errors: Record<string, string>;
-    // Change these any types
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setData: any;
-    disabled?: boolean;
-}) {
-    const __ = useTrans();
-
-    return <></>;
 }

@@ -1,8 +1,8 @@
 <?php
 
-// app/Http/Requests/Roles/Update.php
+// app/Http/Requests/Users/Update.php
 
-namespace App\Http\Requests\Roles;
+namespace App\Http\Requests\Users;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -11,9 +11,9 @@ use Illuminate\Validation\Rule;
 /**
  * Class Update
  * 
- * Request class for validating role update requests.
+ * Request class for validating user update requests.
  * 
- * @package App\Http\Requests\Roles
+ * @package App\Http\Requests\Users
  */
 class Update extends FormRequest
 {
@@ -34,13 +34,15 @@ class Update extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255', Rule::unique('roles', 'name')->ignore($this->route('role')->id)],
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($this->user->id)],
+            'phone' => ['nullable', 'string', 'max:20'],
+            'email_verified' => ['required', 'boolean'],
 
-            'permissions' => ['array'],
-            'permissions.*.id' => ['integer', 'exists:permissions,id'],
+            'roles' => ['required', 'array'],
+            'roles.*' => ['integer', Rule::exists('roles', 'id')],
 
-            'users' => ['array'],
-            'users.*.id' => ['integer', 'exists:users,id'],
+            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:2048'],
         ];
     }
 }

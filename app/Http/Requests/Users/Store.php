@@ -42,7 +42,7 @@ class Store extends FormRequest
             'roles' => ['required', 'array'],
             'roles.*' => ['integer', Rule::exists('roles', 'id')],
 
-            'avatar' => ['nullable', 'image', 'max:2048'],
+            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:2048'],
         ];
     }
 }

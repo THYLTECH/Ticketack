@@ -34,7 +34,7 @@ return [
             'head_title' => 'Users',
 
             'title' => 'Users',
-            'description' => 'Manage and view all your roles in one place.',
+            'description' => 'Manage and view every user in one place.',
 
             'buttons' => [
                 'create' => 'Create a User',
@@ -70,15 +70,15 @@ return [
             'description' => 'Fill out the form below to create a new user.',
         ],
         'edit' => [
-            'head_title' => 'Edit User :title',
+            'head_title' => 'Edit User :name',
 
-            'title' => 'Edit User :title',
+            'title' => 'Edit User :name',
             'description' => 'Modify the details of the user below.',
         ],
         'show' => [
-            'head_title' => 'View User :title',
+            'head_title' => 'View User :name',
 
-            'title' => 'View User :title',
+            'title' => 'View User :name',
             'description' => 'View the details of this user.',
         ],
         'form' => [
@@ -92,11 +92,6 @@ return [
             'tabs' => [
                 'informations' => 'Informations',
             ],
-
-
-
-
-
             'fields' => [
                 'name' => [
                     'label' => 'Name',
@@ -179,11 +174,11 @@ return [
             ],
         ],
         'delete' => [
-            'title' => 'Are you sure you want to delete this role?',
-            'description' => 'This action cannot be undone. This will permanently delete the role titled \':title\'.',
+            'title' => 'Are you sure you want to delete this user?',
+            'description' => 'This action cannot be undone. This will permanently delete the user \':name\'.',
             'buttons' => [
                 'cancel' => 'Cancel',
-                'confirm' => 'Yes, delete role',
+                'confirm' => 'Yes, delete user',
             ],
         ],
     ],

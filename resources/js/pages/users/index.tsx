@@ -144,7 +144,7 @@ function UserTable({ users }: { users: User[] }) {
             <TableHeader>
                 <TableRow>
                     <TableHead className="text-xs text-muted-foreground">
-                        {__('users.pages.index.table.columns.pfp')}
+                        {/* {__('users.pages.index.table.columns.pfp')} */}
                     </TableHead>
                     <TableHead className="text-xs text-muted-foreground">
                         {__('users.pages.index.table.columns.name')}

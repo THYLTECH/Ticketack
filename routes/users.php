@@ -17,7 +17,8 @@ Route::prefix('users/')->name('users.')->middleware(['auth', 'verified:auth.veri
         Route::get('/{user}/edit', 'edit')->name('edit');
         Route::post('/', 'store')->name('store');
 
-        Route::patch('/{user}', 'update')->name('update');
+        // Forced to use POST due to HTML form limitations for file uploads
+        Route::post('/{user}', 'update')->name('update');
 
         Route::delete('/{user}', 'destroy')->name('destroy');
     });

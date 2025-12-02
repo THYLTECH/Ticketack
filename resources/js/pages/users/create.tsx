@@ -67,12 +67,14 @@ function CreateForm({ existing_roles }: { existing_roles: Role[] }) {
     const { data, setData, processing, errors, post } = useForm<{
         name: string;
         email: string;
+        phone: string;
         avatar?: File | null;
         roles: string[];
         email_verified: boolean;
     }>({
         name: '',
         email: '',
+        phone: '',
         avatar: null,
         roles: [],
         email_verified: false,

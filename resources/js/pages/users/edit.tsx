@@ -1,4 +1,4 @@
-// resources/js/pages/roles/edit.tsx
+// resources/js/pages/users/edit.tsx
 
 // Necessary imports
 import { userHasPermission } from '@/lib/utils';
@@ -11,8 +11,8 @@ import AppLayout from '@/layouts/app/layout';
 import { useTrans } from '@/lib/translation';
 
 // Custom components
-import { DeleteRole } from '@/pages/roles/delete';
-import { InformationsTab, PermissionsTab, UsersTab } from '@/pages/roles/form';
+import { DeleteUser } from '@/pages/users/delete';
+import { InformationsTab } from '@/pages/users/form';
 
 // Shadnc UI Components
 import { Button } from '@/components/ui/button';
@@ -30,26 +30,12 @@ import { Spinner } from '@/components/ui/spinner';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Types
-import type {
-    BreadcrumbItem,
-    Permission,
-    Role,
-    SharedData,
-    User,
-} from '@/types';
+import type { BreadcrumbItem, Role, SharedData, User } from '@/types';
 
 // Icons
-import { ArrowLeft, File, Pen, Shield, Trash2, UserIcon } from 'lucide-react';
+import { ArrowLeft, File, Pen, Trash2 } from 'lucide-react';
 
-export default function Edit({
-    role,
-    permissions,
-    usersWithoutRole,
-}: {
-    role: Role;
-    permissions: Permission[];
-    usersWithoutRole: User[];
-}) {
+export default function Edit({ roles, user }: { roles: Role[]; user: User }) {
     const __ = useTrans();
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -58,11 +44,11 @@ export default function Edit({
             href: route('dashboard'),
         },
         {
-            title: __('roles.pages.breadcrumbs.index'),
-            href: route('roles.index'),
+            title: __('users.pages.breadcrumbs.index'),
+            href: route('users.index'),
         },
         {
-            title: __('roles.pages.breadcrumbs.edit'),
+            title: __('users.pages.breadcrumbs.edit'),
             href: '#',
         },
     ];
@@ -70,74 +56,77 @@ export default function Edit({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head
-                title={__('roles.pages.edit.head_title', undefined, {
-                    title: role.name,
+                title={__('users.pages.edit.head_title', undefined, {
+                    name: user.name,
                 })}
             />
 
-            <EditForm
-                role={role}
-                permissions={permissions}
-                usersWithoutRole={usersWithoutRole}
-            />
+            <CreateForm existing_roles={roles} user={user} />
         </AppLayout>
     );
 }
 
-function EditForm({
-    role,
-    permissions,
-    usersWithoutRole,
+function CreateForm({
+    existing_roles,
+    user,
 }: {
-    role: Role;
-    permissions: Permission[];
-    usersWithoutRole: User[];
+    existing_roles: Role[];
+    user: User;
 }) {
     const __ = useTrans();
 
-    const { data, setData, errors, processing, patch } = useForm<{
+    const { data, setData, errors, processing, post } = useForm<{
         name: string;
-        permissions: Permission[];
-        users: User[];
+        email: string;
+        phone: string;
+        avatar?: File | null;
+        roles: string[];
+        email_verified: boolean;
+
+        avatar_url?: string | null;
     }>({
-        name: role.name,
-        permissions: role.permissions || [],
-        users: role.users || [],
+        name: user.name,
+        email: user.email,
+        phone: user.phone || '',
+        roles: (user.roles && user.roles.map((role) => String(role.id))) || [],
+        email_verified: user.email_verified_at !== null,
+
+        avatar_url: user.avatar ? user.avatar.url : null,
     });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        patch(route('roles.update', { role: role.id }));
+        post(route('users.update', { user: user.id }));
     };
 
     return (
         <Card>
             <CardHeader>
                 <CardTitle>
-                    {__('roles.pages.edit.title', undefined, {
-                        title: role.name,
+                    {__('users.pages.edit.title', undefined, {
+                        name: user.name,
                     })}
                 </CardTitle>
                 <CardDescription>
-                    {__('roles.pages.edit.description')}
+                    {__('users.pages.edit.description')}
                 </CardDescription>
                 <CardAction className="space-x-2">
                     <Button asChild variant={'secondary'}>
-                        <Link href={route('roles.index')}>
+                        <Link href={route('users.index')}>
                             <ArrowLeft />
-                            {__('roles.pages.form.buttons.back')}
+                            {__('users.pages.form.buttons.back')}
                         </Link>
                     </Button>
                     {userHasPermission({
                         user: usePage<SharedData>().props.auth.user,
-                        permission: 'delete roles',
+                        permission: 'delete users',
                     }) && (
-                        <DeleteRole role={role}>
+                        <DeleteUser user={user}>
                             <Button variant="destructive">
                                 <Trash2 />
-                                {__('roles.pages.form.buttons.delete')}
+                                {__('users.pages.form.buttons.delete')}
                             </Button>
-                        </DeleteRole>
+                        </DeleteUser>
                     )}
                 </CardAction>
             </CardHeader>
@@ -149,18 +138,10 @@ function EditForm({
                         defaultValue={'informations'}
                         className="w-full space-y-4"
                     >
-                        <TabsList className="w-full">
+                        <TabsList className="hidden w-full">
                             <TabsTrigger value={'informations'}>
                                 <File />
-                                {__('roles.pages.form.tabs.informations')}
-                            </TabsTrigger>
-                            <TabsTrigger value={'permissions'}>
-                                <Shield />
-                                {__('roles.pages.form.tabs.permissions')}
-                            </TabsTrigger>
-                            <TabsTrigger value={'users'}>
-                                <UserIcon />
-                                {__('roles.pages.form.tabs.users')}
+                                {__('users.pages.form.tabs.informations')}
                             </TabsTrigger>
                         </TabsList>
 
@@ -169,30 +150,19 @@ function EditForm({
                             setData={setData}
                             errors={errors}
                             disabled={processing}
-                        />
-                        <PermissionsTab
-                            data={data}
-                            setData={setData}
-                            permissions={permissions}
-                            disabled={processing}
-                        />
-                        <UsersTab
-                            data={data}
-                            setData={setData}
-                            usersWithoutRole={usersWithoutRole}
-                            disabled={processing}
+                            roles={existing_roles}
                         />
                     </Tabs>
                 </CardContent>
                 <Separator className="my-6" />
                 {userHasPermission({
                     user: usePage<SharedData>().props.auth.user,
-                    permission: 'update roles',
+                    permission: 'update users',
                 }) && (
                     <CardFooter>
                         <Button disabled={processing} className="w-full">
                             {processing ? <Spinner /> : <Pen />}
-                            {__('roles.pages.form.buttons.update')}
+                            {__('users.pages.form.buttons.update')}
                         </Button>
                     </CardFooter>
                 )}

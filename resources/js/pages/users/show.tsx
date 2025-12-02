@@ -1,4 +1,4 @@
-// resources/js/pages/roles/show.tsx
+// resources/js/pages/users/show.tsx
 
 // Necessary imports
 import { userHasPermission } from '@/lib/utils';
@@ -11,7 +11,7 @@ import AppLayout from '@/layouts/app/layout';
 import { useTrans } from '@/lib/translation';
 
 // Custom components
-import { InformationsTab, PermissionsTab, UsersTab } from '@/pages/roles/form';
+import { InformationsTab } from '@/pages/users/form';
 
 // Shadnc UI Components
 import { Button } from '@/components/ui/button';
@@ -27,26 +27,12 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Types
-import type {
-    BreadcrumbItem,
-    Permission,
-    Role,
-    SharedData,
-    User,
-} from '@/types';
+import type { BreadcrumbItem, Role, SharedData, User } from '@/types';
 
 // Icons
-import { ArrowLeft, File, Pen, Shield, UserIcon } from 'lucide-react';
+import { ArrowLeft, File, Pen } from 'lucide-react';
 
-export default function Show({
-    role,
-    permissions,
-    usersWithoutRole,
-}: {
-    role: Role;
-    permissions: Permission[];
-    usersWithoutRole: User[];
-}) {
+export default function Show({ roles, user }: { roles: Role[]; user: User }) {
     const __ = useTrans();
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -55,11 +41,11 @@ export default function Show({
             href: route('dashboard'),
         },
         {
-            title: __('roles.pages.breadcrumbs.index'),
-            href: route('roles.index'),
+            title: __('users.pages.breadcrumbs.index'),
+            href: route('users.index'),
         },
         {
-            title: __('roles.pages.breadcrumbs.show'),
+            title: __('users.pages.breadcrumbs.show'),
             href: '#',
         },
     ];
@@ -67,67 +53,71 @@ export default function Show({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head
-                title={__('roles.pages.show.head_title', undefined, {
-                    title: role.name,
+                title={__('users.pages.show.head_title', undefined, {
+                    name: user.name,
                 })}
             />
 
-            <ShowForm
-                role={role}
-                permissions={permissions}
-                usersWithoutRole={usersWithoutRole}
-            />
+            <ShowForm existing_roles={roles} user={user} />
         </AppLayout>
     );
 }
 
 function ShowForm({
-    role,
-    permissions,
-    usersWithoutRole,
+    existing_roles,
+    user,
 }: {
-    role: Role;
-    permissions: Permission[];
-    usersWithoutRole: User[];
+    existing_roles: Role[];
+    user: User;
 }) {
     const __ = useTrans();
 
     const { data, setData, errors } = useForm<{
         name: string;
-        permissions: Permission[];
-        users: User[];
+        email: string;
+        phone: string;
+        avatar?: File | null;
+        roles: string[];
+        email_verified: boolean;
+
+        avatar_url?: string | null;
     }>({
-        name: role.name,
-        permissions: role.permissions || [],
-        users: role.users || [],
+        name: user.name,
+        email: user.email,
+        phone: user.phone || '',
+        avatar: null,
+        roles: (user.roles && user.roles.map((role) => String(role.id))) || [],
+        email_verified: user.email_verified_at !== null,
+
+        avatar_url: user.avatar ? user.avatar.url : null,
     });
 
     return (
         <Card>
             <CardHeader>
                 <CardTitle>
-                    {__('roles.pages.show.title', undefined, {
-                        title: role.name,
+                    {__('users.pages.show.title', undefined, {
+                        name: user.name,
                     })}
                 </CardTitle>
                 <CardDescription>
-                    {__('roles.pages.show.description')}
+                    {__('users.pages.show.description')}
                 </CardDescription>
                 <CardAction className="space-x-2">
                     <Button asChild variant={'secondary'}>
-                        <Link href={route('roles.index')}>
+                        <Link href={route('users.index')}>
                             <ArrowLeft />
-                            {__('roles.pages.form.buttons.back')}
+                            {__('users.pages.form.buttons.back')}
                         </Link>
                     </Button>
                     {userHasPermission({
                         user: usePage<SharedData>().props.auth.user,
-                        permission: 'update roles',
+                        permission: 'update users',
                     }) && (
                         <Button asChild variant={'default'}>
-                            <Link href={route('roles.edit', { role: role.id })}>
+                            <Link href={route('users.edit', { user: user.id })}>
                                 <Pen />
-                                {__('roles.pages.form.buttons.edit')}
+                                {__('users.pages.form.buttons.edit')}
                             </Link>
                         </Button>
                     )}
@@ -140,18 +130,10 @@ function ShowForm({
                     defaultValue={'informations'}
                     className="w-full space-y-4"
                 >
-                    <TabsList className="w-full">
+                    <TabsList className="hidden w-full">
                         <TabsTrigger value={'informations'}>
                             <File />
-                            {__('roles.pages.form.tabs.informations')}
-                        </TabsTrigger>
-                        <TabsTrigger value={'permissions'}>
-                            <Shield />
-                            {__('roles.pages.form.tabs.permissions')}
-                        </TabsTrigger>
-                        <TabsTrigger value={'users'}>
-                            <UserIcon />
-                            {__('roles.pages.form.tabs.users')}
+                            {__('users.pages.form.tabs.informations')}
                         </TabsTrigger>
                     </TabsList>
 
@@ -159,18 +141,7 @@ function ShowForm({
                         data={data}
                         setData={setData}
                         errors={errors}
-                        disabled
-                    />
-                    <PermissionsTab
-                        data={data}
-                        setData={setData}
-                        permissions={permissions}
-                        disabled
-                    />
-                    <UsersTab
-                        data={data}
-                        setData={setData}
-                        usersWithoutRole={usersWithoutRole}
+                        roles={existing_roles}
                         disabled
                     />
                 </Tabs>
