@@ -9,15 +9,22 @@ use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Response;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 
 // Models
 use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use App\Models\User;
+use App\Models\Attachment;
 
 // Requests
-// use App\Http\Requests\Users\Store as RequestsStore;
+use App\Http\Requests\Users\Store as RequestsStore;
 // use App\Http\Requests\Users\Update as RequestsUpdate;
+
+// Notifications
+use App\Notifications\UserRegistered as NotificationsUserRegistered;
 
 /**
  * Class Users
@@ -50,7 +57,9 @@ class Users extends Controller
      * @return Response
      */
     public function create(): Response {
-        // 
+        return Inertia::render('users/create', [
+            'roles' => Role::all(),
+        ]);
     }
 
     /**
@@ -76,11 +85,58 @@ class Users extends Controller
     /**
      * Store a newly created user in database.
      * 
-     * @param Request $request
+     * @param RequestStore $request
      * @return RedirectResponse
      */
-    public function store(Request $request): RedirectResponse {
-        // 
+    public function store(RequestsStore $request): RedirectResponse {
+        $data = $request->validated();
+
+        // Generate a random password
+        $plain_password = Str::random(12);
+        $hashed_password = Hash::make($plain_password);
+
+        $data['password'] = $hashed_password;
+
+        // Set email verified attribute
+        if ($data['email_verified']) {
+            $data['email_verified_at'] = now();
+        } else {
+            $data['email_verified_at'] = null;
+        }
+
+        unset($data['email_verified']);
+
+        // Create the user
+        $user = User::create($data);
+
+        // Assign roles
+        if (isset($data['roles']) && is_array($data['roles'])) {
+            $roles = Role::whereIn('id', $data['roles'])->get();
+            $user->syncRoles($roles);
+        }
+
+        // Attach avatar
+        if ($request->hasFile('avatar')) {
+
+            $file = $request->file('avatar');
+
+            $path = Storage::disk('public')->putFile("users/{$user->id}/avatars", $file);
+
+            $attachment = Attachment::create([
+                'file_name'      => $file->getClientOriginalName(),
+                'file_path'      => $path,
+                'mime_type'      => $file->getMimeType(),
+                'file_extension' => $file->getClientOriginalExtension(),
+                'file_size'      => $file->getSize(),
+            ]);
+
+            $user->avatar()->associate($attachment);
+            $user->save();
+        }
+
+        Notification::send($user, new NotificationsUserRegistered($plain_password));
+        
+        return redirect()->route('users.index')->with(['success' => __('users.flash.created')]);
     }
 
     /**

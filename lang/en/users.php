@@ -64,42 +64,70 @@ return [
             ],
         ],
         'create' => [
-            'head_title' => 'Create a Role',
+            'head_title' => 'Create a User',
 
-            'title' => 'Create a Role',
-            'description' => 'Fill out the form below to create a new role.',
+            'title' => 'Create a User',
+            'description' => 'Fill out the form below to create a new user.',
         ],
         'edit' => [
-            'head_title' => 'Edit Role :title',
+            'head_title' => 'Edit User :title',
 
-            'title' => 'Edit Role :title',
-            'description' => 'Modify the details of the role below.',
+            'title' => 'Edit User :title',
+            'description' => 'Modify the details of the user below.',
         ],
         'show' => [
-            'head_title' => 'View Role :title',
+            'head_title' => 'View User :title',
 
-            'title' => 'View Role :title',
-            'description' => 'View the details of this role.',
+            'title' => 'View User :title',
+            'description' => 'View the details of this user.',
         ],
         'form' => [
             'buttons' => [
-                'back' => 'Go back to roles',
-                'store' => 'Store Role',
-                'update' => 'Update Role',
-                'delete' => 'Delete Role',
-                'edit' => 'Edit Role',
+                'back' => 'Go back to users',
+                'store' => 'Store User',
+                'update' => 'Update User',
+                'delete' => 'Delete User',
+                'edit' => 'Edit User',
             ],
             'tabs' => [
                 'informations' => 'Informations',
-                'permissions' => 'Permissions',
-                'users' => 'Users',
             ],
+
+
+
+
+
             'fields' => [
                 'name' => [
                     'label' => 'Name',
-                    'placeholder' => 'Enter role name',
+                    'placeholder' => 'eg. John Doe',
+                ],
+                'email' => [
+                    'label' => 'Email Address',
+                    'placeholder' => 'eg. user@example.com',
+                ],
+                'email_status' => [
+                    'label' => 'Email Status',
+                    'verified' => 'Verified',
+                    'unverified' => 'Not Verified',
+                    'placeholder' => 'Select verification status',
+                ],
+                'phone' => [
+                    'label' => 'Phone Number',
+                    'placeholder' => 'eg. +1234567890',
+                    'search_placeholder' => 'eg. United States',
+                ],
+                'roles' => [
+                    'label' => 'Roles',
+                    'placeholder' => 'Select roles for the user',
+                ],
+                'pfp' => [
+                    'label' => 'Profile Picture',
                 ],
             ],
+
+
+
             'users' => [
                 'dialog' => [
 

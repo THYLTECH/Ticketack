@@ -1,4 +1,4 @@
-// resources/js/pages/roles/create.tsx
+// resources/js/pages/users/create.tsx
 
 // Necessary imports
 import { userHasPermission } from '@/lib/utils';
@@ -11,7 +11,7 @@ import AppLayout from '@/layouts/app/layout';
 import { useTrans } from '@/lib/translation';
 
 // Custom components
-import { InformationsTab, PermissionsTab, UsersTab } from '@/pages/roles/form';
+import { InformationsTab } from '@/pages/users/form';
 
 // Shadnc UI Components
 import { Button } from '@/components/ui/button';
@@ -29,18 +29,12 @@ import { Spinner } from '@/components/ui/spinner';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Types
-import type { BreadcrumbItem, Permission, SharedData, User } from '@/types';
+import type { BreadcrumbItem, Role, SharedData } from '@/types';
 
 // Icons
-import { ArrowLeft, File, Plus, Shield, UserIcon } from 'lucide-react';
+import { ArrowLeft, File, Plus } from 'lucide-react';
 
-export default function Create({
-    permissions,
-    usersWithoutRole,
-}: {
-    permissions: Permission[];
-    usersWithoutRole: User[];
-}) {
+export default function Create({ roles }: { roles: Role[] }) {
     const __ = useTrans();
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -49,63 +43,58 @@ export default function Create({
             href: route('dashboard'),
         },
         {
-            title: __('roles.pages.breadcrumbs.index'),
-            href: route('roles.index'),
+            title: __('users.pages.breadcrumbs.index'),
+            href: route('users.index'),
         },
         {
-            title: __('roles.pages.breadcrumbs.create'),
+            title: __('users.pages.breadcrumbs.create'),
             href: '#',
         },
     ];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={__('roles.pages.create.head_title')} />
+            <Head title={__('users.pages.create.head_title')} />
 
-            <CreateForm
-                permissions={permissions}
-                usersWithoutRole={usersWithoutRole}
-            />
+            <CreateForm existing_roles={roles} />
         </AppLayout>
     );
 }
 
-function CreateForm({
-    permissions,
-    usersWithoutRole,
-}: {
-    permissions: Permission[];
-    usersWithoutRole: User[];
-}) {
+function CreateForm({ existing_roles }: { existing_roles: Role[] }) {
     const __ = useTrans();
 
     const { data, setData, processing, errors, post } = useForm<{
         name: string;
-        permissions: Permission[];
-        users: User[];
+        email: string;
+        avatar?: File | null;
+        roles: string[];
+        email_verified: boolean;
     }>({
         name: '',
-        permissions: [],
-        users: [],
+        email: '',
+        avatar: null,
+        roles: [],
+        email_verified: false,
     });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route('roles.store'));
+        post(route('users.store'));
     };
 
     return (
         <Card>
             <CardHeader>
-                <CardTitle>{__('roles.pages.create.title')}</CardTitle>
+                <CardTitle>{__('users.pages.create.title')}</CardTitle>
                 <CardDescription>
-                    {__('roles.pages.create.description')}
+                    {__('users.pages.create.description')}
                 </CardDescription>
                 <CardAction>
                     <Button asChild variant={'secondary'}>
-                        <Link href={route('roles.index')}>
+                        <Link href={route('users.index')}>
                             <ArrowLeft />
-                            {__('roles.pages.form.buttons.back')}
+                            {__('users.pages.form.buttons.back')}
                         </Link>
                     </Button>
                 </CardAction>
@@ -118,18 +107,10 @@ function CreateForm({
                         defaultValue={'informations'}
                         className="w-full space-y-4"
                     >
-                        <TabsList className="w-full">
+                        <TabsList className="hidden w-full">
                             <TabsTrigger value={'informations'}>
                                 <File />
-                                {__('roles.pages.form.tabs.informations')}
-                            </TabsTrigger>
-                            <TabsTrigger value={'permissions'}>
-                                <Shield />
-                                {__('roles.pages.form.tabs.permissions')}
-                            </TabsTrigger>
-                            <TabsTrigger value={'users'}>
-                                <UserIcon />
-                                {__('roles.pages.form.tabs.users')}
+                                {__('users.pages.form.tabs.informations')}
                             </TabsTrigger>
                         </TabsList>
 
@@ -138,30 +119,19 @@ function CreateForm({
                             setData={setData}
                             errors={errors}
                             disabled={processing}
-                        />
-                        <PermissionsTab
-                            data={data}
-                            setData={setData}
-                            permissions={permissions}
-                            disabled={processing}
-                        />
-                        <UsersTab
-                            data={data}
-                            setData={setData}
-                            usersWithoutRole={usersWithoutRole}
-                            disabled={processing}
+                            roles={existing_roles}
                         />
                     </Tabs>
                 </CardContent>
                 <Separator className="my-6" />
                 {userHasPermission({
                     user: usePage<SharedData>().props.auth.user,
-                    permission: 'create roles',
+                    permission: 'create users',
                 }) && (
                     <CardFooter>
                         <Button disabled={processing} className="w-full">
                             {processing ? <Spinner /> : <Plus />}
-                            {__('roles.pages.form.buttons.store')}
+                            {__('users.pages.form.buttons.store')}
                         </Button>
                     </CardFooter>
                 )}
