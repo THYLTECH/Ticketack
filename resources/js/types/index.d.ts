@@ -48,7 +48,7 @@ export interface User {
     name: string;
     email: string;
     attachment_avatar?: string;
-    avatar: string | null;
+    avatar: { url: string } | null;
     email_verified_at: string | null;
     language: string;
     timezone: string;
@@ -56,6 +56,7 @@ export interface User {
     color_scheme: string;
     phone?: string;
     permissions: Permission[];
+    roles?: Role[];
     created_at: string;
     updated_at: string;
 }
