@@ -3,9 +3,7 @@
 // app/Policies/User.php
 
 namespace App\Policies;
-
 use App\Models\User as ModelsUser;
-use Illuminate\Auth\Access\Response;
 
 /**
  * Policy class for managing permissions related to User model.

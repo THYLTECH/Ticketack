@@ -35,7 +35,6 @@ use App\Notifications\UserRegistered as NotificationsUserRegistered;
  */
 class Users extends Controller
 {
-
     public function __construct() {
         $this->authorizeResource(User::class, 'user');
     }
@@ -100,7 +99,6 @@ class Users extends Controller
         // Generate a random password
         $plain_password = Str::random(12);
         $hashed_password = Hash::make($plain_password);
-
         $data['password'] = $hashed_password;
 
         // Set email verified attribute
@@ -109,7 +107,6 @@ class Users extends Controller
         } else {
             $data['email_verified_at'] = null;
         }
-
         unset($data['email_verified']);
 
         // Create the user
@@ -123,11 +120,8 @@ class Users extends Controller
 
         // Attach avatar
         if ($request->hasFile('avatar')) {
-
             $file = $request->file('avatar');
-
             $path = Storage::disk('public')->putFile("users/{$user->id}/avatars", $file);
-
             $attachment = Attachment::create([
                 'file_name'      => $file->getClientOriginalName(),
                 'file_path'      => $path,
@@ -135,13 +129,11 @@ class Users extends Controller
                 'file_extension' => $file->getClientOriginalExtension(),
                 'file_size'      => $file->getSize(),
             ]);
-
             $user->avatar()->associate($attachment);
             $user->save();
         }
 
         Notification::send($user, new NotificationsUserRegistered($plain_password));
-        
         return redirect()->route('users.index')->with(['success' => __('users.flash.created')]);
     }
 
@@ -154,12 +146,10 @@ class Users extends Controller
      */
     public function update(RequestsUpdate $request, User $user): RedirectResponse {  
         $data = $request->validated();
-
         unset($data['avatar']);
 
         if ($request->exists('avatar') && $request->avatar === null && $user->avatar) {
             // Delete existing avatar
-
             Storage::disk('public')->delete($user->avatar->file_path);
             $user->avatar->delete();
             $user->update(['attachment_avatar' => null]);
@@ -167,14 +157,11 @@ class Users extends Controller
         } elseif ($request->hasFile('avatar')) {
 
             $file = $request->file('avatar');
-
             if ($user->avatar) {
                 Storage::disk('public')->delete($user->avatar->file_path);
                 $user->avatar->delete();
             }
-
             $path = Storage::disk('public')->putFile("users/{$user->id}/avatars", $file);
-
             $attachment = Attachment::create([
                 'file_name'      => $file->getClientOriginalName(),
                 'file_path'      => $path,
@@ -182,7 +169,6 @@ class Users extends Controller
                 'file_extension' => $file->getClientOriginalExtension(),
                 'file_size'      => $file->getSize(),
             ]);
-
             $user->avatar()->associate($attachment);
             $user->save();
         }
@@ -194,7 +180,6 @@ class Users extends Controller
             $data['email_verified_at'] = null;
         }
         unset($data['email_verified']);
-
         $user->update($data);
 
         // Update roles
@@ -212,15 +197,12 @@ class Users extends Controller
      * @return RedirectResponse
      */
     public function destroy(User $user): RedirectResponse {
-        
         // avatar
         if ($user->avatar) {
             Storage::disk('public')->delete($user->avatar->file_path);
             $user->avatar->delete();
         }
-        
         $user->delete();
-
         return redirect()->route('users.index')->with(['success' => __('users.flash.deleted')]);
     }
 }
