@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
-class TicketAssignee extends Model
+class TicketAttachment extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -16,9 +17,7 @@ class TicketAssignee extends Model
      */
     protected $fillable = [
         'ticket_id',
-        'user_id',
-        'role_title',
-        'role_description',
+        'attachment_id',
     ];
 
     // --- Relations ---
@@ -26,7 +25,7 @@ class TicketAssignee extends Model
         return $this->belongsTo(Ticket::class, 'ticket_id');
     }
 
-    public function user() {
-        return $this->belongsTo(User::class, 'user_id');
+    public function attachment() {
+        return $this->belongsTo(Attachment::class, 'attachment_id');
     }
 }

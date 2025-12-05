@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('title');
             $table->text('description')->nullable();
             $table->integer('sort_order')->unique();
+            $table->string('icon')->nullable();
             $table->string('color');
             $table->boolean('is_default')->default(false);
             $table->boolean('is_closed')->default(false);
@@ -33,6 +34,7 @@ return new class extends Migration
             $table->string('title');
             $table->text('description')->nullable();
             $table->integer('sort_order')->unique();
+            $table->string('icon')->nullable();
             $table->string('color');
             $table->timestamps();
         });
@@ -80,7 +82,7 @@ return new class extends Migration
         Schema::create('ticket_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('ticket_id')->constrained()->onDelete('cascade');
-            $table->foreignId('author_id')->constrained('users'); // Qui a fait l'action
+            $table->foreignId('user_id')->constrained('users'); // Qui a fait l'action
             $table->string('action');
             $table->string('field')->nullable();
             $table->text('old_value')->nullable();

@@ -72,8 +72,14 @@ class Ticket extends Model
         return $this->hasMany(TicketSchedule::class);
     }
 
-    public function attachments(): BelongsToMany
-    {
-        return $this->belongsToMany(Attachment::class, 'ticket_attachments');
+    public function attachments() {
+        return $this->hasManyThrough(
+            Attachment::class,
+            TicketAttachment::class,
+            'ticket_id', // Foreign key on the pivot table
+            'id', // Foreign key on the attachments table
+            'id', // Local key on the comments table
+            'attachment_id' // Local key on the pivot table
+        );
     }
 }

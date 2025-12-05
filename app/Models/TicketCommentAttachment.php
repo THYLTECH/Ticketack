@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class TicketAssignee extends Model
+class TicketCommentAttachment extends Model
 {
     use HasFactory;
 
@@ -15,18 +15,16 @@ class TicketAssignee extends Model
      * @var list<string>
      */
     protected $fillable = [
-        'ticket_id',
-        'user_id',
-        'role_title',
-        'role_description',
+        'ticket_comment_id',
+        'attachment_id',
     ];
 
     // --- Relations ---
-    public function ticket() {
-        return $this->belongsTo(Ticket::class, 'ticket_id');
+    public function comment() {
+        return $this->belongsTo(TicketComment::class, 'ticket_comment_id');
     }
 
-    public function user() {
-        return $this->belongsTo(User::class, 'user_id');
+    public function attachment() {
+        return $this->belongsTo(Attachment::class, 'attachment_id');
     }
 }
