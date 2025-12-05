@@ -54,6 +54,15 @@ class RolesAndPermissionsSeeder extends Seeder
         Permission::create(['name' => 'update roles']); // Update
         Permission::create(['name' => 'delete roles']); // Delete
 
+        // Tickets
+        Permission::create(['name' => 'view tickets']); // Index
+        Permission::create(['name' => 'show tickets']); // Show
+        Permission::create(['name' => 'create tickets']); // Create
+        Permission::create(['name' => 'update tickets']); // Update
+        Permission::create(['name' => 'delete tickets']); // Delete
+        Permission::create(['name' => 'restore tickets']); // Restore
+        Permission::create(['name' => 'force delete tickets']); // Force Delete
+
         /**
          * Roles
          */

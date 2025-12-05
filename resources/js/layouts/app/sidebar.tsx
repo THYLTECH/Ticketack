@@ -83,13 +83,13 @@ export function AppSidebar() {
     ];
 
     // Tickets
-    // if(userHasPermission({ user: auth.user, permission: 'view tickets' })) {
-    //     mainNavItems.push({
-    //         title: __('app.layout.sidebar.menugroups.platform.items.tickets'),
-    //         href: route('tickets.index'),
-    //         icon: Ticket,
-    //     });
-    // }
+    if(userHasPermission({ user: auth.user, permission: 'view tickets' })) {
+        mainNavItems.push({
+            title: __('app.layout.sidebar.menugroups.platform.items.tickets'),
+            href: route('tickets.index'),
+            icon: Ticket,
+        });
+    }
 
     // Assets
     if(userHasPermission({ user: auth.user, permission: 'view assets' })) {

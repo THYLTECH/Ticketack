@@ -18,17 +18,19 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        // User::firstOrCreate(
-        //     ['email' => 'test@example.com'],
-        //     [
-        //         'name' => 'Test User',
-        //         'password' => 'password',
-        //         'email_verified_at' => now(),
-        //     ]
-        // );
+        $user = User::firstOrCreate(
+            ['email' => 'hakim.fidjel@gmail.com'],
+            [
+                'name' => 'Hakim Fidjel',
+                'password' => 'password',
+                'email_verified_at' => now(),
+            ]
+        );
 
         $this->call([
             RolesAndPermissionsSeeder::class,
         ]);
+
+        $user->assignRole('admin');
     }
 }

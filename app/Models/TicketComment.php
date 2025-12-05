@@ -31,7 +31,7 @@ class TicketComment extends Model
         return $this->belongsTo(TicketComment::class, 'parent_id');
     }
 
-    public function author() {
+    public function user() {
         return $this->belongsTo(User::class, 'user_id');
     }
 
