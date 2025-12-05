@@ -6,11 +6,11 @@
 use Illuminate\Support\Facades\Route;
 
 // Controllers
-use App\Http\Controllers\Notifications\Index as ControllersIndex;
+use App\Http\Controllers\Notifications as ControllersNotifications;
 
 Route::prefix('notifications/')->name('notifications.')->middleware(['auth', 'verified:auth.verification.notice'])->group(function() {
     
-    Route::controller(ControllersIndex::class)->group(function() {
+    Route::controller(ControllersNotifications::class)->group(function() {
         Route::get('/', 'index')->name('index');
 
         Route::put('/{notification}/read', 'markAsRead')->name('markAsRead');

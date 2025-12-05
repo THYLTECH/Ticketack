@@ -6,6 +6,9 @@ use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
+// Seeders
+use Database\Seeders\RolesAndPermissionsSeeder;
+
 class DatabaseSeeder extends Seeder
 {
     /**
@@ -23,5 +26,9 @@ class DatabaseSeeder extends Seeder
         //         'email_verified_at' => now(),
         //     ]
         // );
+
+        $this->call([
+            RolesAndPermissionsSeeder::class,
+        ]);
     }
 }
