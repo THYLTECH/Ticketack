@@ -58,6 +58,7 @@ import {
     LogOut,
     Settings,
     Shield,
+    Ticket,
     Users
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -80,6 +81,15 @@ export function AppSidebar() {
             icon: LayoutGrid,
         },
     ];
+
+    // Tickets
+    // if(userHasPermission({ user: auth.user, permission: 'view tickets' })) {
+    //     mainNavItems.push({
+    //         title: __('app.layout.sidebar.menugroups.platform.items.tickets'),
+    //         href: route('tickets.index'),
+    //         icon: Ticket,
+    //     });
+    // }
 
     // Assets
     if(userHasPermission({ user: auth.user, permission: 'view assets' })) {
