@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Tickets;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 // Models
 use App\Models\Ticket;
@@ -24,11 +25,11 @@ class Crud extends Controller
     }
 
     public function index() {
-        //
+        return Inertia::render('tickets/index', ['tickets' => Ticket::withoutTrashed()->get()]);
     }
 
     public function create() {
-        // 
+        return Inertia::render('tickets/create');
     }
 
     public function show(Ticket $ticket) {

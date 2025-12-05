@@ -46,7 +46,7 @@ import {
 } from '@/components/ui/table';
 
 // Icons
-import { Plus, RefreshCcw, Shield } from 'lucide-react';
+import { Plus, RefreshCcw, TicketIcon } from 'lucide-react';
 
 export default function Index({ tickets }: { tickets: Ticket[] }) {
     const __ = useTrans();
@@ -110,7 +110,7 @@ function TicketEmpty() {
         <Empty className="border border-dashed">
             <EmptyHeader>
                 <EmptyMedia variant="icon">
-                    <Shield />
+                    <TicketIcon />
                 </EmptyMedia>
                 <EmptyTitle>{__('tickets.pages.index.empty.title')}</EmptyTitle>
                 <EmptyDescription>
@@ -138,6 +138,9 @@ function TicketTable({ tickets }: { tickets: Ticket[] }) {
         <Table>
             <TableHeader>
                 <TableRow>
+                    <TableHead className="text-xs text-muted-foreground">
+                        {__('tickets.pages.index.table.columns.title')}
+                    </TableHead>
                     <TableHead className="w-[8rem] text-right text-xs text-muted-foreground">
                         {__('tickets.pages.index.table.columns.updated_at')}
                     </TableHead>
@@ -164,7 +167,9 @@ function TicketTable({ tickets }: { tickets: Ticket[] }) {
                             }
                         }}
                     >
-
+                        <TableCell>
+                            {Ticket.title}
+                        </TableCell>
                         <TableCell className="text-right">
                             {formatDate(Ticket.updated_at)}
                         </TableCell>
