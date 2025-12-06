@@ -3,7 +3,7 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
-# 1. Gestion du fichier .env
+# 1. .env file management
 if [ ! -f ".env" ]; then
     echo "Fichier .env non trouvé, création à partir de .env.example..."
     cp .env.example .env
