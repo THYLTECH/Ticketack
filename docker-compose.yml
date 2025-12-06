@@ -27,7 +27,7 @@ services:
     networks:
       - ticketack-network
 
-  # Ajout de la base de données
+  # Add database service
   db:
     image: mysql:8.0
     ports:

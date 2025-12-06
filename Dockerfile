@@ -35,7 +35,7 @@ WORKDIR /var/www/html
 
 # USER $user -- removed to ensure entrypoint runs as root
 
-# Copie du script d'entrypoint
+# Copy entrypoint script
 COPY --chown=$user:$user docker-compose/entrypoint.sh /usr/local/bin/start-container
 RUN chmod +x /usr/local/bin/start-container
 
