@@ -26,12 +26,10 @@ if ! grep -q "APP_KEY=base64" .env; then
 fi
 
 # 4. Installation des dépendances JS et Build
-if [ ! -d "node_modules" ]; then
-    echo "Installation des dépendances NPM..."
-    npm install
-    echo "Build des assets frontend..."
-    npm run build
-fi
+echo "Installation des dépendances NPM..."
+npm install
+echo "Build des assets frontend..."
+npm run build
 
 # 5. Attente que la base de données soit prête
 echo "Attente de la base de données..."
