@@ -1,7 +1,11 @@
 // resources/js/pages/assets/edit.tsx
 
 // Necessary imports
-import { Head, Link, useForm } from '@inertiajs/react';
+import {
+    convertAttachmentsToFileWithPreview,
+    userHasPermission,
+} from '@/lib/utils';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 
 // Layout
 import AppLayout from '@/layouts/app/layout';
@@ -33,10 +37,14 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Types
-import type { Asset, AssetAttribute, BreadcrumbItem } from '@/types';
+import type {
+    Asset,
+    AssetAttribute,
+    BreadcrumbItem,
+    SharedData,
+} from '@/types';
 
 // Icons
-import { convertAttachmentsToFileWithPreview } from '@/lib/utils';
 import { ArrowLeft, Blocks, File, Paperclip, Pen } from 'lucide-react';
 
 export default function Show({
@@ -125,12 +133,19 @@ function ShowForm({
                             {__('assets.pages.form.buttons.back')}
                         </Link>
                     </Button>
-                    <Button asChild variant={'default'}>
-                        <Link href={route('assets.edit', { asset: asset.id })}>
-                            <Pen />
-                            {__('assets.pages.form.buttons.edit')}
-                        </Link>
-                    </Button>
+                    {userHasPermission({
+                        user: usePage<SharedData>().props.auth.user,
+                        permission: 'update assets',
+                    }) && (
+                        <Button asChild variant={'default'}>
+                            <Link
+                                href={route('assets.edit', { asset: asset.id })}
+                            >
+                                <Pen />
+                                {__('assets.pages.form.buttons.edit')}
+                            </Link>
+                        </Button>
+                    )}
                 </CardAction>
             </CardHeader>
             <Separator />

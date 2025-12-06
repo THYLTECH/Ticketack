@@ -2,7 +2,7 @@ import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import * as LucideIcons from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { Attachment } from '@/types';
+import { Attachment, User } from '@/types';
 import { FileWithPreview } from '@/hooks/use-file-upload';
 
 export function cn(...inputs: ClassValue[]) {
@@ -41,11 +41,8 @@ export function formatNotificationDate(dateString: string): string {
   });
 }
 
-export function formatAssetDate(dateString: string): string {
+export function formatDate(dateString: string): string {
   const date = new Date(dateString);
-
-
-  
   return date.toLocaleDateString();
 }
 
@@ -87,4 +84,8 @@ export function convertAttachmentsToFileWithPreview({
       description: attachment.description,
     };
   });
+}
+
+export function userHasPermission({ user, permission } : { user: User, permission: string}): boolean {
+  return user.permissions.some((perm) => perm.name === permission);
 }

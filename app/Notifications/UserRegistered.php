@@ -17,13 +17,15 @@ class UserRegistered extends Notification implements shouldQueue
     use Queueable;
 
     protected $type;
+    protected $plain_password;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct()
+    public function __construct(?string $plain_password = null)
     {
         $this->type = 'user_registered';
+        $this->plain_password = $plain_password;
     }
 
     /**
@@ -49,7 +51,7 @@ class UserRegistered extends Notification implements shouldQueue
      */
     public function toMail(object $notifiable) : Mailable
     {
-        return new RegisteredEmail($notifiable);
+        return new RegisteredEmail($notifiable, $this->plain_password);
     }
 
     /**

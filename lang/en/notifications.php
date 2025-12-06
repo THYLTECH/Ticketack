@@ -48,6 +48,7 @@ return [
             'intro' => 'Your account has been successfully created on :app. We’re glad to have you on board.',
             'button' => 'Log in to my account',
             'body' => 'You can now log in and start using all features of the platform.',
+            'password' => 'Your temporary password is :password. Please change it after your first login.',
         ],
 
         'verify_email' => [

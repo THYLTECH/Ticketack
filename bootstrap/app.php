@@ -8,10 +8,10 @@ use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
-use Illuminate\Http\Response;
-use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
+use Inertia\Inertia;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -31,13 +31,11 @@ return Application::configure(basePath: dirname(__DIR__))
             SetTimezone::class,
         ]);
 
-        // API middleware
         $middleware->api(append: [
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
         ]);
 
-        // FIX redirect for API
-        \Illuminate\Auth\Middleware\Authenticate::redirectUsing(function ($request) {
+        Authenticate::redirectUsing(function ($request) {
             if ($request->is('api/*')) {
                 return response()->json(['message' => 'Unauthenticated.'], 401);
             }
@@ -55,24 +53,27 @@ return Application::configure(basePath: dirname(__DIR__))
                 return $response;
             }
 
-           if (config('app.env') !== 'local') {
-            $statusCode = $exception instanceof HttpExceptionInterface
-                ? $exception->getStatusCode()
-                : 500;
+            if ($exception instanceof \Illuminate\Auth\Access\AuthorizationException ||
+                ($exception instanceof HttpExceptionInterface && $exception->getStatusCode() === 403)) {
 
+                $title = $exception->getMessage() ?: null;
 
-                return redirect()->route('errors.show', [
-                    'statusCode' => $statusCode,
-                    'title' => $exception->getMessage()
-                ]);
+                return Inertia::render('errors/show', [
+                    'statusCode' => 403,
+                    'title' => $title,
+                ])->toResponse($request)
+                    ->setStatusCode(403);
             }
 
-            if ($exception instanceof HttpExceptionInterface) {
+            if (config('app.env') !== 'local' && $exception instanceof HttpExceptionInterface) {
                 $statusCode = $exception->getStatusCode();
-                return redirect()->route('errors.show', [
-                    'statusCode' => $statusCode,
-                    'title' => $exception->getMessage()
-                ]);
+
+                if ($statusCode !== 403) {
+                    return redirect()->route('errors.show', [
+                        'statusCode' => $statusCode,
+                        'title' => $exception->getMessage()
+                    ]);
+                }
             }
 
             return $response;

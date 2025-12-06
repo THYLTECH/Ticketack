@@ -1,7 +1,8 @@
 // resources/js/pages/assets/delete.tsx
 
 // Necessary imports
-import { Link } from '@inertiajs/react';
+import { userHasPermission } from '@/lib/utils';
+import { Link, usePage } from '@inertiajs/react';
 import React from 'react';
 
 // Translation hook
@@ -21,7 +22,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 // Types
-import { Asset } from '@/types';
+import { Asset, SharedData } from '@/types';
 
 // Icons
 import { Trash2 } from 'lucide-react';
@@ -53,20 +54,25 @@ export function DeleteAsset({
                     <AlertDialogCancel>
                         {__('assets.pages.delete.buttons.cancel')}
                     </AlertDialogCancel>
-                    <AlertDialogAction
-                        className="bg-destructive hover:bg-destructive/90"
-                        asChild
-                    >
-                        <Link
-                            method={'delete'}
-                            href={route('assets.destroy', {
-                                asset: asset.id,
-                            })}
+                    {userHasPermission({
+                        user: usePage<SharedData>().props.auth.user,
+                        permission: 'delete assets',
+                    }) && (
+                        <AlertDialogAction
+                            className="bg-destructive hover:bg-destructive/90"
+                            asChild
                         >
-                            <Trash2 />
-                            {__('assets.pages.delete.buttons.confirm')}
-                        </Link>
-                    </AlertDialogAction>
+                            <Link
+                                method={'delete'}
+                                href={route('assets.destroy', {
+                                    asset: asset.id,
+                                })}
+                            >
+                                <Trash2 />
+                                {__('assets.pages.delete.buttons.confirm')}
+                            </Link>
+                        </AlertDialogAction>
+                    )}
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
