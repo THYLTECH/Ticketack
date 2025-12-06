@@ -33,14 +33,12 @@ RUN mkdir -p /home/$user/.composer && \
 # Set working directory
 WORKDIR /var/www/html
 
-USER $user
+# USER $user -- removed to ensure entrypoint runs as root
 
 # Copie du script d'entrypoint
 COPY --chown=$user:$user docker-compose/entrypoint.sh /usr/local/bin/start-container
 RUN chmod +x /usr/local/bin/start-container
 
-# On repasse en user normal
-USER $user
-
+# On repasse en user normal -- removed, handled in entrypoint if needed
 # On définit le point d'entrée
 ENTRYPOINT ["start-container"]
