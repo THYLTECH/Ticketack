@@ -33,9 +33,22 @@ npm run build
 
 # 5. Attente que la base de données soit prête
 echo "Attente de la base de données..."
-# Petite boucle d'attente basique (ou utiliser wait-for-it)
-sleep 10
 
+# Boucle d'attente jusqu'à ce que la base de données MySQL soit prête
+for i in {1..30}; do
+    if mysqladmin ping -h"${DB_HOST:-db}" -u"${DB_USERNAME:-ticketack}" -p"${DB_PASSWORD:-secret}" --silent; then
+        echo "La base de données est prête !"
+        break
+    fi
+    echo "La base de données n'est pas encore prête, tentative $i/30..."
+    sleep 1
+done
+
+# Si la base de données n'est toujours pas prête après 30 tentatives, on quitte avec une erreur
+if ! mysqladmin ping -h"${DB_HOST:-db}" -u"${DB_USERNAME:-ticketack}" -p"${DB_PASSWORD:-secret}" --silent; then
+    echo "Erreur : la base de données n'est pas accessible après 30 secondes."
+    exit 1
+fi
 # 6. Migrations
 echo "Exécution des migrations..."
 php artisan migrate --force
