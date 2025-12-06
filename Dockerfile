@@ -40,5 +40,5 @@ COPY --chown=$user:$user docker-compose/entrypoint.sh /usr/local/bin/start-conta
 RUN chmod +x /usr/local/bin/start-container
 
 # On repasse en user normal -- removed, handled in entrypoint if needed
-# On définit le point d'entrée
+# Define the entry point
 ENTRYPOINT ["start-container"]
