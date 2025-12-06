@@ -15,7 +15,7 @@ if [ ! -f ".env" ]; then
     sed -i 's/# DB_PASSWORD=/DB_PASSWORD=secret/g' .env
 fi
 
-# 2. Installation des dépendances PHP
+# 2. Install PHP dependencies
 echo "Installation des dépendances Composer..."
 composer install --no-interaction --optimize-autoloader
 
