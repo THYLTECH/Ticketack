@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\Route;
 
 // Controllers
 use App\Http\Controllers\Tickets\Crud as ControllersCrud;
+use App\Http\Controllers\Tickets\Priorities as ControllersPriorities;
+use App\Http\Controllers\Tickets\Statuses as ControllersStatuses;
+use App\Http\Controllers\Tickets\Categories as ControllersCategories;
 
 Route::prefix('tickets/')->name('tickets.')->middleware(['auth', 'verified:auth.verification.notice'])->group(function() {
     
@@ -31,4 +34,29 @@ Route::prefix('tickets/')->name('tickets.')->middleware(['auth', 'verified:auth.
             ->name('force_delete')
             ->withTrashed();
     });
+
+    // PRIORITIES OPERATIONS
+    Route::controller(ControllersPriorities::class)->group(function() {
+        Route::patch('/priorities/save', 'save')->name('priorities.save');
+        Route::post('/priorities', 'store')->name('priorities.store');
+        Route::patch('/priorities/{ticket}', 'update')->name('priorities.update');
+        Route::delete('/priorities/{ticket}', 'destroy')->name('priorities.destroy');
+    });
+
+    // STATUSES OPERATIONS
+    Route::controller(ControllersStatuses::class)->group(function() {
+        Route::patch('/statuses/save', 'save')->name('statuses.save');
+        Route::post('/statuses', 'store')->name('statuses.store');
+        Route::patch('/statuses/{ticket}', 'update')->name('statuses.update');
+        Route::delete('/statuses/{ticket}', 'destroy')->name('statuses.destroy');
+    });
+
+    // CATEGORIES OPERATIONS
+    Route::controller(ControllersCategories::class)->group(function() {
+        Route::patch('/categories/save', 'save')->name('categories.save');
+        Route::post('/categories', 'store')->name('categories.store');
+        Route::patch('/categories/{ticket}', 'update')->name('categories.update');
+        Route::delete('/categories/{ticket}', 'destroy')->name('categories.destroy');
+    });
+
 });
