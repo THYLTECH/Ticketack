@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# On s'arrête à la moindre erreur
+# Exit immediately if a command exits with a non-zero status
 set -e
 
 # 1. Gestion du fichier .env
