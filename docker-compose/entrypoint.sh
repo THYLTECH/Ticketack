@@ -39,6 +39,10 @@ sleep 10
 echo "Exécution des migrations..."
 php artisan migrate --force
 
-# 7. Starting PHP-FPM
+# 7. Creating symbolic storage link (storage:link)
+echo "Création du lien de stockage symbolique..."
+php artisan storage:link
+
+# 8. Starting PHP-FPM
 echo "Démarrage de l'application !"
 exec php-fpm
