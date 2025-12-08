@@ -144,17 +144,12 @@ class AssetController extends Controller
         if (!empty($data['attachments'])) {
             foreach ($data['attachments'] as $attachment) {
 
-                // 1. Cas Nouveau Fichier
                 if (isset($attachment['file']) && $attachment['file'] instanceof UploadedFile) {
                     $this->saveAttachment($asset, $attachment);
                 }
 
-                // 2. Cas Modification d'un existant
                 elseif (!empty($attachment['id'])) {
 
-                    // --- CORRECTION DU BUG SQL ICI ---
-                    // On cherche l'attachement via la relation en précisant la table 'attachments.id'
-                    // Cela évite l'erreur "ambiguous column name"
                     $existingAttachment = $asset->attachments()
                         ->where('attachments.id', $attachment['id'])
                         ->first();

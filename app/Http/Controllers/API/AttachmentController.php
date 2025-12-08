@@ -19,7 +19,6 @@ class AttachmentController extends Controller
      */
     public function destroy(Attachment $attachment)
     {
-        // On sécurise l'action : il faut avoir le droit de modifier les assets
         Gate::authorize('update assets');
 
         if ($attachment->file_path && Storage::disk('public')->exists($attachment->file_path)) {

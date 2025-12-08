@@ -5,7 +5,6 @@ use App\Http\Controllers\API\AttachmentController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\ProfileController;
 use App\Http\Controllers\API\UserController;
-use App\Http\Controllers\API\UserAvatarController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;

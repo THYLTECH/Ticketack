@@ -108,16 +108,13 @@ class ProfileController extends Controller
         $user = Auth::user();
         $file = $request->file('avatar');
 
-        // Delete old avatar if exists
         if ($user->avatar) {
             Storage::disk('public')->delete($user->avatar->file_path);
             $user->avatar->delete();
         }
 
-        // Upload new file
         $path = Storage::disk('public')->putFile("users/{$user->id}/avatars", $file);
 
-        // Create new attachment
         $attachment = Attachment::create([
             'file_name'      => $file->getClientOriginalName(),
             'file_path'      => $path,
@@ -126,7 +123,6 @@ class ProfileController extends Controller
             'file_size'      => $file->getSize(),
         ]);
 
-        // Attach to user
         $user->attachment_avatar = $attachment->id;
         $user->save();
 
