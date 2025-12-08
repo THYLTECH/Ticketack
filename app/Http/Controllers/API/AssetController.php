@@ -16,8 +16,11 @@ use App\Http\Requests\Assets\Update as RequestsUpdate;
 class AssetController extends Controller
 {
     /**
+     * List assets
+     *
+     * Display a listing of the assets.
+     *
      * @return \Illuminate\Http\JsonResponse
-     * GET /api/assets
      */
     public function index()
     {
@@ -28,6 +31,10 @@ class AssetController extends Controller
     }
 
     /**
+     * Create a new asset
+     *
+     * Create a new asset in storage.
+     *
      * @param RequestsStore $request
      * @return \Illuminate\Http\JsonResponse
      * POST /api/assets
@@ -76,6 +83,10 @@ class AssetController extends Controller
     }
 
     /**
+     * Show an asset
+     *
+     * Display the specified asset.
+     *
      * @param Asset $asset
      * @return \Illuminate\Http\JsonResponse
      * GET /api/assets/{asset}
@@ -89,6 +100,10 @@ class AssetController extends Controller
     }
 
     /**
+     * Update an asset
+     *
+     * Update the specified asset in storage.
+     *
      * @param RequestsUpdate $request
      * @param Asset $asset
      * @return \Illuminate\Http\JsonResponse
@@ -161,6 +176,10 @@ class AssetController extends Controller
     }
 
     /**
+     * Delete an asset
+     *
+     * Remove the specified asset from storage.
+     *
      * @param Asset $asset
      * @return \Illuminate\Http\JsonResponse
      * DELETE /api/assets/{asset}

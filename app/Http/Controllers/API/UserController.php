@@ -13,6 +13,8 @@ use Illuminate\Validation\Rule;
 class UserController extends Controller
 {
     /**
+     * List users
+     *
      * Display a listing of the users with filtering and sorting.
      *
      * @param \Illuminate\Http\Request $request
@@ -62,6 +64,8 @@ class UserController extends Controller
     }
 
     /**
+     * Create a new user
+     *
      * Store a newly created user in storage.
      *
      * @param \Illuminate\Http\Request $request
@@ -99,6 +103,8 @@ class UserController extends Controller
     }
 
     /**
+     * Show the specified user
+     *
      * Display the specified user.
      *
      * @param \App\Models\User $user
@@ -114,6 +120,8 @@ class UserController extends Controller
     }
 
     /**
+     * Update the specified user
+     *
      * Update the specified user in storage.
      *
      * @param \Illuminate\Http\Request $request
@@ -152,6 +160,8 @@ class UserController extends Controller
     }
 
     /**
+     * Delete the specified user
+     *
      * Remove the specified user from storage.
      *
      * @param \App\Models\User $user

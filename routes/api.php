@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\API\AssetController;
 use App\Http\Controllers\API\AttachmentController;
+use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\ProfileController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\UserAvatarController;
 use Illuminate\Http\Request;
@@ -14,23 +16,7 @@ use Illuminate\Validation\Rules\Password;
 // PUBLIC ROUTES
 // =========================================
 
-Route::post('/auth/login', function (Request $request) {
-    $credentials = $request->validate([
-        'email' => ['required', 'email'],
-        'password' => ['required'],
-    ]);
-
-    if (!Auth::attempt($credentials)) {
-        return response()->json(['message' => 'Invalid credentials'], 401);
-    }
-
-    $user = $request->user();
-
-    return [
-        'token' => $user->createToken('api-token')->plainTextToken,
-        'user'  => $user->load('roles', 'permissions'),
-    ];
-});
+Route::post('/auth/login', [AuthController::class, 'login']);
 
 // =========================================
 // PROTECTED ROUTES
@@ -38,43 +24,16 @@ Route::post('/auth/login', function (Request $request) {
 
 Route::middleware('auth:sanctum')->group(function () {
 
-    Route::get('/auth/me', fn(Request $request) => $request->user()->load('roles', 'permissions'));
-
-    Route::post('/auth/logout', function (Request $request) {
-        $token = $request->user()?->currentAccessToken();
-        if (!$token) {
-            return response()->json(['message' => 'Already logged out'], 401);
-        }
-        $token->delete();
-        return ['message' => 'Logged out successfully'];
-    });
+    // --- AUTHENTICATION ---
+    Route::post('/auth/logout', [AuthController::class, 'logout']);
 
     // --- MON COMPTE (SELF) ---
-    // Update avatar
-    Route::post('/me/avatar', [UserAvatarController::class, 'update']);
-
-    // Update profile (Nom, Phone, etc.)
-    Route::patch('/me/profile', function (Request $request) {
-        return app(UserController::class)->update($request, $request->user());
-    });
-
-    // Delete account
-    Route::delete('/me/account', function (Request $request) {
-        return app(UserController::class)->destroy($request->user());
-    });
-
-    // Update password
-    Route::put('/me/password', function (Request $request) {
-        $validated = $request->validate([
-            'current_password' => ['required', 'current_password'],
-            'password' => ['required', Password::defaults(), 'confirmed'],
-        ]);
-
-        $request->user()->update([
-            'password' => Hash::make($validated['password']),
-        ]);
-
-        return response()->json(['message' => 'Password updated successfully']);
+    Route::prefix('me')->controller(ProfileController::class)->group(function () {
+        Route::get('/', 'show');                  // GET /api/me
+        Route::patch('/profile', 'update');       // PATCH /api/me/profile
+        Route::put('/password', 'updatePassword');// PUT /api/me/password
+        Route::delete('/account', 'destroy');     // DELETE /api/me/account
+        Route::post('/avatar', 'updateAvatar'); // POST /api/me/avatar
     });
 
     // --- ADMINISTRATION UTILISATEURS ---
