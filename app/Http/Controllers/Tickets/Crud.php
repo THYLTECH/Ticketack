@@ -10,6 +10,7 @@ use Inertia\Inertia;
 
 // Models
 use App\Models\Ticket;
+use App\Models\TicketPriority;
 
 /**
  * Ticket CRUD operations controller.
@@ -25,11 +26,18 @@ class Crud extends Controller
     }
 
     public function index() {
-        return Inertia::render('tickets/index', ['tickets' => Ticket::withoutTrashed()->get()]);
+        $tickets = Ticket::withoutTrashed()->get();
+        
+        return Inertia::render('tickets/index', [
+            'tickets' => $tickets,
+        ]);
     }
-
+    
     public function create() {
-        return Inertia::render('tickets/create');
+        $priorities = TicketPriority::orderBy('sort_order')->get();
+        return Inertia::render('tickets/create', [
+            'priorities' => $priorities,
+        ]);
     }
 
     public function show(Ticket $ticket) {

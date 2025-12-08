@@ -77,6 +77,16 @@ export function InformationsTab({
     const maxSizeMB = 10;
     const accept = 'image/*,application/pdf';
 
+    // Ensure selected relations still exist
+    React.useEffect(() => {
+        if (
+            data.priority_id &&
+            !priorities.find((priority) => priority.id === data.priority_id)
+        ) {
+            setData('priority_id', null);
+        }
+    }, [priorities, statuses, categories, assets]);
+
     return (
         <TabsContent
             value={'informations'}
@@ -146,7 +156,7 @@ export function InformationsTab({
                                 ))}
 
                                 {priorities.length === 0 && (
-                                    <SelectItem disabled value=' '>
+                                    <SelectItem disabled value=" ">
                                         No priorities found.
                                     </SelectItem>
                                 )}
@@ -174,13 +184,17 @@ export function InformationsTab({
 
                     {/* Manage priorities */}
                     <Tooltip>
-                        <TooltipTrigger asChild>
-                            <PrioritiesSheet priorities={priorities}>
-                                <Button type="button" size={'icon'}>
+                        <PrioritiesSheet priorities={priorities}>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    type="button"
+                                    size={'icon'}
+                                    variant={'outline'}
+                                >
                                     <Ellipsis />
                                 </Button>
-                            </PrioritiesSheet>
-                        </TooltipTrigger>
+                            </TooltipTrigger>
+                        </PrioritiesSheet>
                         <TooltipContent>Manage Priorities</TooltipContent>
                     </Tooltip>
                 </div>
@@ -215,7 +229,7 @@ export function InformationsTab({
                                     </SelectItem>
                                 ))}
                                 {statuses.length === 0 && (
-                                    <SelectItem disabled value=' '>
+                                    <SelectItem disabled value=" ">
                                         No statuses found.
                                     </SelectItem>
                                 )}
@@ -245,7 +259,11 @@ export function InformationsTab({
 
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button type="button" size={'icon'}>
+                            <Button
+                                type="button"
+                                size={'icon'}
+                                variant={'outline'}
+                            >
                                 <Ellipsis />
                             </Button>
                         </TooltipTrigger>
@@ -283,7 +301,7 @@ export function InformationsTab({
                                     </SelectItem>
                                 ))}
                                 {categories.length === 0 && (
-                                    <SelectItem disabled value=' '>
+                                    <SelectItem disabled value=" ">
                                         No categories found.
                                     </SelectItem>
                                 )}
@@ -313,7 +331,11 @@ export function InformationsTab({
 
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button type="button" size={'icon'}>
+                            <Button
+                                type="button"
+                                size={'icon'}
+                                variant={'outline'}
+                            >
                                 <Ellipsis />
                             </Button>
                         </TooltipTrigger>
@@ -351,7 +373,7 @@ export function InformationsTab({
                                     </SelectItem>
                                 ))}
                                 {assets.length === 0 && (
-                                    <SelectItem disabled value=' '>
+                                    <SelectItem disabled value=" ">
                                         No assets found.
                                     </SelectItem>
                                 )}
@@ -380,7 +402,11 @@ export function InformationsTab({
                     {/* Manage Assets */}
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button type="button" size={'icon'}>
+                            <Button
+                                type="button"
+                                size={'icon'}
+                                variant={'outline'}
+                            >
                                 <Ellipsis />
                             </Button>
                         </TooltipTrigger>

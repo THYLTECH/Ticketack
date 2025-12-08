@@ -35,7 +35,11 @@ import type { BreadcrumbItem, SharedData, Ticket, TicketCategory, TicketPriority
 import { ArrowLeft, File, Plus, TicketIcon, UserIcon, Users } from 'lucide-react';
 import { FileWithPreview } from '@/hooks/use-file-upload';
 
-export default function Create() {
+interface CreateProps {
+    priorities: TicketPriority[];
+}
+
+export default function Create({ priorities }: CreateProps) {
     const __ = useTrans();
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -57,7 +61,9 @@ export default function Create() {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={__('tickets.pages.create.head_title')} />
 
-            <CreateForm />
+            <CreateForm 
+                priorities={priorities}
+            />
         </AppLayout>
     );
 }
@@ -193,7 +199,8 @@ const mockData = {
     ] as Asset[],   
 }
 
-function CreateForm() {
+
+function CreateForm({ priorities } : CreateProps) {
     const __ = useTrans();
 
     const { data, setData, processing, errors, post } = useForm<{
@@ -268,7 +275,7 @@ function CreateForm() {
                             errors={errors}
                             disabled={processing}
 
-                            priorities={mockData.priorities}
+                            priorities={priorities}
                             statuses={mockData.statuses}
                             categories={mockData.categories}
                             assets={mockData.assets}

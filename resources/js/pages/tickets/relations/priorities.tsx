@@ -67,8 +67,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { TicketPriority } from '@/types';
 
 // Icons
-import { GripVertical, Pen, Plus, Save, Trash2 } from 'lucide-react';
 import { ColorPicker } from '@/components/ui/color-picker';
+import { GripVertical, Pen, Plus, Save, Trash2 } from 'lucide-react';
 
 interface PrioritiesSheetProps {
     children: React.ReactNode;
@@ -79,7 +79,9 @@ export function PrioritiesSheet({
     children,
     priorities,
 }: PrioritiesSheetProps) {
-    const { data, setData, processing, errors, patch } = useForm<{
+    const [sheetOpen, setSheetOpen] = React.useState(false);
+
+    const { data, setData, processing, patch } = useForm<{
         priorities: TicketPriority[];
     }>({
         priorities: priorities,
@@ -96,7 +98,225 @@ export function PrioritiesSheet({
         useSensor(KeyboardSensor, {}),
     );
 
-    // Draggable Functions
+    // -------------------------------------
+    // Dialog
+    // -------------------------------------
+
+    interface PrioritiesDialogProps {
+        priority?: TicketPriority;
+        children: React.ReactNode;
+    }
+
+    function PrioritiesDialog({ priority, children }: PrioritiesDialogProps) {
+        const [open, setOpen] = React.useState(false);
+
+        const [title, setTitle] = React.useState(
+            priority ? priority.title : '',
+        );
+        const [description, setDescription] = React.useState(
+            priority ? priority.description : '',
+        );
+        const [color, setColor] = React.useState<string | null>(
+            priority ? priority.color : null,
+        );
+
+        const [errors, setErrors] = React.useState<{
+            title?: string;
+            description?: string;
+            color?: string;
+        }>({});
+
+        function handleSuccess() {
+            setTitle('');
+            setDescription('');
+            setColor(null);
+            setOpen(false);
+        }
+
+        function handleSubmit(e: React.FormEvent) {
+            e.stopPropagation();
+            e.preventDefault();
+
+            // Error verification
+            if (title.trim() === '') {
+                setErrors({ title: 'Title is required.' });
+                return;
+            }
+
+            if (!color) {
+                setErrors({ color: 'Color is required.' });
+                return;
+            }
+
+            // Clear previous errors
+            setErrors({});
+
+            if (priority) {
+                const updatedPriorities = data.priorities.map((p) =>
+                    p.id === priority.id
+                        ? {
+                              ...p,
+                              title: title,
+                              description: description,
+                              color: color,
+                              updated_at: new Date().toISOString(),
+                          }
+                        : p,
+                );
+
+                setData('priorities', updatedPriorities);
+
+                handleSuccess();
+            } else {
+                setData('priorities', [
+                    ...data.priorities,
+                    {
+                        id: Date.now(),
+                        title: title,
+                        description: description,
+                        color: color,
+                        sort_order: data.priorities.length + 1,
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString(),
+                    } as TicketPriority,
+                ]);
+
+                handleSuccess();
+            }
+        }
+
+        return (
+            <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild>{children}</DialogTrigger>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>
+                            {priority ? 'Edit Priority' : 'Create Priority'}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {priority
+                                ? `Modify the details of the priority "${priority.title}".`
+                                : 'Fill in the details to create a new priority.'}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {/*  */}
+                    <form onSubmit={handleSubmit} className="grid gap-3">
+                        {/* Title */}
+                        <div className="grid gap-2">
+                            <Label htmlFor="title" indicator={'required'}>
+                                Title
+                            </Label>
+                            <Input
+                                id="title"
+                                value={title}
+                                placeholder="eg: High, Medium, Low"
+                                onChange={(e) => setTitle(e.target.value)}
+                                disabled={processing}
+                                aria-invalid={errors.title ? 'true' : 'false'}
+                                required
+                            />
+                        </div>
+                        {/* Description */}
+                        <div className="grid gap-2">
+                            <Label htmlFor="description" indicator={'optional'}>
+                                Description
+                            </Label>
+                            <Textarea
+                                id="description"
+                                value={description}
+                                placeholder="A brief description of the priority."
+                                onChange={(e) => setDescription(e.target.value)}
+                                disabled={processing}
+                                aria-invalid={
+                                    errors.description ? 'true' : 'false'
+                                }
+                            />
+                        </div>
+                        {/* Color */}
+                        <div className="grid gap-2">
+                            <Label htmlFor="color" indicator={'required'}>
+                                Color
+                            </Label>
+                            <ColorPicker
+                                id="color"
+                                value={color}
+                                onChange={(color) => setColor(color)}
+                                disabled={processing}
+                                ariaInvalid={errors.color ? true : false}
+                                required
+                            />
+                        </div>
+
+                        <DialogFooter>
+                            <DialogClose asChild>
+                                <Button variant={'secondary'}>Close</Button>
+                            </DialogClose>
+                            <Button type="submit" disabled={processing}>
+                                {priority ? <Pen /> : <Plus />}
+                                {priority
+                                    ? 'Update Priority'
+                                    : 'Store Priority'}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+        );
+    }
+
+    interface PrioritiesDeleteDialogProps {
+        priority: TicketPriority;
+        children: React.ReactNode;
+    }
+
+    function PrioritiesDeleteDialog({
+        priority,
+        children,
+    }: PrioritiesDeleteDialogProps) {
+        const [open, setOpen] = React.useState(false);
+
+        function handleSubmit(e: React.FormEvent) {
+            e.stopPropagation();
+            e.preventDefault();
+
+            const updatedPriorities = data.priorities.filter(
+                (p) => p.id !== priority.id,
+            );
+
+            setData('priorities', updatedPriorities);
+            setOpen(false);
+        }
+
+        return (
+            <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild>{children}</DialogTrigger>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Delete Priority</DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to delete the priority "
+                            {priority.title}"? This action cannot be undone.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <DialogClose asChild>
+                            <Button variant={'secondary'}>Cancel</Button>
+                        </DialogClose>
+                        <Button variant={'destructive'} onClick={handleSubmit}>
+                            <Trash2 />
+                            Delete Priority
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        );
+    }
+
+    // -------------------------------------
+    // Draggable functions
+    // -------------------------------------
+
     function handleDragEnd(event: DragEndEvent) {
         const { active, over } = event;
         if (active && over && active.id !== over.id) {
@@ -156,9 +376,6 @@ export function PrioritiesSheet({
                 }}
             >
                 <TableCell>
-                    {/* <Button variant={'ghost'} size={'icon-sm'}>
-                    <GripVertical />
-                </Button> */}
                     <DragHandle id={priority.id} />
                 </TableCell>
                 <TableCell>{renderTicketPriority(priority)}</TableCell>
@@ -186,15 +403,21 @@ export function PrioritiesSheet({
         );
     }
 
+    // -------------------------------------
+    // Submit
+    // -------------------------------------
+
     function handleSave() {
         patch(route('tickets.priorities.save'), {
             preserveScroll: true,
-            onSuccess: () => {},
+            onSuccess: () => {
+                setSheetOpen(false);
+            },
         });
     }
 
     return (
-        <Sheet>
+        <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
             <SheetTrigger asChild>{children}</SheetTrigger>
             <SheetContent>
                 <SheetHeader>
@@ -276,148 +499,5 @@ export function PrioritiesSheet({
                 </SheetFooter>
             </SheetContent>
         </Sheet>
-    );
-}
-
-interface PrioritiesDialogProps {
-    priority?: TicketPriority;
-    children: React.ReactNode;
-}
-
-function PrioritiesDialog({ priority, children }: PrioritiesDialogProps) {
-    const [open, setOpen] = React.useState(false);
-
-    const { data, setData, processing, errors, post, patch } = useForm<{
-        title: string;
-        description: string;
-        color: string | null;
-    }>({
-        title: priority ? priority.title : '',
-        description: priority ? priority.description : '',
-        color: priority ? priority.color : null,
-    });
-
-    function handleSubmit(e: React.FormEvent) {
-        e.stopPropagation();
-        e.preventDefault();
-
-        if (priority) {
-            patch(
-                route('tickets.priorities.update', { priority: priority.id }),
-            );
-        } else {
-            post(route('tickets.priorities.store'));
-        }
-    }
-
-    return (
-        <Dialog>
-            <DialogTrigger asChild>{children}</DialogTrigger>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>
-                        {priority ? 'Edit Priority' : 'Create Priority'}
-                    </DialogTitle>
-                    <DialogDescription>
-                        {priority
-                            ? `Modify the details of the priority "${priority.title}".`
-                            : 'Fill in the details to create a new priority.'}
-                    </DialogDescription>
-                </DialogHeader>
-
-                {/*  */}
-                <form onSubmit={handleSubmit} className="grid gap-3">
-                    {/* Title */}
-                    <div className="grid gap-2">
-                        <Label htmlFor="title" indicator={'required'}>
-                            Title
-                        </Label>
-                        <Input
-                            id="title"
-                            value={data.title}
-                            placeholder="eg: High, Medium, Low"
-                            onChange={(e) => setData('title', e.target.value)}
-                            disabled={processing}
-                            aria-invalid={errors.title ? 'true' : 'false'}
-                            required
-                        />
-                    </div>
-                    {/* Description */}
-                    <div className="grid gap-2">
-                        <Label htmlFor="description" indicator={'optional'}>
-                            Description
-                        </Label>
-                        <Textarea
-                            id="description"
-                            value={data.description}
-                            placeholder="A brief description of the priority."
-                            onChange={(e) =>
-                                setData('description', e.target.value)
-                            }
-                            disabled={processing}
-                            aria-invalid={errors.description ? 'true' : 'false'}
-                        />
-                    </div>
-                    {/* Color */}
-                    <div className="grid gap-2">
-                        <Label htmlFor="color" indicator={'required'}>
-                            Color
-                        </Label>
-                        <ColorPicker
-                            id="color"
-                            value={data.color}
-                            onChange={(color) => setData('color', color )}
-                            disabled={processing}
-                            ariaInvalid={errors.color ? true : false}
-                            required
-                        />
-                    </div>
-
-                    <DialogFooter>
-                        <DialogClose asChild>
-                            <Button variant={'secondary'}>Close</Button>
-                        </DialogClose>
-                        <Button type="submit" disabled={processing}>
-                            {priority ? <Pen /> : <Plus />}
-                            {priority ? 'Update Priority' : 'Store Priority'}
-                        </Button>
-                    </DialogFooter>
-                </form>
-            </DialogContent>
-        </Dialog>
-    );
-}
-
-interface PrioritiesDeleteDialogProps {
-    priority: TicketPriority;
-    children: React.ReactNode;
-}
-
-function PrioritiesDeleteDialog({
-    priority,
-    children,
-}: PrioritiesDeleteDialogProps) {
-    return (
-        <Dialog>
-            <DialogTrigger asChild>{children}</DialogTrigger>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Delete Priority</DialogTitle>
-                    <DialogDescription>
-                        Are you sure you want to delete the priority "
-                        {priority.title}"? This action cannot be undone.
-                    </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                    <DialogClose asChild>
-                        <Button variant={'secondary'}>Cancel</Button>
-                    </DialogClose>
-                    <Button variant={'destructive'}>
-                        <Trash2 />
-                        Delete Priority
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
     );
 }

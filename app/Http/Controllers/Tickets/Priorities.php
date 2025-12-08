@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Tickets;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\DB;
 
 // Models
 use App\Models\Ticket;
@@ -30,44 +31,63 @@ class Priorities extends Controller
         // $this->authorizeResource(Ticket::class, 'ticket');
     }
 
-    public function save(RequestsSave $request) {
-        $data = $request->validated();
+    public function fetch() {
+        $priorities = TicketPriority::orderBy('sort_order')->get();
 
-        // Sort order 
-        foreach ($data['priorities'] as $index => $priorityData) {
-            $priority = TicketPriority::find($priorityData['id']);
-            if ($priority) {
-                $priorityData['sort_order'] = $index;
-                $priority->update($priorityData);
+        return response()->json([
+            'priorities' => $priorities,
+        ]);
+    }
+
+    public function save(RequestsSave $request)
+    {
+        $data = $request->validated();
+        $submittedIds = collect($data['priorities'])->pluck('id')->filter()->toArray();
+        $existingIds = TicketPriority::pluck('id')->toArray();
+        $idsToDelete = array_diff($existingIds, $submittedIds);
+
+        if (!empty($idsToDelete)) {
+            $attachedPriorities = TicketPriority::whereIn('id', $idsToDelete)
+                ->whereHas('tickets')
+                ->pluck('title')
+                ->toArray();
+
+            if (!empty($attachedPriorities)) {
+                return redirect()->back()->withErrors([
+                    'priorities' => __('Some priorities cannot be deleted because they are attached to existing tickets: :priorities', [
+                        'priorities' => implode(', ', $attachedPriorities),
+                    ]),
+                ]);
             }
+
+            TicketPriority::whereIn('id', $idsToDelete)->delete();
         }
 
-        dd(TicketPriority::all());
+        DB::transaction(function () use ($data) {
+            $prioritiesMap = [];
 
-        // return
-    }
+            foreach ($data['priorities'] as $index => $priorityData) {
+                $attributesToSave = [
+                    'title' => $priorityData['title'],
+                    'description' => $priorityData['description'],
+                    'color' => $priorityData['color'],
+                    'sort_order' => 9999 + $index,
+                ];
 
-    public function store(RequestsStore $request) {
-        $data = $request->validated();
+                $priority = TicketPriority::updateOrCreate(
+                    ['id' => $priorityData['id'] ?? null],
+                    $attributesToSave
+                );
+                
+                // Stocker l'ID réel et le nouvel index désiré
+                $prioritiesMap[$priority->id] = $index;
+            }
 
-        $data['sort_order'] = TicketPriority::max('sort_order') + 1;
+            foreach ($prioritiesMap as $id => $newSortOrder) {
+                TicketPriority::where('id', $id)->update(['sort_order' => $newSortOrder]);
+            }
+        });
 
-        TicketPriority::create($data);
-
-        return redirect()->back()->with(['success' => 'Priority created successfully.']);
-    }
-
-    public function update(RequestsUpdate $request, TicketPriority $priority) {
-        $data = $request->validated();
-
-        $priority->update($data);
-
-        // return
-    }
-
-    public function destroy(TicketPriority $priority) {
-        $priority->delete();
-
-        // return
+        return redirect()->back()->with('success', __('Ticket priorities saved successfully.'));
     }
 }

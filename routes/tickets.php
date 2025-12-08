@@ -38,13 +38,11 @@ Route::prefix('tickets/')->name('tickets.')->middleware(['auth', 'verified:auth.
     // PRIORITIES OPERATIONS
     Route::controller(ControllersPriorities::class)->group(function() {
         Route::patch('/priorities/save', 'save')->name('priorities.save');
-        Route::post('/priorities', 'store')->name('priorities.store');
-        Route::patch('/priorities/{ticket}', 'update')->name('priorities.update');
-        Route::delete('/priorities/{ticket}', 'destroy')->name('priorities.destroy');
     });
 
     // STATUSES OPERATIONS
     Route::controller(ControllersStatuses::class)->group(function() {
+        Route::get('/statuses', 'fetch')->name('statuses.fetch');
         Route::patch('/statuses/save', 'save')->name('statuses.save');
         Route::post('/statuses', 'store')->name('statuses.store');
         Route::patch('/statuses/{ticket}', 'update')->name('statuses.update');
@@ -53,6 +51,7 @@ Route::prefix('tickets/')->name('tickets.')->middleware(['auth', 'verified:auth.
 
     // CATEGORIES OPERATIONS
     Route::controller(ControllersCategories::class)->group(function() {
+        Route::get('/categories', 'fetch')->name('categories.fetch');
         Route::patch('/categories/save', 'save')->name('categories.save');
         Route::post('/categories', 'store')->name('categories.store');
         Route::patch('/categories/{ticket}', 'update')->name('categories.update');
