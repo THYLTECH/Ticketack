@@ -4,6 +4,7 @@ use App\Http\Controllers\API\AssetController;
 use App\Http\Controllers\API\AttachmentController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\ProfileController;
+use App\Http\Controllers\API\RoleController;
 use App\Http\Controllers\API\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -39,7 +40,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('users', UserController::class, ['as' => 'api']);
     // --- GESTION DES ASSETS ---
     Route::apiResource('assets', AssetController::class, ['as' => 'api']);
-
     // --- GESTION DES ATTACHMENTS ---
     Route::apiResource('attachments', AttachmentController::class, ['as' => 'api'])->only(['destroy']);
+    // --- GESTION DES ROLES ---
+    Route::apiResource('roles', RoleController::class, ['as' => 'api']);
 });
