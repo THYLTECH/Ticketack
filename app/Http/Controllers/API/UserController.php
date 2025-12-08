@@ -2,28 +2,35 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Models\User;
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
     /**
-     * GET /api/users
-     * Pagination + filtres + tri
+     * Display a listing of the users with filtering and sorting.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function index(Request $request)
     {
-        $query = User::query()
-            ->select('id', 'name', 'email', 'attachment_avatar')
-            ->with('avatar');
+        Gate::authorize('view users');
 
-        // 🔍 Filtres
+        $query = User::query()
+            ->select('id', 'name', 'email', 'phone', 'email_verified_at', 'attachment_avatar', 'created_at', 'language', 'timezone')
+            ->with(['avatar', 'roles']);
+
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%$search%")
-                    ->orWhere('email', 'like', "%$search%");
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
@@ -37,8 +44,9 @@ class UserController extends Controller
 
         $sortBy = $request->get('sort_by', 'id');
         $sortDir = $request->get('sort_dir', 'asc');
+        $allowedSorts = ['id', 'name', 'email', 'created_at'];
 
-        if (!in_array($sortBy, ['id', 'name', 'email', 'created_at'])) {
+        if (!in_array($sortBy, $allowedSorts)) {
             $sortBy = 'id';
         }
 
@@ -48,95 +56,115 @@ class UserController extends Controller
 
         $query->orderBy($sortBy, $sortDir);
 
-        $perPage = intval($request->get('per_page', 10));
-
         return response()->json(
-            $query->paginate($perPage)
+            $query->paginate(intval($request->get('per_page', 10)))
         );
     }
 
     /**
-     * GET /api/users/{user}
-     */
-    public function show(User $user)
-    {
-        return response()->json([
-            'id'       => $user->id,
-            'name'     => $user->name,
-            'email'    => $user->email,
-            'phone'    => $user->phone,
-            'language' => $user->language,
-            'timezone' => $user->timezone,
-            'avatar'   => $user->avatar,
-        ]);
-    }
-
-    /**
-     * PUT/PATCH /api/users/{user}
-     * Le user peut modifier que lui-même
-     */
-    public function update(Request $request, User $user)
-    {
-        if ($request->user()->id !== $user->id) {
-            return response()->json([
-                'message' => 'Forbidden: You can update only your own profile.'
-            ], 403);
-        }
-
-        $data = $request->validate([
-            'name'      => 'string|max:255',
-            'phone'     => 'string|nullable',
-            'language'  => 'string|nullable',
-            'timezone'  => 'string|nullable',
-        ]);
-
-        $user->update($data);
-
-        return response()->json([
-            'message' => 'User updated',
-            'user'    => $user->fresh()
-        ]);
-    }
-
-    /**
-     * DELETE /api/users/{user}
-     */
-    public function destroy(Request $request, User $user)
-    {
-        if ($request->user()->id !== $user->id) {
-            return response()->json([
-                'message' => 'Forbidden: You can delete only your own account.'
-            ], 403);
-        }
-
-        $user->delete();
-
-        return response()->json([
-            'message' => 'User deleted successfully'
-        ]);
-    }
-
-    /**
-     * POST /api/users
-     * (Réservé Admin futur) : Créer un utilisateur manuellement
+     * Store a newly created user in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request)
     {
-        // On pourra ajouter ici : $this->authorize('create', User::class);
+        Gate::authorize('create users');
 
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8',
+            'phone' => 'nullable|string|max:20',
+            'email_verified' => 'boolean',
+            'roles' => 'array',
+            'roles.*' => 'exists:roles,name',
         ]);
 
-        $data['password'] = bcrypt($data['password']);
+        $data['password'] = Hash::make(Str::random(16));
+
+        if ($request->boolean('email_verified')) {
+            $data['email_verified_at'] = now();
+        }
 
         $user = User::create($data);
 
+        if ($request->has('roles')) {
+            $user->syncRoles($request->roles);
+        }
+
         return response()->json([
             'message' => 'User created successfully',
-            'user' => $user
+            'user' => $user->load(['avatar', 'roles']),
         ], 201);
+    }
+
+    /**
+     * Display the specified user.
+     *
+     * @param \App\Models\User $user
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function show(User $user)
+    {
+        Gate::authorize('view users');
+
+        return response()->json(
+            $user->load(['avatar', 'roles', 'permissions'])
+        );
+    }
+
+    /**
+     * Update the specified user in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param \App\Models\User $user
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function update(Request $request, User $user)
+    {
+        Gate::authorize('update users');
+
+        $data = $request->validate([
+            'name' => 'sometimes|string|max:255',
+            'email' => ['sometimes', 'email', Rule::unique('users')->ignore($user->id)],
+            'phone' => 'nullable|string|max:20',
+            'email_verified' => 'boolean',
+            'roles' => 'array',
+            'roles.*' => 'exists:roles,name',
+        ]);
+
+        $user->fill($data);
+
+        if ($request->has('email_verified')) {
+            $user->email_verified_at = $request->boolean('email_verified') ? now() : null;
+        }
+
+        $user->save();
+
+        if ($request->has('roles')) {
+            $user->syncRoles($request->roles);
+        }
+
+        return response()->json([
+            'message' => 'User updated successfully',
+            'user' => $user->fresh(['avatar', 'roles']),
+        ]);
+    }
+
+    /**
+     * Remove the specified user from storage.
+     *
+     * @param \App\Models\User $user
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function destroy(User $user)
+    {
+        Gate::authorize('delete users');
+
+        $user->delete();
+
+        return response()->json([
+            'message' => 'User deleted successfully',
+        ]);
     }
 }

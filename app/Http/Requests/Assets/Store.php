@@ -12,9 +12,9 @@ use App\Models\Asset;
 
 /**
  * Class Store
- * 
+ *
  * Request class for validating asset storage requests.
- * 
+ *
  * @package App\Http\Requests\Assets
  */
 class Store extends FormRequest
@@ -25,7 +25,7 @@ class Store extends FormRequest
     public function authorize(): bool
     {
         // Only allow authenticated users to make this request
-        // TODO : Add permission checks (for next feature)  
+        // TODO : Add permission checks (for next feature)
         return Auth::check();
     }
 
@@ -49,7 +49,7 @@ class Store extends FormRequest
             'attributes.*.key'   => ['required_with:attributes', 'string', 'max:255', 'distinct'],
             'attributes.*.value' => ['required_with:attributes', 'string', 'max:255'],
 
-            'attachments'   => ['nullable', 'array'],
+            'attachments' => ['nullable', 'array', 'max:10'],
             'attachments.*.title' => ['required', 'string', 'max:255'],
             'attachments.*.description' => ['nullable', 'string'],
             'attachments.*.file' => ['required', 'file', 'max:' . $fileMaxSize, 'mimes:jpg,jpeg,png,webp,svg,pdf'],

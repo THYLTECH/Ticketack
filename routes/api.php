@@ -4,9 +4,10 @@ use App\Http\Controllers\API\AssetController;
 use App\Http\Controllers\API\AttachmentController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\UserAvatarController;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\Rules\Password;
 
 // =========================================
@@ -14,7 +15,6 @@ use Illuminate\Validation\Rules\Password;
 // =========================================
 
 Route::post('/auth/login', function (Request $request) {
-
     $credentials = $request->validate([
         'email' => ['required', 'email'],
         'password' => ['required'],
@@ -24,9 +24,11 @@ Route::post('/auth/login', function (Request $request) {
         return response()->json(['message' => 'Invalid credentials'], 401);
     }
 
+    $user = $request->user();
+
     return [
-        'token' => $request->user()->createToken('api-token')->plainTextToken,
-        'user'  => $request->user()
+        'token' => $user->createToken('api-token')->plainTextToken,
+        'user'  => $user->load('roles', 'permissions'),
     ];
 });
 
@@ -36,7 +38,7 @@ Route::post('/auth/login', function (Request $request) {
 
 Route::middleware('auth:sanctum')->group(function () {
 
-    Route::get('/auth/me', fn(Request $request) => $request->user());
+    Route::get('/auth/me', fn(Request $request) => $request->user()->load('roles', 'permissions'));
 
     Route::post('/auth/logout', function (Request $request) {
         $token = $request->user()?->currentAccessToken();
@@ -58,7 +60,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Delete account
     Route::delete('/me/account', function (Request $request) {
-        return app(UserController::class)->destroy($request, $request->user());
+        return app(UserController::class)->destroy($request->user());
     });
 
     // Update password
@@ -75,18 +77,11 @@ Route::middleware('auth:sanctum')->group(function () {
         return response()->json(['message' => 'Password updated successfully']);
     });
 
-    // Users
-    // On ne garde que 'show' (voir un profil public).
-    // On préfixe aussi pour éviter tout conflit futur : 'api.users.show'
-    Route::apiResource('users', UserController::class)
-        ->only(['show'])
-        ->names(['show' => 'api.users.show']);
-
-    // Assets
-    // Gestion complète (Index, Store, Show, Update, Destroy)
-    // FIX : Ajout de ['as' => 'api'] pour que les noms deviennent 'api.assets.index', etc.
+    // --- ADMINISTRATION UTILISATEURS ---
+    Route::apiResource('users', UserController::class, ['as' => 'api']);
+    // --- GESTION DES ASSETS ---
     Route::apiResource('assets', AssetController::class, ['as' => 'api']);
 
-    // Attachments
+    // --- GESTION DES ATTACHMENTS ---
     Route::apiResource('attachments', AttachmentController::class, ['as' => 'api'])->only(['destroy']);
 });

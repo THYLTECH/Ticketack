@@ -15,9 +15,9 @@ use App\Models\Asset;
 
 /**
  * Class Update
- * 
+ *
  * Request class for validating asset update requests.
- * 
+ *
  * @package App\Http\Requests\Assets
  */
 class Update extends FormRequest
@@ -50,9 +50,25 @@ class Update extends FormRequest
             'attributes.*.key'   => ['required_with:attributes', 'string', 'max:255', 'distinct'],
             'attributes.*.value' => ['required_with:attributes', 'string', 'max:255'],
 
-            'attachments'              => ['nullable', 'array'],
-            'attachments.*.id'         => ['nullable', 'string'],
-            'attachments.*.title'      => ['required', 'string', 'max:255'],
+            'attachments' => [
+                'nullable',
+                'array',
+                function ($attribute, $value, $fail) {
+                    $currentCount = $this->route('asset')->attachments()->count();
+
+                    $newUploadsCount = 0;
+                    foreach ($value as $item) {
+                        if (isset($item['file']) && $item['file'] instanceof \Illuminate\Http\UploadedFile) {
+                            $newUploadsCount++;
+                        }
+                    }
+
+                    if ($newUploadsCount > 0 && ($currentCount + $newUploadsCount) > 10) {
+                        $fail("Limite atteinte : Vous avez déjà $currentCount fichiers. Vous ne pouvez pas en ajouter $newUploadsCount de plus (Max: 10).");
+                    }
+                }
+            ],
+            'attachments.*.id'         => ['nullable', 'integer', 'exists:attachments,id'],            'attachments.*.title'      => ['required', 'string', 'max:255'],
             'attachments.*.description'=> ['nullable', 'string'],
 
             'attachments.*.file' => [

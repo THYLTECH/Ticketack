@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\UploadedFile;
 
 use App\Models\Asset;
@@ -17,10 +18,11 @@ class AssetController extends Controller
     /**
      * @return \Illuminate\Http\JsonResponse
      * GET /api/assets
-     * Retourne la liste hiérarchique des assets.
      */
     public function index()
     {
+        Gate::authorize('view assets');
+
         $assets = Asset::getTreeOrderedAssets();
         return response()->json($assets);
     }
@@ -29,10 +31,11 @@ class AssetController extends Controller
      * @param RequestsStore $request
      * @return \Illuminate\Http\JsonResponse
      * POST /api/assets
-     * Crée un nouvel asset.
      */
     public function store(RequestsStore $request)
     {
+        Gate::authorize('create assets');
+
         $data = $request->validated();
 
         $asset = Asset::create([
@@ -61,20 +64,7 @@ class AssetController extends Controller
         if (!empty($data['attachments'])) {
             foreach ($data['attachments'] as $attachment) {
                 if (isset($attachment['file']) && $attachment['file'] instanceof UploadedFile) {
-                    $file = $attachment['file'];
-                    $path = Storage::disk('public')->putFile("assets/{$asset->id}/attachments", $file);
-
-                    $a = Attachment::create([
-                        'file_name'      => $file->getClientOriginalName(),
-                        'file_path'      => $path,
-                        'mime_type'      => $file->getMimeType(),
-                        'file_extension' => $file->getClientOriginalExtension(),
-                        'file_size'      => $file->getSize(),
-                        'title'          => $attachment['title'],
-                        'description'    => $attachment['description'] ?? null,
-                    ]);
-
-                    $asset->attachments()->save($a);
+                    $this->saveAttachment($asset, $attachment);
                 }
             }
         }
@@ -89,10 +79,10 @@ class AssetController extends Controller
      * @param Asset $asset
      * @return \Illuminate\Http\JsonResponse
      * GET /api/assets/{asset}
-     * Retourne les détails d'un asset spécifique.
      */
     public function show(Asset $asset)
     {
+        Gate::authorize('show assets');
         return response()->json(
             $asset->load(['attributes', 'attachments', 'parent', 'childrenRecursive'])
         );
@@ -103,10 +93,10 @@ class AssetController extends Controller
      * @param Asset $asset
      * @return \Illuminate\Http\JsonResponse
      * PUT /api/assets/{asset}
-     * Met à jour un asset existant.
      */
     public function update(RequestsUpdate $request, Asset $asset)
     {
+        Gate::authorize('update assets');
         $data = $request->validated();
 
         $asset->update([
@@ -138,25 +128,24 @@ class AssetController extends Controller
 
         if (!empty($data['attachments'])) {
             foreach ($data['attachments'] as $attachment) {
-                if (isset($attachment['file']) && $attachment['file'] instanceof UploadedFile) {
-                    $file = $attachment['file'];
-                    $path = Storage::disk('public')->putFile("assets/{$asset->id}/attachments", $file);
 
-                    $a = Attachment::create([
-                        'file_name'      => $file->getClientOriginalName(),
-                        'file_path'      => $path,
-                        'mime_type'      => $file->getMimeType(),
-                        'file_extension' => $file->getClientOriginalExtension(),
-                        'file_size'      => $file->getSize(),
-                        'title'          => $attachment['title'],
-                        'description'    => $attachment['description'] ?? null,
-                    ]);
-                    $asset->attachments()->save($a);
+                // 1. Cas Nouveau Fichier
+                if (isset($attachment['file']) && $attachment['file'] instanceof UploadedFile) {
+                    $this->saveAttachment($asset, $attachment);
                 }
+
+                // 2. Cas Modification d'un existant
                 elseif (!empty($attachment['id'])) {
-                    $a = Attachment::find($attachment['id']);
-                    if ($a && $asset->attachments()->where('attachments.id', $a->id)->exists()) {
-                        $a->update([
+
+                    // --- CORRECTION DU BUG SQL ICI ---
+                    // On cherche l'attachement via la relation en précisant la table 'attachments.id'
+                    // Cela évite l'erreur "ambiguous column name"
+                    $existingAttachment = $asset->attachments()
+                        ->where('attachments.id', $attachment['id'])
+                        ->first();
+
+                    if ($existingAttachment) {
+                        $existingAttachment->update([
                             'title'       => $attachment['title'],
                             'description' => $attachment['description'] ?? null,
                         ]);
@@ -175,11 +164,32 @@ class AssetController extends Controller
      * @param Asset $asset
      * @return \Illuminate\Http\JsonResponse
      * DELETE /api/assets/{asset}
-     * Supprime un asset.
      */
     public function destroy(Asset $asset)
     {
+        Gate::authorize('delete assets');
         $asset->delete();
         return response()->json(['message' => 'Asset deleted successfully']);
+    }
+
+    /**
+     * Helper pour sauvegarder un attachment
+     */
+    private function saveAttachment(Asset $asset, array $attachmentData)
+    {
+        $file = $attachmentData['file'];
+        $path = Storage::disk('public')->putFile("assets/{$asset->id}/attachments", $file);
+
+        $a = Attachment::create([
+            'file_name'      => $file->getClientOriginalName(),
+            'file_path'      => $path,
+            'mime_type'      => $file->getMimeType(),
+            'file_extension' => $file->getClientOriginalExtension(),
+            'file_size'      => $file->getSize(),
+            'title'          => $attachmentData['title'],
+            'description'    => $attachmentData['description'] ?? null,
+        ]);
+
+        $asset->attachments()->save($a);
     }
 }
