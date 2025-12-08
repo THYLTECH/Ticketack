@@ -73,9 +73,9 @@ export function renderTicketStatus(status: TicketStatus): ReactNode {
 // DONE
 export function renderTicketCategory(category: TicketCategory): ReactNode {
     return (
-        <>
-            {category.icon && getIcon(category.icon, { color: category.color })}
+        <span className='flex items-center gap-2'>
+            {category.icon && getIcon(category.icon, { color: category.color, size: 16 })}
             {category.title}
-        </>
+        </span>
     );
 }

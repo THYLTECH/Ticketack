@@ -51,11 +51,7 @@ Route::prefix('tickets/')->name('tickets.')->middleware(['auth', 'verified:auth.
 
     // CATEGORIES OPERATIONS
     Route::controller(ControllersCategories::class)->group(function() {
-        Route::get('/categories', 'fetch')->name('categories.fetch');
         Route::patch('/categories/save', 'save')->name('categories.save');
-        Route::post('/categories', 'store')->name('categories.store');
-        Route::patch('/categories/{ticket}', 'update')->name('categories.update');
-        Route::delete('/categories/{ticket}', 'destroy')->name('categories.destroy');
     });
 
 });

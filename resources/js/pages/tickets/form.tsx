@@ -35,12 +35,15 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 
+// Custom Components
+import { CategoriesSheet } from './relations/categories';
+import { PrioritiesSheet } from './relations/priorities';
+
 // Types
 import { Asset, TicketCategory, TicketPriority, TicketStatus } from '@/types';
 
 // Icons
 import { Ellipsis, X } from 'lucide-react';
-import { PrioritiesSheet } from './relations/priorities';
 
 // ---------------------------------------
 //  Tabs
@@ -79,11 +82,26 @@ export function InformationsTab({
 
     // Ensure selected relations still exist
     React.useEffect(() => {
+        // Priority
         if (
             data.priority_id &&
             !priorities.find((priority) => priority.id === data.priority_id)
         ) {
             setData('priority_id', null);
+        }
+        // Category
+        if (
+            data.category_id &&
+            !categories.find((category) => category.id === data.category_id)
+        ) {
+            setData('category_id', null);
+        }
+        // Status
+        if (
+            data.status_id &&
+            !statuses.find((status) => status.id === data.status_id)
+        ) {
+            setData('status_id', null);
         }
     }, [priorities, statuses, categories, assets]);
 
@@ -330,15 +348,17 @@ export function InformationsTab({
                     {/* Manage categories */}
 
                     <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                type="button"
-                                size={'icon'}
-                                variant={'outline'}
-                            >
-                                <Ellipsis />
-                            </Button>
-                        </TooltipTrigger>
+                        <CategoriesSheet categories={categories}>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    type="button"
+                                    size={'icon'}
+                                    variant={'outline'}
+                                >
+                                    <Ellipsis />
+                                </Button>
+                            </TooltipTrigger>
+                        </CategoriesSheet>
                         <TooltipContent>Manage Categories</TooltipContent>
                     </Tooltip>
                 </div>
@@ -491,12 +511,6 @@ interface StatusesSheetProps extends CommonSheetProps {
 }
 
 function StatusesSheet({ children, statuses }: StatusesSheetProps) {}
-
-interface CategoriesSheetProps extends CommonSheetProps {
-    categories: TicketCategory[];
-}
-
-function CategoriesSheet({ children, categories }: CategoriesSheetProps) {}
 
 interface AssetsSheetProps extends CommonSheetProps {
     assets: Asset[];

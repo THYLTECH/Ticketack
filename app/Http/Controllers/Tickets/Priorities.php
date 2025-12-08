@@ -5,18 +5,13 @@
 namespace App\Http\Controllers\Tickets;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 
 // Models
-use App\Models\Ticket;
 use App\Models\TicketPriority;
 
 // Requests
 use App\Http\Requests\Tickets\Priorities\Save as RequestsSave;
-use App\Http\Requests\Tickets\Priorities\Store as RequestsStore;
-use App\Http\Requests\Tickets\Priorities\Update as RequestsUpdate;
 
 /**
  * Ticket Priorities operations controller.
@@ -29,14 +24,6 @@ class Priorities extends Controller
 {
     public function __construct() {
         // $this->authorizeResource(Ticket::class, 'ticket');
-    }
-
-    public function fetch() {
-        $priorities = TicketPriority::orderBy('sort_order')->get();
-
-        return response()->json([
-            'priorities' => $priorities,
-        ]);
     }
 
     public function save(RequestsSave $request)

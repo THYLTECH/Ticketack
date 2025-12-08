@@ -5,11 +5,14 @@
 namespace App\Http\Controllers\Tickets;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
+use Illuminate\Support\Facades\DB;
 
 // Models
-use App\Models\Ticket;
+use App\Models\TicketCategory;
+
+// Requests
+use App\Http\Requests\Tickets\Categories\Save as RequestsSave;
+
 
 /**
  * Ticket Categories operations controller.
@@ -24,19 +27,56 @@ class Categories extends Controller
         // $this->authorizeResource(Ticket::class, 'ticket');
     }
 
-    public function save(Request $request) {
-        // 
-    }
+    public function save(RequestsSave $request)
+    {
+        $data = $request->validated();
+        $submittedIds = collect($data['categories'])->pluck('id')->filter()->toArray();
+        $existingIds = TicketCategory::pluck('id')->toArray();
+        $idsToDelete = array_diff($existingIds, $submittedIds);
 
-    public function store(Request $request) {
-        // 
-    }
+        if (!empty($idsToDelete)) {
+            $attachedCategories = TicketCategory::whereIn('id', $idsToDelete)
+                ->whereHas('tickets')
+                ->pluck('title')
+                ->toArray();
 
-    public function update(Request $request, Ticket $ticket) {
-        // 
-    }
+            if (!empty($attachedCategories)) {
+                return redirect()->back()->withErrors([
+                    'categories' => __('Some categories cannot be deleted because they are attached to existing tickets: :categories', [
+                        'categories' => implode(', ', $attachedCategories),
+                    ]),
+                ]);
+            }
 
-    public function destroy(Ticket $ticket) {
-        // 
+            TicketCategory::whereIn('id', $idsToDelete)->delete();
+        }
+
+        DB::transaction(function () use ($data) {
+            $categoriesMap = [];
+
+            foreach ($data['categories'] as $index => $categoryData) {
+                $attributesToSave = [
+                    'title' => $categoryData['title'],
+                    'description' => $categoryData['description'],
+                    'color' => $categoryData['color'],
+                    'icon' => $categoryData['icon'],
+                    'sort_order' => 9999 + $index,
+                ];
+
+                $category = TicketCategory::updateOrCreate(
+                    ['id' => $categoryData['id'] ?? null],
+                    $attributesToSave
+                );
+                
+                // Stocker l'ID réel et le nouvel index désiré
+                $categoriesMap[$category->id] = $index;
+            }
+
+            foreach ($categoriesMap as $id => $newSortOrder) {
+                TicketCategory::where('id', $id)->update(['sort_order' => $newSortOrder]);
+            }
+        });
+
+        return redirect()->back()->with('success', __('Ticket categories saved successfully.'));
     }
 }

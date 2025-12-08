@@ -248,7 +248,7 @@ export interface TicketStatus {
     description: string;
     sort_order: number;
     color: string;
-    icon: string | null;
+    icon: IconPickerProps['value'] | undefined;
     is_default: boolean;
     is_closed: boolean;
 
@@ -263,7 +263,7 @@ export interface TicketCategory {
     description: string;
     sort_order: number;
     color: string;
-    icon: string | null;
+    icon: IconPickerProps['value'] | undefined;
 
     created_at: string;
     updated_at: string;

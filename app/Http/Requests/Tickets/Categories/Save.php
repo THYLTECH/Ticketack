@@ -1,8 +1,8 @@
 <?php
 
-// app/Http/Requests/Tickets/Priorities/Save.php
+// app/Http/Requests/Tickets/Categories/Save.php
 
-namespace App\Http\Requests\Tickets\Priorities;
+namespace App\Http\Requests\Tickets\Categories;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -10,9 +10,9 @@ use Illuminate\Support\Facades\Auth;
 /**
  * Class Save
  * 
- * Request class for validating ticket priority save requests.
+ * Request class for validating ticket category save requests.
  * 
- * @package App\Http\Requests\Tickets\Priorities
+ * @package App\Http\Requests\Tickets\Categories
  */
 class Save extends FormRequest
 {
@@ -33,12 +33,13 @@ class Save extends FormRequest
     public function rules(): array
     {
         return [
-            'priorities' => ['nullable', 'array'],
+            'categories' => ['nullable', 'array'],
             
-            'priorities.*.id' => ['required', 'integer'],
-            'priorities.*.title' => ['required', 'string', 'max:255'],
-            'priorities.*.description' => ['nullable', 'string', 'max:1000'],
-            'priorities.*.color' => ['required', 'string', 'max:7', 'regex:/^#[0-9A-Fa-f]{6}$/']
+            'categories.*.id' => ['required', 'integer'],
+            'categories.*.title' => ['required', 'string', 'max:255'],
+            'categories.*.description' => ['nullable', 'string', 'max:1000'],
+            'categories.*.color' => ['required', 'string', 'max:7', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'categories.*.icon' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

@@ -10,6 +10,7 @@ use Inertia\Inertia;
 
 // Models
 use App\Models\Ticket;
+use App\Models\TicketCategory;
 use App\Models\TicketPriority;
 
 /**
@@ -35,8 +36,11 @@ class Crud extends Controller
     
     public function create() {
         $priorities = TicketPriority::orderBy('sort_order')->get();
+        $categories = TicketCategory::orderBy('sort_order')->get();
+        
         return Inertia::render('tickets/create', [
             'priorities' => $priorities,
+            'categories' => $categories,
         ]);
     }
 

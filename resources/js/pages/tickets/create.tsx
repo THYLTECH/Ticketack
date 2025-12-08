@@ -29,17 +29,25 @@ import { Spinner } from '@/components/ui/spinner';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Types
-import type { BreadcrumbItem, SharedData, Ticket, TicketCategory, TicketPriority, TicketStatus, Asset } from '@/types';
+import type {
+    Asset,
+    BreadcrumbItem,
+    SharedData,
+    TicketCategory,
+    TicketPriority,
+    TicketStatus,
+} from '@/types';
 
 // Icons
-import { ArrowLeft, File, Plus, TicketIcon, UserIcon, Users } from 'lucide-react';
 import { FileWithPreview } from '@/hooks/use-file-upload';
+import { ArrowLeft, File, Plus, Users } from 'lucide-react';
 
 interface CreateProps {
     priorities: TicketPriority[];
+    categories: TicketCategory[];
 }
 
-export default function Create({ priorities }: CreateProps) {
+export default function Create({ priorities, categories }: CreateProps) {
     const __ = useTrans();
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -61,9 +69,7 @@ export default function Create({ priorities }: CreateProps) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={__('tickets.pages.create.head_title')} />
 
-            <CreateForm 
-                priorities={priorities}
-            />
+            <CreateForm priorities={priorities} categories={categories} />
         </AppLayout>
     );
 }
@@ -137,70 +143,69 @@ const mockData = {
         },
     ] as TicketStatus[],
     categories: [
-        {
-            id: 1,
-            title: 'Software',
-            description: 'Software related issues',
-            sort_order: 1,
-            color: '#8B5CF6',
-            icon: 'code',
-            created_at: '',
-            updated_at: '',
-        },
-        {
-            id: 2,
-            title: 'Hardware',
-            description: 'Hardware related issues',
-            sort_order: 2,
-            color: '#EF4444',
-            icon: 'monitor',
-            created_at: '',
-            updated_at: '',
-        },
-        {
-            id: 3,
-            title: 'Network',
-            description: 'Network related issues',
-            sort_order: 3,
-            color: '#3B82F6',
-            icon: 'network',
-            created_at: '',
-            updated_at: '',
-        },
+        // {
+        //     id: 1,
+        //     title: 'Software',
+        //     description: 'Software related issues',
+        //     sort_order: 1,
+        //     color: '#8B5CF6',
+        //     icon: 'code',
+        //     created_at: '',
+        //     updated_at: '',
+        // },
+        // {
+        //     id: 2,
+        //     title: 'Hardware',
+        //     description: 'Hardware related issues',
+        //     sort_order: 2,
+        //     color: '#EF4444',
+        //     icon: 'monitor',
+        //     created_at: '',
+        //     updated_at: '',
+        // },
+        // {
+        //     id: 3,
+        //     title: 'Network',
+        //     description: 'Network related issues',
+        //     sort_order: 3,
+        //     color: '#3B82F6',
+        //     icon: 'network',
+        //     created_at: '',
+        //     updated_at: '',
+        // },
     ] as TicketCategory[],
     assets: [
         {
-            id: "1",
+            id: '1',
             title: 'Laptop Dell XPS 13',
             icon: 'laptop',
             parent_id: null,
             depth_level: 0,
         },
         {
-            id: "2",
+            id: '2',
             title: 'Smartphones',
             icon: 'smartphone',
             parent_id: null,
             depth_level: 0,
         },
         {
-            id: "3",
+            id: '3',
             title: 'iPhone 12 Pro',
-            parent_id: "2",
+            parent_id: '2',
             depth_level: 1,
         },
         {
-            id: "4",
+            id: '4',
             title: 'Cisco Router 2901',
             icon: 'router',
             parent_id: null,
             depth_level: 0,
         },
-    ] as Asset[],   
-}
+    ] as Asset[],
+};
 
-
-function CreateForm({ priorities } : CreateProps) {
+function CreateForm({ priorities, categories }: CreateProps) {
     const __ = useTrans();
 
     const { data, setData, processing, errors, post } = useForm<{
@@ -274,13 +279,11 @@ function CreateForm({ priorities } : CreateProps) {
                             setData={setData}
                             errors={errors}
                             disabled={processing}
-
                             priorities={priorities}
                             statuses={mockData.statuses}
-                            categories={mockData.categories}
+                            categories={categories}
                             assets={mockData.assets}
                         />
-
                     </Tabs>
                 </CardContent>
                 <Separator className="my-6" />
