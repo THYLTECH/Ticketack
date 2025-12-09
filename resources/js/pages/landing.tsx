@@ -47,7 +47,6 @@ export default function Welcome() {
                     </nav>
                 </div>
             </header>
-                {/* <ContentSection />  */}
                 <About3 
                     title={__("landing.pages.title")} 
                     description={__("landing.pages.description")}
@@ -55,11 +54,11 @@ export default function Welcome() {
                         {
                             src : "https://id-ingenierie.com/wp-content/uploads/2019/12/logo_texte_long_noir@3x-1024x131.png",
                             alt : "logo",
-                            companyTitle : "Imagined by ID Ingenierie",
-                            companyDescription : "Specialist in customized software development and web and mobile technologies.",
-                            teamTitle : "Developed by Thyltech",
-                            teamDescription : "Team of french student from Centrale Lille IG2I.",
-                            buttonText : "Who are we ?",
+                            companyTitle : __("landing.pages.breakout.companyTitle"),
+                            companyDescription :__("landing.pages.breakout.companyDescription"),
+                            teamTitle : __("landing.pages.breakout.teamTitle"),
+                            teamDescription : __("landing.pages.breakout.teamDescription"),
+                            buttonText : __("landing.pages.buttons.company"),
                             buttonUrl : "https://id-ingenierie.com/",
                         }}
      
@@ -72,27 +71,27 @@ export default function Welcome() {
                             src :"./images/app_preview.png",
                             alt : "App preview"
                         }}
-                    achievementsTitle="Ticketack's Features"
-                    achievementsDescription='Ticketack allow you to centralize and simplify the tracking of all your technical issues. This tool reduces difficult tracking, loss of information and lack of visibility caused by problem reports via emails. '
+                    achievementsTitle={__("landing.pages.achievementsTitle")}
+                    achievementsDescription={__("landing.pages.achievementsDescription")}
                     achievements={[
                         {
-                            label: "Ticket Management",
-                            value: "Create tickets to report bugs, request enhancements, obtain support, or plan maintenance.",
+                            label: __("landing.pages.achievements.1.label"),
+                            value: __("landing.pages.achievements.1.value"),
                             icon : "SquareKanban",
                         },
                         {
-                            label: "Resolution Tracking",
-                            value: "Plan and track the time spent on resolving tickets",
+                            label: __("landing.pages.achievements.2.label"),
+                            value: __("landing.pages.achievements.2.value"),
                             icon : "Bugoff",
                         },
                         {
-                            label: "Asset Management",
-                            value: "List and manage your assets with a hierarchical view",
+                            label: __("landing.pages.achievements.3.label"),
+                            value: __("landing.pages.achievements.3.value"),
                             icon : "Tags"
                         },
                         {
-                            label: "Intervention Planning",
-                            value: "Solvers can view and plan interventions for ticket resolution",
+                            label: __("landing.pages.achievements.4.label"),
+                            value: __("landing.pages.achievements.4.value"),
                             icon : "Calendar"
                         }
                     ]}
