@@ -80,6 +80,7 @@
         "react-phone-number-input": "^3.4.13",
         "react-resizable-panels": "^3.0.6",
         "recharts": "^2.15.4",
+        "shadcn-ui": "^0.9.5",
         "sonner": "^2.0.7",
         "tailwind-merge": "^3.0.1",
         "tailwindcss": "^4.0.0",

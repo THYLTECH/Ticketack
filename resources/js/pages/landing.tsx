@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 
 // Types
 import { type SharedData } from '@/types';
+import { About3 } from '@/components/ui/About3';
 
 export default function Welcome() {
     const { auth } = usePage<SharedData>().props;
@@ -42,9 +43,11 @@ export default function Welcome() {
                         )}
                     </nav>
                 </header>
+                  
                 <div className="flex w-full max-w-3xl items-start justify-start lg:grow">
                     <h1 className="text-4xl font-bold">{__('landing.pages.title')}</h1>
                 </div>
+                <About3 title='About us'/>
             </div>
         </>
     );
