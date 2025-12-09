@@ -45,9 +45,16 @@ import { ArrowLeft, File, Plus, Users } from 'lucide-react';
 interface CreateProps {
     priorities: TicketPriority[];
     categories: TicketCategory[];
+    statuses: TicketStatus[];
+    assets: Asset[];
 }
 
-export default function Create({ priorities, categories }: CreateProps) {
+export default function Create({
+    priorities,
+    categories,
+    statuses,
+    assets,
+}: CreateProps) {
     const __ = useTrans();
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -69,7 +76,12 @@ export default function Create({ priorities, categories }: CreateProps) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={__('tickets.pages.create.head_title')} />
 
-            <CreateForm priorities={priorities} categories={categories} />
+            <CreateForm
+                priorities={priorities}
+                categories={categories}
+                statuses={statuses}
+                assets={assets}
+            />
         </AppLayout>
     );
 }
@@ -105,42 +117,42 @@ const mockData = {
         // },
     ] as TicketPriority[],
     statuses: [
-        {
-            id: 1,
-            title: 'Open',
-            description: 'Open status',
-            sort_order: 1,
-            color: '#3B82F6',
-            icon: null,
-            is_default: true,
-            is_closed: false,
-            created_at: '',
-            updated_at: '',
-        },
-        {
-            id: 2,
-            title: 'In Progress',
-            description: 'In Progress status',
-            sort_order: 2,
-            color: '#FBBF24',
-            icon: null,
-            is_default: false,
-            is_closed: false,
-            created_at: '',
-            updated_at: '',
-        },
-        {
-            id: 3,
-            title: 'Closed',
-            description: 'Closed status',
-            sort_order: 3,
-            color: '#10B981',
-            icon: null,
-            is_default: false,
-            is_closed: true,
-            created_at: '',
-            updated_at: '',
-        },
+        // {
+        //     id: 1,
+        //     title: 'Open',
+        //     description: 'Open status',
+        //     sort_order: 1,
+        //     color: '#3B82F6',
+        //     is_default: true,
+        //     is_closed: false,
+        //     progress: 0,
+        //     created_at: '',
+        //     updated_at: '',
+        // },
+        // {
+        //     id: 2,
+        //     title: 'In Progress',
+        //     description: 'In Progress status',
+        //     sort_order: 2,
+        //     color: '#FBBF24',
+        //     is_default: false,
+        //     is_closed: false,
+        //     progress: 50,
+        //     created_at: '',
+        //     updated_at: '',
+        // },
+        // {
+        //     id: 3,
+        //     title: 'Closed',
+        //     description: 'Closed status',
+        //     sort_order: 3,
+        //     color: '#10B981',
+        //     is_default: false,
+        //     is_closed: true,
+        //     progress: 100,
+        //     created_at: '',
+        //     updated_at: '',
+        // },
     ] as TicketStatus[],
     categories: [
         // {
@@ -205,7 +217,7 @@ const mockData = {
     ] as Asset[],
 };
 
-function CreateForm({ priorities, categories }: CreateProps) {
+function CreateForm({ priorities, categories, statuses, assets }: CreateProps) {
     const __ = useTrans();
 
     const { data, setData, processing, errors, post } = useForm<{
@@ -280,9 +292,9 @@ function CreateForm({ priorities, categories }: CreateProps) {
                             errors={errors}
                             disabled={processing}
                             priorities={priorities}
-                            statuses={mockData.statuses}
+                            statuses={statuses}
                             categories={categories}
-                            assets={mockData.assets}
+                            assets={assets}
                         />
                     </Tabs>
                 </CardContent>

@@ -38,12 +38,14 @@ import {
 // Custom Components
 import { CategoriesSheet } from './relations/categories';
 import { PrioritiesSheet } from './relations/priorities';
+import { StatusesSheet } from './relations/statuses';
 
 // Types
 import { Asset, TicketCategory, TicketPriority, TicketStatus } from '@/types';
 
 // Icons
 import { Ellipsis, X } from 'lucide-react';
+import { Link } from '@inertiajs/react';
 
 // ---------------------------------------
 //  Tabs
@@ -276,16 +278,18 @@ export function InformationsTab({
                     {/* Manage Statuses */}
 
                     <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                type="button"
-                                size={'icon'}
-                                variant={'outline'}
-                            >
-                                <Ellipsis />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Manage Statuses</TooltipContent>
+                        <StatusesSheet statuses={statuses}>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    type="button"
+                                    size={'icon'}
+                                    variant={'outline'}
+                                >
+                                    <Ellipsis />
+                                </Button>
+                            </TooltipTrigger>
+                        </StatusesSheet>
+                            <TooltipContent>Manage Statuses</TooltipContent>
                     </Tooltip>
                 </div>
             </div>
@@ -426,8 +430,11 @@ export function InformationsTab({
                                 type="button"
                                 size={'icon'}
                                 variant={'outline'}
+                                asChild
                             >
-                                <Ellipsis />
+                                <Link href={route('assets.index')}>
+                                    <Ellipsis />
+                                </Link>
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent>Manage Assets</TooltipContent>
@@ -505,14 +512,3 @@ export function InformationsTab({
 interface CommonSheetProps {
     children: React.ReactNode;
 }
-
-interface StatusesSheetProps extends CommonSheetProps {
-    statuses: TicketStatus[];
-}
-
-function StatusesSheet({ children, statuses }: StatusesSheetProps) {}
-
-interface AssetsSheetProps extends CommonSheetProps {
-    assets: Asset[];
-}
-function AssetsSheet({ children, assets }: AssetsSheetProps) {}

@@ -42,11 +42,7 @@ Route::prefix('tickets/')->name('tickets.')->middleware(['auth', 'verified:auth.
 
     // STATUSES OPERATIONS
     Route::controller(ControllersStatuses::class)->group(function() {
-        Route::get('/statuses', 'fetch')->name('statuses.fetch');
         Route::patch('/statuses/save', 'save')->name('statuses.save');
-        Route::post('/statuses', 'store')->name('statuses.store');
-        Route::patch('/statuses/{ticket}', 'update')->name('statuses.update');
-        Route::delete('/statuses/{ticket}', 'destroy')->name('statuses.destroy');
     });
 
     // CATEGORIES OPERATIONS

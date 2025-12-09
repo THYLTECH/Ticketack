@@ -22,7 +22,6 @@ return new class extends Migration
             $table->string('title');
             $table->text('description')->nullable();
             $table->integer('sort_order')->unique();
-            $table->string('icon')->nullable();
             $table->string('color');
             $table->boolean('is_default')->default(false);
             $table->boolean('is_closed')->default(false);

@@ -36,7 +36,7 @@ export function renderAsset(asset: Asset): ReactNode {
 
     return (
         <>
-            {asset.icon && getIcon(asset.icon)}
+            {asset.icon && getIcon(asset.icon, { className: 'text-muted-foreground', size: 16 })}
             {renderOption(asset)}
         </>
     );
@@ -49,8 +49,8 @@ export function renderAsset(asset: Asset): ReactNode {
 // DONE
 export function renderTicketPriority(priority: TicketPriority): ReactNode {
     return (
-        <span className='flex items-center gap-2'>
-            <LucideIcons.Flag color={priority.color} size={16}/>
+        <span className="flex items-center gap-2">
+            <LucideIcons.Flag color={priority.color} size={16} />
             {priority.title}
         </span>
     );
@@ -58,13 +58,43 @@ export function renderTicketPriority(priority: TicketPriority): ReactNode {
 
 // DOING - Faire le cercle
 export function renderTicketStatus(status: TicketStatus): ReactNode {
+    function getProgressCircle(progress: number, color: string) {
+        const size = 16;
+        const strokeWidth = 2;
+        const radius = (size - strokeWidth) / 2;
+        const circumference = 2 * Math.PI * radius;
+        const offset = circumference * (1 - progress / 100);
+
+        return (
+            <svg width={size} height={size} className="rotate-[-90deg]">
+                {/* Cercle de fond */}
+                <circle
+                    cx={size / 2}
+                    cy={size / 2}
+                    r={radius}
+                    stroke="var(--accent)"
+                    strokeWidth={strokeWidth}
+                    fill="transparent"
+                />
+                {/* Cercle de progression */}
+                <circle
+                    cx={size / 2}
+                    cy={size / 2}
+                    r={radius}
+                    stroke={color}
+                    strokeWidth={strokeWidth}
+                    fill="transparent"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={offset}
+                    strokeLinecap="round"
+                />
+            </svg>
+        );
+    }
+
     return (
-        <span className='flex items-center gap-1'>
-            {status.icon ? (
-                <>{getIcon(status.icon, { color: status.color })}</>
-            ) : (
-                <LucideIcons.Circle color={status.color} />
-            )}
+        <span className="flex items-center gap-2">
+            {getProgressCircle(status.progress, status.color)}
             {status.title}
         </span>
     );
@@ -73,8 +103,9 @@ export function renderTicketStatus(status: TicketStatus): ReactNode {
 // DONE
 export function renderTicketCategory(category: TicketCategory): ReactNode {
     return (
-        <span className='flex items-center gap-2'>
-            {category.icon && getIcon(category.icon, { color: category.color, size: 16 })}
+        <span className="flex items-center gap-2">
+            {category.icon &&
+                getIcon(category.icon, { color: category.color, size: 16 })}
             {category.title}
         </span>
     );

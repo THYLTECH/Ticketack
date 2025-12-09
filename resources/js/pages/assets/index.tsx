@@ -12,7 +12,8 @@ import AppLayout from '@/layouts/app/layout';
 import { useTrans } from '@/lib/translation';
 
 // Custom functions
-import { formatDate, getIcon } from '@/lib/utils';
+import { formatDate } from '@/lib/utils';
+import { renderAsset } from '@/lib/render';
 
 // Types
 import type { Asset, BreadcrumbItem, SharedData } from '@/types';
@@ -329,8 +330,6 @@ function AssetRow({
     const depthLevel = asset.depth_level || 0;
     const indentation = depthLevel * 1.5;
 
-    const Icon = asset.icon ? getIcon(asset.icon) : null;
-
     const handleToggle = (e: React.MouseEvent, id: string) => {
         e.stopPropagation();
         toggleNode(id);
@@ -394,11 +393,7 @@ function AssetRow({
                         )}
 
                         <div className="flex items-center gap-2">
-                            {Icon && (
-                                <Icon className="h-6 w-6 rounded-md border p-0.5 text-muted-foreground" />
-                            )}
-
-                            {asset.title}
+                            {renderAsset(asset)}
                         </div>
                     </div>
                 </TableCell>

@@ -5,6 +5,7 @@
 namespace App\Http\Controllers\Tickets;
 
 use App\Http\Controllers\Controller;
+use App\Models\Asset;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -12,6 +13,7 @@ use Inertia\Inertia;
 use App\Models\Ticket;
 use App\Models\TicketCategory;
 use App\Models\TicketPriority;
+use App\Models\TicketStatus;
 
 /**
  * Ticket CRUD operations controller.
@@ -37,10 +39,14 @@ class Crud extends Controller
     public function create() {
         $priorities = TicketPriority::orderBy('sort_order')->get();
         $categories = TicketCategory::orderBy('sort_order')->get();
+        $statuses = TicketStatus::orderBy('sort_order')->get();
+        $assets = Asset::getTreeOrderedAssets();
         
         return Inertia::render('tickets/create', [
             'priorities' => $priorities,
             'categories' => $categories,
+            'statuses' => $statuses,
+            'assets' => $assets,
         ]);
     }
 

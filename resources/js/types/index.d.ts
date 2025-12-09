@@ -248,9 +248,9 @@ export interface TicketStatus {
     description: string;
     sort_order: number;
     color: string;
-    icon: IconPickerProps['value'] | undefined;
     is_default: boolean;
     is_closed: boolean;
+    progress: number;
 
     created_at: string;
     updated_at: string;
