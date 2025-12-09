@@ -1,0 +1,50 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        user: laravel
+        uid: 1000
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+      - ./docker-compose/php/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+    depends_on:
+      - db
+    networks:
+      - ticketack-network
+
+  nginx:
+    image: nginx:1.25-alpine
+    depends_on:
+      - app
+    ports:
+      - "8000:80"
+    volumes:
+      - ./:/var/www/html
+      - ./docker-compose/nginx/laravel.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - ticketack-network
+
+  # Add database service
+  db:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: ticketack
+      MYSQL_USER: ticketack
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - dbdata:/var/lib/mysql
+    networks:
+      - ticketack-network
+
+networks:
+  ticketack-network:
+    driver: bridge
+
+volumes:
+  dbdata:
