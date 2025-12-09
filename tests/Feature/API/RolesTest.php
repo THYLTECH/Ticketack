@@ -5,9 +5,16 @@ use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use function Pest\Laravel\withHeaders;
 
+uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+
 beforeEach(function () {
-    Permission::firstOrCreate(['name' => 'view roles']);
-    Permission::firstOrCreate(['name' => 'create roles']);
+    app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
+    Permission::firstOrCreate(['name' => 'view roles', 'guard_name' => 'web']);
+    Permission::firstOrCreate(['name' => 'create roles', 'guard_name' => 'web']);
+    Permission::firstOrCreate(['name' => 'update roles', 'guard_name' => 'web']);
+    Permission::firstOrCreate(['name' => 'delete roles', 'guard_name' => 'web']);
+    Permission::firstOrCreate(['name' => 'create users', 'guard_name' => 'web']); // Pour l'index
 
     $this->admin = User::factory()->create();
     $this->admin->givePermissionTo(Permission::all());
@@ -17,7 +24,7 @@ beforeEach(function () {
 });
 
 test('can list roles', function () {
-    Role::create(['name' => 'Test Role']);
+    Role::create(['name' => 'Test Role', 'guard_name' => 'web']);
 
     withHeaders($this->headers)
         ->getJson('/api/roles')
@@ -25,8 +32,17 @@ test('can list roles', function () {
         ->assertJsonFragment(['name' => 'Test Role']);
 });
 
+test('can show role', function () {
+    $role = Role::create(['name' => 'Viewer', 'guard_name' => 'web']);
+
+    withHeaders($this->headers)
+        ->getJson("/api/roles/{$role->id}")
+        ->assertStatus(200)
+        ->assertJsonPath('name', 'Viewer');
+});
+
 test('can create role with permissions', function () {
-    Permission::create(['name' => 'edit articles']);
+    Permission::firstOrCreate(['name' => 'edit articles', 'guard_name' => 'web']);
 
     withHeaders($this->headers)
         ->postJson('/api/roles', [
@@ -36,4 +52,25 @@ test('can create role with permissions', function () {
         ->assertStatus(201);
 
     $this->assertDatabaseHas('roles', ['name' => 'New Role']);
+});
+
+test('can update role', function () {
+    $role = Role::create(['name' => 'Editor', 'guard_name' => 'web']);
+
+    withHeaders($this->headers)
+        ->putJson("/api/roles/{$role->id}", [
+            'name' => 'Senior Editor'
+        ])
+        ->assertStatus(200)
+        ->assertJsonPath('role.name', 'Senior Editor');
+});
+
+test('can delete role', function () {
+    $role = Role::create(['name' => 'Useless Role', 'guard_name' => 'web']);
+
+    withHeaders($this->headers)
+        ->deleteJson("/api/roles/{$role->id}")
+        ->assertStatus(200);
+
+    $this->assertDatabaseMissing('roles', ['id' => $role->id]);
 });

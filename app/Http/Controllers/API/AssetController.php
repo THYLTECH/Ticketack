@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\AssetResource;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\UploadedFile;
@@ -20,15 +21,14 @@ class AssetController extends Controller
      *
      * Display a listing of the assets.
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function index()
     {
         Gate::authorize('view assets');
 
-        $assets = Asset::getTreeOrderedAssets();
-        return response()->json($assets);
-    }
+        $assets = Asset::with(['attributes', 'attachments', 'parent'])->paginate(20);
+        return AssetResource::collection($assets);    }
 
     /**
      * Create a new asset
@@ -78,7 +78,7 @@ class AssetController extends Controller
 
         return response()->json([
             'message' => 'Asset created successfully',
-            'asset'   => $asset->load(['attributes', 'attachments', 'parent'])
+            'asset'   => new AssetResource($asset->load(['attributes', 'attachments', 'parent']))
         ], 201);
     }
 
@@ -88,13 +88,13 @@ class AssetController extends Controller
      * Display the specified asset.
      *
      * @param Asset $asset
-     * @return \Illuminate\Http\JsonResponse
+     * @return AssetResource
      * GET /api/assets/{asset}
      */
     public function show(Asset $asset)
     {
         Gate::authorize('show assets');
-        return response()->json(
+        return new AssetResource(
             $asset->load(['attributes', 'attachments', 'parent', 'childrenRecursive'])
         );
     }
@@ -166,7 +166,7 @@ class AssetController extends Controller
 
         return response()->json([
             'message' => 'Asset updated successfully',
-            'asset'   => $asset->fresh(['attributes', 'attachments', 'parent'])
+            'asset'   => new AssetResource($asset->fresh(['attributes', 'attachments', 'parent']))
         ]);
     }
 
