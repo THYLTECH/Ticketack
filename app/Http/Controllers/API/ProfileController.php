@@ -81,10 +81,9 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
+        $user->currentAccessToken()->delete();
+
         $user->delete();
-
-        $request->user()->currentAccessToken()->delete();
-
         return response()->json([
             'message' => 'Account deleted successfully',
         ]);

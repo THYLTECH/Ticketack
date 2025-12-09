@@ -187,7 +187,7 @@ class AssetController extends Controller
     }
 
     /**
-     * Helper pour sauvegarder un attachment
+     * Helper to save an attachment
      */
     private function saveAttachment(Asset $asset, array $attachmentData)
     {
