@@ -39,7 +39,7 @@ class RoleController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', 'unique:roles,name'],
             'permissions' => ['array'],
-            'permissions.*' => ['exists:permissions,name'], // Valide que la permission existe
+            'permissions.*' => ['exists:permissions,name'],
         ]);
 
         $role = Role::create(['name' => $validated['name']]);
