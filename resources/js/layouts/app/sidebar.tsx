@@ -58,7 +58,8 @@ import {
     LogOut,
     Settings,
     Shield,
-    Users
+    Users,
+    Trash2
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
@@ -105,6 +106,15 @@ export function AppSidebar() {
             title: __('app.layout.sidebar.menugroups.platform.items.roles'),
             href: route('roles.index'),
             icon: Shield,
+        });
+    }
+
+    // Trash
+    if(userHasPermission({ user: auth.user, permission: 'view trash' })) {
+        mainNavItems.push({
+            title: __('app.layout.sidebar.menugroups.platform.items.trash'),
+            href: route('trash.index'),
+            icon: Trash2,
         });
     }
 
