@@ -4,13 +4,13 @@ namespace Tests\Feature;
 
 use App\Models\Asset;
 use App\Models\Attachment;
-use App\Models\AssetAttachment; 
+use App\Models\AssetAttachment;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Permission;
-use function Pest\Laravel\{actingAs, delete, get, post};
+use function Pest\Laravel\{actingAs, delete, get, post, put}; // put ajouté pour restore
 
 uses(RefreshDatabase::class);
 
@@ -20,10 +20,13 @@ beforeEach(function () {
     Permission::create(['name' => 'create assets']);
     Permission::create(['name' => 'update assets']);
     Permission::create(['name' => 'delete assets']);
+    Permission::create(['name' => 'view trash']);
+    Permission::create(['name' => 'restore items']);
+    Permission::create(['name' => 'force delete items']);
 
     $this->user = User::factory()->create();
-    $this->user->givePermissionTo(Permission::all()); 
-    
+    $this->user->givePermissionTo(Permission::all());
+
     actingAs($this->user);
 
     Storage::fake('public');
@@ -31,16 +34,19 @@ beforeEach(function () {
 
 test('asset index page loads and shows assets', function () {
     Asset::factory()->count(3)->create();
+
     $response = get(route('assets.index'));
-    
+
     $response
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('assets/index'));
+        ->assertInertia(fn ($page) => $page->component('assets/index')
+            ->has('assets.data', 3)
+        );
 });
 
 test('asset create page loads and passes necessary data', function () {
     $response = get(route('assets.create'));
-    
+
     $response
         ->assertOk()
         ->assertInertia(fn ($page) => $page->component('assets/create')
@@ -52,7 +58,7 @@ test('asset create page loads and passes necessary data', function () {
 test('asset show page loads', function () {
     $asset = Asset::factory()->create();
     $response = get(route('assets.show', $asset));
-    
+
     $response
         ->assertOk()
         ->assertInertia(fn ($page) => $page->component('assets/show')
@@ -63,7 +69,7 @@ test('asset show page loads', function () {
 test('asset edit page loads and passes necessary data', function () {
     $asset = Asset::factory()->create();
     $response = get(route('assets.edit', $asset));
-    
+
     $response
         ->assertOk()
         ->assertInertia(fn ($page) => $page->component('assets/edit')
@@ -85,7 +91,7 @@ test('asset show returns 404 if asset does not exist', function () {
 
 test('user can store a new asset with minimum data', function () {
     $data = ['title' => 'New Server'];
-    
+
     $response = post(route('assets.store'), $data);
 
     $response
@@ -104,7 +110,7 @@ test('user can store a new asset with parent and icon', function () {
         'icon' => 'server',
         'description' => 'A complex description',
     ];
-    
+
     post(route('assets.store'), $data)
         ->assertSessionHasNoErrors();
 
@@ -122,7 +128,7 @@ test('user can store a new asset with attributes', function () {
     ];
 
     $data = ['title' => 'Asset with Attributes', 'attributes' => $attributes];
-    
+
     post(route('assets.store'), $data)
         ->assertSessionHasNoErrors();
 
@@ -154,7 +160,7 @@ test('user can store a new asset with attachments', function () {
     $attachment = Attachment::first();
 
     $this->assertDatabaseCount('attachments', 1);
-    
+
     $this->assertDatabaseHas('asset_attachments', [
         'asset_id' => $asset->id,
         'attachment_id' => $attachment->id,
@@ -171,8 +177,8 @@ test('user can update asset title', function () {
         'attributes' => [],
         'attachments' => [],
     ];
-    
-    $response = post(route('assets.update', $asset), $data); 
+
+    $response = post(route('assets.update', $asset), $data);
 
     $response
         ->assertSessionHasNoErrors()
@@ -200,40 +206,46 @@ test('user can update parent association', function () {
 
 test('user can update and replace all attributes', function () {
     $asset = Asset::factory()->create();
+
     $asset->attributes()->createMany([
         ['key' => 'Old Key 1', 'value' => 'Old Value 1'],
         ['key' => 'Old Key 2', 'value' => 'Old Value 2'],
     ]);
-    
+
+    $oldAttributes = $asset->attributes()->get();
+
     $newAttributes = [
         ['key' => 'NEW_SN', 'value' => '456'],
     ];
 
-    $asset->refresh();
-    $initialAttributes = $asset->attributes; 
-
     $data = [
-        'title' => $asset->title, 
+        'title' => $asset->title,
         'attributes' => $newAttributes,
-        'attachments' => [], 
+        'attachments' => [],
     ];
 
     post(route('assets.update', $asset), $data)
         ->assertSessionHasNoErrors();
 
-    $this->assertDatabaseCount('asset_attributes', 1);
-    $this->assertDatabaseHas('asset_attributes', ['asset_id' => $asset->id, 'key' => 'NEW_SN']);
-    
-    $initialAttributes->each(function ($attribute) use ($asset) {
-        $this->assertDatabaseMissing('asset_attributes', ['asset_id' => $asset->id, 'key' => $attribute->key]);
-    });
-});
+    $this->assertDatabaseHas('asset_attributes', [
+        'asset_id' => $asset->id,
+        'key' => 'NEW_SN'
+    ]);
 
+    foreach ($oldAttributes as $attribute) {
+        $this->assertDatabaseMissing('asset_attributes', [
+            'asset_id' => $asset->id,
+            'key' => $attribute->key
+        ]);
+    }
+
+    $this->assertDatabaseCount('asset_attributes', 1);
+});
 test('user can soft delete an asset', function () {
     $asset = Asset::factory()->create();
-    
+
     $response = delete(route('assets.destroy', $asset));
-    
+
     $response
         ->assertSessionHasNoErrors()
         ->assertRedirect(route('assets.index'))
@@ -242,28 +254,29 @@ test('user can soft delete an asset', function () {
     $this->assertSoftDeleted('assets', ['id' => $asset->id]);
 });
 
+
 test('user can restore a soft deleted asset', function () {
-    $asset = Asset::factory()->trashed()->create();
-    
-    $response = post(route('assets.restore', $asset));
-    
+    $asset = Asset::factory()->create();
+    $asset->delete();
+
+    $response = put(route('trash.restore', ['type' => 'asset', 'id' => $asset->id]));
+
     $response
         ->assertSessionHasNoErrors()
-        ->assertRedirect(route('assets.index'))
-        ->assertSessionHas('success');
+        ->assertRedirect();
 
     $this->assertNotSoftDeleted('assets', ['id' => $asset->id]);
 });
 
 test('user can force delete an asset', function () {
-    $asset = Asset::factory()->trashed()->create();
-    
-    $response = delete(route('assets.force_delete', $asset));
-    
+    $asset = Asset::factory()->create();
+    $asset->delete();
+
+    $response = delete(route('trash.force-delete', ['type' => 'asset', 'id' => $asset->id]));
+
     $response
         ->assertSessionHasNoErrors()
-        ->assertRedirect(route('assets.index'))
-        ->assertSessionHas('success');
+        ->assertRedirect();
 
     $this->assertDatabaseMissing('assets', ['id' => $asset->id]);
 });

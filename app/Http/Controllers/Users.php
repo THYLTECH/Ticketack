@@ -28,9 +28,9 @@ use App\Notifications\UserRegistered as NotificationsUserRegistered;
 
 /**
  * Class Users
- * 
+ *
  * Controller for managing users and their related data.
- * 
+ *
  * @package App\Http\Controllers
  */
 class Users extends Controller
@@ -41,18 +41,18 @@ class Users extends Controller
 
     /**
      * Display a listing of the users.
-     * 
+     *
      * @return Response
      */
     public function index(): Response {
         return Inertia::render('users/index', [
-            'users' => User::with('roles')->get(),
+            'users' => User::with('roles')->paginate(10),
         ]);
     }
 
     /**
      * Show the form for creating a new user.
-     * 
+     *
      * @return Response
      */
     public function create(): Response {
@@ -63,7 +63,7 @@ class Users extends Controller
 
     /**
      * Show the form for editing the specified user.
-     * 
+     *
      * @param User $user
      * @return Response | RedirectResponse
      */
@@ -73,10 +73,10 @@ class Users extends Controller
             'roles' => Role::all(),
         ]);
     }
-    
+
     /**
      * Display the specified user.
-     * 
+     *
      * @param User $user
      * @return Response | RedirectResponse
     */
@@ -89,7 +89,7 @@ class Users extends Controller
 
     /**
      * Store a newly created user in database.
-     * 
+     *
      * @param RequestStore $request
      * @return RedirectResponse
      */
@@ -139,12 +139,12 @@ class Users extends Controller
 
     /**
      * Update the specified user in database.
-     * 
+     *
      * @param Request $request
      * @param User $user
      * @return RedirectResponse
      */
-    public function update(RequestsUpdate $request, User $user): RedirectResponse {  
+    public function update(RequestsUpdate $request, User $user): RedirectResponse {
         $data = $request->validated();
         unset($data['avatar']);
 
@@ -192,16 +192,18 @@ class Users extends Controller
 
     /**
      * Remove the specified user from database.
-     * 
+     *
      * @param User $user
      * @return RedirectResponse
      */
     public function destroy(User $user): RedirectResponse {
-        // avatar
+        // avatar not deleted on soft delete
+        /*
         if ($user->avatar) {
             Storage::disk('public')->delete($user->avatar->file_path);
             $user->avatar->delete();
         }
+        */
         $user->delete();
         return redirect()->route('users.index')->with(['success' => __('users.flash.deleted')]);
     }
