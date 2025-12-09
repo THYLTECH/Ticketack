@@ -11,7 +11,7 @@ use Inertia\Response;
 use Inertia\Inertia;
 
 // Models
-use Spatie\Permission\Models\Role;
+use App\Models\Role;
 use Spatie\Permission\Models\Permission;
 use App\Models\User;
 
@@ -21,9 +21,9 @@ use App\Http\Requests\Roles\Update as RequestsUpdate;
 
 /**
  * Class Roles
- * 
+ *
  * Controller for managing roles and their related data.
- * 
+ *
  * @package App\Http\Controllers
  */
 class Roles extends Controller
@@ -35,7 +35,7 @@ class Roles extends Controller
 
     /**
      * Display a listing of the roles.
-     * 
+     *
      * @return Response
      */
     public function index(): Response {
@@ -49,7 +49,7 @@ class Roles extends Controller
 
     /**
      * Show the form for creating a new role.
-     * 
+     *
      * @return Response
      */
     public function create(): Response {
@@ -58,7 +58,7 @@ class Roles extends Controller
 
     /**
      * Show the form for editing the specified role.
-     * 
+     *
      * @param Role $role
      * @return Response | RedirectResponse
      */
@@ -70,10 +70,10 @@ class Roles extends Controller
 
         return Inertia::render('roles/edit', ['role' => $role->load('permissions', 'users'), 'permissions' => Permission::all(), 'usersWithoutRole' => $usersWithoutRole]);
     }
-    
+
     /**
      * Display the specified role.
-     * 
+     *
      * @param Role $role
      * @return Response | RedirectResponse
     */
@@ -88,7 +88,7 @@ class Roles extends Controller
 
     /**
      * Store a newly created role in database.
-     * 
+     *
      * @param RequestsStore $request
      * @return RedirectResponse
      */
@@ -109,12 +109,12 @@ class Roles extends Controller
 
     /**
      * Update the specified role in database.
-     * 
+     *
      * @param Request $request
      * @param Role $role
      * @return RedirectResponse
      */
-    public function update(RequestsUpdate $request, Role $role): RedirectResponse {    
+    public function update(RequestsUpdate $request, Role $role): RedirectResponse {
         $data = $request->validated();
 
         // Update role details
@@ -131,7 +131,7 @@ class Roles extends Controller
 
     /**
      * Remove the specified role from database.
-     * 
+     *
      * @param Role $role
      * @return RedirectResponse
      */
