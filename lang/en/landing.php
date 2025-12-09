@@ -21,9 +21,14 @@ return [
 
         'buttons' => [
             'dashboard' => 'Dashboard',
+            'home'=> 'Home',
             'login' => 'Log in',
             'register' => 'Register',
-        ]
+        ],
+        'title' => 'Welcome to Ticketack',
+        'description' => '',
+
+
     ],
 
 ];
