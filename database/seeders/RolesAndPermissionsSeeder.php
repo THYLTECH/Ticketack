@@ -30,45 +30,50 @@ class RolesAndPermissionsSeeder extends Seeder
         /**
          * Permissions
          */
+        $permissions = [
+            // Assets
+            'view assets',
+            'show assets',
+            'create assets',
+            'update assets',
+            'delete assets',
+            'restore assets',
+            'force delete assets',
 
-        // Assets
-        Permission::create(['name' => 'view assets']); // Index
-        Permission::create(['name' => 'show assets']); // Show
-        Permission::create(['name' => 'create assets']); // Create
-        Permission::create(['name' => 'update assets']); // Update
-        Permission::create(['name' => 'delete assets']); // Delete
-        Permission::create(['name' => 'restore assets']); // Restore
-        Permission::create(['name' => 'force delete assets']); // Force Delete
+            // Users
+            'view users',
+            'show users',
+            'create users',
+            'update users',
+            'delete users',
 
-        // Users
-        Permission::create(['name' => 'view users']); // Index
-        Permission::create(['name' => 'show users']); // Show
-        Permission::create(['name' => 'create users']); // Create
-        Permission::create(['name' => 'update users']); // Update
-        Permission::create(['name' => 'delete users']); // Delete
+            // Roles
+            'view roles',
+            'show roles',
+            'create roles',
+            'update roles',
+            'delete roles',
 
-        // Roles
-        Permission::create(['name' => 'view roles']); // Index
-        Permission::create(['name' => 'show roles']); // Show
-        Permission::create(['name' => 'create roles']); // Create
-        Permission::create(['name' => 'update roles']); // Update
-        Permission::create(['name' => 'delete roles']); // Delete
+            // Tickets
+            'view tickets',
+            'show tickets',
+            'create tickets',
+            'update tickets',
+            'delete tickets',
+            'restore tickets',
+            'force delete tickets',
+        ];
 
-        // Tickets
-        Permission::create(['name' => 'view tickets']); // Index
-        Permission::create(['name' => 'show tickets']); // Show
-        Permission::create(['name' => 'create tickets']); // Create
-        Permission::create(['name' => 'update tickets']); // Update
-        Permission::create(['name' => 'delete tickets']); // Delete
-        Permission::create(['name' => 'restore tickets']); // Restore
-        Permission::create(['name' => 'force delete tickets']); // Force Delete
+        foreach ($permissions as $permission) {
+            Permission::firstOrCreate(['name' => $permission]);
+        }
 
         /**
          * Roles
          */
 
         // Admin
-        $roleAdmin = Role::create(['name' => 'admin']);
+        $roleAdmin = Role::firstOrCreate(['name' => 'admin']);
         $roleAdmin->givePermissionTo(Permission::all());
         
         // Solver

@@ -10,12 +10,14 @@ use App\Http\Controllers\Tickets\Crud as ControllersCrud;
 use App\Http\Controllers\Tickets\Priorities as ControllersPriorities;
 use App\Http\Controllers\Tickets\Statuses as ControllersStatuses;
 use App\Http\Controllers\Tickets\Categories as ControllersCategories;
+use App\Http\Controllers\Tickets\Comments as ControllersComments;
 
 Route::prefix('tickets/')->name('tickets.')->middleware(['auth', 'verified:auth.verification.notice'])->group(function() {
     
     // CRUD OPERATIONS
     Route::controller(ControllersCrud::class)->group(function() {
         Route::get('/', 'index')->name('index');
+        Route::get('/manage', 'manage')->name('manage');
         Route::get('/create', 'create')->name('create');
         Route::get('/{ticket}', 'show')->name('show');
         Route::get('/{ticket}/edit', 'edit')->name('edit');
@@ -48,6 +50,10 @@ Route::prefix('tickets/')->name('tickets.')->middleware(['auth', 'verified:auth.
     // CATEGORIES OPERATIONS
     Route::controller(ControllersCategories::class)->group(function() {
         Route::patch('/categories/save', 'save')->name('categories.save');
+    });
+
+    Route::controller(ControllersComments::class)->group(function() {
+        Route::post('/{ticket}/comments', 'store')->name('comments.store');
     });
 
 });

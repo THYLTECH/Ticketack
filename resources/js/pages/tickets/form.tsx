@@ -17,7 +17,24 @@ import {
 
 // Shadnc UI Components
 import { FileUpload } from '@/components/file-upload';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+    Empty,
+    EmptyContent,
+    EmptyDescription,
+    EmptyHeader,
+    EmptyMedia,
+    EmptyTitle,
+} from '@/components/ui/empty';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -27,6 +44,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
 import { TabsContent } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -41,11 +66,26 @@ import { PrioritiesSheet } from './relations/priorities';
 import { StatusesSheet } from './relations/statuses';
 
 // Types
-import { Asset, TicketCategory, TicketPriority, TicketStatus } from '@/types';
+import {
+    Asset,
+    SharedData,
+    TicketCategory,
+    TicketPriority,
+    TicketStatus,
+    User,
+} from '@/types';
 
 // Icons
-import { Ellipsis, X } from 'lucide-react';
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
+import {
+    Ellipsis,
+    MinusCircle,
+    Plus,
+    PlusCircle,
+    UserMinus,
+    X,
+} from 'lucide-react';
+import { toast } from 'sonner';
 
 // ---------------------------------------
 //  Tabs
@@ -105,7 +145,7 @@ export function InformationsTab({
         ) {
             setData('status_id', null);
         }
-    }, [priorities, statuses, categories, assets]);
+    }, [priorities, statuses, categories]);
 
     return (
         <TabsContent
@@ -148,7 +188,9 @@ export function InformationsTab({
 
             {/* Priority */}
             <div className="grid gap-2 md:col-span-1">
-                <Label htmlFor="priority_id">Priority</Label>
+                <Label htmlFor="priority_id" indicator="required">
+                    Priority
+                </Label>
                 <div className="flex w-full items-center gap-2">
                     {/* Select Priorities */}
                     <div className="flex w-full items-center gap-2">
@@ -222,7 +264,9 @@ export function InformationsTab({
 
             {/* Status */}
             <div className="grid gap-2 md:col-span-1">
-                <Label htmlFor="status_id">Status</Label>
+                <Label htmlFor="status_id" indicator="required">
+                    Status
+                </Label>
                 <div className="flex w-full items-center gap-2">
                     {/* Select Status */}
                     <div className="flex w-full items-center gap-2">
@@ -289,14 +333,16 @@ export function InformationsTab({
                                 </Button>
                             </TooltipTrigger>
                         </StatusesSheet>
-                            <TooltipContent>Manage Statuses</TooltipContent>
+                        <TooltipContent>Manage Statuses</TooltipContent>
                     </Tooltip>
                 </div>
             </div>
 
             {/* Category */}
             <div className="grid gap-2 md:col-span-1">
-                <Label htmlFor="category_id">Category</Label>
+                <Label htmlFor="category_id" indicator="required">
+                    Category
+                </Label>
                 <div className="flex w-full items-center gap-2">
                     {/* Select Categories */}
                     <div className="flex w-full items-center gap-2">
@@ -370,7 +416,9 @@ export function InformationsTab({
 
             {/* Asset */}
             <div className="grid gap-2 md:col-span-1">
-                <Label htmlFor="asset_id">Asset</Label>
+                <Label htmlFor="asset_id" indicator="required">
+                    Asset
+                </Label>
                 <div className="flex w-full items-center gap-2">
                     {/* Select Asset */}
                     <div className="flex w-full items-center gap-2">
@@ -501,6 +549,235 @@ export function InformationsTab({
                     }}
                 />
             </div>
+        </TabsContent>
+    );
+}
+
+export function UsersTab({
+    data,
+    setData,
+    users,
+    disabled = false,
+}: {
+    // Change these any types
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    data: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    setData: any;
+    users: User[];
+    disabled?: boolean;
+}) {
+    const __ = useTrans();
+
+    const { auth } = usePage<SharedData>().props;
+
+    const [open, setOpen] = React.useState(false);
+    const [tempUsersAssigned, setTempUsersAssigned] = React.useState<User[]>(
+        users || [],
+    );
+
+    const handleAddUser = (user: User) => {
+        setData('assignees', [...data.assignees, user]);
+        setTempUsersAssigned(
+            tempUsersAssigned.filter((u: User) => u.id !== user.id),
+        );
+        setOpen(false);
+        toast.success(__('User added successfully.'));
+    };
+
+    const handleRemoveUser = (user: User) => {
+        setData(
+            'assignees',
+            data.assignees.filter((u: User) => u.id !== user.id),
+        );
+        setTempUsersAssigned([...tempUsersAssigned, user]);
+        toast.success(__('User removed successfully.'));
+    };
+
+    return (
+        <TabsContent value={'users'} className="grid gap-4">
+            <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild>
+                    {data.assignees.length !== 0 && !disabled && (
+                        <Button
+                            variant={'outline'}
+                            size={'sm'}
+                            className="w-max"
+                            type="button"
+                        >
+                            <Plus />
+                            Assign users
+                        </Button>
+                    )}
+                </DialogTrigger>
+                <DialogContent className="!max-w-3xl">
+                    <DialogHeader>
+                        <DialogTitle>Assign users</DialogTitle>
+                        <DialogDescription>
+                            Select users you want to assign to this ticket.
+                        </DialogDescription>
+                    </DialogHeader>
+                    {tempUsersAssigned.length === 0 ? (
+                        <Empty className="gap-2 border border-dashed !p-8">
+                            <EmptyHeader>
+                                <EmptyMedia variant="icon">
+                                    <UserMinus />
+                                </EmptyMedia>
+                                <EmptyTitle>No users fournd.</EmptyTitle>
+                                <EmptyDescription>
+                                    All users have been assigned to this ticket.
+                                </EmptyDescription>
+                            </EmptyHeader>
+                        </Empty>
+                    ) : (
+                        <>
+                            <div className="overflow-hidden rounded-md border">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Name</TableHead>
+                                            <TableHead>Email</TableHead>
+                                            <TableHead>Roles</TableHead>
+                                            <TableHead></TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {tempUsersAssigned.map((user: User) => (
+                                            <TableRow key={user.id}>
+                                                <TableCell className="space-x-3">
+                                                    <span>{user.name}</span>
+                                                    {user.id ===
+                                                        auth.user.id && (
+                                                        <Badge>You</Badge>
+                                                    )}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {user.email}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {user.roles &&
+                                                        user.roles.map(
+                                                            (role) => (
+                                                                <Badge
+                                                                    key={
+                                                                        role.id
+                                                                    }
+                                                                    className="mr-2"
+                                                                    variant={
+                                                                        'secondary'
+                                                                    }
+                                                                >
+                                                                    {role.name}
+                                                                </Badge>
+                                                            ),
+                                                        )}
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    {!disabled && (
+                                                        <Button
+                                                            size={'sm'}
+                                                            type="button"
+                                                            onClick={() =>
+                                                                handleAddUser(
+                                                                    user,
+                                                                )
+                                                            }
+                                                        >
+                                                            <PlusCircle />
+                                                            Assign
+                                                        </Button>
+                                                    )}
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        </>
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            {data.assignees.length === 0 ? (
+                <Empty className="gap-2 border border-dashed !p-8">
+                    <EmptyHeader>
+                        <EmptyMedia variant="icon">
+                            <UserMinus />
+                        </EmptyMedia>
+                        <EmptyTitle>No users assigned.</EmptyTitle>
+                        <EmptyDescription>
+                            Assign users to this ticket to allow them to view
+                            and manage it.
+                        </EmptyDescription>
+                    </EmptyHeader>
+                    <EmptyContent>
+                        {!disabled && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setOpen(true)}
+                                type="button"
+                            >
+                                <Plus />
+                                Assign users
+                            </Button>
+                        )}
+                    </EmptyContent>
+                </Empty>
+            ) : (
+                <div className="overflow-hidden rounded-md border">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Name</TableHead>
+                                <TableHead>Email</TableHead>
+                                <TableHead>Roles</TableHead>
+                                <TableHead></TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {data.assignees.map((user: User) => (
+                                <TableRow key={user.id}>
+                                    <TableCell className="space-x-3">
+                                        <span>{user.name}</span>
+                                        {user.id === auth.user.id && (
+                                            <Badge>You</Badge>
+                                        )}
+                                    </TableCell>
+                                    <TableCell>{user.email}</TableCell>
+                                    <TableCell>
+                                        {user.roles &&
+                                            user.roles.map((role) => (
+                                                <Badge
+                                                    key={role.id}
+                                                    className="mr-2"
+                                                    variant={'secondary'}
+                                                >
+                                                    {role.name}
+                                                </Badge>
+                                            ))}
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        {!disabled && (
+                                            <Button
+                                                size={'sm'}
+                                                type="button"
+                                                variant={'outline'}
+                                                onClick={() =>
+                                                    handleRemoveUser(user)
+                                                }
+                                            >
+                                                <MinusCircle />
+                                                Remove
+                                            </Button>
+                                        )}
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </div>
+            )}
         </TabsContent>
     );
 }

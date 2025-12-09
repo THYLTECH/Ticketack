@@ -62,12 +62,12 @@ export function ColorPicker({ value, onChange, disabled = false, id, className, 
         onClick={handleDisplayClick}
         disabled={disabled}
         className={cn(
-          "w-full h-10 rounded-md border-1 border-input bg-input/30 transition-all duration-200",
+          "w-full h-10 rounded-md border-1 border-input dark:bg-input/30 transition-all duration-200",
           "flex items-center gap-3 px-3",
           "hover:border-primary/50",
           "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none",
           "disabled:opacity-50 disabled:cursor-not-allowed",
-          "shadow-sm hover:shadow-md",
+          "shadow-xs",
           ariaInvalid ? '!border-destructive' : ''
         )}
       >

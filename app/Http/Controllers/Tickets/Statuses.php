@@ -52,16 +52,8 @@ class Statuses extends Controller
             ]);
         }
 
-        // Delete statuses that were removed and assign tickets to default status
-        if (!empty($idsToChange)) {
-            $defaultStatus = TicketStatus::where('is_default', true)->first();
-            TicketStatus::whereIn('id', $idsToChange)->each(function ($status) use ($defaultStatus) {
-                $status->tickets()->update(['status_id' => $defaultStatus->id]);
-                $status->delete();
-            });
-        }
-
-        DB::transaction(function () use ($data) {
+    
+        DB::transaction(function () use ($data, $idsToChange) {
             $statusesMap = [];
 
             foreach ($data['statuses'] as $index => $statusData) {
@@ -81,6 +73,15 @@ class Statuses extends Controller
                 
                 // Stocker l'ID réel et le nouvel index désiré
                 $statusesMap[$status->id] = $index;
+            }
+
+            // Delete statuses that were removed and assign tickets to default status
+            if (!empty($idsToChange)) {
+                $defaultStatus = TicketStatus::where('is_default', true)->first();
+                TicketStatus::whereIn('id', $idsToChange)->each(function ($status) use ($defaultStatus) {
+                    $status->tickets()->update(['status_id' => $defaultStatus->id]);
+                    $status->delete();
+                });
             }
 
             foreach ($statusesMap as $id => $newSortOrder) {

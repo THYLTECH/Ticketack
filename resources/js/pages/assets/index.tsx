@@ -298,7 +298,7 @@ function AssetTable({
 
     return (
         <Table>
-            <TableHeader className="sticky top-0 z-10 bg-card shadow-sm">
+            <TableHeader>
                 <TableRow>
                     <TableHead className="pl-6 text-xs text-muted-foreground">
                         {__('assets.pages.index.table.headers.asset')}

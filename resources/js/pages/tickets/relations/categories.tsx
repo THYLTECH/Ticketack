@@ -226,7 +226,7 @@ export function CategoriesSheet({
                             <Input
                                 id="title"
                                 value={title}
-                                placeholder="eg: High, Medium, Low"
+                                placeholder="eg: Network Issues"
                                 onChange={(e) => setTitle(e.target.value)}
                                 disabled={processing}
                                 aria-invalid={errors.title ? 'true' : 'false'}

@@ -11,7 +11,7 @@ import AppLayout from '@/layouts/app/layout';
 import { useTrans } from '@/lib/translation';
 
 // Custom components
-import { InformationsTab } from '@/pages/tickets/form';
+import { InformationsTab, UsersTab } from '@/pages/tickets/form';
 
 // Shadnc UI Components
 import { Button } from '@/components/ui/button';
@@ -36,6 +36,7 @@ import type {
     TicketCategory,
     TicketPriority,
     TicketStatus,
+    User,
 } from '@/types';
 
 // Icons
@@ -47,6 +48,7 @@ interface CreateProps {
     categories: TicketCategory[];
     statuses: TicketStatus[];
     assets: Asset[];
+    users: User[];
 }
 
 export default function Create({
@@ -54,6 +56,7 @@ export default function Create({
     categories,
     statuses,
     assets,
+    users,
 }: CreateProps) {
     const __ = useTrans();
 
@@ -65,6 +68,10 @@ export default function Create({
         {
             title: __('tickets.pages.breadcrumbs.index'),
             href: route('tickets.index'),
+        },
+        {
+            title: 'Manage',
+            href: route('tickets.manage'),
         },
         {
             title: __('tickets.pages.breadcrumbs.create'),
@@ -81,143 +88,13 @@ export default function Create({
                 categories={categories}
                 statuses={statuses}
                 assets={assets}
+                users={users}
             />
         </AppLayout>
     );
 }
 
-const mockData = {
-    priorities: [
-        // {
-        //     id: 1,
-        //     title: 'Low',
-        //     description: 'Low priority',
-        //     sort_order: 1,
-        //     color: '#34D399',
-        //     created_at: '',
-        //     updated_at: '',
-        // },
-        // {
-        //     id: 2,
-        //     title: 'Medium',
-        //     description: 'Medium priority',
-        //     sort_order: 2,
-        //     color: '#FBBF24',
-        //     created_at: '',
-        //     updated_at: '',
-        // },
-        // {
-        //     id: 3,
-        //     title: 'High',
-        //     description: 'High priority',
-        //     sort_order: 3,
-        //     color: '#F87171',
-        //     created_at: '',
-        //     updated_at: '',
-        // },
-    ] as TicketPriority[],
-    statuses: [
-        // {
-        //     id: 1,
-        //     title: 'Open',
-        //     description: 'Open status',
-        //     sort_order: 1,
-        //     color: '#3B82F6',
-        //     is_default: true,
-        //     is_closed: false,
-        //     progress: 0,
-        //     created_at: '',
-        //     updated_at: '',
-        // },
-        // {
-        //     id: 2,
-        //     title: 'In Progress',
-        //     description: 'In Progress status',
-        //     sort_order: 2,
-        //     color: '#FBBF24',
-        //     is_default: false,
-        //     is_closed: false,
-        //     progress: 50,
-        //     created_at: '',
-        //     updated_at: '',
-        // },
-        // {
-        //     id: 3,
-        //     title: 'Closed',
-        //     description: 'Closed status',
-        //     sort_order: 3,
-        //     color: '#10B981',
-        //     is_default: false,
-        //     is_closed: true,
-        //     progress: 100,
-        //     created_at: '',
-        //     updated_at: '',
-        // },
-    ] as TicketStatus[],
-    categories: [
-        // {
-        //     id: 1,
-        //     title: 'Software',
-        //     description: 'Software related issues',
-        //     sort_order: 1,
-        //     color: '#8B5CF6',
-        //     icon: 'code',
-        //     created_at: '',
-        //     updated_at: '',
-        // },
-        // {
-        //     id: 2,
-        //     title: 'Hardware',
-        //     description: 'Hardware related issues',
-        //     sort_order: 2,
-        //     color: '#EF4444',
-        //     icon: 'monitor',
-        //     created_at: '',
-        //     updated_at: '',
-        // },
-        // {
-        //     id: 3,
-        //     title: 'Network',
-        //     description: 'Network related issues',
-        //     sort_order: 3,
-        //     color: '#3B82F6',
-        //     icon: 'network',
-        //     created_at: '',
-        //     updated_at: '',
-        // },
-    ] as TicketCategory[],
-    assets: [
-        {
-            id: '1',
-            title: 'Laptop Dell XPS 13',
-            icon: 'laptop',
-            parent_id: null,
-            depth_level: 0,
-        },
-        {
-            id: '2',
-            title: 'Smartphones',
-            icon: 'smartphone',
-            parent_id: null,
-            depth_level: 0,
-        },
-        {
-            id: '3',
-            title: 'iPhone 12 Pro',
-            parent_id: '2',
-            depth_level: 1,
-        },
-        {
-            id: '4',
-            title: 'Cisco Router 2901',
-            icon: 'router',
-            parent_id: null,
-            depth_level: 0,
-        },
-    ] as Asset[],
-};
-
-function CreateForm({ priorities, categories, statuses, assets }: CreateProps) {
+function CreateForm({ priorities, categories, statuses, assets, users }: CreateProps) {
     const __ = useTrans();
 
     const { data, setData, processing, errors, post } = useForm<{
@@ -231,7 +108,7 @@ function CreateForm({ priorities, categories, statuses, assets }: CreateProps) {
 
         attachments: FileWithPreview[];
 
-        assignees: number[];
+        assignees: User[];
     }>({
         title: '',
         description: '',
@@ -260,7 +137,7 @@ function CreateForm({ priorities, categories, statuses, assets }: CreateProps) {
                 </CardDescription>
                 <CardAction>
                     <Button asChild variant={'secondary'}>
-                        <Link href={route('tickets.index')}>
+                        <Link href={route('tickets.manage')}>
                             <ArrowLeft />
                             {__('tickets.pages.form.buttons.back')}
                         </Link>
@@ -295,6 +172,13 @@ function CreateForm({ priorities, categories, statuses, assets }: CreateProps) {
                             statuses={statuses}
                             categories={categories}
                             assets={assets}
+                        />
+
+                        <UsersTab   
+                            data={data}
+                            setData={setData}
+                            users={users}
+                            disabled={processing}
                         />
                     </Tabs>
                 </CardContent>

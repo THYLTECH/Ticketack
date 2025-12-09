@@ -1,4 +1,4 @@
-// resources/js/pages/tickets/index.tsx
+// resources/js/pages/tickets/manage.tsx
 
 // Necessary imports
 import { Head, Link, router, usePage } from '@inertiajs/react';
@@ -13,7 +13,7 @@ import { useTrans } from '@/lib/translation';
 import { formatDate, userHasPermission } from '@/lib/utils';
 
 // Types
-import type { BreadcrumbItem, SharedData, Ticket } from '@/types';
+import type { BreadcrumbItem, Ticket, SharedData } from '@/types';
 
 // Custom components
 
@@ -46,7 +46,7 @@ import {
 } from '@/components/ui/table';
 
 // Icons
-import { Cog, RefreshCcw, TicketIcon } from 'lucide-react';
+import { ArrowLeft, Plus, RefreshCcw, TicketIcon } from 'lucide-react';
 
 export default function Index({ tickets }: { tickets: Ticket[] }) {
     const __ = useTrans();
@@ -58,6 +58,10 @@ export default function Index({ tickets }: { tickets: Ticket[] }) {
         },
         {
             title: __('tickets.pages.breadcrumbs.index'),
+            href: route('tickets.index'),
+        },
+        {
+            title: 'Manage',
             href: '#',
         },
     ];
@@ -70,13 +74,19 @@ export default function Index({ tickets }: { tickets: Ticket[] }) {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>{__('tickets.pages.index.title')}</CardTitle>
+                    <CardTitle>Tickets management</CardTitle>
                     <CardDescription>
-                        View all your submitted tickets below.
+                        Manage all tickets in the system below.
                     </CardDescription>
 
                     <CardAction className="flex items-center gap-2">
-                        {/* {userHasPermission({
+                        <Button asChild variant={"secondary"}>
+                            <Link href={route('tickets.index')}>
+                                <ArrowLeft />
+                                Go back to your tickets
+                            </Link>
+                        </Button>
+                        {userHasPermission({
                             user: auth.user,
                             permission: 'create tickets',
                         }) && (
@@ -86,14 +96,7 @@ export default function Index({ tickets }: { tickets: Ticket[] }) {
                                     {__('tickets.pages.index.buttons.create')}
                                 </Link>
                             </Button>
-                        )} */}
-
-                        <Button asChild>
-                            <Link href={route('tickets.manage')}>
-                                <Cog />
-                                Manage tickets
-                            </Link>
-                        </Button>
+                        )}
                     </CardAction>
                 </CardHeader>
                 <Separator />
@@ -157,10 +160,10 @@ function TicketTable({ tickets }: { tickets: Ticket[] }) {
                 </TableRow>
             </TableHeader>
             <TableBody>
-                {tickets.map((ticket) => (
+                {tickets.map((Ticket) => (
                     <TableRow
                         className="relative cursor-pointer"
-                        key={ticket.id}
+                        key={Ticket.id}
                         onClick={() => {
                             if (
                                 userHasPermission({
@@ -169,33 +172,19 @@ function TicketTable({ tickets }: { tickets: Ticket[] }) {
                                 })
                             ) {
                                 router.get(
-                                    route('tickets.show', {
-                                        ticket: ticket.id,
-                                    }),
+                                    route('tickets.show', { Ticket: Ticket.id }),
                                 );
                             }
                         }}
                     >
                         <TableCell>
-                            {ticket.title}
-
-                            {userHasPermission({
-                                user: auth.user,
-                                permission: 'show tickets',
-                            }) && (
-                                <Link
-                                    href={route('tickets.show', {
-                                        ticket: ticket.id,
-                                    })}
-                                    className="absolute inset-0 z-0"
-                                />
-                            )}
+                            {Ticket.title}
                         </TableCell>
                         <TableCell className="text-right">
-                            {formatDate(ticket.updated_at)}
+                            {formatDate(Ticket.updated_at)}
                         </TableCell>
                         <TableCell className="text-right">
-                            {formatDate(ticket.created_at)}
+                            {formatDate(Ticket.created_at)}
                         </TableCell>
                     </TableRow>
                 ))}

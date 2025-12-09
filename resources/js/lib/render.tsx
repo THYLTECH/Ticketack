@@ -26,8 +26,14 @@ export function getIcon(
 // ---------------------------------------
 //  Asset Utils
 // ---------------------------------------
-export function renderAsset(asset: Asset): ReactNode {
-    const renderOption = (asset: Asset) => {
+
+export function renderAsset(asset: Asset, show_indentation?: boolean): ReactNode {
+
+    const renderOption = (asset: Asset, show_indentation: boolean) => {
+        if(show_indentation === false) {
+            return asset.title;
+        }
+
         const depthLevel = asset.depth_level || 0;
         const indentation = '\u00A0'.repeat(depthLevel * 4);
 
@@ -35,10 +41,10 @@ export function renderAsset(asset: Asset): ReactNode {
     };
 
     return (
-        <>
+        <span className="flex items-center gap-2">
             {asset.icon && getIcon(asset.icon, { className: 'text-muted-foreground', size: 16 })}
-            {renderOption(asset)}
-        </>
+            {renderOption(asset, show_indentation ?? true)}
+        </span>
     );
 }
 

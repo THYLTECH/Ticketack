@@ -8,12 +8,22 @@ use App\Http\Controllers\Controller;
 use App\Models\Asset;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 // Models
 use App\Models\Ticket;
 use App\Models\TicketCategory;
 use App\Models\TicketPriority;
 use App\Models\TicketStatus;
+use App\Models\User;
+use App\Models\Attachment;
+
+// Requests
+use App\Http\Requests\Tickets\Store as RequestsStore;
+use App\Models\TicketAssignee;
+use App\Models\TicketAttachment;
 
 /**
  * Ticket CRUD operations controller.
@@ -29,11 +39,22 @@ class Crud extends Controller
     }
 
     public function index() {
-        $tickets = Ticket::withoutTrashed()->get();
+        $tickets = Ticket::whereHas('assignees', function($query) {
+            $query->where('user_id', Auth::user()->id);
+        })->get();
         
         return Inertia::render('tickets/index', [
             'tickets' => $tickets,
         ]);
+    }
+    
+    public function manage() {
+        $tickets = Ticket::withoutTrashed()->get();
+        
+        return Inertia::render('tickets/manage', [
+            'tickets' => $tickets,
+        ]);
+
     }
     
     public function create() {
@@ -41,21 +62,101 @@ class Crud extends Controller
         $categories = TicketCategory::orderBy('sort_order')->get();
         $statuses = TicketStatus::orderBy('sort_order')->get();
         $assets = Asset::getTreeOrderedAssets();
+
+        // $users = User::hasPermission([''])->with('roles')->get();
+        $users = User::with('roles')->get();
         
         return Inertia::render('tickets/create', [
             'priorities' => $priorities,
             'categories' => $categories,
             'statuses' => $statuses,
             'assets' => $assets,
+
+            'users' => $users,
         ]);
     }
 
     public function show(Ticket $ticket) {
-        // 
+        $ticket = $ticket->load([
+            'user',
+            'priority',
+            'status',
+            'category',
+            'asset',
+
+            'assignees.user',
+            'comments.user',
+            'logs.user',
+            'entries.user',
+            'schedules.user',
+
+            'attachments',
+        ]);
+        
+        return Inertia::render('tickets/show', [
+            'ticket' => $ticket,
+        ]);
     }
 
-    public function store(Request $request) {
-        // 
+    public function store(RequestsStore $request) {
+        $data = $request->validated();
+
+        // Create the ticket
+        $ticket = Ticket::create([
+            'title' => $data['title'],
+            'description' => $data['description'],
+            'author_id' => $request->user()->id,
+
+            'priority_id' => $data['priority_id'],
+            'category_id' => $data['category_id'],
+            'status_id' => $data['status_id'],
+            'asset_id' => $data['asset_id'],
+        ]);
+
+        if (isset($data['assignees'])) {
+            $assigneeIds = array_map(fn($assignee) => $assignee['id'], $data['assignees']);
+            
+            $assigneesToSave = [];
+            foreach ($assigneeIds as $userId) {
+                $assigneesToSave[] = new TicketAssignee([
+                    'user_id' => $userId,
+                    // TODO : Add role_title and role_description fields in next feature
+                ]);
+            }
+            $ticket->assignees()->saveMany($assigneesToSave);
+        }
+
+        // Attachments
+        if(!empty($data['attachments'])) {
+            foreach($data['attachments'] as $attachment) {
+                $file = $attachment['file'];
+
+                $path = Storage::disk('public')->putFile("tickets/{$ticket->id}/attachments", $file);
+
+                $a = Attachment::create([
+                    'file_name'      => $file->getClientOriginalName(),
+                    'file_path'      => $path,
+                    'mime_type'      => $file->getMimeType(),
+                    'file_extension' => $file->getClientOriginalExtension(),
+                    'file_size'      => $file->getSize(),
+                    'title'          => $attachment['title'],
+                    'description'    => $attachment['description'] ?? null,
+                ]);
+
+                $attachment = $a; 
+                $ticketId = $ticket->id;
+                $attachmentId = $attachment->id;
+
+                TicketAttachment::create([
+                    'ticket_id' => $ticketId,
+                    'attachment_id' => $attachmentId,
+                ]);
+            }
+        }
+
+        $ticket->save();
+
+        return redirect()->route('tickets.manage')->with(['success' => __('tickets.flash.created')]);
     }
 
     public function edit(Ticket $ticket) {

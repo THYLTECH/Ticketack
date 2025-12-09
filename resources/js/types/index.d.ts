@@ -216,7 +216,7 @@ export interface Ticket {
     category: TicketCategory;
     asset: Asset;
 
-    assignees: UserSimplified[];
+    assignees: TicketAssignee[];
     comments: TicketComment[];
     logs: TicketLog[];
     entries: TicketEntry[];
@@ -322,4 +322,9 @@ export interface TicketSchedule {
 
     created_at: string;
     updated_at: string;
+}
+
+interface TicketAssignee {
+    id: number;
+    user: UserSimplified;
 }

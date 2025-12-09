@@ -118,6 +118,7 @@ return new class extends Migration
             $table->foreignId('ticket_id')->constrained()->onDelete('cascade');
             $table->foreignId('attachment_id')->constrained()->onDelete('cascade');
             $table->primary(['ticket_id', 'attachment_id']);
+            $table->timestamps();
         });
 
         // Comments <-> Attachments
@@ -125,6 +126,7 @@ return new class extends Migration
             $table->foreignId('ticket_comment_id')->constrained()->onDelete('cascade');
             $table->foreignId('attachment_id')->constrained()->onDelete('cascade');
             $table->primary(['ticket_comment_id', 'attachment_id'], 'comment_attach_pk');
+            $table->timestamps();
         });
     }
 
