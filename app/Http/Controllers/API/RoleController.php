@@ -11,6 +11,8 @@ use Spatie\Permission\Models\Permission;
 
 class RoleController extends Controller
 {
+    const PERM_VIEW = 'view roles';
+
     /**
      * List all roles.
      *
@@ -18,7 +20,7 @@ class RoleController extends Controller
      */
     public function index()
     {
-        if (!Gate::allows('view roles') && !Gate::allows('create users')) {
+        if (!Gate::allows(self::PERM_VIEW) && !Gate::allows('create users')) {
             abort(403);
         }
 
@@ -64,7 +66,7 @@ class RoleController extends Controller
      */
     public function show(Role $role)
     {
-        Gate::authorize('view roles');
+        Gate::authorize(self::PERM_VIEW);
         return response()->json($role->load('permissions'));
     }
 
@@ -131,7 +133,7 @@ class RoleController extends Controller
      */
     public function permissions()
     {
-        Gate::authorize('view roles');
+        Gate::authorize(self::PERM_VIEW);
         return response()->json(Permission::all()->pluck('name'));
     }
 }

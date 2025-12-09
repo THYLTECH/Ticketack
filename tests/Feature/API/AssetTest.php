@@ -27,7 +27,7 @@ beforeEach(function () {
     $this->headers = ['Authorization' => 'Bearer ' . $this->token];
 });
 
-test('can list assets', function () {
+test('can list assets with pagination', function () {
     Asset::factory()->count(3)->create();
 
     withHeaders($this->headers)
@@ -45,33 +45,51 @@ test('can show asset', function () {
         ->assertJsonPath('data.title', $asset->title);
 });
 
-test('can create asset', function () {
+test('can create asset with attributes and parent', function () {
+    $parent = Asset::factory()->create();
+
     withHeaders($this->headers)
         ->postJson('/api/assets', [
-            'title' => 'MacBook Pro',
-            'description' => 'Laptop dev',
+            'title' => 'Child Asset',
+            'parent_id' => $parent->id,
+            'attributes' => [
+                ['key' => 'RAM', 'value' => '16GB']
+            ]
         ])
         ->assertStatus(201)
-        ->assertJsonPath('asset.title', 'MacBook Pro');
+        ->assertJsonPath('asset.title', 'Child Asset')
+        ->assertJsonPath('asset.parent.id', $parent->id);
 
-    $this->assertDatabaseHas('assets', ['title' => 'MacBook Pro']);
+    $this->assertDatabaseHas('asset_attributes', ['key' => 'RAM', 'value' => '16GB']);
 });
 
-test('can update asset', function () {
+test('can update asset attributes and attachments', function () {
     $asset = Asset::factory()->create();
+    $asset->attributes()->create(['key' => 'Color', 'value' => 'Red']);
+
+    $file = UploadedFile::fake()->create('manual.pdf');
 
     withHeaders($this->headers)
         ->putJson("/api/assets/{$asset->id}", [
-            'title' => 'Updated Title',
-            'description' => 'Updated Desc',
+            'title' => 'Updated Asset',
+            'attributes' => [
+                ['key' => 'Color', 'value' => 'Blue']
+            ],
+            'attachments' => [
+                [
+                    'title' => 'Manual',
+                    'file' => $file
+                ]
+            ]
         ])
         ->assertStatus(200)
-        ->assertJsonPath('asset.title', 'Updated Title');
+        ->assertJsonPath('asset.title', 'Updated Asset');
 
-    $this->assertDatabaseHas('assets', ['id' => $asset->id, 'title' => 'Updated Title']);
+    $this->assertDatabaseHas('asset_attributes', ['key' => 'Color', 'value' => 'Blue']);
+    $this->assertDatabaseHas('attachments', ['title' => 'Manual']);
 });
 
-test('can delete asset', function () {
+test('can delete asset (soft delete)', function () {
     $asset = Asset::factory()->create();
 
     withHeaders($this->headers)
@@ -81,4 +99,16 @@ test('can delete asset', function () {
     $this->assertSoftDeleted('assets', ['id' => $asset->id]);
 });
 
+test('can delete attachment via api', function () {
+    $asset = Asset::factory()->create();
+    $attachment = Attachment::factory()->create();
+    $asset->attachments()->save($attachment);
 
+    Storage::disk('public')->put($attachment->file_path, 'content');
+
+    withHeaders($this->headers)
+        ->deleteJson("/api/attachments/{$attachment->id}")
+        ->assertStatus(200);
+
+    $this->assertDatabaseMissing('attachments', ['id' => $attachment->id]);
+});

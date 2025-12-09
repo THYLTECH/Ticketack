@@ -121,47 +121,15 @@ class AssetController extends Controller
         ]);
 
         if (array_key_exists('parent_id', $data)) {
-            if ($data['parent_id']) {
-                $parent = Asset::find($data['parent_id']);
-                if ($parent) {
-                    $asset->parent()->associate($parent);
-                }
-            } else {
-                $asset->parent()->dissociate();
-            }
-            $asset->save();
+            $this->updateParent($asset, $data['parent_id']);
         }
 
         if (isset($data['attributes'])) {
-            foreach ($data['attributes'] as $attribute) {
-                $asset->attributes()->updateOrCreate(
-                    ['key'   => $attribute['key']],
-                    ['value' => $attribute['value']]
-                );
-            }
+            $this->updateAttributes($asset, $data['attributes']);
         }
 
         if (!empty($data['attachments'])) {
-            foreach ($data['attachments'] as $attachment) {
-
-                if (isset($attachment['file']) && $attachment['file'] instanceof UploadedFile) {
-                    $this->saveAttachment($asset, $attachment);
-                }
-
-                elseif (!empty($attachment['id'])) {
-
-                    $existingAttachment = $asset->attachments()
-                        ->where('attachments.id', $attachment['id'])
-                        ->first();
-
-                    if ($existingAttachment) {
-                        $existingAttachment->update([
-                            'title'       => $attachment['title'],
-                            'description' => $attachment['description'] ?? null,
-                        ]);
-                    }
-                }
-            }
+            $this->handleAttachments($asset, $data['attachments']);
         }
 
         return response()->json([
@@ -184,6 +152,64 @@ class AssetController extends Controller
         Gate::authorize('delete assets');
         $asset->delete();
         return response()->json(['message' => 'Asset deleted successfully']);
+    }
+
+    /**
+    * Helpers
+    */
+
+    private function updateParent(Asset $asset, ?int $parentId): void
+    {
+        if ($parentId) {
+            $parent = Asset::find($parentId);
+            if ($parent) {
+                $asset->parent()->associate($parent);
+            }
+        } else {
+            $asset->parent()->dissociate();
+        }
+        $asset->save();
+    }
+
+    private function createAttributes(Asset $asset, array $attributes): void
+    {
+        foreach ($attributes as $attribute) {
+            $asset->attributes()->create([
+                'key'   => $attribute['key'],
+                'value' => $attribute['value'],
+            ]);
+        }
+    }
+
+    private function updateAttributes(Asset $asset, array $attributes): void
+    {
+        foreach ($attributes as $attribute) {
+            $asset->attributes()->updateOrCreate(
+                ['key'   => $attribute['key']],
+                ['value' => $attribute['value']]
+            );
+        }
+    }
+
+    private function handleAttachments(Asset $asset, array $attachments): void
+    {
+        foreach ($attachments as $attachmentData) {
+            if (isset($attachmentData['file']) && $attachmentData['file'] instanceof UploadedFile) {
+                $this->saveAttachment($asset, $attachmentData);
+            }
+            elseif (!empty($attachmentData['id'])) {
+                $existingAttachment = $asset->attachments()
+                    ->where('attachments.id', $attachmentData['id'])
+                    ->first();
+
+                if ($existingAttachment) {
+                    $existingAttachment->update([
+                        'title'       => $attachmentData['title'],
+                        'description' => $attachmentData['description'] ?? null,
+                    ]);
+                }
+            }
+        }
     }
 
     /**
