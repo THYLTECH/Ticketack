@@ -24,9 +24,9 @@ use App\Models\Attachment;
 
 /**
  * Class Assets
- * 
+ *
  * Controller for managing assets and their related data.
- * 
+ *
  * @package App\Http\Controllers
  */
 class Assets extends Controller
@@ -38,7 +38,7 @@ class Assets extends Controller
 
     /**
      * Display a listing of the assets.
-     * 
+     *
      * @return Response
      */
     public function index(): Response {
@@ -47,7 +47,7 @@ class Assets extends Controller
 
     /**
      * Show the form for creating a new asset.
-     * 
+     *
      * @return Response
      */
     public function create(): Response {
@@ -57,7 +57,7 @@ class Assets extends Controller
             ->select('key')
             ->selectRaw('COUNT(*) as count')
             ->groupBy('key')
-            ->orderByDesc('count') 
+            ->orderByDesc('count')
             ->pluck('key');
 
         return Inertia::render('assets/create', ['assets' => $assets, 'attribute_keys' => $attribute_keys]);
@@ -65,18 +65,18 @@ class Assets extends Controller
 
     /**
      * Show the form for editing the specified asset.
-     * 
+     *
      * @param Asset $asset
      * @return Response | RedirectResponse
      */
     public function edit(Asset $asset): Response | RedirectResponse {
-        $assets = Asset::getTreeOrderedAssets();
+        $assets = Asset::getTreeOrderedAssets()->filter(fn($a) => $a->id !== $asset->id)->values();
 
         $attribute_keys = AssetAttribute::query()
             ->select('key')
             ->selectRaw('COUNT(*) as count')
             ->groupBy('key')
-            ->orderByDesc('count') 
+            ->orderByDesc('count')
             ->pluck('key');
 
         return Inertia::render('assets/edit', ['asset' => $asset->load('attachments'), 'assets' => $assets, 'attribute_keys' => $attribute_keys]);
@@ -84,7 +84,7 @@ class Assets extends Controller
 
     /**
      * Display the specified asset.
-     * 
+     *
      * @param Asset $asset
      * @return Response | RedirectResponse
      */
@@ -94,7 +94,7 @@ class Assets extends Controller
 
     /**
      * Store a newly created asset in database.
-     * 
+     *
      * @param Request $request
      * @return RedirectResponse
      */
@@ -152,7 +152,7 @@ class Assets extends Controller
 
     /**
      * Update the specified asset in database.
-     * 
+     *
      * @param Request $request
      * @param Asset $asset
      * @return RedirectResponse
@@ -201,13 +201,13 @@ class Assets extends Controller
         // Attachments
         // Delete attachments that were removed in the edit form
         $existingIds = $asset->attachments()
-            ->pluck('attachments.id') 
+            ->pluck('attachments.id')
             ->map(fn($id) => (string)$id)
             ->toArray();
 
 
         $incomingIds = collect($data['attachments'])
-            ->filter(fn($att) => !empty($att['id'])) 
+            ->filter(fn($att) => !empty($att['id']))
             ->pluck('id')
             ->map(fn($id) => (string)$id)
             ->toArray();
@@ -265,7 +265,7 @@ class Assets extends Controller
 
     /**
      * Remove the specified asset from database.
-     * 
+     *
      * @param Asset $asset
      * @return RedirectResponse
      */
@@ -276,7 +276,7 @@ class Assets extends Controller
 
     /**
      * Restore the specified asset from database.
-     * 
+     *
      * @param Asset $asset
      * @return RedirectResponse
      */
@@ -287,7 +287,7 @@ class Assets extends Controller
 
     /**
      * Permanently delete the specified asset from database.
-     * 
+     *
      * @param Asset $asset
      * @return RedirectResponse
      */

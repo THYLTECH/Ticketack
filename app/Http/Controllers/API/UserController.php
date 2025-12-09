@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -18,7 +19,7 @@ class UserController extends Controller
      * Display a listing of the users with filtering and sorting.
      *
      * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function index(Request $request)
     {
@@ -58,7 +59,7 @@ class UserController extends Controller
 
         $query->orderBy($sortBy, $sortDir);
 
-        return response()->json(
+        return UserResource::collection(
             $query->paginate(intval($request->get('per_page', 10)))
         );
     }
@@ -98,7 +99,7 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'User created successfully',
-            'user' => $user->load(['avatar', 'roles']),
+            'user' => new UserResource($user->load(['avatar', 'roles'])),
         ], 201);
     }
 
@@ -108,15 +109,13 @@ class UserController extends Controller
      * Display the specified user.
      *
      * @param \App\Models\User $user
-     * @return \Illuminate\Http\JsonResponse
+     * @return UserResource
      */
     public function show(User $user)
     {
         Gate::authorize('view users');
 
-        return response()->json(
-            $user->load(['avatar', 'roles', 'permissions'])
-        );
+        return new UserResource($user->load(['avatar', 'roles', 'permissions']));
     }
 
     /**
@@ -155,7 +154,7 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'User updated successfully',
-            'user' => $user->fresh(['avatar', 'roles']),
+            'user' => new UserResource($user->fresh(['avatar', 'roles'])),
         ]);
     }
 
