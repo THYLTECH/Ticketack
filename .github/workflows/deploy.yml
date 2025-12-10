@@ -22,11 +22,16 @@ jobs:
           port: ${{ secrets.VPS_PORT }}
           script: |
             cd /var/www/ticketack
-            git pull origin develop
+            echo "Fetching latest changes..."
+            git fetch origin develop
+            echo "Forcing hard reset to origin/develop..."
+            git reset --hard origin/develop
             
             git config --global --add safe.directory /var/www/html
             
             docker compose up -d --build --force-recreate app
+            
+            sleep 5
             
             sleep 5
             
