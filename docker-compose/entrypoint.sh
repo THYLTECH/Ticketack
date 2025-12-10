@@ -15,7 +15,7 @@ if [ ! -f ".env" ]; then
     sed -i 's/# DB_PASSWORD=/DB_PASSWORD=secret/g' .env
 fi
 
-# 2. Generate application key if absent 
+# 2. Generate application key if absent  
 if ! grep -q "APP_KEY=base64" .env; then
     echo "Génération de la clé d'application..."
     php artisan key:generate
