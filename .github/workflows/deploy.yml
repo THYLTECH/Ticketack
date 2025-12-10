@@ -13,7 +13,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Execute remote ssh commands
+      - name: Execute remote ssh commands and run maintenance
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -22,15 +22,35 @@ jobs:
           port: ${{ secrets.VPS_PORT }}
           script: |
             cd /var/www/ticketack
-            
             git pull origin develop
             
-            docker compose up -d --build --remove-orphans
+            git config --global --add safe.directory /var/www/html
             
+            docker compose up -d --build --force-recreate app
+            
+            sleep 5
+            
+            
+            echo "Installation des dépendances PHP..."
             docker compose exec -T app composer install --optimize-autoloader --no-dev
-            docker compose exec -T app php artisan migrate --force
+            
+            echo "Installation des dépendances JS et build..."
             docker compose exec -T app npm install
             docker compose exec -T app npm run build
+            
+            echo "Migrations de la base de données..."
+            docker compose exec -T app php artisan migrate --force
+            
+            echo "Nettoyage et Reconstruction du cache de Laravel..."
+            docker compose exec -T app php artisan config:clear
+            docker compose exec -T app php artisan route:clear
+            docker compose exec -T app php artisan view:clear
             docker compose exec -T app php artisan config:cache
             docker compose exec -T app php artisan route:cache
             docker compose exec -T app php artisan view:cache
+            
+            # --- 4. Réparation des Permissions (Essentiel après un déploiement) ---
+            echo "Réparation des permissions de stockage..."
+            docker compose exec -T app chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+            
+            echo "Déploiement terminé avec succès."
