@@ -22,19 +22,23 @@ jobs:
           script: |
             set -e
             cd /var/www/ticketack
-            git fetch origin develop
-            git reset --hard origin/develop
-            git config --global --add safe.directory /var/www/ticketack
+
             docker compose up -d --build --force-recreate app
             sleep 5
-            docker compose exec -T app composer install --optimize-autoloader --no-dev
-            docker compose exec -T app npm install
-            docker compose exec -T app npm run build
-            docker compose exec -T app php artisan migrate --force
-            docker compose exec -T app php artisan config:clear
-            docker compose exec -T app php artisan route:clear
-            docker compose exec -T app php artisan view:clear
-            docker compose exec -T app php artisan config:cache
-            docker compose exec -T app php artisan route:cache
-            docker compose exec -T app php artisan view:cache
-            docker compose exec -T app chown -R www-data:www-data /var/www/ticketack/storage /var/www/ticketack/bootstrap/cache
+
+            docker compose exec -T app sh -c "
+              git fetch origin develop &&
+              git reset --hard origin/develop &&
+              git config --global --add safe.directory /var/www/ticketack &&
+              composer install --optimize-autoloader --no-dev &&
+              npm install &&
+              npm run build &&
+              php artisan migrate --force &&
+              php artisan config:clear &&
+              php artisan route:clear &&
+              php artisan view:clear &&
+              php artisan config:cache &&
+              php artisan route:cache &&
+              php artisan view:cache &&
+              chown -R www-data:www-data /var/www/ticketack/storage /var/www/ticketack/bootstrap/cache
+            "
