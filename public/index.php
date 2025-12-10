@@ -17,4 +17,10 @@ require __DIR__.'/../vendor/autoload.php';
 /** @var Application $app */
 $app = require_once __DIR__.'/../bootstrap/app.php';
 
-$app->handleRequest(Request::capture());
+$request = Request::capture();
+
+if ($request->header('X-Forwarded-Proto') === 'https') {
+    $request->server->set('HTTPS', true);
+}
+
+$app->handleRequest($request);
