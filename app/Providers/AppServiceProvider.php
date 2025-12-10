@@ -41,10 +41,7 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
-        $this->app->forgetInstance(\Illuminate\Http\Request::class);
-        $this->app->instance(\Illuminate\Http\Request::class, $request = \Illuminate\Http\Request::capture());
 
-        $request->setTrustedProxies(['*'], Request::HEADER_X_FORWARDED_FOR | Request::HEADER_X_FORWARDED_HOST | Request::HEADER_X_FORWARDED_PORT | Request::HEADER_X_FORWARDED_PROTO);
 
         // Policies
         Gate::policy(Asset::class, AssetPolicy::class);
