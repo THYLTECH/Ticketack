@@ -6,14 +6,13 @@ on:
 
 jobs:
   deploy:
-    name: Deploy to VPS
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Execute remote ssh commands and run maintenance
+      - name: Execute remote ssh commands
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -21,41 +20,21 @@ jobs:
           password: ${{ secrets.VPS_PASSWORD }}
           port: ${{ secrets.VPS_PORT }}
           script: |
+            set -e
             cd /var/www/ticketack
-            echo "Fetching latest changes..."
             git fetch origin develop
-            echo "Forcing hard reset to origin/develop..."
             git reset --hard origin/develop
-            
-            git config --global --add safe.directory /var/www/html
-            
+            git config --global --add safe.directory /var/www/ticketack
             docker compose up -d --build --force-recreate app
-            
             sleep 5
-            
-            sleep 5
-            
-            
-            echo "Installation des dépendances PHP..."
             docker compose exec -T app composer install --optimize-autoloader --no-dev
-            
-            echo "Installation des dépendances JS et build..."
             docker compose exec -T app npm install
             docker compose exec -T app npm run build
-            
-            echo "Migrations de la base de données..."
             docker compose exec -T app php artisan migrate --force
-            
-            echo "Nettoyage et Reconstruction du cache de Laravel..."
             docker compose exec -T app php artisan config:clear
             docker compose exec -T app php artisan route:clear
             docker compose exec -T app php artisan view:clear
             docker compose exec -T app php artisan config:cache
             docker compose exec -T app php artisan route:cache
             docker compose exec -T app php artisan view:cache
-            
-            # --- 4. Réparation des Permissions (Essentiel après un déploiement) ---
-            echo "Réparation des permissions de stockage..."
-            docker compose exec -T app chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-            
-            echo "Déploiement terminé avec succès."
+            docker compose exec -T app chown -R www-data:www-data /var/www/ticketack/storage /var/www/ticketack/bootstrap/cache
