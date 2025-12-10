@@ -3,7 +3,7 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
-# 1. .env file management
+# 1. .env file management 
 if [ ! -f ".env" ]; then
     echo "Fichier .env non trouvé, création à partir de .env.example..."
     cp .env.example .env
@@ -15,34 +15,16 @@ if [ ! -f ".env" ]; then
     sed -i 's/# DB_PASSWORD=/DB_PASSWORD=secret/g' .env
 fi
 
-# 2. Install PHP dependencies
-echo "Installation des dépendances Composer..."
-composer install --no-interaction --optimize-autoloader
-
-# 3. Generate application key if absent
+# 2. Generate application key if absent 
 if ! grep -q "APP_KEY=base64" .env; then
     echo "Génération de la clé d'application..."
     php artisan key:generate
 fi
 
-# 4. Install JS dependencies and build
-echo "Installation des dépendances NPM..."
-npm install
-echo "Build des assets frontend..."
-npm run build
-
-# 5. Wait until the database is ready
-echo "Attente de la base de données..."
-sleep 10
-
-# 6. Migrations
-echo "Exécution des migrations..."
-php artisan migrate --force
-
-# 7. Creating symbolic storage link (storage:link)
+# 3. Creating symbolic storage link (storage:link) 
 echo "Création du lien de stockage symbolique..."
 php artisan storage:link
 
-# 8. Starting PHP-FPM
+# 4. Starting PHP-FPM 
 echo "Démarrage de l'application !"
 exec php-fpm
