@@ -52,11 +52,13 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(User::class, UserPolicy::class);
 
         // Adding security scheme to the generated OpenAPI spec
-        Scramble::afterOpenApiGenerated(function (OpenApi $openApi) {
-            $openApi->secure(
-                SecurityScheme::http('bearer')
-            );
-        });
+        if (class_exists(Scramble::class)) {
+            Scramble::afterOpenApiGenerated(function (OpenApi $openApi) {
+                $openApi->secure(
+                    SecurityScheme::http('bearer')
+                );
+            });
+        }
 
         // Customizing the authentication redirect behavior
         Authenticate::redirectUsing(function ($request) {
