@@ -30,6 +30,7 @@ services:
   # Add database service
   db:
     image: mysql:8.0
+    restart: always
     ports:
       - "3306:3306"
     environment:
