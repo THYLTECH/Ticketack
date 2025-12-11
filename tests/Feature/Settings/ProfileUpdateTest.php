@@ -127,9 +127,22 @@ test('user can delete their account', function () {
         ->assertRedirect(route('home'));
 
     $this->assertGuest();
-    expect($user->fresh())->toBeNull();
-});
 
+    // ❌ AVANT (Fonctionnait en Hard Delete)
+    // expect($user->fresh())->toBeNull();
+
+    // ✅ APRÈS (Pour le Soft Delete)
+    // On recharge l'utilisateur pour vérifier son état
+    $user = $user->fresh();
+
+    // Il ne doit pas être null (car toujours en BDD)
+    expect($user)->not->toBeNull();
+    // Mais il doit avoir une date de suppression
+    expect($user->deleted_at)->not->toBeNull();
+
+    // Alternativement, tu peux utiliser l'assertion Laravel :
+    // $this->assertSoftDeleted($user);
+});
 test('correct password must be provided to delete account', function () {
     $user = User::factory()->create([
         'password' => bcrypt('password'),

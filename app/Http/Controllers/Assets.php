@@ -42,7 +42,9 @@ class Assets extends Controller
      * @return Response
      */
     public function index(): Response {
-        return Inertia::render('assets/index', ['assets' => Asset::getTreeOrderedAssets()]);
+        return Inertia::render('assets/index', [
+            'assets' => Asset::with('parent')->paginate(10)
+        ]);
     }
 
     /**
@@ -282,8 +284,7 @@ class Assets extends Controller
      */
     public function restore(Asset $asset): RedirectResponse {
         $asset->restore();
-        return redirect()->route('assets.index')->with(['success' => __('assets.flash.restored')]);
-    }
+        return redirect()->back()->with(['success' => __('assets.flash.restored')]);    }
 
     /**
      * Permanently delete the specified asset from database.
@@ -292,6 +293,13 @@ class Assets extends Controller
      * @return RedirectResponse
      */
     public function forceDelete(Asset $asset): RedirectResponse {
+        foreach($asset->attachments as $attachment) {
+            if ($attachment->file_path && Storage::disk('public')->exists($attachment->file_path)) {
+                Storage::disk('public')->delete($attachment->file_path);
+            }
+            $attachment->delete();
+        }
+
         $asset->forceDelete();
         return redirect()->route('assets.index')->with(['success' => __('assets.flash.forced_deleted')]);
     }

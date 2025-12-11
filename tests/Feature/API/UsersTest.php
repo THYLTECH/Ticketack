@@ -61,8 +61,7 @@ test('admin can delete a user', function () {
         ->deleteJson("/api/users/{$user->id}")
         ->assertStatus(200);
 
-    $this->assertDatabaseMissing('users', ['id' => $user->id]);
-});
+    $this->assertSoftDeleted('users', ['id' => $user->id]);});
 
 test('non-admin cannot access users api', function () {
     $user = User::factory()->create();

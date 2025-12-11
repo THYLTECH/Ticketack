@@ -61,6 +61,7 @@ import {
     Plus,
     RefreshCcw,
 } from 'lucide-react';
+import LaravelPagination from '@/components/LaravelPagination';
 
 // Interfaces
 
@@ -86,7 +87,13 @@ interface AssetTableProps {
     toggleNode: (id: string) => void;
 }
 
-export default function Index({ assets }: { assets: Asset[] }) {
+interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
+export default function Index({ assets }: { assets: { data: Asset[], links: PaginationLink[] } }) {
     const __ = useTrans();
 
     // ---------------------------------------
@@ -94,7 +101,7 @@ export default function Index({ assets }: { assets: Asset[] }) {
 
     const assetsByParent = useMemo(
         () =>
-            assets.reduce(
+            assets.data.reduce(
                 (acc, asset) => {
                     const parentId = asset.parent_id || 'root';
                     if (!acc[parentId]) {
@@ -109,7 +116,7 @@ export default function Index({ assets }: { assets: Asset[] }) {
     );
 
     const allParentIds = useMemo(() => {
-        return assets
+        return assets.data
             .filter((asset) => assetsByParent[asset.id]?.length > 0)
             .map((asset) => asset.id);
     }, [assets, assetsByParent]);
@@ -183,15 +190,21 @@ export default function Index({ assets }: { assets: Asset[] }) {
                 <Separator />
 
                 <CardContent>
-                    {assets.length === 0 ? (
+                    {assets.data.length === 0 ? (
                         <AssetEmpty />
                     ) : (
-                        <AssetTable
-                            assets={assets}
-                            assetsByParent={assetsByParent}
-                            openState={openState}
-                            toggleNode={toggleNode}
-                        />
+                        <>
+                            <AssetTable
+                                assets={assets.data}
+                                assetsByParent={assetsByParent}
+                                openState={openState}
+                                toggleNode={toggleNode}
+                            />
+
+                            <div className="mt-4">
+                                <LaravelPagination links={assets.links} />
+                            </div>
+                        </>
                     )}
                 </CardContent>
             </Card>

@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
-use Spatie\Permission\Models\Role;
+use App\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use function Pest\Laravel\{actingAs, delete, get, post, patch};
@@ -16,7 +16,7 @@ beforeEach(function () {
     Permission::firstOrCreate(['name' => 'create roles']);
     Permission::firstOrCreate(['name' => 'update roles']);
     Permission::firstOrCreate(['name' => 'delete roles']);
-    
+
     Permission::firstOrCreate(['name' => 'edit articles']);
     $this->testUser1 = User::factory()->create();
     $this->testUser2 = User::factory()->create();
@@ -24,7 +24,7 @@ beforeEach(function () {
     $this->user = User::factory()->create();
     $this->user->givePermissionTo(Permission::all());
     $this->user = $this->user->fresh();
-    
+
     actingAs($this->user);
 
     app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
@@ -110,10 +110,10 @@ test('user can store a new role with minimum data', function () {
 test('user can store a new role with permissions and users', function () {
     $p1 = Permission::firstWhere('name', 'view roles');
     $p2 = Permission::firstWhere('name', 'edit articles');
-    
+
     $data = [
         'name' => 'Power User',
-        'permissions' => [['id' => $p1->id], ['id' => $p2->id]], 
+        'permissions' => [['id' => $p1->id], ['id' => $p2->id]],
         'users' => [['id' => $this->testUser1->id], ['id' => $this->testUser2->id]],
     ];
 
@@ -123,16 +123,16 @@ test('user can store a new role with permissions and users', function () {
 
     $response->assertSessionHasNoErrors();
     $this->assertDatabaseHas('roles', ['name' => 'Power User']);
-    
+
     $this->assertCount(2, $role->permissions);
     $this->assertCount(2, $role->users);
     $this->assertTrue($this->testUser1->fresh()->hasRole('Power User'));
 });
 
 test('store fails on duplicate role name', function () {
-    Role::create(['name' => 'Existing Role']); 
-    
-    $initialRoleCount = Role::count(); 
+    Role::create(['name' => 'Existing Role']);
+
+    $initialRoleCount = Role::count();
 
     $data = ['name' => 'Existing Role'];
 
@@ -152,7 +152,7 @@ test('user can update role name and sync permissions', function () {
         'users' => [],
     ];
 
-    $response = patch(route('roles.update', $role), $data); 
+    $response = patch(route('roles.update', $role), $data);
 
     $role->refresh();
 
@@ -168,8 +168,8 @@ test('user can update role name and sync permissions', function () {
 
 test('user can sync users during role update (add and remove)', function () {
     $role = Role::create(['name' => 'Test Role']);
-    
-    $role->users()->sync([$this->testUser1->id, $this->testUser2->id]); 
+
+    $role->users()->sync([$this->testUser1->id, $this->testUser2->id]);
 
     $data = [
         'name' => $role->name,
@@ -201,7 +201,7 @@ test('update fails on duplicate role name (except self)', function () {
         ->assertSessionHasErrors('name');
 
     $data_ok = [
-        'name' => 'Original Name', 
+        'name' => 'Original Name',
         'permissions' => [],
         'users' => [],
     ];
@@ -219,8 +219,7 @@ test('user can delete a role if no users are assigned', function () {
         ->assertRedirect(route('roles.index'))
         ->assertSessionHas('success');
 
-    $this->assertDatabaseMissing('roles', ['id' => $role->id]);
-});
+    $this->assertSoftDeleted('roles', ['id' => $role->id]);});
 
 test('user cannot delete a role if users are assigned', function () {
     $role = Role::create(['name' => 'Locked Role']);

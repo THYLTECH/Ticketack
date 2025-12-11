@@ -7,7 +7,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -23,13 +22,20 @@ jobs:
             set -e
             cd /var/www/ticketack
 
-            docker compose up -d --build --force-recreate app
-            sleep 5
+            echo "Fixing permissions for deployment..."
+            sudo chown -R $USER:$USER .
 
+            echo "Pulling latest code..."
+            git fetch origin develop
+            git reset --hard origin/develop
+
+            echo "Rebuilding containers..."
+            docker compose up -d --build --force-recreate
+
+            sleep 10
+
+            echo "Running Laravel commands..."
             docker compose exec -T app sh -c "
-              git fetch origin develop &&
-              git reset --hard origin/develop &&
-              git config --global --add safe.directory /var/www/ticketack &&
               composer install --optimize-autoloader --no-dev &&
               npm install &&
               npm run build &&
@@ -39,6 +45,10 @@ jobs:
               php artisan view:clear &&
               php artisan config:cache &&
               php artisan route:cache &&
-              php artisan view:cache &&
-              chown -R www-data:www-data /var/www/ticketack/storage /var/www/ticketack/bootstrap/cache
+              php artisan view:cache
             "
+
+            echo "Restoring permissions for Laravel..."
+            sudo chown -R www-data:www-data storage bootstrap/cache
+
+            echo "Deployment finished successfully!"
