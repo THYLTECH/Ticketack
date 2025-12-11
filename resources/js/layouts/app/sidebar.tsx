@@ -109,15 +109,6 @@ export function AppSidebar() {
         });
     }
 
-    // Trash
-    if(userHasPermission({ user: auth.user, permission: 'view trash' })) {
-        mainNavItems.push({
-            title: __('app.layout.sidebar.menugroups.platform.items.trash'),
-            href: route('trash.index'),
-            icon: Trash2,
-        });
-    }
-
     const footerNavItems: NavItem[] = [
         {
             title: __('app.layout.sidebar.menugroups.footer.items.repository'),
@@ -132,6 +123,15 @@ export function AppSidebar() {
             icon: BookOpen,
         },
     ];
+
+    // Trash
+    if(userHasPermission({ user: auth.user, permission: 'view trash' })) {
+        footerNavItems.push({
+            title: __('app.layout.sidebar.menugroups.platform.items.trash'),
+            href: route('trash.index'),
+            icon: Trash2,
+        });
+    }
 
     return (
         <Sidebar collapsible="icon" variant={'floating'}>

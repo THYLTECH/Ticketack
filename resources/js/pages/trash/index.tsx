@@ -249,13 +249,13 @@ export default function TrashIndex({ deletedUsers, deletedRoles, deletedAssets, 
             }), options);
         }
     };
-    const TrashTable = ({ data, links, type, icon: Icon, label }: { data: DeletedItem[], links: any[], type: string, icon: LucideIcon, label: string }) => {
+    const TrashTable = ({ data, links, type, icon: Icon, label }: { data: DeletedItem[], links: PaginationLink[], type: string, icon: LucideIcon, label: string }) => {
         if (data.length === 0) {
             const searchDesc = __('trash.pages.index.empty.search_description');
             const typeDesc = __('trash.pages.index.empty.description');
 
             const emptyDescription = search
-                ? searchDesc.replace('{term}', search).replace(':term', search) // Supporte les deux syntaxes
+                ? searchDesc.replace('{term}', search).replace(':term', search)
                 : typeDesc.replace('{type}', label.toLowerCase()).replace(':type', label.toLowerCase());
 
             return (
@@ -423,16 +423,15 @@ export default function TrashIndex({ deletedUsers, deletedRoles, deletedAssets, 
 
             <Card>
                 <CardHeader>
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div className="w-full sm:w-auto text-center sm:text-left">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+                        <div className="text-left">
                             <CardTitle>{__('trash.pages.index.title')}</CardTitle>
                             <CardDescription className="mt-1.5">
                                 {__('trash.pages.index.description')}
                             </CardDescription>
                         </div>
-                    </div>
 
-                    <CardAction className="flex items-center gap-2 mt-4">
                         <div className="relative w-full sm:w-64">
                             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                             <Input
@@ -451,9 +450,9 @@ export default function TrashIndex({ deletedUsers, deletedRoles, deletedAssets, 
                                 </button>
                             )}
                         </div>
-                    </CardAction>
-                </CardHeader>
 
+                    </div>
+                </CardHeader>
                 <Separator />
 
                 <CardContent className="p-0">
