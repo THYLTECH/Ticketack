@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\User;
-use App\Models\Attachment;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Http\UploadedFile;
@@ -42,16 +41,18 @@ beforeEach(function () {
 test('index loads', function () {
     get(route('users.index'))
         ->assertOk()
-        ->assertInertia(fn ($page) => 
-            $page->component('users/index')->has('users', 2)
+        ->assertInertia(fn ($page) => $page
+            ->component('users/index')
+            ->has('users')
+            ->has('users.data', 2)
         );
 });
 
 test('create loads roles', function () {
     get(route('users.create'))
         ->assertOk()
-        ->assertInertia(fn ($page) => 
-            $page->component('users/create')->has('roles', 2)
+        ->assertInertia(fn ($page) =>
+        $page->component('users/create')->has('roles', 2)
         );
 });
 
@@ -191,7 +192,8 @@ test('update avatar delete', function () {
     $this->assertNull($user->fresh()->avatar);
 });
 
-test('delete user and avatar', function () {
+test('delete user keeps avatar for restoration', function () {
+    Storage::fake('public');
 
     $file = UploadedFile::fake()->image('kill.png');
 
@@ -208,13 +210,15 @@ test('delete user and avatar', function () {
 
     $user = User::where('email','delete@test.com')->firstOrFail()->fresh('avatar');
 
+    $this->assertNotNull($user->avatar, 'Avatar not found in DB');
     $path = $user->avatar->file_path;
     $id = $user->avatar->id;
 
+    Storage::disk('public')->assertExists($path);
     $delete = delete(route('users.destroy', $user));
     $delete->assertSessionHasNoErrors();
 
-    Storage::disk('public')->assertMissing($path);
-    $this->assertDatabaseMissing('attachments',['id'=>$id]);
-    $this->assertDatabaseMissing('users',['id'=>$user->id]);
+    $this->assertSoftDeleted('users', ['id' => $user->id]);
+    Storage::disk('public')->assertExists($path);
+    $this->assertDatabaseHas('attachments', ['id' => $id]);
 });

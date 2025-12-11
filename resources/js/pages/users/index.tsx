@@ -50,10 +50,16 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useInitials } from '@/hooks/use-initials';
 import { Check, Plus, RefreshCcw, Shield, X } from 'lucide-react';
+import LaravelPagination from '@/components/LaravelPagination';
 
-export default function Index({ users }: { users: User[] }) {
+interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
+export default function Index({ users }: { users: { data: User[], links: PaginationLink[] } }) {
     const __ = useTrans();
-
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: __('dashboard.pages.breadcrumbs.dashboard'),
@@ -95,10 +101,16 @@ export default function Index({ users }: { users: User[] }) {
                 <Separator />
 
                 <CardContent>
-                    {users.length === 0 ? (
+                    {users.data.length === 0 ? (
                         <UserEmpty />
                     ) : (
-                        <UserTable users={users} />
+                        <>
+                            <UserTable users={users.data} />
+
+                            <div className="mt-4">
+                                <LaravelPagination links={users.links} />
+                            </div>
+                        </>
                     )}
                 </CardContent>
             </Card>

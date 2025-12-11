@@ -7,7 +7,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -23,13 +22,17 @@ jobs:
             set -e
             cd /var/www/ticketack
 
-            docker compose up -d --build --force-recreate app
-            sleep 5
+            echo "Deployment started: Pulling latest code..."
+            git fetch origin develop
+            git reset --hard origin/develop
 
+            echo "Rebuilding and restarting containers..."
+            docker compose up -d --build --force-recreate
+
+            sleep 10
+
+            echo "Running post-deployment commands..."
             docker compose exec -T app sh -c "
-              git fetch origin develop &&
-              git reset --hard origin/develop &&
-              git config --global --add safe.directory /var/www/ticketack &&
               composer install --optimize-autoloader --no-dev &&
               npm install &&
               npm run build &&
@@ -42,3 +45,4 @@ jobs:
               php artisan view:cache &&
               chown -R www-data:www-data /var/www/ticketack/storage /var/www/ticketack/bootstrap/cache
             "
+            echo "Deployment finished successfully!"

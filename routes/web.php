@@ -54,6 +54,9 @@ require __DIR__.'/roles.php';
 // Users routes
 require __DIR__.'/users.php';
 
+// Trash routes
+require __DIR__.'/trash.php';
+
 // Todo : Tickets, assets, settings etc....
 
 

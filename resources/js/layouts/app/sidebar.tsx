@@ -58,7 +58,8 @@ import {
     LogOut,
     Settings,
     Shield,
-    Users
+    Users,
+    Trash2
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
@@ -122,6 +123,15 @@ export function AppSidebar() {
             icon: BookOpen,
         },
     ];
+
+    // Trash
+    if(userHasPermission({ user: auth.user, permission: 'view trash' })) {
+        footerNavItems.push({
+            title: __('app.layout.sidebar.menugroups.platform.items.trash'),
+            href: route('trash.index'),
+            icon: Trash2,
+        });
+    }
 
     return (
         <Sidebar collapsible="icon" variant={'floating'}>
