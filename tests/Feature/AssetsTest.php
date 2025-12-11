@@ -401,3 +401,34 @@ test('user can update existing attachment metadata without re-uploading', functi
         'description' => 'New Description'
     ]);
 });
+
+test('force deleting an asset deletes its attachments from storage', function () {
+    Storage::fake('public');
+
+    $asset = Asset::factory()->create();
+
+    $file = UploadedFile::fake()->create('doc.pdf', 100);
+    $path = Storage::disk('public')->putFile("assets/{$asset->id}/attachments", $file);
+
+    $attachment = Attachment::create([
+        'file_name' => 'doc.pdf',
+        'file_path' => $path,
+        'mime_type' => 'application/pdf',
+        'file_extension' => 'pdf',
+        'file_size' => 1024,
+        'title' => 'Doc',
+    ]);
+    $asset->attachments()->save($attachment);
+
+    $asset->delete();
+
+    $response = delete(route('assets.force_delete', $asset));
+
+    $response
+        ->assertRedirect(route('assets.index'))
+        ->assertSessionHas('success');
+
+    $this->assertDatabaseMissing('assets', ['id' => $asset->id]);
+    $this->assertDatabaseMissing('attachments', ['id' => $attachment->id]);
+    Storage::disk('public')->assertMissing($path);
+});
