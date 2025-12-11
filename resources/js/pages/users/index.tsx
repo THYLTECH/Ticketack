@@ -52,8 +52,14 @@ import { useInitials } from '@/hooks/use-initials';
 import { Check, Plus, RefreshCcw, Shield, X } from 'lucide-react';
 import LaravelPagination from '@/components/LaravelPagination';
 
-export default function Index({ users }: { users: { data: User[], links: any[] } }) {    const __ = useTrans();
+interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
 
+export default function Index({ users }: { users: { data: User[], links: PaginationLink[] } }) {
+    const __ = useTrans();
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: __('dashboard.pages.breadcrumbs.dashboard'),

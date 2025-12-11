@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { debounce } from 'lodash';
 
@@ -88,9 +88,15 @@ interface DeletedItem {
     deleted_at: string;
 }
 
+interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
 interface PaginatedData<T> {
     data: T[];
-    links: any[];
+    links: PaginationLink[];
     total: number;
 }
 
@@ -130,16 +136,23 @@ export default function TrashIndex({ deletedUsers, deletedRoles, deletedAssets, 
         },
     ];
 
-    const debouncedSearch = useCallback(
-        debounce((value: string) => {
-            router.get(
-                route('trash.index'),
-                { search: value },
-                { preserveState: true, preserveScroll: true, replace: true }
-            );
-        }, 400),
+    const debouncedSearch = useMemo(
+        () =>
+            debounce((value: string) => {
+                router.get(
+                    route('trash.index'),
+                    { search: value },
+                    { preserveState: true, preserveScroll: true, replace: true }
+                );
+            }, 400),
         []
     );
+
+    useEffect(() => {
+        return () => {
+            debouncedSearch.cancel();
+        };
+    }, [debouncedSearch]);
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;

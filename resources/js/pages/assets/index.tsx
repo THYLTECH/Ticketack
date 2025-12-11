@@ -87,7 +87,13 @@ interface AssetTableProps {
     toggleNode: (id: string) => void;
 }
 
-export default function Index({ assets }: { assets: { data: Asset[], links: any[] } }) {
+interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
+export default function Index({ assets }: { assets: { data: Asset[], links: PaginationLink[] } }) {
     const __ = useTrans();
 
     // ---------------------------------------
