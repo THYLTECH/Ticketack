@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use Dedoc\Scramble\Scramble;
+use Dedoc\Scramble\Support\Generator\OpenApi;
+use Dedoc\Scramble\Support\Generator\SecurityScheme;
 use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
 use Illuminate\Support\Facades\Schema;
@@ -47,6 +50,13 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Asset::class, AssetPolicy::class);
         Gate::policy(Role::class, RolePolicy::class);
         Gate::policy(User::class, UserPolicy::class);
+
+        // Adding security scheme to the generated OpenAPI spec
+        Scramble::afterOpenApiGenerated(function (OpenApi $openApi) {
+            $openApi->secure(
+                SecurityScheme::http('bearer')
+            );
+        });
 
         // Customizing the authentication redirect behavior
         Authenticate::redirectUsing(function ($request) {

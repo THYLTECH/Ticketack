@@ -119,7 +119,7 @@ export function AppSidebar() {
             title: __(
                 'app.layout.sidebar.menugroups.footer.items.documentation',
             ),
-            href: '#',
+            href: '/docs/api',
             icon: BookOpen,
         },
     ];

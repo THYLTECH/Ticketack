@@ -72,7 +72,7 @@ class Assets extends Controller
      * @return Response | RedirectResponse
      */
     public function edit(Asset $asset): Response | RedirectResponse {
-        $assets = Asset::getTreeOrderedAssets();
+        $assets = Asset::getTreeOrderedAssets()->filter(fn($a) => $a->id !== $asset->id)->values();
 
         $attribute_keys = AssetAttribute::query()
             ->select('key')
