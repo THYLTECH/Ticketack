@@ -57,7 +57,7 @@ class Users extends Controller
      */
     public function create(): Response {
         return Inertia::render('users/create', [
-            'roles' => Role::all(),
+            'roles' => Role::whereNull('deleted_at')->orderBy('name')->get(),
         ]);
     }
 
@@ -70,7 +70,7 @@ class Users extends Controller
     public function edit(User $user): Response | RedirectResponse {
         return Inertia::render('users/edit', [
             'user' => $user->load('roles', 'avatar'),
-            'roles' => Role::all(),
+            'roles' => Role::whereNull('deleted_at')->orderBy('name')->get(),
         ]);
     }
 
