@@ -10,7 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Permission;
-use function Pest\Laravel\{actingAs, delete, get, post, put}; // put ajouté pour restore
+use function Pest\Laravel\{actingAs, delete, get, post, put};
 
 uses(RefreshDatabase::class);
 
@@ -279,4 +279,125 @@ test('user can force delete an asset', function () {
         ->assertRedirect();
 
     $this->assertDatabaseMissing('assets', ['id' => $asset->id]);
+});
+
+
+test('user cannot set parent to self or descendant', function () {
+    $asset = Asset::factory()->create();
+
+    $data = [
+        'title' => $asset->title,
+        'parent_id' => $asset->id,
+    ];
+
+    $response = $this->from(route('assets.edit', $asset))
+        ->post(route('assets.update', $asset), $data);
+
+    $response->assertRedirect(route('assets.edit', $asset));
+    $response->assertSessionHasErrors(['parent_id']);
+
+    $this->assertDatabaseHas('assets', ['id' => $asset->id, 'parent_id' => null]);
+
+    $child = Asset::factory()->create(['parent_id' => $asset->id]);
+
+    $dataChild = [
+        'title' => $asset->title,
+        'parent_id' => $child->id,
+    ];
+
+    $responseChild = $this->from(route('assets.edit', $asset))
+        ->post(route('assets.update', $asset), $dataChild);
+
+    $responseChild->assertRedirect(route('assets.edit', $asset));
+    $responseChild->assertSessionHas('error');
+
+    $this->assertDatabaseHas('assets', ['id' => $asset->id, 'parent_id' => null]);
+});
+test('removing an attachment from the list deletes the file from storage', function () {
+    Storage::fake('public');
+
+    $asset = Asset::factory()->create();
+    $file = UploadedFile::fake()->image('delete_me.jpg');
+
+    post(route('assets.store'), [
+        'title' => 'Asset to Update',
+        'attachments' => [[
+            'title' => 'Doc',
+            'file' => $file
+        ]]
+    ]);
+
+    $asset = Asset::where('title', 'Asset to Update')->first();
+    $attachment = $asset->attachments()->first();
+
+    Storage::disk('public')->assertExists($attachment->file_path);
+
+    post(route('assets.update', $asset), [
+        'title' => 'Updated Asset',
+        'attachments' => []
+    ]);
+
+    $this->assertDatabaseMissing('attachments', ['id' => $attachment->id]);
+
+    Storage::disk('public')->assertMissing($attachment->file_path);
+});
+
+test('updating an asset with invalid attachment data triggers validation error', function () {
+    $asset = Asset::factory()->create();
+
+    $data = [
+        'title' => 'Invalid File',
+        'attachments' => [[
+            'title' => 'Bad Data',
+            'file' => 'not-a-file-and-not-an-array'
+        ]]
+    ];
+
+    $response = post(route('assets.update', $asset), $data);
+    $response->assertSessionHasErrors(['attachments.0.file']);
+});
+
+test('updating an asset validates file max size', function () {
+    config(['filesystems.upload_max_size' => 100]); // 100 KB
+
+    $asset = Asset::factory()->create();
+
+    $largeFile = UploadedFile::fake()->create('large.pdf', 200);
+
+    $data = [
+        'title' => 'Large File Asset',
+        'attachments' => [[
+            'title' => 'Large Doc',
+            'file' => $largeFile
+        ]]
+    ];
+
+    $response = post(route('assets.update', $asset), $data);
+
+    $response->assertSessionHasErrors(['attachments.0.file']);
+});
+
+test('user can update existing attachment metadata without re-uploading', function () {
+    $asset = Asset::factory()->create();
+    $attachment = Attachment::factory()->create();
+    $asset->attachments()->save($attachment);
+
+    $data = [
+        'title' => $asset->title,
+        'attachments' => [[
+            'id' => (string) $attachment->id,
+            'title' => 'New Attachment Title',
+            'description' => 'New Description',
+            'file' => null
+        ]]
+    ];
+
+    $response = post(route('assets.update', $asset), $data);
+    $response->assertSessionHasNoErrors();
+
+    $this->assertDatabaseHas('attachments', [
+        'id' => $attachment->id,
+        'title' => 'New Attachment Title',
+        'description' => 'New Description'
+    ]);
 });
