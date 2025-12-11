@@ -5,6 +5,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
 
     {{-- Inline script to detect system dark mode preference and apply it immediately --}}
     <script>
@@ -25,7 +26,7 @@
                 localStorage.setItem('color-scheme', colorScheme);
                 localStorage.setItem('appearance', appearance);
             }
-            
+
         })();
     </script>
 

@@ -50,7 +50,7 @@ return Application::configure(basePath: dirname(__DIR__))
                   ->setStatusCode($statusCode);
 
                 if ($request->header('X-Inertia')) {
-                    return $redirectResponse->setStatusCode(303); 
+                    return $redirectResponse->setStatusCode(303);
                 }
 
                 return $redirectResponse;

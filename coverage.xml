@@ -1571,7 +1571,7 @@
     <package name="App\Providers">
       <file name="/Users/yns/Documents/PHP/Ticketack/app/Providers/AppServiceProvider.php">
         <class name="App\Providers\AppServiceProvider" namespace="App\Providers">
-          <metrics complexity="2" methods="2" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="8" coveredstatements="7" elements="10" coveredelements="8"/>
+          <metrics complexity="3" methods="2" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="13" coveredstatements="11" elements="15" coveredelements="12"/>
         </class>
         <line num="26" type="method" name="register" visibility="public" complexity="1" crap="1" count="1"/>
         <line num="29" type="stmt" count="1"/>
