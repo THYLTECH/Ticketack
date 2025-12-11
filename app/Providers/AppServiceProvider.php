@@ -10,6 +10,7 @@ use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\URL;
 
 // Models
 use App\Models\Asset;
@@ -20,6 +21,7 @@ use App\Models\User;
 use App\Policies\Asset as AssetPolicy;
 use App\Policies\Role as RolePolicy;
 use App\Policies\User as UserPolicy;
+use Symfony\Component\HttpFoundation\Request;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -37,6 +39,12 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Schema::defaultStringLength(191);
+
+        if ($this->app->environment('production')) {
+            URL::forceScheme('https');
+        }
+
+
 
         // Policies
         Gate::policy(Asset::class, AssetPolicy::class);
