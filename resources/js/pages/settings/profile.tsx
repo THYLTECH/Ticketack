@@ -203,15 +203,15 @@ function InformationForm({ auth }: { auth: SharedData['auth'] }) {
 
             <div className="flex flex-col items-start gap-3 md:col-span-1">
                 <AvatarUpload
-                    defaultUrl={auth.user?.avatar ?? null}
+                    defaultUrl={auth.user?.avatar?.url ?? null}
                     onFileChange={(file) => {
                         setData('avatar', file);
                     }}
                 />
             </div>
 
-            <div className="md:col-span-2 flex pt-2">
-                <Button disabled={processing} type="submit">
+            <div className="md:col-span-3 flex pt-2">
+                <Button disabled={processing} type="submit" className='w-full'>
                     {processing ? <Spinner /> : <Save />}
                     {__('settings.pages.profile.info_form.buttons.submit')}
                 </Button>

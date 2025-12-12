@@ -71,10 +71,12 @@ async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<File | 
 interface AvatarUploaderProps {
     defaultUrl?: string | null;
     onFileChange?: (file: File | null) => void;
+    disabled?: boolean;
 }
 
 export default function AvatarUploader({
     defaultUrl = null,
+    disabled = false,
     onFileChange,
 }: Readonly<AvatarUploaderProps>) {
     const __ = useTrans();
@@ -218,7 +220,7 @@ export default function AvatarUploader({
             <div className="relative inline-flex">
                 <button
                     type="button"
-                    className="relative flex size-25 items-center justify-center overflow-hidden rounded-full border border-dashed border-input transition-colors outline-none hover:bg-accent/50 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 has-[img]:border-none data-[dragging=true]:bg-accent/50"
+                    className="w-full relative flex aspect-square items-center justify-center overflow-hidden rounded-full border border-dashed border-input transition-colors outline-none hover:bg-accent/50 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 has-[img]:border-none data-[dragging=true]:bg-accent/50"
                     onClick={openFileDialog}
                     onDragEnter={handleDragEnter}
                     onDragLeave={handleDragLeave}
@@ -240,7 +242,7 @@ export default function AvatarUploader({
                     )}
                 </button>
 
-                {finalImageUrl && (
+                {finalImageUrl && !disabled && (
                     <Button
                         type="button"
                         onClick={(e) => {
@@ -255,7 +257,7 @@ export default function AvatarUploader({
                     </Button>
                 )}
 
-                <input {...getInputProps()} className="sr-only" />
+                <input {...getInputProps()} className="sr-only" disabled={disabled} />
             </div>
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

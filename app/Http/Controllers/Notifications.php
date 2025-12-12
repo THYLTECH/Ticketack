@@ -1,8 +1,8 @@
 <?php
 
-// app/Http/Controllers/Notifications/Index.php
+// app/Http/Controllers/Notifications.php
 
-namespace App\Http\Controllers\Notifications;
+namespace App\Http\Controllers;
 
 // Necessary imports
 use App\Http\Controllers\Controller;
@@ -15,13 +15,13 @@ use App\Http\Requests\Notifications\Search as RequestsSearch;
 use App\Http\Requests\Notifications\Many as RequestsMany;
 
 /**
- * Class Index
+ * Class Notifications
  * 
  * Controller for managing user notifications.
  * 
- * @package App\Http\Controllers\Notifications
+ * @package App\Http\Controllers
  */
-class Index extends Controller
+class Notifications extends Controller
 {
     /**
      * Display a listing of the user's notifications.

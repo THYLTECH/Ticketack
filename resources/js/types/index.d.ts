@@ -32,6 +32,9 @@ export interface SharedData {
 }
 
 export interface Attachment {
+    id: number;
+    title?: string;
+    description?: string;
     file_path: string;
     file_name?: string;
     mime_type?: string;
@@ -45,16 +48,55 @@ export interface User {
     name: string;
     email: string;
     attachment_avatar?: string;
-    avatar: string | null;
+    avatar: { url: string } | null;
     email_verified_at: string | null;
     language: string;
     timezone: string;
     theme: string;
     color_scheme: string;
     phone?: string;
+    permissions: Permission[];
+    roles?: Role[];
     created_at: string;
     updated_at: string;
 }
+
+export interface UserSimplified {
+    id: number;
+    name: string;
+    email: string;
+    attachment_avatar?: string;
+    avatar: { url: string } | null;
+    email_verified_at: string | null;
+    language: string;
+    timezone: string;
+    theme: string;
+    color_scheme: string;
+    phone?: string;
+    permissions: Permission[];
+    created_at: string;
+    updated_at: string;
+}
+
+export interface Role {
+    id: number;
+    name: string;
+    nbrOfUsers: number;
+    permissions: Permission[];
+    nbrOfUsers?: number;
+    users: UserSimplified[];
+    created_at: string;
+    updated_at: string;
+}
+
+export interface Permission {
+    id: number;
+    name: string;
+    guard_name: string;
+    created_at: string;
+    updated_at: string;
+}
+
 
 export interface Notification {
     id: string;
@@ -116,4 +158,24 @@ export interface Theme {
 export interface Color {
     value: string;
     color: string;
+}
+
+export interface Asset {
+    id: string;
+    title: string;
+    description: string;
+    parent_id: string | null;
+    parent: Asset | null;
+    icon: string | null;
+    attributes: AssetAttribute[];
+    attachments: Attachment[];
+    depth_level?: number;
+    updated_at: string;
+    created_at: string;
+}
+
+export interface AssetAttribute {
+    id: string;
+    key: string;
+    value: string;
 }

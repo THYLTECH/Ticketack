@@ -1,0 +1,54 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [ "develop" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Execute remote ssh commands
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            set -e
+            cd /var/www/ticketack
+
+            echo "Fixing permissions for deployment..."
+            sudo chown -R $USER:$USER .
+
+            echo "Pulling latest code..."
+            git fetch origin develop
+            git reset --hard origin/develop
+
+            echo "Rebuilding containers..."
+            docker compose up -d --build --force-recreate
+
+            sleep 10
+
+            echo "Running Laravel commands..."
+            docker compose exec -T app sh -c "
+              composer install --optimize-autoloader --no-dev &&
+              npm install &&
+              npm run build &&
+              php artisan migrate --force &&
+              php artisan config:clear &&
+              php artisan route:clear &&
+              php artisan view:clear &&
+              php artisan config:cache &&
+              php artisan route:cache &&
+              php artisan view:cache
+            "
+
+            echo "Restoring permissions for Laravel..."
+            sudo chown -R www-data:www-data storage bootstrap/cache
+
+            echo "Deployment finished successfully!"
