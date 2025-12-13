@@ -41,9 +41,10 @@ class Assets extends Controller
      *
      * @return Response
      */
-    public function index(): Response {
+    public function index(Request $request): Response {
         return Inertia::render('assets/index', [
-            'assets' => Asset::with('parent')->paginate(10)
+            'assets' => Asset::with('parent')->paginate(10),
+            'filters' => $request->only(['search']),
         ]);
     }
 

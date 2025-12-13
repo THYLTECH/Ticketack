@@ -52,6 +52,8 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 
+import { Input } from '@/components/ui/input';
+
 // Icons
 import {
     ChevronDown,
@@ -71,6 +73,7 @@ interface AssetRowProps {
     openState: Record<string, boolean>;
     toggleNode: (id: string) => void;
     renderAssetRows: (parentId: string | null) => React.ReactNode;
+    search?: string;
 }
 
 interface AssetTableControls {
@@ -85,6 +88,7 @@ interface AssetTableProps {
     assetsByParent: Record<string, Asset[]>;
     openState: Record<string, boolean>;
     toggleNode: (id: string) => void;
+    search?: string;
 }
 
 interface PaginationLink {
@@ -93,11 +97,15 @@ interface PaginationLink {
     active: boolean;
 }
 
-export default function Index({ assets }: { assets: { data: Asset[], links: PaginationLink[] } }) {
+export default function Index({ assets }: { assets: { data: Asset[], links: PaginationLink[] , filters:{search?: string} } }) {
     const __ = useTrans();
+    const filters = {
+        search: '', // Default value for search
+    };
 
     // ---------------------------------------
     const [openState, setOpenState] = useState<Record<string, boolean>>({});
+    const [searchTerm, setSearchTerm] = useState(filters.search || '');
 
     const assetsByParent = useMemo(
         () =>
@@ -172,6 +180,15 @@ export default function Index({ assets }: { assets: { data: Asset[], links: Pagi
                     </CardDescription>
 
                     <CardAction className="flex items-center gap-2">
+                    <div className="relative">
+                        <Input 
+                            type="text"
+                            placeholder="Rechercher..."
+                            className="w-64"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
                         <ExpandCollapseButtons {...controls} />
 
                         {userHasPermission({
@@ -199,6 +216,7 @@ export default function Index({ assets }: { assets: { data: Asset[], links: Pagi
                                 assetsByParent={assetsByParent}
                                 openState={openState}
                                 toggleNode={toggleNode}
+                                search={searchTerm}
                             />
 
                             <div className="mt-4">
@@ -290,6 +308,7 @@ function AssetTable({
     assetsByParent,
     openState,
     toggleNode,
+    search,
 }: AssetTableProps) {
     const __ = useTrans();
 
@@ -304,6 +323,7 @@ function AssetTable({
                 openState={openState}
                 toggleNode={toggleNode}
                 renderAssetRows={renderAssetRows}
+                search={search}
             />
         ));
     };
@@ -334,9 +354,10 @@ function AssetRow({
     openState,
     toggleNode,
     renderAssetRows,
+    search
 }: AssetRowProps) {
     const hasChildren = !!assetsByParent[asset.id]?.length;
-
+    const isMatch = search && asset.title.toLowerCase().includes(search.toLowerCase());
     const isOpen = openState[asset.id] || false;
 
     const depthLevel = asset.depth_level || 0;
@@ -410,8 +431,9 @@ function AssetRow({
                             {Icon && (
                                 <Icon className="h-6 w-6 rounded-md border p-0.5 text-muted-foreground" />
                             )}
-
+                            <span className={isMatch ? "bg-yellow-200 text-black px-1 rounded" : ""}>
                             {asset.title}
+                            </span>
                         </div>
                     </div>
                 </TableCell>
