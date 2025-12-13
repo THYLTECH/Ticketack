@@ -3,7 +3,7 @@
 // Necessary imports
 import { cn, userHasPermission } from '@/lib/utils';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 
 // Layout
 import AppLayout from '@/layouts/app/layout';
@@ -105,7 +105,42 @@ export default function Index({ assets }: { assets: { data: Asset[], links: Pagi
 
     // ---------------------------------------
     const [openState, setOpenState] = useState<Record<string, boolean>>({});
-    const [searchTerm, setSearchTerm] = useState(filters.search || '');
+    const [searchTerm, setSearchTerm] = useState(filters?.search || '');
+    useEffect(()=> {
+        if(!searchTerm)
+        {
+            setOpenState({});
+            return;
+        }
+
+        const assetMap = new Map(assets.data.map(a=>[a.id, a]));
+        const parentsToExpand = new Set<string>();
+        assets.data.forEach((asset) => {
+            if (asset.title.toLowerCase().includes(searchTerm.toLowerCase())) {
+                let currentParentId = asset.parent_id;
+                
+                while (currentParentId) {
+                    const parentIdString = String(currentParentId)
+                    parentsToExpand.add(parentIdString);
+                    
+                    const parentAsset = assetMap.get(currentParentId);
+                    
+                    if(!parentAsset) break;
+                    
+                    currentParentId = parentAsset.parent_id;
+
+                }
+            }
+        });
+        const newOpenState: Record<string, boolean> = {};
+        
+        parentsToExpand.forEach((id) => {
+            newOpenState[id] = true;
+        });
+
+        setOpenState(newOpenState);
+        
+    },[searchTerm, assets.data]);
 
     const assetsByParent = useMemo(
         () =>
@@ -415,7 +450,7 @@ function AssetRow({
                                 size="icon-sm"
                                 onClick={(e) => handleToggle(e, asset.id)}
                                 className={cn(
-                                    'z-1 shrink-0 transition-transform duration-200',
+                                    'z-10 shrink-0 transition-transform duration-200',
                                     isOpen ? 'rotate-180' : 'rotate-0',
                                 )}
                             >
