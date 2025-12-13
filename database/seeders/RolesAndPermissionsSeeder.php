@@ -13,9 +13,9 @@ use Spatie\Permission\Models\Role;
 
 /**
  * Seed roles and permissions into the database.
- * 
+ *
  * This seeder creates default roles and permissions for the application.
- * 
+ *
  * @package Database\Seeders
  */
 class RolesAndPermissionsSeeder extends Seeder
@@ -62,6 +62,10 @@ class RolesAndPermissionsSeeder extends Seeder
             'delete tickets',
             'restore tickets',
             'force delete tickets',
+
+            // Trash
+            'view trash',
+            'edit trash'
         ];
 
         foreach ($permissions as $permission) {
@@ -74,8 +78,10 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // Admin
         $roleAdmin = Role::firstOrCreate(['name' => 'admin']);
-        $roleAdmin->givePermissionTo(Permission::all());
-        
+
+        // Sync permissions (avoid duplicates)
+        $roleAdmin->syncPermissions(Permission::all());
+
         // Solver
 
         // User

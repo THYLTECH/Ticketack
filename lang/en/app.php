@@ -27,6 +27,7 @@ return [
                         'assets'    => 'Assets',
                         'roles'     => 'Roles',
                         'users'     => 'Users',
+                        'trash'     => 'Trash'
                     ],
                 ],
                 'footer' => [

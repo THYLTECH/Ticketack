@@ -2,7 +2,7 @@ import { InertiaLinkProps } from '@inertiajs/react';
 import { LucideIcon } from 'lucide-react';
 
 // ---------------------------------------
-//  Authentication & User Management Types 
+//  Authentication & User Management Types
 // ---------------------------------------
 
 export interface Auth {
@@ -82,6 +82,7 @@ export interface NavItem {
     href: NonNullable<InertiaLinkProps['href']>;
     icon?: LucideIcon | null;
     isActive?: boolean;
+    external?: boolean;
 }
 
 export interface SharedData {
@@ -138,7 +139,6 @@ export interface Role {
     name: string;
     nbrOfUsers: number;
     permissions: Permission[];
-    nbrOfUsers?: number;
     users: UserSimplified[];
     created_at: string;
     updated_at: string;
@@ -274,9 +274,9 @@ export interface TicketComment {
 
     user: UserSimplified;
     parent: TicketComment | null;
-    
+
     attachments: Attachment[];
-    
+
     content: string;
     created_at: string;
     updated_at: string;

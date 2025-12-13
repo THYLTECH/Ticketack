@@ -2,11 +2,15 @@
 
 namespace App\Providers;
 
+use Dedoc\Scramble\Scramble;
+use Dedoc\Scramble\Support\Generator\OpenApi;
+use Dedoc\Scramble\Support\Generator\SecurityScheme;
 use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\URL;
 
 // Models
 use App\Models\Asset;
@@ -18,6 +22,7 @@ use App\Models\Ticket;
 use App\Policies\Asset as AssetPolicy;
 use App\Policies\Role as RolePolicy;
 use App\Policies\User as UserPolicy;
+use Symfony\Component\HttpFoundation\Request;
 use App\Policies\Ticket as TicketPolicy;
 
 class AppServiceProvider extends ServiceProvider
@@ -37,11 +42,30 @@ class AppServiceProvider extends ServiceProvider
     {
         Schema::defaultStringLength(191);
 
+        if ($this->app->environment('production')) {
+            URL::forceScheme('https');
+        }
+
+        /** @noinspection PhpParamsInspection */
+        Gate::define('viewApiDocs', function (User $user) {
+            return $user->hasAnyRole(['admin', 'Admin'])
+                || ($user->can('update users') && $user->can('update assets'));
+        });
+
         // Policies
         Gate::policy(Asset::class, AssetPolicy::class);
         Gate::policy(Role::class, RolePolicy::class);
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Ticket::class, TicketPolicy::class);
+
+        // Adding security scheme to the generated OpenAPI spec
+        if (class_exists(Scramble::class)) {
+            Scramble::afterOpenApiGenerated(function (OpenApi $openApi) {
+                $openApi->secure(
+                    SecurityScheme::http('bearer')
+                );
+            });
+        }
 
         // Customizing the authentication redirect behavior
         Authenticate::redirectUsing(function ($request) {

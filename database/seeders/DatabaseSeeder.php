@@ -18,19 +18,20 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
+        $this->call([
+            RolesAndPermissionsSeeder::class,
+        ]);
+
         $user = User::firstOrCreate(
-            ['email' => 'hakim.fidjel@gmail.com'],
+            ['email' => 'test@example.com'],
             [
-                'name' => 'Hakim Fidjel',
+                'name' => 'Test User',
                 'password' => 'password',
                 'email_verified_at' => now(),
             ]
         );
 
-        $this->call([
-            RolesAndPermissionsSeeder::class,
-        ]);
-
+        // Assign admin role
         $user->assignRole('admin');
     }
 }

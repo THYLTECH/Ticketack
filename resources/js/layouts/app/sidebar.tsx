@@ -58,8 +58,9 @@ import {
     LogOut,
     Settings,
     Shield,
+    Users,
+    Trash2,
     Ticket,
-    Users
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
@@ -123,15 +124,26 @@ export function AppSidebar() {
             title: __('app.layout.sidebar.menugroups.footer.items.repository'),
             href: 'https://github.com/THYLTECH/Ticketack',
             icon: Folder,
+            external: true,
         },
         {
             title: __(
                 'app.layout.sidebar.menugroups.footer.items.documentation',
             ),
-            href: '#',
+            href: '/docs/api',
             icon: BookOpen,
+            external: true,
         },
     ];
+
+    // Trash
+    if(userHasPermission({ user: auth.user, permission: 'view trash' })) {
+        footerNavItems.push({
+            title: __('app.layout.sidebar.menugroups.platform.items.trash'),
+            href: route('trash.index'),
+            icon: Trash2,
+        });
+    }
 
     return (
         <Sidebar collapsible="icon" variant={'floating'}>
@@ -173,32 +185,35 @@ function NavFooter({
         >
             <SidebarGroupContent>
                 <SidebarMenu>
-                    {items.map((item) => (
-                        <SidebarMenuItem key={item.title}>
-                            <SidebarMenuButton
-                                asChild
-                                className="text-neutral-600 hover:text-neutral-800 dark:text-neutral-300 dark:hover:text-neutral-100"
-                            >
-                                <a
-                                    href={
-                                        typeof item.href === 'string'
-                                            ? item.href
-                                            : item.href.url
-                                    }
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                    {items.map((item) => {
+                        const url = typeof item.href === 'string' ? item.href : item.href.url;
+                        const isExternal = item.external ?? false;
+
+                        return (
+                            <SidebarMenuItem key={item.title}>
+                                <SidebarMenuButton
+                                    asChild
+                                    className="text-neutral-600 hover:text-neutral-800 dark:text-neutral-300 dark:hover:text-neutral-100"
                                 >
-                                    {item.icon && (
-                                        <Icon
-                                            iconNode={item.icon}
-                                            className="h-5 w-5"
-                                        />
+                                    {isExternal ? (
+                                        <a
+                                            href={url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            {item.icon && <Icon iconNode={item.icon} className="h-5 w-5" />}
+                                            <span>{item.title}</span>
+                                        </a>
+                                    ) : (
+                                        <Link href={url} prefetch>
+                                            {item.icon && <Icon iconNode={item.icon} className="h-5 w-5" />}
+                                            <span>{item.title}</span>
+                                        </Link>
                                     )}
-                                    <span>{item.title}</span>
-                                </a>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                    ))}
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                        );
+                    })}
                 </SidebarMenu>
             </SidebarGroupContent>
         </SidebarGroup>
