@@ -81,7 +81,7 @@ export default function Show({ ticket }: ShowProps) {
 }
 
 function ShowCard({ ticket }: ShowProps) {
-    const __ = useTrans();
+    // const __ = useTrans(); TODO
 
     return (
         <Card>
@@ -256,8 +256,8 @@ function CommentsTab({ ticket }: ShowProps) {
 
     const { auth } = usePage<SharedData>().props;
 
-    const CURRENT_USER_ID = auth.user.id;
-    const LOCALE = `${auth.user.language}-${auth.user.language.toUpperCase()}`;
+    /*const CURRENT_USER_ID = auth.user.id; TODO
+    const LOCALE = `${auth.user.language}-${auth.user.language.toUpperCase()}`;*/
 
     return (
         <TabsContent value={'comments'} className="grid gap-8">

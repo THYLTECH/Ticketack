@@ -91,7 +91,7 @@ interface StatusesSheetProps {
 export function StatusesSheet({ children, statuses }: StatusesSheetProps) {
     const [sheetOpen, setSheetOpen] = React.useState(false);
 
-    const __ = useTrans();
+    // const __ = useTrans(); TODO
 
     const { data, setData, processing, patch } = useForm<{
         statuses: TicketStatus[];
@@ -157,7 +157,7 @@ export function StatusesSheet({ children, statuses }: StatusesSheetProps) {
             setOpen(false);
         }
 
-        
+
 
         function handleSubmit(e: React.FormEvent) {
             e.stopPropagation();

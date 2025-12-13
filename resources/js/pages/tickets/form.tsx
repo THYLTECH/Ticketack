@@ -145,7 +145,7 @@ export function InformationsTab({
         ) {
             setData('status_id', null);
         }
-    }, [priorities, statuses, categories]);
+    }, [priorities, statuses, categories, data.priority_id, data.category_id, data.status_id, setData]);
 
     return (
         <TabsContent
@@ -786,6 +786,6 @@ export function UsersTab({
 //  Sheets
 // ---------------------------------------
 
-interface CommonSheetProps {
-    children: React.ReactNode;
-}
+// interface CommonSheetProps {
+//     children: React.ReactNode;
+// }

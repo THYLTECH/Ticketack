@@ -62,7 +62,7 @@ export default function Index({ tickets }: { tickets: Ticket[] }) {
         },
     ];
 
-    const { auth } = usePage<SharedData>().props;
+    // const { auth } = usePage<SharedData>().props; TODO
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
