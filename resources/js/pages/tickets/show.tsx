@@ -254,7 +254,7 @@ function CommentsTab({ ticket }: ShowProps) {
         });
     }
 
-    const { auth } = usePage<SharedData>().props;
+    // const { auth } = usePage<SharedData>().props; TODO
 
     /*const CURRENT_USER_ID = auth.user.id; TODO
     const LOCALE = `${auth.user.language}-${auth.user.language.toUpperCase()}`;*/
