@@ -44,7 +44,11 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
-
+        /** @noinspection PhpParamsInspection */
+        Gate::define('viewApiDocs', function (User $user) {
+            return $user->hasAnyRole(['admin', 'Admin'])
+                || ($user->can('update users') && $user->can('update assets'));
+        });
 
         // Policies
         Gate::policy(Asset::class, AssetPolicy::class);
