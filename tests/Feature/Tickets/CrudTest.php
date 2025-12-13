@@ -12,7 +12,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Permission;
-use function Pest\Laravel\{actingAs, get, post};
+use function Pest\Laravel\{actingAs, delete, get, patch, post};
 
 uses(RefreshDatabase::class);
 
@@ -93,4 +93,59 @@ test(/**
 test('ticket validation fails for missing required fields', function () {
     post(route('tickets.store'), [])
         ->assertSessionHasErrors(['title', 'priority_id', 'category_id', 'status_id', 'asset_id']);
+});
+
+test('user can update a ticket', function () {
+    $ticket = Ticket::factory()->create();
+    $ticket->assignees()->create(['user_id' => $this->user->id]);
+
+    $data = [
+        'title' => 'Updated Title',
+        'description' => 'Updated Description',
+        'priority_id' => $ticket->priority_id,
+        'status_id' => $ticket->status_id,
+        'category_id' => $ticket->category_id,
+        'asset_id' => $ticket->asset_id,
+    ];
+
+    $response = patch(route('tickets.update', $ticket), $data);
+
+    $response->assertSessionHasNoErrors();
+
+});
+
+test('user can soft delete a ticket', function () {
+    $ticket = Ticket::factory()->create();
+    $ticket->assignees()->create(['user_id' => $this->user->id]);
+
+    delete(route('tickets.destroy', $ticket))
+        ->assertRedirect(route('tickets.manage'));
+
+    $this->assertSoftDeleted('tickets', ['id' => $ticket->id]);
+});
+
+test('user can restore a ticket', function () {
+    $ticket = Ticket::factory()->create();
+    $ticket->delete();
+
+    post(route('tickets.restore', $ticket))
+        ->assertRedirect();
+
+    $this->assertNotSoftDeleted('tickets', ['id' => $ticket->id]);
+});
+
+test('user can force delete a ticket', function () {
+    $ticket = Ticket::factory()->create();
+    $ticket->delete();
+
+    delete(route('tickets.force_delete', $ticket))
+        ->assertRedirect(route('tickets.manage'));
+
+    $this->assertDatabaseMissing('tickets', ['id' => $ticket->id]);
+});
+
+test('manage page loads for admin/authorized user', function () {
+    get(route('tickets.manage'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->component('tickets/manage'));
 });

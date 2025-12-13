@@ -1,23 +1,23 @@
 <?php
 
-namespace Tests\Unit;
+namespace Tests\Unit\Tickets;
 
 use App\Models\Ticket;
 use App\Models\TicketAssignee;
 use App\Models\TicketAttachment;
-use App\Models\TicketCategory;
 use App\Models\TicketComment;
+use App\Models\TicketCommentAttachment;
 use App\Models\TicketEntry;
 use App\Models\TicketLog;
-use App\Models\TicketPriority;
 use App\Models\TicketSchedule;
 use App\Models\TicketStatus;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
-uses(\Tests\TestCase::class);
+uses(TestCase::class);
 uses(RefreshDatabase::class);
 
-test('ticket model relations work', function () {
+test('ticket model relations return relation instances', function () {
     $ticket = new Ticket();
 
     expect($ticket->user())->toBeInstanceOf(\Illuminate\Database\Eloquent\Relations\BelongsTo::class);
@@ -33,23 +33,24 @@ test('ticket model relations work', function () {
     expect($ticket->schedules())->toBeInstanceOf(\Illuminate\Database\Eloquent\Relations\HasMany::class);
 });
 
-test('ticket status accessor calculates progress', function () {
+test('ticket status accessor calculates progress correctly', function () {
     TicketStatus::query()->delete();
 
-    $s1 = TicketStatus::create(['title' => 'S1', 'color' => '#000', 'sort_order' => 1]);
-    $s2 = TicketStatus::create(['title' => 'S2', 'color' => '#000', 'sort_order' => 2]);
-    $s3 = TicketStatus::create(['title' => 'S3', 'color' => '#000', 'sort_order' => 3]);
+    $s1 = TicketStatus::create(['title' => 'S1', 'color' => '#000000', 'sort_order' => 1]);
+    $s2 = TicketStatus::create(['title' => 'S2', 'color' => '#000000', 'sort_order' => 2]);
+    $s3 = TicketStatus::create(['title' => 'S3', 'color' => '#000000', 'sort_order' => 3]);
 
     expect($s1->progress)->toBe(50);
     expect($s3->progress)->toBe(100);
 });
 
-test('sub-models relations work', function () {
+test('sub-models relations return relation instances', function () {
     // TicketComment
     $comment = new TicketComment();
     expect($comment->ticket())->toBeInstanceOf(\Illuminate\Database\Eloquent\Relations\BelongsTo::class);
     expect($comment->user())->toBeInstanceOf(\Illuminate\Database\Eloquent\Relations\BelongsTo::class);
     expect($comment->parent())->toBeInstanceOf(\Illuminate\Database\Eloquent\Relations\BelongsTo::class);
+    expect($comment->attachments())->toBeInstanceOf(\Illuminate\Database\Eloquent\Relations\HasManyThrough::class);
 
     // TicketAssignee
     $assignee = new TicketAssignee();
@@ -75,4 +76,13 @@ test('sub-models relations work', function () {
     $attachment = new TicketAttachment();
     expect($attachment->ticket())->toBeInstanceOf(\Illuminate\Database\Eloquent\Relations\BelongsTo::class);
     expect($attachment->attachment())->toBeInstanceOf(\Illuminate\Database\Eloquent\Relations\BelongsTo::class);
+
+    // TicketCommentAttachment (Pivot)
+    $pivot = new TicketCommentAttachment();
+    expect($pivot->comment())->toBeInstanceOf(\Illuminate\Database\Eloquent\Relations\BelongsTo::class);
+    expect($pivot->attachment())->toBeInstanceOf(\Illuminate\Database\Eloquent\Relations\BelongsTo::class);
+
+    // TicketStatus inverse
+    $status = new TicketStatus();
+    expect($status->tickets())->toBeInstanceOf(\Illuminate\Database\Eloquent\Relations\HasMany::class);
 });

@@ -5,6 +5,7 @@ namespace Tests\Feature\Tickets;
 use App\Models\Ticket;
 use App\Models\TicketCategory;
 use App\Models\TicketPriority;
+use App\Models\TicketStatus;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use function Pest\Laravel\{actingAs, patch};
@@ -77,7 +78,7 @@ test('statuses validation fails if no default status defined', function () {
                 'id' => 1,
                 'title' => 'Just a status',
                 'color' => '#ffffff',
-                'is_default' => false, // Erreur ici, il faut un default
+                'is_default' => false,
                 'is_closed' => true
             ]
         ]
@@ -131,4 +132,60 @@ test('statuses validation fails if no closed status defined', function () {
 
     patch(route('tickets.statuses.save'), $data)
         ->assertSessionHasErrors('statuses');
+});
+
+test('deleting a status reassigns tickets to the default status', function () {
+    $defaultStatus = TicketStatus::create([
+        'title' => 'Open',
+        'color' => '#000000',
+        'is_default' => true,
+        'is_closed' => false,
+        'sort_order' => 1
+    ]);
+
+    $closedStatus = TicketStatus::create([
+        'title' => 'Closed',
+        'color' => '#000000',
+        'is_default' => false,
+        'is_closed' => true,
+        'sort_order' => 3
+    ]);
+
+    $statusToDelete = TicketStatus::create([
+        'title' => 'To Delete',
+        'color' => '#ff0000',
+        'is_default' => false,
+        'is_closed' => false,
+        'sort_order' => 2
+    ]);
+
+    $ticket = Ticket::factory()->create(['status_id' => $statusToDelete->id]);
+
+    $data = [
+        'statuses' => [
+            [
+                'id' => $defaultStatus->id,
+                'title' => $defaultStatus->title,
+                'color' => $defaultStatus->color,
+                'is_default' => true,
+                'is_closed' => false
+            ],
+            [
+                'id' => $closedStatus->id,
+                'title' => $closedStatus->title,
+                'color' => $closedStatus->color,
+                'is_default' => false,
+                'is_closed' => true
+            ]
+        ]
+    ];
+
+    patch(route('tickets.statuses.save'), $data)
+        ->assertSessionHasNoErrors();
+
+    $ticket->refresh();
+
+    expect($ticket->status_id)->toBe($defaultStatus->id);
+
+    $this->assertDatabaseMissing('ticket_statuses', ['id' => $statusToDelete->id]);
 });
