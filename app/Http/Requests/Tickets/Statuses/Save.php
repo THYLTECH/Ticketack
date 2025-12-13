@@ -9,9 +9,9 @@ use Illuminate\Support\Facades\Auth;
 
 /**
  * Class Save
- * 
+ *
  * Request class for validating ticket status save requests.
- * 
+ *
  * @package App\Http\Requests\Tickets\Statuses
  */
 class Save extends FormRequest
@@ -34,8 +34,8 @@ class Save extends FormRequest
     {
         return [
             'statuses' => ['nullable', 'array'],
-            
-            'statuses.*.id' => ['required', 'integer'],
+
+            'statuses.*.id' => ['nullable', 'integer'],
             'statuses.*.title' => ['required', 'string', 'max:255'],
             'statuses.*.description' => ['nullable', 'string', 'max:1000'],
             'statuses.*.color' => ['required', 'string', 'max:7', 'regex:/^#[0-9A-Fa-f]{6}$/'],

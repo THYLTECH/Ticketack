@@ -9,9 +9,9 @@ use Illuminate\Support\Facades\Auth;
 
 /**
  * Class Save
- * 
+ *
  * Request class for validating ticket priority save requests.
- * 
+ *
  * @package App\Http\Requests\Tickets\Priorities
  */
 class Save extends FormRequest
@@ -34,8 +34,8 @@ class Save extends FormRequest
     {
         return [
             'priorities' => ['nullable', 'array'],
-            
-            'priorities.*.id' => ['required', 'integer'],
+
+            'priorities.*.id' => ['nullable', 'integer'],
             'priorities.*.title' => ['required', 'string', 'max:255'],
             'priorities.*.description' => ['nullable', 'string', 'max:1000'],
             'priorities.*.color' => ['required', 'string', 'max:7', 'regex:/^#[0-9A-Fa-f]{6}$/']
