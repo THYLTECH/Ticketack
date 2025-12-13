@@ -189,3 +189,32 @@ test('deleting a status reassigns tickets to the default status', function () {
 
     $this->assertDatabaseMissing('ticket_statuses', ['id' => $statusToDelete->id]);
 });
+
+test('saving statuses creates a new default status if needed', function () {
+    \App\Models\TicketStatus::query()->delete();
+
+    $data = [
+        'statuses' => [
+            [
+                'id' => null,
+                'title' => 'New Default',
+                'description' => 'Created automatically',
+                'color' => '#000000',
+                'is_default' => true,
+                'is_closed' => false
+            ],
+            [
+                'id' => null,
+                'title' => 'Closed',
+                'color' => '#000000',
+                'is_default' => false,
+                'is_closed' => true
+            ]
+        ]
+    ];
+
+    patch(route('tickets.statuses.save'), $data)
+        ->assertSessionHasNoErrors();
+
+    $this->assertDatabaseHas('ticket_statuses', ['title' => 'New Default']);
+});

@@ -149,3 +149,28 @@ test('manage page loads for admin/authorized user', function () {
         ->assertOk()
         ->assertInertia(fn ($page) => $page->component('tickets/manage'));
 });
+
+test('user can update ticket assignees', function () {
+    $ticket = Ticket::factory()->create();
+    $newUser = User::factory()->create();
+
+    $data = [
+        'title' => $ticket->title,
+        'description' => $ticket->description,
+        'priority_id' => $ticket->priority_id,
+        'status_id' => $ticket->status_id,
+        'category_id' => $ticket->category_id,
+        'asset_id' => $ticket->asset_id,
+        'assignees' => [
+            ['id' => $newUser->id]
+        ]
+    ];
+
+    patch(route('tickets.update', $ticket), $data)
+        ->assertRedirect();
+
+    $this->assertDatabaseHas('ticket_assignees', [
+        'ticket_id' => $ticket->id,
+        'user_id' => $newUser->id
+    ]);
+});
