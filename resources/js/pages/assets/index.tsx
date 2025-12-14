@@ -52,7 +52,7 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 
-import { Input } from '@/components/ui/input';
+import InputSearch from '@/components/ui/inputSearch';
 
 // Icons
 import {
@@ -116,9 +116,12 @@ export default function Index({ assets }: { assets: { data: Asset[], links: Pagi
         const assetMap = new Map(assets.data.map(a=>[a.id, a]));
         const parentsToExpand = new Set<string>();
         assets.data.forEach((asset) => {
-            if (asset.title.toLowerCase().includes(searchTerm.toLowerCase())) {
+            
+            if (asset.title.toLowerCase().includes(searchTerm.toLowerCase())
+            || hasMatchedAttributes(asset, searchTerm)) {
                 let currentParentId = asset.parent_id;
                 
+                // Traverse up the parent chain
                 while (currentParentId) {
                     const parentIdString = String(currentParentId)
                     parentsToExpand.add(parentIdString);
@@ -133,7 +136,6 @@ export default function Index({ assets }: { assets: { data: Asset[], links: Pagi
             }
         });
         const newOpenState: Record<string, boolean> = {};
-        
         parentsToExpand.forEach((id) => {
             newOpenState[id] = true;
         });
@@ -216,11 +218,19 @@ export default function Index({ assets }: { assets: { data: Asset[], links: Pagi
 
                     <CardAction className="flex items-center gap-2">
                     <div className="relative">
-                        <Input 
+                        {/* <Input
+                            id="search"
                             type="text"
-                            placeholder="Rechercher..."
+                            placeholder={__('assets.pages.index.filter.placeholder')}
                             className="w-64"
                             value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        /> */}
+                        <InputSearch
+                            type="text"
+                            placeholder={__('assets.pages.index.filter.placeholder')}
+                            className="w-64"
+                            value={searchTerm} 
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
@@ -233,7 +243,9 @@ export default function Index({ assets }: { assets: { data: Asset[], links: Pagi
                             <Button asChild>
                                 <Link href={route('assets.create')}>
                                     <Plus />
+                                    <span className="sr-only sm:not-sr-only">
                                     {__('assets.pages.index.buttons.create')}
+                                    </span>
                                 </Link>
                             </Button>
                         )}
@@ -392,7 +404,8 @@ function AssetRow({
     search
 }: AssetRowProps) {
     const hasChildren = !!assetsByParent[asset.id]?.length;
-    const isMatch = search && asset.title.toLowerCase().includes(search.toLowerCase());
+    const isMatch = search && (asset.title.toLowerCase().includes(search.toLowerCase())
+        || hasMatchedAttributes(asset, search));
     const isOpen = openState[asset.id] || false;
 
     const depthLevel = asset.depth_level || 0;
@@ -484,4 +497,23 @@ function AssetRow({
             {isOpen && hasChildren && renderAssetRows(asset.id)}
         </>
     );
+}
+
+/**
+ * @description Checks if any attribute of the asset matches the search term.
+ * @param asset 
+ * @param search 
+ * @returns boolean
+ */
+function hasMatchedAttributes(asset: Asset, search: string) {
+    if (!search) return false;
+    if (asset.attributes.length === 0) return false;
+
+    for (const attr of asset.attributes) {
+        if (attr.key.toLowerCase().includes(search.toLowerCase()) ||
+            attr.value.toLowerCase().includes(search.toLowerCase())) {
+            return true;
+        }
+    }
+    return false;
 }
