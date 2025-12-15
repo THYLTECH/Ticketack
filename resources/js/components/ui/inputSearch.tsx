@@ -7,11 +7,11 @@ import { LoaderCircleIcon, SearchIcon } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 // import { Label } from '@/components/ui/label'
 
-interface InputSearchProps extends React.InputHTMLAttributes<HTMLInputElement> {}
+// interface InputSearchProps extends React.InputHTMLAttributes<HTMLInputElement> {}
 
 
 
-const InputSearch = (props: InputSearchProps) => {
+const InputSearch = (props: React.InputHTMLAttributes<HTMLInputElement>) => {
   const [value, setValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
