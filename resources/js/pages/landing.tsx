@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 // Types
 import { type SharedData } from '@/types';
 import { About3 } from '@/components/ui/About3';
-import ContentSection from '@/components/ui/ContentSection';
+// import ContentSection from '@/components/ui/ContentSection';
 
 export default function Welcome() {
     const { auth } = usePage<SharedData>().props;
