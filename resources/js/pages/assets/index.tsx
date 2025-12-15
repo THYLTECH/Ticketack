@@ -491,12 +491,22 @@ function AssetRow({
                 </TableCell>
 
                 <TableCell className="w-[8rem] text-right">
-                    <div className="flex flex-wrap gap-1">
-                        {asset.attributes && asset.attributes.map((attr, index) => (
+                    <div className="flex flex-wrap gap-1 items-center">
+                        {asset.attributes && asset.attributes.length <= 3 && asset.attributes.map((attr, index) => (
                             <Badge key={index} variant="default" className="text-xs font-normal align-middle">
                                 {attr.key}
                             </Badge>
                         ))}
+                        {asset.attributes && asset.attributes.length > 3 && asset.attributes?.slice(0,3).map((attr, index) => (
+                            <Badge key={index} variant="default" className="text-xs font-normal align-middle">
+                                {attr.key}
+                            </Badge>
+                        ))}
+                        {asset.attributes && asset.attributes.length > 3 && (
+                            <Badge variant="secondary" className="text-xs font-normal align-middle">
+                                + {asset.attributes.length - 3} 
+                            </Badge>
+                        )}
                     </div>
                 </TableCell>
 
