@@ -41,9 +41,32 @@ class Assets extends Controller
      *
      * @return Response
      */
-    public function index(): Response {
+    public function index(Request $request): Response {
+        $query = Asset::query();
+        
+        //Load parent relationship
+        $query->with(['parent']);
+    
+        // Apply search filter if provided
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', '%' . $search . '%')
+                  ->orWhere('description', 'like', '%' . $search . '%');
+            });
+        }
+    
+        // assets pagination
+        $assets = $query->paginate(100)->withQueryString();
+        
+        // Add depth_level property to each asset
+        $assets->getCollection()->each(function (\App\Models\Asset $asset) {
+            $asset->depth_level = $asset->depth;
+        });
+    
         return Inertia::render('assets/index', [
-            'assets' => Asset::with('parent')->paginate(10)
+            'assets' => $assets,
+            'filters' => $request->only(['search']),
         ]);
     }
 
