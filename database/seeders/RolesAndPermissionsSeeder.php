@@ -30,20 +30,42 @@ class RolesAndPermissionsSeeder extends Seeder
         /**
          * Permissions
          */
-
         $permissions = [
             // Assets
-            'view assets', 'show assets', 'create assets', 'update assets',
-            'delete assets', 'restore assets', 'force delete assets',
+            'view assets',
+            'show assets',
+            'create assets',
+            'update assets',
+            'delete assets',
+            'restore assets',
+            'force delete assets',
+
             // Users
-            'view users', 'show users', 'create users', 'update users',
+            'view users',
+            'show users',
+            'create users',
+            'update users',
             'delete users',
+
             // Roles
-            'view roles', 'show roles', 'create roles', 'update roles',
+            'view roles',
+            'show roles',
+            'create roles',
+            'update roles',
             'delete roles',
 
-            //Trash
-            'view trash', 'edit trash'
+            // Tickets
+            'view tickets',
+            'show tickets',
+            'create tickets',
+            'update tickets',
+            'delete tickets',
+            'restore tickets',
+            'force delete tickets',
+
+            // Trash
+            'view trash',
+            'edit trash'
         ];
 
         foreach ($permissions as $permission) {

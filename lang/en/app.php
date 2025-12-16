@@ -23,6 +23,7 @@ return [
                     'title' => 'Platform',
                     'items' => [
                         'dashboard' => 'Dashboard',
+                        'tickets'   => 'Tickets',
                         'assets'    => 'Assets',
                         'roles'     => 'Roles',
                         'users'     => 'Users',
