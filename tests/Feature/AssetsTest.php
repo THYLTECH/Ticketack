@@ -432,3 +432,62 @@ test('force deleting an asset deletes its attachments from storage', function ()
     $this->assertDatabaseMissing('attachments', ['id' => $attachment->id]);
     Storage::disk('public')->assertMissing($path);
 });
+
+test('asset index page passes search filters to frontend', function () {
+    $searchTerm = 'server';
+    $response = get(route('assets.index', ['search' => $searchTerm]));
+
+    $response
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('assets/index')
+            ->where('filters.search', $searchTerm)
+        );
+});
+
+test('asset index page filters assets by title', function () {
+    Asset::factory()->create(['title' => 'Server 1 - Ubuntu']);
+    Asset::factory()->create(['title' => 'Database Backup']);
+    
+    $response = get(route('assets.index', ['search' => 'server']));
+
+    $response
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('assets.data', 1)
+            ->where('assets.data.0.title', 'Server 1 - Ubuntu')
+        );
+});
+
+test('asset index page returns depth_level for hierarchy visualization', function () {
+    $parent = Asset::factory()->create(['title' => 'Parent']);
+
+    $child = Asset::factory()->create(['title' => 'Child', 'parent_id' => $parent->id]);
+
+    $response = get(route('assets.index', ['limit' => 20])); 
+
+    $response
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('assets.data.0.id', $parent->id)
+            ->where('assets.data.0.depth_level', 0)
+            ->where('assets.data.1.id', $child->id)
+            ->where('assets.data.1.depth_level', 1)
+        );
+});
+
+test('asset index page does not fail when a parent is soft-deleted', function () {
+    $parent = Asset::factory()->create(['title' => 'parent to be deleted']);
+    $parent->delete();
+    $child = Asset::factory()->create(['title' => 'Child', 'parent_id' => $parent->id]);
+
+    $response = get(route('assets.index'));
+
+    $response
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('assets.data', 1)
+            ->where('assets.data.0.title', 'Child')
+            ->where('assets.data.0.depth_level', 1) 
+        );
+});

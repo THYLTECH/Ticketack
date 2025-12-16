@@ -49,7 +49,7 @@ class Asset extends Model
      */
     public function parent(): BelongsTo
     {
-        return $this->belongsTo(Asset::class, 'parent_id');
+        return $this->belongsTo(Asset::class, 'parent_id')->withTrashed();
     }
 
     public function children(): HasMany
