@@ -4,6 +4,7 @@
 import { cn, userHasPermission } from '@/lib/utils';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useMemo, useState, useEffect } from 'react';
+import {Badge} from "@/components/ui/badge";
 
 // Layout
 import AppLayout from '@/layouts/app/layout';
@@ -382,6 +383,9 @@ function AssetTable({
                     <TableHead className="pl-6 text-xs text-muted-foreground">
                         {__('assets.pages.index.table.headers.asset')}
                     </TableHead>
+                    <TableHead className="w-[8rem] text-right text-xs text-muted-foreground text-center">
+                        {__('assets.pages.index.table.headers.attributes')}
+                    </TableHead>
                     <TableHead className="w-[8rem] text-right text-xs text-muted-foreground">
                         {__('assets.pages.index.table.headers.updated_at')}
                     </TableHead>
@@ -483,6 +487,26 @@ function AssetRow({
                             {asset.title}
                             </span>
                         </div>
+                    </div>
+                </TableCell>
+
+                <TableCell className="w-[8rem] text-right">
+                    <div className="flex flex-wrap gap-1 items-center">
+                        {asset.attributes && asset.attributes.length <= 3 && asset.attributes.map((attr, index) => (
+                            <Badge key={index} variant="default" className="text-xs font-normal align-middle">
+                                {attr.key}
+                            </Badge>
+                        ))}
+                        {asset.attributes && asset.attributes.length > 3 && asset.attributes?.slice(0,3).map((attr, index) => (
+                            <Badge key={index} variant="default" className="text-xs font-normal align-middle">
+                                {attr.key}
+                            </Badge>
+                        ))}
+                        {asset.attributes && asset.attributes.length > 3 && (
+                            <Badge variant="secondary" className="text-xs font-normal align-middle">
+                                + {asset.attributes.length - 3} 
+                            </Badge>
+                        )}
                     </div>
                 </TableCell>
 
