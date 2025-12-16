@@ -59,7 +59,8 @@ import {
     Settings,
     Shield,
     Users,
-    Trash2
+    Trash2,
+    Home,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
@@ -75,6 +76,11 @@ export function AppSidebar() {
 
     // Sidebar menus
     const mainNavItems: NavItem[] = [
+        {
+            title: __('app.layout.sidebar.menugroups.platform.items.home'),
+            href: route('home'),
+            icon: Home,
+        },
         {
             title: __('app.layout.sidebar.menugroups.platform.items.dashboard'),
             href: route('dashboard'),

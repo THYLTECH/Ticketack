@@ -175,7 +175,7 @@ export default function Login({
                                 asChild
                                 tabIndex={7}
                             >
-                                <Link href={route('home')}>
+                                <Link href={route('landing')}>
                                     {__(
                                         'auth.pages.login.home_link',
                                     )}
