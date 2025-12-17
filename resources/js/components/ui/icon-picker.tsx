@@ -17,7 +17,7 @@ import { Spinner } from "./spinner";
 
 export type IconData = typeof iconsData[number];
 
-interface IconPickerProps extends Omit<React.ComponentPropsWithoutRef<typeof PopoverTrigger>, 'onSelect' | 'onOpenChange'> {
+export interface IconPickerProps extends Omit<React.ComponentPropsWithoutRef<typeof PopoverTrigger>, 'onSelect' | 'onOpenChange'> {
   value?: IconName
   defaultValue?: IconName
   onValueChange?: (value: IconName | undefined) => void

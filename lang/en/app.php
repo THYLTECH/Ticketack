@@ -24,6 +24,7 @@ return [
                     'items' => [
                         'home'      => 'Home',
                         'dashboard' => 'Dashboard',
+                        'tickets'   => 'Tickets',
                         'assets'    => 'Assets',
                         'roles'     => 'Roles',
                         'users'     => 'Users',

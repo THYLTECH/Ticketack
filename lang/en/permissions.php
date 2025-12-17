@@ -92,4 +92,40 @@ return [
             ],
         ],
     ],
+
+    'tickets' => [
+        'title' => 'Tickets',
+        'description' => 'Manage permissions related to tickets.',
+
+        'items' => [
+            'view' => [
+                'title' => 'View Tickets',
+                'description' => 'Allow access to the index page of tickets.',
+            ],
+            'show' => [
+                'title' => 'Show Ticket Details',
+                'description' => 'Allow viewing detailed information of a ticket.',
+            ],
+            'create' => [
+                'title' => 'Create Tickets',
+                'description' => 'Allow creating new tickets.',
+            ],
+            'update' => [
+                'title' => 'Update Tickets',
+                'description' => 'Allow updating existing tickets.',
+            ],
+            'delete' => [
+                'title' => 'Delete Tickets',
+                'description' => 'Allow deleting tickets.',
+            ],
+            'restore' => [
+                'title' => 'Restore Tickets',
+                'description' => 'Allow restoring deleted tickets.',
+            ],
+            'force delete' => [
+                'title' => 'Permanently Delete Tickets',
+                'description' => 'Allow permanently deleting tickets from the system.',
+            ],
+        ],
+    ],
 ];

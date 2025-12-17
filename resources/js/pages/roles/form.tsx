@@ -313,7 +313,7 @@ export function UsersTab({
                         </Button>
                     )}
                 </AlertDialogTrigger>
-                <AlertDialogContent className="max-w-8lg">
+                <AlertDialogContent className="!max-w-3xl">
                     <AlertDialogHeader>
                         <AlertDialogTitle>
                             {__('roles.pages.form.users.dialog.title')}
