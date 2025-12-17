@@ -69,19 +69,19 @@ export default function Dashboard({ statsGlobales, statsTickets }: DashboardProp
                             <TabsList className="w-full justify-start overflow-x-auto">
                                 <TabsTrigger value="global">
                                     <LayoutDashboard className="mr-2 size-4" />
-                                    {__('dashboard.tabs.global_statistics')}
+                                    {__('dashboard.pages.tabs.global_statistics')}
                                 </TabsTrigger>
                                 <TabsTrigger value="tickets">
                                     <Ticket className="mr-2 size-4" />
-                                    {__('dashboard.tabs.ticket_statistics')}
+                                    {__('dashboard.pages.tabs.ticket_statistics')}
                                 </TabsTrigger>
                                 <TabsTrigger value="users">
                                     <Users className="mr-2 size-4" />
-                                    {__('dashboard.tabs.user_statistics')}
+                                    {__('dashboard.pages.tabs.user_statistics')}
                                 </TabsTrigger>
                                 <TabsTrigger value="assets">
                                     <Box className="mr-2 size-4" />
-                                    {__('dashboard.tabs.asset_statistics')}
+                                    {__('dashboard.pages.tabs.asset_statistics')}
                                 </TabsTrigger>
                             </TabsList>
                             {/* Global Stats */}
