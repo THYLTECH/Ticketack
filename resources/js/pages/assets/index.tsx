@@ -13,8 +13,7 @@ import AppLayout from '@/layouts/app/layout';
 import { useTrans } from '@/lib/translation';
 
 // Custom functions
-import { formatDate } from '@/lib/utils';
-import { renderAsset } from '@/lib/render';
+import { formatDate, getIcon } from '@/lib/utils';
 
 // Types
 import type { Asset, BreadcrumbItem, SharedData } from '@/types';
@@ -379,7 +378,7 @@ function AssetTable({
 
     return (
         <Table>
-            <TableHeader>
+            <TableHeader className="sticky top-0 z-10 bg-card shadow-sm">
                 <TableRow>
                     <TableHead className="pl-6 text-xs text-muted-foreground">
                         {__('assets.pages.index.table.headers.asset')}
@@ -415,6 +414,8 @@ function AssetRow({
 
     const depthLevel = asset.depth_level || 0;
     const indentation = depthLevel * 1.5;
+
+    const Icon = asset.icon ? getIcon(asset.icon) : null;
 
     const handleToggle = (e: React.MouseEvent, id: string) => {
         e.stopPropagation();
