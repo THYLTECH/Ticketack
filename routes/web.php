@@ -13,13 +13,16 @@ use Illuminate\Support\Facades\Notification;
 Route::get('/', function () {
     // abort(404);
     return Inertia::render('landing');
-})->name('home');
+})->name('landing');
 
 Route::middleware(['auth', 'verified:auth.verification.notice'])->group(function () {
+    // Nouvelle route Home
+    Route::get('/home', function () {
+        return Inertia::render('home');
+    })->name('home');
+
     Route::get('/dashboard', function () {
-
         // Notification::send(Auth::user(), new \App\Notifications\Example());
-
         return Inertia::render('dashboard');
     })->name('dashboard');
 });

@@ -30,7 +30,7 @@ export default function Welcome() {
                     <nav className="flex items-center gap-2 sm:gap-4">
                         {auth.user ? (
                             <Button asChild variant={'default'} className="shadow-md">
-                                <Link href={route('dashboard')}>{__('landing.pages.buttons.home')}</Link>
+                                <Link href={route('home')}>{__('landing.pages.buttons.home')}</Link>
                             </Button>
                         ) : (
                             <>
