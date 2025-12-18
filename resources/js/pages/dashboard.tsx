@@ -33,7 +33,7 @@ import {
 import { type BreadcrumbItem } from '@/types';
 
 // Icons
-import { LayoutDashboard, Ticket, Users, Box } from 'lucide-react';
+import { LayoutDashboard, Ticket, Users, Box , Clock } from 'lucide-react';
 
 //Interface
 interface DashboardProps {
@@ -45,18 +45,32 @@ interface DashboardProps {
     statsTickets: {
         total: number;
         by_status: Array<{ title: string; tickets_count: number; color: string }>;
-        // ... ajoute les autres si besoin
     };
 }
 export default function Dashboard({ statsGlobales, statsTickets }: DashboardProps) {
     const __ = useTrans();
     console.log('Statistiques Globales:', statsGlobales);
     console.log('Statistiques Tickets:', statsTickets);
-    //Transform statGlobales to [{label: string, value: number}]
-    const globalStatsData = [
-        { label: 'Total Assets', value: statsGlobales.total_assets },
-        { label: 'Total Users', value: statsGlobales.total_users },
-        { label: 'Avg Resolution Time', value: statsGlobales.avg_resolution_time },
+
+    const globalStatsItems = [
+        { 
+            label: __('dashboard.pages.stats.global_statistics.total_assets'), 
+            value: statsGlobales.total_assets, 
+            icon: Box,
+            color: "text-blue-500" 
+        },
+        { 
+            label: __('dashboard.pages.stats.global_statistics.total_users'), 
+            value: statsGlobales.total_users, 
+            icon: Users,
+            color: "text-green-500" 
+        },
+        { 
+            label: __('dashboard.pages.stats.global_statistics.avg_resolution_time'), 
+            value: `${statsGlobales.avg_resolution_time}h`, // Ajout d'une unité si besoin
+            icon: Clock,
+            color: "text-orange-500" 
+        },
     ];
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -108,10 +122,30 @@ export default function Dashboard({ statsGlobales, statsTickets }: DashboardProp
                             </TabsList>
                             {/* Global Stats */}
                             <TabsContent value="global" className="space-y-4 pt-4">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-6 border-2 border-dashed rounded-xl text-center text-muted-foreground">
+                                    {globalStatsItems.map((item, index) => (
+                                        <Card key={index} className="flex flex-col items-center justify-center p-6 text-center shadow-sm">
+                                            <CardHeader className="p-0 pb-4 w-full justify-center">
+                                                <item.icon className={`size-12 ${item.color}`} />
+                                            </CardHeader>
+                                            <CardContent className="p-0 space-y-1">
+                                                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                                                    {item.label}
+                                                </p>
+                                                <div className="text-3xl font-bold text-foreground">
+                                                    {item.value}
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                </div>
+                            </TabsContent>
+                            {/* Ticket Stats */}
+                            <TabsContent value="tickets" className="space-y-4 pt-4">
                                 <div className="p-10 border-2 border-dashed rounded-xl text-center text-muted-foreground">
                                     <ChartContainer config={chartConfig} className="min-h-[300px] w-full max-w-3xl mx-auto">
                                         <BarChart 
-                                            data={globalStatsData} 
+                                            // data={globalStatsData} 
                                             margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                                         >
                                             <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-muted" />
@@ -128,14 +162,8 @@ export default function Dashboard({ statsGlobales, statsTickets }: DashboardProp
                                                     fill="var(--color-tickets_count)" 
                                                     radius={[4, 4, 0, 0]} 
                                                 />
-                                                </BarChart>
-                                            </ChartContainer>
-                                </div>
-                            </TabsContent>
-                            {/* Ticket Stats */}
-                            <TabsContent value="tickets" className="space-y-4 pt-4">
-                                <div className="p-10 border-2 border-dashed rounded-xl text-center text-muted-foreground">
-                                    TODO
+                                        </BarChart>
+                                    </ChartContainer>
                                 </div>
                             </TabsContent>
                             {/* User Stats */}

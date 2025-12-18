@@ -28,6 +28,14 @@ return [
             'user_statistics' => 'User Statistics',
             'asset_statistics' => 'Asset Statistics',
         ],
+        'stats' => [
+            'global_statistics' => [
+                'total_assets' => 'Number of Assets',
+                'total_users' => 'Number of Users',
+                'avg_resolution_time' => 'Average Resolution Time',
+            ]
+        ],
+
     ],
 
 ];
