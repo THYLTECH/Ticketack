@@ -1,12 +1,17 @@
 // resources/js/pages/home.tsx
 
-// Necessary imports
 import { Head, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app/layout';
 
 // Components
 import { TicketTable } from '@/components/tickets/ticket-table';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { 
+    Card, 
+    CardContent, 
+    CardHeader, 
+    CardTitle, 
+    CardDescription 
+} from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 
@@ -19,14 +24,8 @@ import { userHasPermission } from '@/lib/utils';
 import { Ticket as TicketIcon, Clock, CheckCircle2, LayoutDashboard } from 'lucide-react';
 
 interface HomeProps {
-    userTickets: {
-        open: Ticket[];
-        closed: Ticket[];
-    };
-    assignedTickets: {
-        open: Ticket[];
-        closed: Ticket[];
-    };
+    userTickets: { open: Ticket[]; closed: Ticket[]; };
+    assignedTickets: { open: Ticket[]; closed: Ticket[]; };
 }
 
 export default function Home({ userTickets, assignedTickets }: HomeProps) {
@@ -49,114 +48,102 @@ export default function Home({ userTickets, assignedTickets }: HomeProps) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={__('app.layout.sidebar.menugroups.platform.items.home')} />
 
-            <div className="p-4">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>{__('home.pages.breadcrumbs.home')}</CardTitle>
-                        <CardDescription>
-                            {__('home.pages.description')}
-                        </CardDescription>
-                    </CardHeader>
-                    <Separator />
-                    <CardContent className="pt-6">
-                        <Tabs defaultValue="my_tickets" className="w-full space-y-6">
-                            {/* Onglets */}
-                            {isSolverOrAdmin && (
-                                <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
-                                    <TabsTrigger value="my_tickets">
-                                        <TicketIcon className="mr-2 h-4 w-4" />
-                                        {__('home.sections.my_tickets')}
-                                    </TabsTrigger>
-                                    <TabsTrigger value="assigned_tickets">
-                                        <LayoutDashboard className="mr-2 h-4 w-4" />
-                                        {__('home.sections.assigned_tickets')}
-                                    </TabsTrigger>
-                                </TabsList>
-                            )}
+            <Card>
+                <CardHeader>
+                    <CardTitle>{__('home.pages.breadcrumbs.home')}</CardTitle>
+                    <CardDescription>
+                        {__('home.pages.description', undefined, { name: auth.user.name })}
+                    </CardDescription>
+                </CardHeader>
+                <Separator />
+                
+                <CardContent className="pt-6">
+                    <Tabs defaultValue="my_tickets" className="w-full space-y-6">
+                        {isSolverOrAdmin && (
+                            <TabsList className="grid w-full grid-cols-2">
+                                <TabsTrigger value="my_tickets">
+                                    <TicketIcon className="mr-2 h-4 w-4" />
+                                    {__('home.sections.my_tickets')}
+                                </TabsTrigger>
+                                <TabsTrigger value="assigned_tickets">
+                                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                                    {__('home.sections.assigned_tickets')}
+                                </TabsTrigger>
+                            </TabsList>
+                        )}
 
-                            {/* Mes Tickets */}
-                            <TabsContent value="my_tickets" className="space-y-6 border-none p-0 outline-none">
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-                                    {/* En cours */}
-                                    <Card className="shadow-sm">
-                                        <CardHeader>
-                                            <div className="flex items-center gap-2">
-                                                <Clock className="h-5 w-5 text-orange-500" />
-                                                <CardTitle>{__('home.tabs.unresolved')}</CardTitle>
-                                            </div>
-                                            <CardDescription>
-                                                {__('home.descriptions.my_open_tickets')}
-                                            </CardDescription>
-                                        </CardHeader>
-                                        <CardContent>
+                        {/* SECTION : MES TICKETS */}
+                        <TabsContent value="my_tickets" className="space-y-6 border-none p-0 outline-none">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+                                
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-2 px-1">
+                                        <Clock className="h-4 w-4 text-orange-500" />
+                                        <h3 className="text-sm font-semibold">{__('home.tabs.unresolved')}</h3>
+                                    </div>
+                                    <Card>
+                                        <CardContent className="p-0">
                                             <TicketTable 
                                                 tickets={userTickets.open} 
-                                                emptyMessage={__('home.messages.no_open_tickets')}
-                                            />
-                                        </CardContent>
-                                    </Card>
-
-                                    {/* Clos */}
-                                    <Card className="shadow-sm">
-                                        <CardHeader>
-                                            <div className="flex items-center gap-2">
-                                                <CheckCircle2 className="h-5 w-5 text-green-500" />
-                                                <CardTitle>{__('home.tabs.closed_30_days')}</CardTitle>
-                                            </div>
-                                            <CardDescription>
-                                                {__('home.descriptions.my_closed_tickets')}
-                                            </CardDescription>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <TicketTable 
-                                                tickets={userTickets.closed} 
-                                                emptyMessage={__('home.messages.no_recent_closed_tickets')}
+                                                emptyMessage={__('home.messages.no_open_tickets')} 
                                             />
                                         </CardContent>
                                     </Card>
                                 </div>
-                            </TabsContent>
 
-                            {/* Tickets Attribués */}
-                            {isSolverOrAdmin && (
-                                <TabsContent value="assigned_tickets" className="space-y-6 border-none p-0 outline-none">
-                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-                                        <Card className="shadow-sm border-primary/20">
-                                            <CardHeader>
-                                                <div className="flex items-center gap-2">
-                                                    <Clock className="h-5 w-5 text-primary" />
-                                                    <CardTitle className="text-primary">{__('home.tabs.assigned_unresolved')}</CardTitle>
-                                                </div>
-                                                <CardDescription>
-                                                    {__('home.descriptions.assigned_open_tickets')}
-                                                </CardDescription>
-                                            </CardHeader>
-                                            <CardContent>
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-2 px-1">
+                                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                                        <h3 className="text-sm font-semibold">{__('home.tabs.closed_30_days')}</h3>
+                                    </div>
+                                    <Card>
+                                        <CardContent className="p-0">
+                                            <TicketTable 
+                                                tickets={userTickets.closed} 
+                                                emptyMessage={__('home.messages.no_recent_closed_tickets')} 
+                                            />
+                                        </CardContent>
+                                    </Card>
+                                </div>
+                            </div>
+                        </TabsContent>
+
+                        {/* SECTION : TICKETS ATTRIBUÉS */}
+                        {isSolverOrAdmin && (
+                            <TabsContent value="assigned_tickets" className="space-y-6 border-none p-0 outline-none">
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+                                    
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-2 px-1">
+                                            {/* Icône mise en couleur */}
+                                            <Clock className="h-4 w-4 text-orange-500" />
+                                            <h3 className="text-sm font-semibold text-primary">{__('home.tabs.assigned_unresolved')}</h3>
+                                        </div>
+                                        <Card>
+                                            <CardContent className="p-0">
                                                 <TicketTable tickets={assignedTickets.open} showAuthor={true} />
                                             </CardContent>
                                         </Card>
+                                    </div>
 
-                                        <Card className="shadow-sm border-primary/20">
-                                            <CardHeader>
-                                                <div className="flex items-center gap-2">
-                                                    <CheckCircle2 className="h-5 w-5 text-primary" />
-                                                    <CardTitle className="text-primary">{__('home.tabs.assigned_closed_30_days')}</CardTitle>
-                                                </div>
-                                                <CardDescription>
-                                                    {__('home.descriptions.assigned_closed_tickets')}
-                                                </CardDescription>
-                                            </CardHeader>
-                                            <CardContent>
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-2 px-1">
+                                            {/* Icône mise en couleur */}
+                                            <CheckCircle2 className="h-4 w-4 text-green-500" />
+                                            <h3 className="text-sm font-semibold text-primary">{__('home.tabs.assigned_closed_30_days')}</h3>
+                                        </div>
+                                        <Card>
+                                            <CardContent className="p-0">
                                                 <TicketTable tickets={assignedTickets.closed} showAuthor={true} />
                                             </CardContent>
                                         </Card>
                                     </div>
-                                </TabsContent>
-                            )}
-                        </Tabs>
-                    </CardContent>
-                </Card>
-            </div>
+                                </div>
+                            </TabsContent>
+                        )}
+                    </Tabs>
+                </CardContent>
+            </Card>
         </AppLayout>
     );
 }
