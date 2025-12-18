@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Notification;
+use App\Http\Controllers\HomeController;
 
 Route::get('/', function () {
     // abort(404);
@@ -17,9 +18,7 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'verified:auth.verification.notice'])->group(function () {
     // Nouvelle route Home
-    Route::get('/home', function () {
-        return Inertia::render('home');
-    })->name('home');
+    Route::get('/home', [HomeController::class, 'index'])->name('home');
 
     Route::get('/dashboard', function () {
         // Notification::send(Auth::user(), new \App\Notifications\Example());
