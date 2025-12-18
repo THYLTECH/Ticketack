@@ -20,6 +20,15 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+// Recharts Components
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import {
+    ChartContainer,
+    ChartTooltip,
+    ChartTooltipContent,
+    ChartConfig
+} from '@/components/ui/chart';
+
 // Types
 import { type BreadcrumbItem } from '@/types';
 
@@ -43,12 +52,25 @@ export default function Dashboard({ statsGlobales, statsTickets }: DashboardProp
     const __ = useTrans();
     console.log('Statistiques Globales:', statsGlobales);
     console.log('Statistiques Tickets:', statsTickets);
+    //Transform statGlobales to [{label: string, value: number}]
+    const globalStatsData = [
+        { label: 'Total Assets', value: statsGlobales.total_assets },
+        { label: 'Total Users', value: statsGlobales.total_users },
+        { label: 'Avg Resolution Time', value: statsGlobales.avg_resolution_time },
+    ];
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: __('dashboard.pages.breadcrumbs.dashboard'),
             href: route('dashboard'),
         },
     ];
+    
+    const chartConfig = {
+        tickets_count: {
+            label: "Tickets Count",
+            color: "var(--chart-1)", // Utilise la variable CSS de shadcn
+        },
+    } satisfies ChartConfig;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -87,7 +109,27 @@ export default function Dashboard({ statsGlobales, statsTickets }: DashboardProp
                             {/* Global Stats */}
                             <TabsContent value="global" className="space-y-4 pt-4">
                                 <div className="p-10 border-2 border-dashed rounded-xl text-center text-muted-foreground">
-                                    TODO
+                                    <ChartContainer config={chartConfig} className="min-h-[300px] w-full max-w-3xl mx-auto">
+                                        <BarChart 
+                                            data={globalStatsData} 
+                                            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                                        >
+                                            <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-muted" />
+                                                <XAxis 
+                                                    dataKey="label" 
+                                                    tickLine={false}
+                                                    axisLine={false}
+                                                    tickMargin={10}
+                                                />
+                                                <YAxis hide />
+                                                <ChartTooltip content={<ChartTooltipContent />} />
+                                                <Bar 
+                                                    dataKey="value" 
+                                                    fill="var(--color-tickets_count)" 
+                                                    radius={[4, 4, 0, 0]} 
+                                                />
+                                                </BarChart>
+                                            </ChartContainer>
                                 </div>
                             </TabsContent>
                             {/* Ticket Stats */}
