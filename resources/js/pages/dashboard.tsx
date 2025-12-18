@@ -21,12 +21,13 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Recharts Components
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { Cell, Label, Pie, PieChart } from "recharts";
 import {
     ChartContainer,
     ChartTooltip,
     ChartTooltipContent,
-    ChartConfig
+    ChartConfig,
+
 } from '@/components/ui/chart';
 
 // Types
@@ -34,6 +35,7 @@ import { type BreadcrumbItem } from '@/types';
 
 // Icons
 import { LayoutDashboard, Ticket, Users, Box , Clock } from 'lucide-react';
+import { stat } from 'fs';
 
 //Interface
 interface DashboardProps {
@@ -45,6 +47,8 @@ interface DashboardProps {
     statsTickets: {
         total: number;
         by_status: Array<{ title: string; tickets_count: number; color: string }>;
+        by_category: Array<{ title: string; tickets_count: number; color: string }>;
+        by_priority: Array<{ title: string; tickets_count: number; color: string }>;
     };
 }
 export default function Dashboard({ statsGlobales, statsTickets }: DashboardProps) {
@@ -57,7 +61,7 @@ export default function Dashboard({ statsGlobales, statsTickets }: DashboardProp
             label: __('dashboard.pages.stats.global_statistics.total_assets'), 
             value: statsGlobales.total_assets, 
             icon: Box,
-            color: "text-blue-500" 
+            color: "text-blue-500"
         },
         { 
             label: __('dashboard.pages.stats.global_statistics.total_users'), 
@@ -82,7 +86,7 @@ export default function Dashboard({ statsGlobales, statsTickets }: DashboardProp
     const chartConfig = {
         tickets_count: {
             label: "Tickets Count",
-            color: "var(--chart-1)", // Utilise la variable CSS de shadcn
+            color: "var(--chart-1)", 
         },
     } satisfies ChartConfig;
 
@@ -143,28 +147,99 @@ export default function Dashboard({ statsGlobales, statsTickets }: DashboardProp
                             {/* Ticket Stats */}
                             <TabsContent value="tickets" className="space-y-4 pt-4">
                                 <div className="p-10 border-2 border-dashed rounded-xl text-center text-muted-foreground">
-                                    <ChartContainer config={chartConfig} className="min-h-[300px] w-full max-w-3xl mx-auto">
-                                        <BarChart 
-                                            // data={globalStatsData} 
-                                            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                                        >
-                                            <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-muted" />
-                                                <XAxis 
-                                                    dataKey="label" 
-                                                    tickLine={false}
-                                                    axisLine={false}
-                                                    tickMargin={10}
-                                                />
-                                                <YAxis hide />
-                                                <ChartTooltip content={<ChartTooltipContent />} />
-                                                <Bar 
-                                                    dataKey="value" 
-                                                    fill="var(--color-tickets_count)" 
-                                                    radius={[4, 4, 0, 0]} 
-                                                />
-                                        </BarChart>
-                                    </ChartContainer>
+                                    {/* Card for total tickets */}
+                                    <Card className="flex flex-col items-center justify-center p-6 text-center shadow-sm mb-6">
+                                        <CardHeader className="p-0 pb-2 w-full flex flex-row justify-center items-center">
+                                            <Ticket className="size-10 text-primary" />
+                                        </CardHeader>
+                                        <CardContent className="p-0 flex flex-col items-center">
+                                            <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                                                {__('dashboard.pages.stats.ticket_statistics.total_tickets')}
+                                            </p>
+                                            <div className="text-4xl font-bold">
+                                                {statsTickets.total}
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    {[
+                                        { label: __('dashboard.pages.stats.ticket_statistics.by_status'), stats : statsTickets.by_status },
+                                        { label: __('dashboard.pages.stats.ticket_statistics.by_priority'), stats: statsTickets.by_priority },
+                                        { label: __('dashboard.pages.stats.ticket_statistics.by_category'), stats : statsTickets.by_category },
+                                    ].map((item, index) => (
+                                        <Card key={index} className="p-4">
+                                            <CardHeader className="p-0 pb-4 text-center">
+                                                <CardTitle className="text-sm font-semibold uppercase tracking-tight text-muted-foreground">
+                                                    {item.label}
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="h-[250px] flex items-center justify-center">
+                                                <ChartContainer
+                                                    config={{}}
+                                                    className="mx-auto w-full aspect-square min-h-[250px] max-h-[300px]"
+                                                >
+                                                    <PieChart>
+                                                        <ChartTooltip
+                                                            cursor={false}
+                                                            content={<ChartTooltipContent hideLabel />}
+                                                        />
+                                                        <Pie
+                                                            data={item.stats}
+                                                            dataKey="tickets_count"
+                                                            nameKey="title"
+                                                            innerRadius={60}
+                                                            outerRadius={80}
+                                                            paddingAngle={5}
+                                                            cornerRadius={5}
+                                                            stroke="none"
+                                                            label
+                                                            fontSize={20}
+                                                        >
+                                                            {item.stats.map((entry, index) => (
+                                                                <Cell 
+                                                                    key={`cell-${index}`} 
+                                                                    fill={entry.color || "var(--chart-1)"} 
+                                                                    className="hover:opacity-80 transition-opacity"
+                                                                />
+                                                            ))}
+                                                            <Label
+                                                                content={({ viewBox }) => {
+                                                                    if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                                                                        return (
+                                                                            <text
+                                                                                x={viewBox.cx}
+                                                                                y={viewBox.cy}
+                                                                                textAnchor="middle"
+                                                                                dominantBaseline="middle"
+                                                                            >
+                                                                                <tspan
+                                                                                    x={viewBox.cx}
+                                                                                    y={viewBox.cy}
+                                                                                    className="fill-foreground text-3xl font-bold"
+                                                                                >
+                                                                                    {statsTickets.total.toLocaleString()}
+                                                                                </tspan>
+                                                                                <tspan
+                                                                                    x={viewBox.cx}
+                                                                                    y={(viewBox.cy || 0) + 24}
+                                                                                    className="fill-muted-foreground text-xs uppercase"
+                                                                                >
+                                                                                    Tickets
+                                                                                </tspan>
+                                                                            </text>
+                                                                        )
+                                                                    }
+                                                                }}
+                                                            />
+                                                        </Pie>
+                                                    </PieChart>
+                                                </ChartContainer>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
                                 </div>
+                            </div>
                             </TabsContent>
                             {/* User Stats */}
                             <TabsContent value="users" className="space-y-4 pt-4">

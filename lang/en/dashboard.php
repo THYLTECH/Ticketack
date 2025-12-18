@@ -33,7 +33,13 @@ return [
                 'total_assets' => 'Number of Assets',
                 'total_users' => 'Number of Users',
                 'avg_resolution_time' => 'Average Resolution Time',
-            ]
+            ],
+            'ticket_statistics' => [
+                'total_tickets' => 'Total Tickets',
+                'by_status' => 'Tickets by Status',
+                'by_priority' => 'Tickets by Priority',
+                'by_category' => 'Tickets by Category',
+            ],
         ],
 
     ],

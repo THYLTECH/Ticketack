@@ -25,7 +25,6 @@ class DashboardController extends Controller
         $globalStats = [
             'total_assets' => Asset::count(),
             'total_users' => User::count(),
-            // On calculera le temps moyen plus tard
             'avg_resolution_time' => 0, 
         ];
 
