@@ -50,11 +50,19 @@ interface DashboardProps {
         by_category: Array<{ title: string; tickets_count: number; color: string }>;
         by_priority: Array<{ title: string; tickets_count: number; color: string }>;
     };
+    statsAssets?: {
+        id : number;
+        title : string;
+        description : string;
+        icon : string;
+        total : number;
+    };
 }
-export default function Dashboard({ statsGlobales, statsTickets }: DashboardProps) {
+export default function Dashboard({ statsGlobales, statsTickets, statsAssets }: DashboardProps) {
     const __ = useTrans();
     console.log('Statistiques Globales:', statsGlobales);
     console.log('Statistiques Tickets:', statsTickets);
+    console.log('Statistiques Assets:', statsAssets);
 
     const globalStatsItems = [
         { 
@@ -244,7 +252,7 @@ export default function Dashboard({ statsGlobales, statsTickets }: DashboardProp
                             {/* User Stats */}
                             <TabsContent value="users" className="space-y-4 pt-4">
                                 <div className="p-10 border-2 border-dashed rounded-xl text-center text-muted-foreground">
-                                    TODO
+                                    {/* Do a bar graph */}
                                 </div>
                             </TabsContent>
                             {/* Asset Stats */}

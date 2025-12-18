@@ -44,9 +44,21 @@ class DashboardController extends Controller
             }])->get(),
         ];
 
+        //User Statistics
+        //TODO
+
+        //Asset Statistics
+        $statsAssets = [
+            'by_asset' => Asset::select('id', 'title', 'description', 'icon')
+                ->withCount('tickets')
+                ->orderBy('tickets_count', 'desc')
+                ->get(),
+        ];
+
         return Inertia::render('dashboard', [
             'statsGlobales' => $globalStats,
             'statsTickets' => $statsTickets,
+            'statsAssets' => $statsAssets,
             'filters' => [
                 'start_date' => $startDate,
                 'end_date' => $endDate,
