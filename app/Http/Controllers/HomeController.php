@@ -29,7 +29,7 @@ class HomeController extends Controller
             ->whereHas('status', fn($q) => $q->where('is_closed', true))
             ->where('updated_at', '>=', $thirtyDaysAgo)
             ->latest('updated_at')
-            ->paginate(10, ['*'], 'u_closed');
+            ->paginate(15, ['*'], 'u_closed');
 
         $assignedTickets = null;
         $assignedClosedTickets = null;
@@ -39,14 +39,14 @@ class HomeController extends Controller
                 ->with(['status', 'priority', 'category', 'user'])
                 ->whereHas('status', fn($q) => $q->where('is_closed', false))
                 ->latest('updated_at')
-                ->paginate(10, ['*'], 'a_open');
+                ->paginate(15, ['*'], 'a_open');
 
             $assignedClosedTickets = Ticket::whereHas('assignees', fn($q) => $q->where('user_id', $user->id))
                 ->with(['status', 'priority', 'category', 'user'])
                 ->whereHas('status', fn($q) => $q->where('is_closed', true))
                 ->where('updated_at', '>=', $thirtyDaysAgo)
                 ->latest('updated_at')
-                ->paginate(10, ['*'], 'a_closed');
+                ->paginate(15, ['*'], 'a_closed');
         }
 
         return Inertia::render('home', [
