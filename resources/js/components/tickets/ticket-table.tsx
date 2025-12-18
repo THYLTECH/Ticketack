@@ -34,7 +34,7 @@ export function TicketTable({ tickets, emptyMessage, showAuthor = false }: Ticke
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead className="w-[100px]">ID</TableHead>
+                        <TableHead className="w-[100px]">{__('tickets.fields.id', 'ID')}</TableHead>
                         <TableHead>{__('tickets.fields.title')}</TableHead>
                         <TableHead>{__('tickets.fields.status')}</TableHead>
                         <TableHead>{__('tickets.fields.priority')}</TableHead>

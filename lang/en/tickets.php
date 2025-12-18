@@ -13,6 +13,26 @@ return [
         'updated' => 'Ticket updated successfully.',
         'deleted' => 'Ticket deleted successfully.',
     ],
+        /*
+    |--------------------------------------------------------------------------
+    | Fields
+    |--------------------------------------------------------------------------
+    |
+    */
+    'fields' => [
+        'id' => 'ID',
+        'title' => 'Title',
+        'status' => 'Status',
+        'priority' => 'Priority',
+        'author' => 'Author',
+        'category' => 'Category',
+        'asset' => 'Asset',
+        'updated_at' => 'Last Update',
+        'created_at' => 'Created At',
+    ],
+    'index' => [
+        'empty' => 'No tickets found.',
+    ],
 
     /*
     |--------------------------------------------------------------------------
