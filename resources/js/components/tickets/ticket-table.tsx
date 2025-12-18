@@ -38,10 +38,10 @@ export function TicketTable({ data, emptyMessage, showAuthor = false }: TicketTa
     const tickets = data.data;
 
     return (
-        /* Conteneur principal avec hauteur fixe (850px).
+        /* Conteneur principal avec hauteur fixe (780px).
            justify-between force la pagination à rester tout en bas.
         */
-        <div className="flex flex-col h-full min-h-[850px] justify-between">
+        <div className="flex flex-col h-full min-h-[780px] justify-between">
             
             {/* Zone du contenu (Tableau ou État vide) */}
             <div className="flex-1">
@@ -147,7 +147,7 @@ export function TicketTable({ data, emptyMessage, showAuthor = false }: TicketTa
                 )}
             </div>
             
-            {/* PAGINATION : Toujours affichée en bas du bloc de 850px.
+            {/* PAGINATION : Toujours affichée en bas du bloc de 780px.
                 LaravelPagination gère automatiquement l'état désactivé 
                 si il n'y a qu'une seule page.
             */}
