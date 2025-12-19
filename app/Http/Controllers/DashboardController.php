@@ -45,8 +45,52 @@ class DashboardController extends Controller
         ];
 
         //User Statistics
-        //TODO
+        $statsUsers = [
+    'by_assigned' => User::select('users.id', 'users.name')
+        ->join('ticket_assignees', 'users.id', '=', 'ticket_assignees.user_id')
+        ->join('tickets', 'ticket_assignees.ticket_id', '=', 'tickets.id')
+        ->whereBetween('tickets.created_at', [$startDate, $endDate])
+        ->selectRaw('count(tickets.id) as tickets_count')
+        ->groupBy('users.id', 'users.name')
+        ->orderBy('tickets_count', 'desc')
+        ->limit(5)
+        ->get(),
 
+    'by_created' => User::select('users.id', 'users.name')
+        ->join('tickets', 'users.id', '=', 'tickets.author_id')
+        ->whereBetween('tickets.created_at', [$startDate, $endDate])
+        ->selectRaw('count(tickets.id) as tickets_count')
+        ->groupBy('users.id', 'users.name')
+        ->orderBy('tickets_count', 'desc')
+        ->limit(5)
+        ->get(),
+
+    'by_resolved' => User::select('users.id', 'users.name')
+        ->join('ticket_assignees', 'users.id', '=', 'ticket_assignees.user_id')
+        ->join('tickets', 'ticket_assignees.ticket_id', '=', 'tickets.id')
+        ->join('ticket_statuses', 'tickets.status_id', '=', 'ticket_statuses.id')
+        ->where('ticket_statuses.is_closed', true)
+        ->whereBetween('tickets.created_at', [$startDate, $endDate])
+        ->selectRaw('count(tickets.id) as tickets_count')
+        ->groupBy('users.id', 'users.name')
+        ->orderBy('tickets_count', 'desc')
+        ->limit(5)
+        ->get(),
+
+    'by_time' => User::select('users.id', 'users.name')
+        ->join('ticket_entries', 'users.id', '=', 'ticket_entries.user_id')
+        ->whereBetween('ticket_entries.created_at', [$startDate, $endDate])
+        ->selectRaw('sum(ticket_entries.duration_seconds) as total_seconds')
+        ->groupBy('users.id', 'users.name')
+        ->orderBy('total_seconds', 'desc')
+        ->limit(5)
+        ->get()
+        ->map(function($user) {
+            // Conversion en heures lisibles pour le frontend
+            $user->total_hours = round($user->total_seconds / 3600, 1);
+            return $user;
+        }),
+    ];
         //Asset Statistics
         $statsAssets = [
             'by_asset' => Asset::select('id', 'title', 'description', 'icon')
@@ -60,6 +104,7 @@ class DashboardController extends Controller
             'statsGlobales' => $globalStats,
             'statsTickets' => $statsTickets,
             'statsAssets' => $statsAssets,
+            'statsUsers' => $statsUsers,
             'filters' => [
                 'start_date' => $startDate,
                 'end_date' => $endDate,

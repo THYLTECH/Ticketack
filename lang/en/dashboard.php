@@ -40,6 +40,15 @@ return [
                 'by_priority' => 'Tickets by Priority',
                 'by_category' => 'Tickets by Category',
             ],
+            'user_statistics' => [
+                'assigned_tickets' => 'Top 5 Users by Assigned Tickets',
+                'created_tickets' => 'Top 5 Users by Created Tickets',
+                'resolved_tickets' => 'Top 5 Users by Resolved Tickets',
+                'time_to_resolve' => 'Top 5 Users by Time to Resolve Tickets',
+            ],
+            'asset_statistics' => [
+                'description' =>'Ranking of assets by number of linked tickets'
+            ],
         ],
 
     ],
