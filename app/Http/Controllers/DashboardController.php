@@ -52,6 +52,7 @@ class DashboardController extends Controller
             'by_asset' => Asset::select('id', 'title', 'description', 'icon')
                 ->withCount('tickets')
                 ->orderBy('tickets_count', 'desc')
+                ->limit(10)
                 ->get(),
         ];
 

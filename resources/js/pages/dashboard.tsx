@@ -21,7 +21,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Recharts Components
-import { Cell, Label, Pie, PieChart } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, Label, Pie, PieChart, XAxis, YAxis } from "recharts";
 import {
     ChartContainer,
     ChartTooltip,
@@ -50,18 +50,14 @@ interface DashboardProps {
         by_category: Array<{ title: string; tickets_count: number; color: string }>;
         by_priority: Array<{ title: string; tickets_count: number; color: string }>;
     };
-    statsAssets?: {
-        id : number;
-        title : string;
-        description : string;
-        icon : string;
-        total : number;
+    statsAssets: {
+        by_asset: Array<{id: number; title: string; description: string; icon: string; tickets_count: number; }>;
     };
 }
 export default function Dashboard({ statsGlobales, statsTickets, statsAssets }: DashboardProps) {
     const __ = useTrans();
-    console.log('Statistiques Globales:', statsGlobales);
-    console.log('Statistiques Tickets:', statsTickets);
+    //console.log('Statistiques Globales:', statsGlobales);
+    //console.log('Statistiques Tickets:', statsTickets);
     console.log('Statistiques Assets:', statsAssets);
 
     const globalStatsItems = [
@@ -91,10 +87,10 @@ export default function Dashboard({ statsGlobales, statsTickets, statsAssets }: 
         },
     ];
     
-    const chartConfig = {
+   const assetChartConfig = {
         tickets_count: {
-            label: "Tickets Count",
-            color: "var(--chart-1)", 
+            label: __("dashboard.pages.stats.ticket_statistics.total_tickets"),
+            color: "hsl(var(--chart-1))",
         },
     } satisfies ChartConfig;
 
@@ -258,7 +254,44 @@ export default function Dashboard({ statsGlobales, statsTickets, statsAssets }: 
                             {/* Asset Stats */}
                             <TabsContent value="assets" className="space-y-4 pt-4">
                                 <div className="p-10 border-2 border-dashed rounded-xl text-center text-muted-foreground">
-                                    TODO
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle>{__('dashboard.pages.tabs.asset_statistics')}</CardTitle>
+                                            <CardDescription>
+                                                Ranking of assets by number of linked tickets
+                                            </CardDescription>
+                                        </CardHeader>
+                                        <CardContent className="min-h-[400px]">
+                                            <ChartContainer config={assetChartConfig} className="h-[400px] w-full">
+                                                <BarChart
+                                                    data={statsAssets.by_asset}
+                                                    layout="vertical"
+                                                    margin={{ left: 40, right: 20 }}
+                                                >
+                                                    <CartesianGrid horizontal={false} strokeDasharray="3 3" />
+                                                    <XAxis type="number" hide />
+                                                    <YAxis
+                                                        dataKey="title"
+                                                        type="category"
+                                                        tickLine={false}
+                                                        axisLine={false}
+                                                        width={150}
+                                                    />
+                                                    <ChartTooltip
+                                                        cursor={false}
+                                                        content={<ChartTooltipContent hideIndicator />}
+                                                    />
+                                                    <Bar
+                                                        dataKey="tickets_count"
+                                                        //meme couleur que la class text-primary
+                                                        fill="var(--primary)"
+                                                        radius={[0, 4, 4, 0]}
+                                                        barSize={32}
+                                                    />
+                                                </BarChart>
+                                            </ChartContainer>
+                                        </CardContent>
+                                    </Card>
                                 </div>
                             </TabsContent>
                         </Tabs>
