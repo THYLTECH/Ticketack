@@ -103,6 +103,7 @@ class DashboardController extends Controller
                     ->selectRaw('count(*) as count')
                     ->groupBy('key')
                     ->orderBy('count', 'desc')
+                    ->limit(10)
                     ->get(),
         ];
 
