@@ -47,7 +47,8 @@ return [
                 'time_to_resolve' => 'Top 5 Users by Time to Resolve Tickets',
             ],
             'asset_statistics' => [
-                'description' =>'Ranking of assets by number of linked tickets'
+                'description' =>'Ranking of assets by number of linked tickets',
+                'by_attribute' => 'Usage of Asset Attributes'
             ],
         ],
 

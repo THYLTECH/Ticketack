@@ -21,7 +21,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Recharts Components
-import { Bar, BarChart, CartesianGrid, Cell, Label, Pie, PieChart, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, Label, Pie, PieChart, ResponsiveContainer, Treemap, XAxis, YAxis } from "recharts";
 import {
     ChartContainer,
     ChartTooltip,
@@ -35,7 +35,6 @@ import { type BreadcrumbItem } from '@/types';
 
 // Icons
 import { LayoutDashboard, Ticket, Users, Box, Clock } from 'lucide-react';
-import { stat } from 'fs';
 
 //Interface
 interface DashboardProps {
@@ -50,22 +49,24 @@ interface DashboardProps {
         by_category: Array<{ title: string; tickets_count: number; color: string }>;
         by_priority: Array<{ title: string; tickets_count: number; color: string }>;
     };
-    statsAssets: {
-        by_asset: Array<{ id: number; title: string; description: string; icon: string; tickets_count: number; }>;
-    };
     statsUsers: {
         by_assigned: Array<{ id: number; name: string; tickets_count: number; }>;
         by_created: Array<{ id: number; name: string; tickets_count: number; }>;
         by_resolved: Array<{ id: number; name: string; tickets_count: number; }>;
         by_time_to_resolve: Array<{ id: number; name: string; avg_resolution_time: number; }>;
     };
+    statsAssets: {
+        by_asset: Array<{ id: number; title: string; description: string; icon: string; tickets_count: number; }>;
+        by_attribute: Array<{ key: string; count: number }>;
+    };
 }
+
 export default function Dashboard({ statsGlobales, statsTickets, statsAssets, statsUsers }: DashboardProps) {
     const __ = useTrans();
     //console.log('Statistiques Globales:', statsGlobales);
     //console.log('Statistiques Tickets:', statsTickets);
-    //console.log('Statistiques Assets:', statsAssets);
-    console.log('Statistiques Users:', statsUsers);
+    console.log('Statistiques Assets:', statsAssets);
+    // console.log('Statistiques Users:', statsUsers);
 
     const globalStatsItems = [
         {
@@ -415,43 +416,81 @@ export default function Dashboard({ statsGlobales, statsTickets, statsAssets, st
                             </TabsContent>
                             {/* Asset Stats */}
                             <TabsContent value="assets" className="space-y-4 pt-4">
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle>{__('dashboard.pages.tabs.asset_statistics')}</CardTitle>
-                                        <CardDescription>
-                                            {__('dashboard.pages.stats.asset_statistics.description')}
-                                        </CardDescription>
-                                    </CardHeader>
-                                    <CardContent className="min-h-[400px]">
-                                        <ChartContainer config={ChartConfig} className="h-[400px] w-full">
-                                            <BarChart
-                                                data={statsAssets.by_asset}
-                                                layout="vertical"
-                                                margin={{ left: 40, right: 20 }}
-                                            >
-                                                <CartesianGrid horizontal={false} strokeDasharray="3 3" />
-                                                <XAxis type="number" hide />
-                                                <YAxis
-                                                    dataKey="title"
-                                                    type="category"
-                                                    tickLine={false}
-                                                    axisLine={true}
-                                                    width={150}
-                                                />
-                                                <ChartTooltip
-                                                    cursor={false}
-                                                    content={<ChartTooltipContent hideIndicator />}
-                                                />
-                                                <Bar
-                                                    dataKey="tickets_count"
-                                                    fill="var(--primary)"
-                                                    radius={[0, 4, 4, 0]}
-                                                    barSize={32}
-                                                />
-                                            </BarChart>
-                                        </ChartContainer>
-                                    </CardContent>
-                                </Card>
+                                <div className="p-6 border-2 border-dashed rounded-xl text-muted-foreground flex flex-row flex-wrap justify-center gap-4">
+                                    <Card className='flex-1 min-w-[250px]'>
+                                        <CardHeader>
+                                            <CardTitle>{__('dashboard.pages.tabs.asset_statistics')}</CardTitle>
+                                            <CardDescription>
+                                                {__('dashboard.pages.stats.asset_statistics.description')}
+                                            </CardDescription>
+                                        </CardHeader>
+                                        <CardContent className="min-h-[400px]">
+                                            <ChartContainer config={ChartConfig} className="h-[400px] w-full">
+                                                <BarChart
+                                                    data={statsAssets.by_asset}
+                                                    layout="vertical"
+                                                    margin={{ left: 40, right: 20 }}
+                                                >
+                                                    <CartesianGrid horizontal={false} strokeDasharray="3 3" />
+                                                    <XAxis type="number" hide />
+                                                    <YAxis
+                                                        dataKey="title"
+                                                        type="category"
+                                                        tickLine={false}
+                                                        axisLine={true}
+                                                        width={150}
+                                                    />
+                                                    <ChartTooltip
+                                                        cursor={false}
+                                                        content={<ChartTooltipContent hideIndicator />}
+                                                    />
+                                                    <Bar
+                                                        dataKey="tickets_count"
+                                                        fill="var(--primary)"
+                                                        radius={[0, 4, 4, 0]}
+                                                        barSize={32}
+                                                    />
+                                                </BarChart>
+                                            </ChartContainer>
+                                        </CardContent>
+                                    </Card>
+                                    <Card className='flex-1 min-w-[250px]'>
+                                        <CardHeader>
+                                            <CardTitle className="text-sm font-medium">
+                                                {__('dashboard.pages.stats.asset_statistics.by_attribute')}
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <ChartContainer config={ChartConfig} className="h-[400px] w-full">
+                                                <BarChart
+                                                    data={statsAssets.by_attribute}
+                                                    layout="vertical"
+                                                    margin={{ left: 40, right: 20 }}
+                                                >
+                                                    <CartesianGrid horizontal={false} strokeDasharray="3 3" />
+                                                    <XAxis type="number" hide />
+                                                    <YAxis
+                                                        dataKey="key"
+                                                        type="category"
+                                                        tickLine={false}
+                                                        axisLine={true}
+                                                        width={150}
+                                                    />
+                                                    <ChartTooltip
+                                                        cursor={false}
+                                                        content={<ChartTooltipContent hideIndicator />}
+                                                    />
+                                                    <Bar
+                                                        dataKey="count"
+                                                        fill="var(--primary)"
+                                                        radius={[0, 4, 4, 0]}
+                                                        barSize={32}
+                                                    />
+                                                </BarChart>
+                                            </ChartContainer>
+                                        </CardContent>
+                                    </Card>
+                                </div>
                             </TabsContent>
                         </Tabs>
                     </CardContent>
@@ -459,4 +498,5 @@ export default function Dashboard({ statsGlobales, statsTickets, statsAssets, st
             </div>
         </AppLayout>
     );
+
 }

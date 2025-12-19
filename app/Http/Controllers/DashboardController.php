@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Asset;
 use App\Models\Ticket;
+use App\Models\AssetAttribute;
 use App\Models\User;
 use App\Models\TicketStatus;
 use App\Models\TicketPriority;
@@ -98,6 +99,11 @@ class DashboardController extends Controller
                 ->orderBy('tickets_count', 'desc')
                 ->limit(10)
                 ->get(),
+            'by_attribute' => AssetAttribute::select('key')
+                    ->selectRaw('count(*) as count')
+                    ->groupBy('key')
+                    ->orderBy('count', 'desc')
+                    ->get(),
         ];
 
         return Inertia::render('dashboard', [
