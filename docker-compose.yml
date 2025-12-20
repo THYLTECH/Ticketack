@@ -116,6 +116,27 @@ services:
           retries: 3
           timeout: 5s
 
+  etl-worker:
+      build:
+          context: ./backend-etl
+          dockerfile: Dockerfile
+      image: ticketack-etl
+      restart: unless-stopped
+      depends_on:
+          - redis
+          - minio
+      env_file:
+          - ./.env
+      volumes:
+          - ./backend-etl:/app
+      environment:
+          - PYTHONUNBUFFERED=1
+          - REDIS_HOST=redis
+          - MINIO_ENDPOINT=minio:9000
+      networks:
+          - sail
+      command: sh -c "celery -A src.celery_app worker --loglevel=info & python -m src.listener"
+
 networks:
   ticketack-network:
     driver: bridge
