@@ -14,6 +14,7 @@ services:
       - db
     networks:
       - ticketack-network
+      - sail
 
   nginx:
     image: nginx:1.25-alpine
@@ -60,6 +61,47 @@ services:
           test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
           retries: 3
           timeout: 5s
+
+  minio-setup:
+      image: minio/mc
+      depends_on:
+          - minio
+          - redis
+      networks:
+          - sail
+      entrypoint: >
+          /bin/sh -c "
+          # 1. Attendre que MinIO soit prêt au démarrage
+          until mc alias set local http://minio:9000 sail password; do
+            echo 'En attente de MinIO...';
+            sleep 1;
+          done;
+
+          # 2. Créer le bucket (ignorer s'il existe déjà)
+          mc mb --ignore-existing local/tickets-raw;
+
+          # 3. Configurer la notification Redis
+          # Note: On utilise 'format=access' pour avoir un JSON compatible S3 event
+          mc admin config set local notify_redis:1 address='redis:6379' key='minio_events' format='access';
+
+          # 4. Redémarrer MinIO pour appliquer la configuration notify_redis
+          mc admin service restart local;
+
+          # 5. Attendre que MinIO redémarre (il peut être indisponible quelques secondes)
+          echo 'Redémarrage de MinIO en cours...';
+          sleep 5;
+          until mc alias set local http://minio:9000 sail password; do
+            echo 'En attente du redémarrage de MinIO...';
+            sleep 1;
+          done;
+
+          # 6. Ajouter l'abonnement à l'événement sur le bucket
+          # On vérifie d'abord si l'event existe déjà pour éviter les erreurs (optionnel mais propre)
+          mc event add local/tickets-raw arn:minio:sqs::1:redis --event put;
+
+          echo 'Configuration MinIO terminée.';
+          exit 0;
+          "
 
   redis:
       image: 'redis:alpine'
