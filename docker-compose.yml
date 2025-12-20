@@ -129,6 +129,7 @@ services:
           - ./.env
       volumes:
           - ./backend-etl:/app
+          - huggingface_cache:/root/.cache/huggingface
       environment:
           - PYTHONUNBUFFERED=1
           - REDIS_HOST=redis
@@ -149,3 +150,4 @@ volumes:
       driver: local
   sail-redis:
       driver: local
+  huggingface_cache:
