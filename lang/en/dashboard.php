@@ -33,6 +33,7 @@ return [
                 'total_assets' => 'Number of Assets',
                 'total_users' => 'Number of Users',
                 'avg_resolution_time' => 'Average Resolution Time',
+                'activity_title' => 'Ticket Activity',
             ],
             'ticket_statistics' => [
                 'total_tickets' => 'Total Tickets',
@@ -50,6 +51,7 @@ return [
                 'description' =>'Ranking of assets by number of linked tickets',
                 'by_attribute' => 'Usage of Asset Attributes'
             ],
+            'no_data' => 'No data available',
         ],
 
     ],

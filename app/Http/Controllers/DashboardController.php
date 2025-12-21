@@ -26,7 +26,42 @@ class DashboardController extends Controller
         $globalStats = [
             'total_assets' => Asset::count(),
             'total_users' => User::count(),
-            'avg_resolution_time' => 0, 
+            'avg_resolution_time' => 0, // TODO
+
+            //Get created tickets per day
+            'created_tickets' => DB::table('tickets')
+                ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as count'))
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->groupBy('date')
+                ->orderBy('date', 'asc')
+                ->get(),
+            
+            //Get resolved tickets per day
+            'resolved_tickets' => DB::table('tickets')
+                ->select(DB::raw('DATE(updated_at) as date'), DB::raw('count(*) as count'))
+                ->whereBetween('updated_at', [$startDate, $endDate])
+                ->whereIn('status_id', function($query) {
+                    $query->select('id')
+                          ->from('ticket_statuses')
+                          ->where('is_closed', true);
+                })
+                ->groupBy('date')
+                ->orderBy('date', 'asc')
+                ->get(),
+
+            //Get all dates within activity                
+            'dates' => DB::table('tickets')
+                ->select(DB::raw('DATE(created_at) as date'))
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->union(
+                    DB::table('tickets')
+                    ->select(DB::raw('DATE(updated_at) as date'))
+                    ->whereBetween('updated_at', [$startDate, $endDate])
+                )
+                ->groupBy('date')
+                ->orderBy('date', 'asc')
+                ->get()
+                ->pluck('date'),
         ];
 
         // Ticket Statistics
