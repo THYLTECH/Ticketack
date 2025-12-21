@@ -130,13 +130,15 @@ services:
       volumes:
           - ./backend-etl:/app
           - huggingface_cache:/root/.cache/huggingface
+          - lancedb_data:/data/lancedb
       environment:
           - PYTHONUNBUFFERED=1
           - REDIS_HOST=redis
           - MINIO_ENDPOINT=minio:9000
+          - LANCEDB_PATH=/data/lancedb
       networks:
           - sail
-      command: sh -c "celery -A src.celery_app worker --loglevel=info & python -m src.listener"
+      command: sh -c "celery -A src.celery_app worker --loglevel=info -P solo & python -m src.listener"
 
 networks:
   ticketack-network:
@@ -151,3 +153,4 @@ volumes:
   sail-redis:
       driver: local
   huggingface_cache:
+  lancedb_data:
