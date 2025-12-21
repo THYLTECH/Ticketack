@@ -2,3 +2,6 @@ celery
 redis
 boto3
 python-dotenv
+FlagEmbedding
+torch --index-url https://download.pytorch.org/whl/cpu
+transformers
