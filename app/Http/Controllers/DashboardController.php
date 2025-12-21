@@ -12,6 +12,7 @@ use App\Models\TicketCategory;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
@@ -22,46 +23,40 @@ class DashboardController extends Controller
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
 
+        $createdTickets = DB::table('tickets')
+            ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as count'))
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->groupBy('date')
+            ->get()
+            ->keyBy('date');
+
+        $resolvedTickets = DB::table('tickets')
+            ->select(DB::raw('DATE(updated_at) as date'), DB::raw('count(*) as count'))
+            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->whereIn('status_id', function($query) {
+                $query->select('id')->from('ticket_statuses')->where('is_closed', true);
+            })
+            ->groupBy('date')
+            ->get()
+            ->keyBy('date');
+        
+        $period = CarbonPeriod::create($startDate, $endDate);
+        $activityData = collect($period)->map(function ($date) use ($createdTickets, $resolvedTickets) {
+            $dateString = $date->format('Y-m-d');
+        
+            return [
+                'date'     => $dateString,
+                'created'  => $createdTickets->get($dateString)->count ?? 0,
+                'resolved' => $resolvedTickets->get($dateString)->count ?? 0,
+            ];
+        })->values();
+    
         //Global Statistics
         $globalStats = [
             'total_assets' => Asset::count(),
             'total_users' => User::count(),
             'avg_resolution_time' => 0, // TODO
-
-            //Get created tickets per day
-            'created_tickets' => DB::table('tickets')
-                ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as count'))
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->groupBy('date')
-                ->orderBy('date', 'asc')
-                ->get(),
-            
-            //Get resolved tickets per day
-            'resolved_tickets' => DB::table('tickets')
-                ->select(DB::raw('DATE(updated_at) as date'), DB::raw('count(*) as count'))
-                ->whereBetween('updated_at', [$startDate, $endDate])
-                ->whereIn('status_id', function($query) {
-                    $query->select('id')
-                          ->from('ticket_statuses')
-                          ->where('is_closed', true);
-                })
-                ->groupBy('date')
-                ->orderBy('date', 'asc')
-                ->get(),
-
-            //Get all dates within activity                
-            'dates' => DB::table('tickets')
-                ->select(DB::raw('DATE(created_at) as date'))
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->union(
-                    DB::table('tickets')
-                    ->select(DB::raw('DATE(updated_at) as date'))
-                    ->whereBetween('updated_at', [$startDate, $endDate])
-                )
-                ->groupBy('date')
-                ->orderBy('date', 'asc')
-                ->get()
-                ->pluck('date'),
+            'activity'=> $activityData
         ];
 
         // Ticket Statistics

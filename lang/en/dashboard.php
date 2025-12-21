@@ -40,6 +40,12 @@ return [
                 'by_status' => 'Tickets by Status',
                 'by_priority' => 'Tickets by Priority',
                 'by_category' => 'Tickets by Category',
+                'indicator'=>
+                [
+                    'status' => 'Status',
+                    'priority' => 'Priority',
+                    'category' => 'Category',
+                ]
             ],
             'user_statistics' => [
                 'assigned_tickets' => 'Top 5 Users by Assigned Tickets',

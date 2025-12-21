@@ -21,23 +21,18 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Recharts Components
-import { Bar, BarChart, CartesianGrid, Cell, Label, Legend, Line, LineChart, Pie, PieChart, XAxis, YAxis } from "recharts";
 import {
-    ChartContainer,
-    ChartTooltip,
-    ChartTooltipContent,
     ChartConfig,
-    ChartLegend,
-    ChartLegendContent,
-
 } from '@/components/ui/chart';
 
 // Types
 import { type BreadcrumbItem } from '@/types';
 
 // Icons
-import { LayoutDashboard, Ticket, Users, Box, Clock, Icon, BarChart3 } from 'lucide-react';
-import { getIcon } from '@/lib/utils';
+import { LayoutDashboard, Ticket, Users, Box, Clock, BarChart3 } from 'lucide-react';
+import { StatsPieChart } from '@/components/dashboard/StatsPieChart';
+import { StatsBarChart } from '@/components/dashboard/StatsBarChart';
+import { ActivityLineChart } from '@/components/dashboard/ActivityLineChart';
 
 //Interface
 interface DashboardProps {
@@ -45,9 +40,7 @@ interface DashboardProps {
         total_assets: number;
         total_users: number;
         avg_resolution_time: number;
-        created_tickets: number;
-        resolved_tickets: number;
-        dates : Array<string>;
+        activity: [any]
     };
     statsTickets: {
         total: number;
@@ -95,15 +88,6 @@ export default function Dashboard({ statsGlobales, statsTickets, statsAssets, st
         },
     ];
 
-    const LineChartData =
-    {
-        dates: statsGlobales.dates.map((date) => ({
-            date: date,
-            created: Math.floor(Math.random() * 20), // Replace with actual data
-            resolved: Math.floor(Math.random() * 20), // Replace with actual data
-        })),
-    }
-
     const userStatsItems = [
         {
             title: __('dashboard.pages.stats.user_statistics.assigned_tickets'),
@@ -122,6 +106,24 @@ export default function Dashboard({ statsGlobales, statsTickets, statsAssets, st
             data: statsUsers.by_time,
         },
     ];
+
+    const ticketStatsItems = [
+        {
+            label: __('dashboard.pages.stats.ticket_statistics.by_status'),
+            indicator: __("dashboard.pages.stats.ticket_statistics.indicator.status"),
+            stats: statsTickets.by_status
+        },
+        {
+            label: __('dashboard.pages.stats.ticket_statistics.by_priority'),
+            indicator: __("dashboard.pages.stats.ticket_statistics.indicator.priority"),
+            stats: statsTickets.by_priority
+        },
+        {
+            label: __('dashboard.pages.stats.ticket_statistics.by_category'),
+            indicator: __("dashboard.pages.stats.ticket_statistics.indicator.category"),
+            stats: statsTickets.by_category
+        },
+    ]
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -189,49 +191,23 @@ export default function Dashboard({ statsGlobales, statsTickets, statsAssets, st
                                         </Card>
                                     ))}
                                 </div>
-                                    <Card className="p-6 w-full md:col-span-3"> 
-                                        <CardHeader className="px-0 pt-0">
-                                            <CardTitle>{__('dashboard.pages.stats.global_statistics.activity_title')}</CardTitle>
-                                        </CardHeader>
-                                        <CardContent className="px-0 pb-0">
-                                            <ChartContainer config={ChartConfig} className="h-[350px] w-full">
-                                                <LineChart data={LineChartData.dates} margin={{ left: 12, right: 12, top: 20 }}>
-                                                    <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-muted/30" />
-                                                    <XAxis
-                                                        dataKey={'date'}
-                                                        tickLine={false}
-                                                        axisLine={false}
-                                                        tickMargin={12}
-                                                        className="text-[10px] sm:text-xs"
-                                                    />
-                                                    <YAxis tickLine={false} axisLine={false} tickMargin={12} />
-                                                    <ChartTooltip content={<ChartTooltipContent />} />
-                                                    <Legend/>
-                                                    <Line
-                                                        type="monotone"
-                                                        dataKey="created"
-                                                        stroke="#82ca9d"
-                                                        strokeWidth={3}
-                                                        dot={true}
-                                                        activeDot={{ r: 6 }}
-                                                    />
-                                                    <Line
-                                                        type="monotone"
-                                                        dataKey="resolved"
-                                                        stroke="#8884d8"
-                                                        strokeWidth={3}
-                                                        dot={false}
-                                                        activeDot={{ r: 6 }}
-                                                    />
-                                                </LineChart>
-                                            </ChartContainer>
-                                        </CardContent>
-                                    </Card>
+                                <Card className="p-6 w-full md:col-span-3">
+                                    <CardHeader className="px-0 pt-0">
+                                        <CardTitle>{__('dashboard.pages.stats.global_statistics.activity_title')}</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="px-0 pb-0">
+                                        <ActivityLineChart
+                                            data={statsGlobales.activity}
+                                            labelKey="date"
+                                            config={ChartConfig}
+                                            colors={["var(--primary)", "hsl(from var(--primary) calc(h + 180) s l)"]}
+                                        />
+                                    </CardContent>
+                                </Card>
                             </TabsContent>
                             {/* Ticket Stats */}
                             <TabsContent value="tickets" className="space-y-4 pt-4">
                                 <div className=" rounded-xl text-center text-muted-foreground">
-                                    {/* Card for total tickets */}
                                     <Card className="flex flex-col items-center justify-center p-6 text-center shadow-sm mb-6">
                                         <CardHeader className="p-0 pb-2 w-full flex flex-row justify-center items-center">
                                             <Ticket className="size-10 text-primary" />
@@ -245,82 +221,15 @@ export default function Dashboard({ statsGlobales, statsTickets, statsAssets, st
                                             </div>
                                         </CardContent>
                                     </Card>
-
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        {[
-                                            { label: __('dashboard.pages.stats.ticket_statistics.by_status'), stats: statsTickets.by_status },
-                                            { label: __('dashboard.pages.stats.ticket_statistics.by_priority'), stats: statsTickets.by_priority },
-                                            { label: __('dashboard.pages.stats.ticket_statistics.by_category'), stats: statsTickets.by_category },
-                                        ].map((item, index) => (
-                                            <Card key={index} className="p-4">
-                                                <CardHeader className="p-0 pb-4 text-center">
-                                                    <CardTitle className="text-sm font-semibold uppercase tracking-tight text-muted-foreground">
-                                                        {item.label}
-                                                    </CardTitle>
-                                                </CardHeader>
-                                                <CardContent className="h-[250px] flex items-center justify-center">
-                                                    <ChartContainer
-                                                        config={{}}
-                                                        className="mx-auto w-full aspect-square min-h-[250px] max-h-[300px]"
-                                                    >
-                                                        <PieChart>
-                                                            <ChartTooltip
-                                                                cursor={false}
-                                                                content={<ChartTooltipContent hideLabel />}
-                                                            />
-                                                            <Pie
-                                                                data={item.stats}
-                                                                dataKey="tickets_count"
-                                                                nameKey="title"
-                                                                innerRadius={60}
-                                                                outerRadius={80}
-                                                                paddingAngle={5}
-                                                                cornerRadius={5}
-                                                                stroke="none"
-                                                                label
-                                                                fontSize={20}
-                                                            >
-                                                                {item.stats.map((entry, index) => (
-                                                                    <Cell
-                                                                        key={`cell-${index}`}
-                                                                        fill={entry.color || "var(--chart-1)"}
-                                                                        className="hover:opacity-80 transition-opacity"
-                                                                    />
-                                                                ))}
-                                                                <Label
-                                                                    content={({ viewBox }) => {
-                                                                        if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                                                                            return (
-                                                                                <text
-                                                                                    x={viewBox.cx}
-                                                                                    y={viewBox.cy}
-                                                                                    textAnchor="middle"
-                                                                                    dominantBaseline="middle"
-                                                                                >
-                                                                                    <tspan
-                                                                                        x={viewBox.cx}
-                                                                                        y={viewBox.cy}
-                                                                                        className="fill-foreground text-3xl font-bold"
-                                                                                    >
-                                                                                        {statsTickets.total.toLocaleString()}
-                                                                                    </tspan>
-                                                                                    <tspan
-                                                                                        x={viewBox.cx}
-                                                                                        y={(viewBox.cy || 0) + 24}
-                                                                                        className="fill-muted-foreground text-xs uppercase"
-                                                                                    >
-                                                                                        Tickets
-                                                                                    </tspan>
-                                                                                </text>
-                                                                            )
-                                                                        }
-                                                                    }}
-                                                                />
-                                                            </Pie>
-                                                        </PieChart>
-                                                    </ChartContainer>
-                                                </CardContent>
-                                            </Card>
+                                        {ticketStatsItems.map((item) => (
+                                            <StatsPieChart
+                                                title={item.label}
+                                                data={item.stats}
+                                                total={item.stats.length}
+                                                key={item.label}
+                                                indicator={item.indicator}
+                                            />
                                         ))}
                                     </div>
                                 </div>
@@ -344,32 +253,12 @@ export default function Dashboard({ statsGlobales, statsTickets, statsAssets, st
                                                         </div>
                                                     </div>
                                                 ) : (
-                                                    <ChartContainer config={ChartConfig} className="h-[200px] w-full">
-                                                        <BarChart
-                                                            data={item.data}
-                                                            layout="horizontal"
-                                                            margin={{ left: 40, right: 20 }}
-                                                        >
-                                                            <CartesianGrid horizontal={false} strokeDasharray="3 3" />
-                                                            <XAxis
-                                                                dataKey="name"
-                                                                type="category"
-                                                                tickLine={false}
-                                                                axisLine={true}
-                                                            />
-                                                            <YAxis type="number" hide />
-                                                            <ChartTooltip
-                                                                cursor={false}
-                                                                content={<ChartTooltipContent hideIndicator />}
-                                                            />
-                                                            <Bar
-                                                                dataKey="tickets_count"
-                                                                fill="var(--primary)"
-                                                                radius={[0, 4, 4, 0]}
-                                                                barSize={20}
-                                                            />
-                                                        </BarChart>
-                                                    </ChartContainer>
+                                                    <StatsBarChart
+                                                        data={item.data}
+                                                        dataKey={index === 3 ? 'avg_resolution_time' : 'tickets_count'}
+                                                        labelKey="name"
+                                                        config={ChartConfig}
+                                                    />
                                                 )}
                                             </CardContent>
                                         </Card>
@@ -382,38 +271,15 @@ export default function Dashboard({ statsGlobales, statsTickets, statsAssets, st
                                     <Card className='flex-1 min-w-[250px]'>
                                         <CardHeader>
                                             <CardTitle>{__('dashboard.pages.tabs.asset_statistics')}</CardTitle>
-                                            <CardDescription>
-                                                {__('dashboard.pages.stats.asset_statistics.description')}
-                                            </CardDescription>
                                         </CardHeader>
                                         <CardContent className="min-h-[400px]">
-                                            <ChartContainer config={ChartConfig} className="h-[400px] w-full">
-                                                <BarChart
-                                                    data={statsAssets.by_asset}
-                                                    layout="vertical"
-                                                    margin={{ left: 40, right: 20 }}
-                                                >
-                                                    <CartesianGrid horizontal={false} strokeDasharray="3 3" />
-                                                    <XAxis type="number" hide />
-                                                    <YAxis
-                                                        dataKey="title"
-                                                        type="category"
-                                                        tickLine={false}
-                                                        axisLine={true}
-                                                        width={150}
-                                                    />
-                                                    <ChartTooltip
-                                                        cursor={false}
-                                                        content={<ChartTooltipContent hideIndicator />}
-                                                    />
-                                                    <Bar
-                                                        dataKey="tickets_count"
-                                                        fill="var(--primary)"
-                                                        radius={[0, 4, 4, 0]}
-                                                        barSize={32}
-                                                    />
-                                                </BarChart>
-                                            </ChartContainer>
+                                            <StatsBarChart
+                                                data={statsAssets.by_asset}
+                                                dataKey="tickets_count"
+                                                labelKey="title"
+                                                config={ChartConfig}
+                                                layout="vertical"
+                                            />
                                         </CardContent>
                                     </Card>
                                     <Card className='flex-1 min-w-[250px]'>
@@ -423,33 +289,13 @@ export default function Dashboard({ statsGlobales, statsTickets, statsAssets, st
                                             </CardTitle>
                                         </CardHeader>
                                         <CardContent>
-                                            <ChartContainer config={ChartConfig} className="h-[400px] w-full">
-                                                <BarChart
-                                                    data={statsAssets.by_attribute}
-                                                    layout="vertical"
-                                                    margin={{ left: 40, right: 20 }}
-                                                >
-                                                    <CartesianGrid horizontal={false} strokeDasharray="3 3" />
-                                                    <XAxis type="number" hide />
-                                                    <YAxis
-                                                        dataKey="key"
-                                                        type="category"
-                                                        tickLine={false}
-                                                        axisLine={true}
-                                                        width={150}
-                                                    />
-                                                    <ChartTooltip
-                                                        cursor={false}
-                                                        content={<ChartTooltipContent hideIndicator />}
-                                                    />
-                                                    <Bar
-                                                        dataKey="count"
-                                                        fill="var(--primary)"
-                                                        radius={[0, 4, 4, 0]}
-                                                        barSize={32}
-                                                    />
-                                                </BarChart>
-                                            </ChartContainer>
+                                            <StatsBarChart
+                                                data={statsAssets.by_attribute}
+                                                dataKey="count"
+                                                labelKey="key"
+                                                config={ChartConfig}
+                                                layout="vertical"
+                                            />
                                         </CardContent>
                                     </Card>
                                 </div>
