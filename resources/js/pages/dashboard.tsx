@@ -1,7 +1,7 @@
 // resources/js/pages/dashboard.tsx
 
 // Necessary imports
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 
 // Layout
 import AppLayout from '@/layouts/app/layout';
@@ -29,14 +29,22 @@ import {
 import { type BreadcrumbItem } from '@/types';
 
 // Icons
-import { LayoutDashboard, Ticket, Users, Box, Clock, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, Ticket, Users, Box, Clock, BarChart3, Settings } from 'lucide-react';
 import { StatsPieChart } from '@/components/dashboard/StatsPieChart';
 import { StatsBarChart } from '@/components/dashboard/StatsBarChart';
 import { ActivityLineChart } from '@/components/dashboard/ActivityLineChart';
+import { Calendar } from '@/components/ui/calendar';
+import { DateRange } from 'react-day-picker';
+import React from 'react';
+import { format, parseISO } from 'date-fns';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
 
 //Interface
 interface DashboardProps {
     statsGlobales: {
+        end_date: any;
+        start_date: any;
         total_assets: number;
         total_users: number;
         avg_resolution_time: number;
@@ -111,17 +119,20 @@ export default function Dashboard({ statsGlobales, statsTickets, statsAssets, st
         {
             label: __('dashboard.pages.stats.ticket_statistics.by_status'),
             indicator: __("dashboard.pages.stats.ticket_statistics.indicator.status"),
-            stats: statsTickets.by_status
+            stats: statsTickets.by_status,
+            total : statsTickets.total
         },
         {
             label: __('dashboard.pages.stats.ticket_statistics.by_priority'),
             indicator: __("dashboard.pages.stats.ticket_statistics.indicator.priority"),
-            stats: statsTickets.by_priority
+            stats: statsTickets.by_priority,
+            total : statsTickets.total
         },
         {
             label: __('dashboard.pages.stats.ticket_statistics.by_category'),
             indicator: __("dashboard.pages.stats.ticket_statistics.indicator.category"),
-            stats: statsTickets.by_category
+            stats: statsTickets.by_category,
+            total : statsTickets.total
         },
     ]
 
@@ -138,17 +149,84 @@ export default function Dashboard({ statsGlobales, statsTickets, statsAssets, st
         },
     } satisfies ChartConfig;
 
+    //State
+    const [date, setDate] = React.useState<DateRange | undefined>({
+        from: statsGlobales.start_date ? parseISO(statsGlobales.start_date) : new Date(),
+        to: statsGlobales.end_date ? parseISO(statsGlobales.end_date) : new Date(),
+    });
+    const [isCalendarOpen, setIsCalendarOpen] = React.useState(false);
+
+    //Handle Function
+    const handleSelect = (range: DateRange | undefined) => {
+        setDate(range);
+        if (range?.from && range?.to) {
+            router.get(route('dashboard'), {
+                start_date: format(range.from, "yyyy-MM-dd"),
+                end_date: format(range.to, "yyyy-MM-dd"),
+            }, {
+                preserveState: true,
+                replace: true,
+            });
+        }
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={__('dashboard.pages.breadcrumbs.dashboard')} />
-
             <div className="p-4">
                 <Card>
-                    <CardHeader>
-                        <CardTitle>{__('dashboard.pages.breadcrumbs.dashboard')}</CardTitle>
-                        <CardDescription>
-                            {__('dashboard.pages.description')}
-                        </CardDescription>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                        {/* Groupe de gauche : Titre + Description */}
+                        <div className="grid gap-1">
+                            <CardTitle>{__('dashboard.pages.breadcrumbs.dashboard')}</CardTitle>
+                            <CardDescription>
+                                {__('dashboard.pages.description')}
+                            </CardDescription>
+                        </div>
+
+                        {/* Groupe de droite : Le bouton et son Sheet */}
+                        <Sheet>
+                            <SheetTrigger asChild>
+                                <Button variant="outline" size="icon" title="Paramètres du tableau de bord">
+                                    <Settings className="size-5" />
+                                </Button>
+                            </SheetTrigger>
+
+                            <SheetContent side="right" className="w-[400px] sm:w-[540px] flex flex-col">
+                                <SheetHeader className="text-left">
+                                    <SheetTitle>{__('dashboard.pages.settings.title')}</SheetTitle>
+                                    <SheetDescription>
+                                        {__('dashboard.pages.settings.description')}
+                                    </SheetDescription>
+                                </SheetHeader>
+                                <div className="flex-1 overflow-y-auto py-6 space-y-8">
+                                    <div className="space-y-4">
+                                        <div className="flex w-full items-center justify-center p-1 border rounded-lg bg-muted/30 shadow-sm">
+                                            <Calendar
+                                                mode="range"
+                                                defaultMonth={date?.from}
+                                                selected={date}
+                                                onSelect={handleSelect}
+                                                className="rounded-md flex justify-center bg-muted/1 shadow-sm "
+                                            />
+                                        </div>
+                                        <p className="text-xs text-muted-foreground text-center italic">
+                                            {date?.from ? (
+                                                date.to ? (
+                                                    <>Données du <strong>{format(date.from, "dd/MM/yyyy")}</strong> au <strong>{format(date.to, "dd/MM/yyyy")}</strong></>
+                                                ) : "Sélectionnez une date de fin"
+                                            ) : "Sélectionnez une période"}
+                                        </p>
+                                    </div>
+
+                                </div>
+                                <div className="pt-4 border-t">
+                                    <SheetTrigger asChild>
+                                        <Button className="w-full">Appliquer les modifications</Button>
+                                    </SheetTrigger>
+                                </div>
+                            </SheetContent>
+                        </Sheet>
                     </CardHeader>
                     <Separator />
 
@@ -226,7 +304,7 @@ export default function Dashboard({ statsGlobales, statsTickets, statsAssets, st
                                             <StatsPieChart
                                                 title={item.label}
                                                 data={item.stats}
-                                                total={item.stats.length}
+                                                total={item.total}
                                                 key={item.label}
                                                 indicator={item.indicator}
                                             />
