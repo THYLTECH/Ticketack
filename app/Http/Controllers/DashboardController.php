@@ -22,7 +22,9 @@ class DashboardController extends Controller
         // Date range for filtering
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
+        $userIds = $request->input('user_ids', []);
 
+        
         $createdTickets = DB::table('tickets')
             ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as count'))
             ->whereBetween('created_at', [$startDate, $endDate])
@@ -30,10 +32,11 @@ class DashboardController extends Controller
             ->get()
             ->keyBy('date');
 
-        $resolvedTickets = DB::table('tickets')
-            ->select(DB::raw('DATE(updated_at) as date'), DB::raw('count(*) as count'))
-            ->whereBetween('updated_at', [$startDate, $endDate])
-            ->whereIn('status_id', function($query) {
+            $resolvedTickets = DB::table('tickets')
+            ->select(DB::raw('DATE(tickets.updated_at) as date'), DB::raw('count(distinct tickets.id) as count'))
+            ->join('ticket_assignees', 'tickets.id', '=', 'ticket_assignees.ticket_id')
+            ->whereBetween('tickets.updated_at', [$startDate, $endDate])
+            ->whereIn('tickets.status_id', function($query) {
                 $query->select('id')->from('ticket_statuses')->where('is_closed', true);
             })
             ->groupBy('date')
@@ -43,7 +46,7 @@ class DashboardController extends Controller
         $period = CarbonPeriod::create($startDate, $endDate);
         $activityData = collect($period)->map(function ($date) use ($createdTickets, $resolvedTickets) {
             $dateString = $date->format('Y-m-d');
-        
+
             return [
                 'date'     => $dateString,
                 'created'  => $createdTickets->get($dateString)->count ?? 0,
@@ -61,10 +64,10 @@ class DashboardController extends Controller
 
         // Ticket Statistics
         $queryTickets = Ticket::whereBetween('created_at', [$startDate, $endDate]);
-
+        $queryTickets = Ticket::whereBetween('created_at', [$startDate, $endDate]);
         $statsTickets = [
             'total' => (clone $queryTickets)->count(),
-            'by_status' => TicketStatus::withCount(['tickets' => function($query) use ($startDate, $endDate) {
+            'by_status' => TicketStatus::withCount(['tickets' => function($query) use ($startDate, $endDate){
                 $query->whereBetween('created_at', [$startDate, $endDate]);
             }])->get(),
             'by_priority' => TicketPriority::withCount(['tickets' => function($query) use ($startDate, $endDate) {
@@ -80,7 +83,7 @@ class DashboardController extends Controller
     'by_assigned' => User::select('users.id', 'users.name')
         ->join('ticket_assignees', 'users.id', '=', 'ticket_assignees.user_id')
         ->join('tickets', 'ticket_assignees.ticket_id', '=', 'tickets.id')
-        ->whereBetween('tickets.created_at', [$startDate, $endDate])
+        ->whereBetween('tickets.updated_at', [$startDate, $endDate])
         ->selectRaw('count(tickets.id) as tickets_count')
         ->groupBy('users.id', 'users.name')
         ->orderBy('tickets_count', 'desc')
@@ -101,7 +104,7 @@ class DashboardController extends Controller
         ->join('tickets', 'ticket_assignees.ticket_id', '=', 'tickets.id')
         ->join('ticket_statuses', 'tickets.status_id', '=', 'ticket_statuses.id')
         ->where('ticket_statuses.is_closed', true)
-        ->whereBetween('tickets.created_at', [$startDate, $endDate])
+        ->whereBetween('tickets.updated_at', [$startDate, $endDate])
         ->selectRaw('count(tickets.id) as tickets_count')
         ->groupBy('users.id', 'users.name')
         ->orderBy('tickets_count', 'desc')
@@ -147,7 +150,7 @@ class DashboardController extends Controller
             'filters' => [
                 'start_date' => $startDate,
                 'end_date' => $endDate,
-                
+                'users' => $userIds
             ],
             'users' => $users
         ]);

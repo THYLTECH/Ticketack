@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Check, ChevronsUpDown} from 'lucide-react'
+import { Check, ChevronsUpDown } from 'lucide-react'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -18,29 +18,28 @@ import { cn } from '@/lib/utils'
 import { useInitials } from '@/hooks/use-initials'
 
 interface MultiSelectAvatarsProps {
-  users : [any]
+  users: any[],
+  selectedIds: string[];
+  onSelectionChange: (ids: string[]) => void;
 };
 
-const  MultiSelectAvatars = ({ users }: MultiSelectAvatarsProps) => {
-  const id = React.useId()
-  const [open, setOpen] = React.useState(false)
-  const [selected, setSelected] = React.useState<string[]>([])
+const MultiSelectAvatars = ({ users, selectedIds, onSelectionChange }: MultiSelectAvatarsProps) => {
+  const id = React.useId();
+  const [open, setOpen] = React.useState(false);
   const getInitials = useInitials();
-  
-  // Fonction pour ajouter/retirer un utilisateur
+
   const toggleUser = (userId: string) => {
-    setSelected((current) =>
-      current.includes(userId)
-        ? current.filter((id) => id !== userId)
-        : [...current, userId]
-    )
-  }
+    const next = selectedIds.includes(userId)
+      ? selectedIds.filter((id) => id !== userId)
+      : [...selectedIds, userId];
+    onSelectionChange(next); // Notifie le parent
+  };
 
   return (
-    
+
     <div className='w-full max-w-sm space-y-2'>
       <Label htmlFor={id}>Select users</Label>
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={setOpen} modal={false}>
         <PopoverTrigger asChild>
           <Button
             id={id}
@@ -50,8 +49,8 @@ const  MultiSelectAvatars = ({ users }: MultiSelectAvatarsProps) => {
             className="w-full justify-between pl-2 h-auto min-h-10 hover:bg-background border-input"
           >
             <div className="flex flex-wrap gap-1 items-center">
-              {selected.length > 0 ? (
-                selected.map((userId) => {
+              {selectedIds.length > 0 ? (
+                selectedIds.map((userId) => {
                   const user = users.find((u) => u.id === userId)
                   return (
                     <Badge
@@ -74,10 +73,14 @@ const  MultiSelectAvatars = ({ users }: MultiSelectAvatarsProps) => {
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-full p-0" align="start">
+        <PopoverContent
+          className="w-full p-0 z-50"
+          align="start"
+          onOpenAutoFocus={(e) => e.preventDefault()} // Solution pour le focus
+        >
           <Command className='w-full'>
             <CommandInput placeholder="Search user..." />
-            <CommandList>
+            <CommandList onWheel={(e) => e.stopPropagation()}>
               <CommandEmpty>No user found.</CommandEmpty>
               <CommandGroup>
                 {users.map((item) => (
@@ -88,7 +91,7 @@ const  MultiSelectAvatars = ({ users }: MultiSelectAvatarsProps) => {
                   >
                     <div className={cn(
                       "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                      selected.includes(item.id)
+                      selectedIds.includes(item.id)
                         ? "bg-primary text-primary-foreground"
                         : "opacity-50 [&_svg]:invisible"
                     )}>
@@ -110,4 +113,4 @@ const  MultiSelectAvatars = ({ users }: MultiSelectAvatarsProps) => {
   )
 }
 
-export default MultiSelectAvatars
+export default MultiSelectAvatars 

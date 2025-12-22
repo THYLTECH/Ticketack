@@ -68,23 +68,25 @@ interface DashboardProps {
         by_attribute: Array<{ key: string; count: number }>;
     };
 
-    users : [
+    users: [
         {
-            id : number
-            name :string
-            avatar : any[]
+            id: number
+            name: string
+            avatar: any[]
             attachment_avatar: number
         }
     ]
+    filters: any
 }
 
-export default function Dashboard({ statsGlobales, statsTickets, statsAssets, statsUsers ,users }: DashboardProps) {
+export default function Dashboard({ statsGlobales, statsTickets, statsAssets, statsUsers, users, filters }: DashboardProps) {
     const __ = useTrans();
     // console.log('Statistiques Globales:', statsGlobales);
-    // console.log('Statistiques Tickets:', statsTickets);
+    console.log('Statistiques Tickets:', statsTickets);
     // console.log('Statistiques Assets:', statsAssets);
-    // console.log('Statistiques Users:', statsUsers);
-    console.log('Users:', users);
+    console.log('Statistiques Users:', statsUsers);
+    // console.log('Users:', users);
+    console.log('Filters:', filters);
     const globalStatsItems = [
         {
             label: __('dashboard.pages.stats.global_statistics.total_assets'),
@@ -130,19 +132,19 @@ export default function Dashboard({ statsGlobales, statsTickets, statsAssets, st
             label: __('dashboard.pages.stats.ticket_statistics.by_status'),
             indicator: __("dashboard.pages.stats.ticket_statistics.indicator.status"),
             stats: statsTickets.by_status,
-            total : statsTickets.total
+            total: statsTickets.total
         },
         {
             label: __('dashboard.pages.stats.ticket_statistics.by_priority'),
             indicator: __("dashboard.pages.stats.ticket_statistics.indicator.priority"),
             stats: statsTickets.by_priority,
-            total : statsTickets.total
+            total: statsTickets.total
         },
         {
             label: __('dashboard.pages.stats.ticket_statistics.by_category'),
             indicator: __("dashboard.pages.stats.ticket_statistics.indicator.category"),
             stats: statsTickets.by_category,
-            total : statsTickets.total
+            total: statsTickets.total
         },
     ]
 
@@ -161,21 +163,37 @@ export default function Dashboard({ statsGlobales, statsTickets, statsAssets, st
 
     //State
     const [date, setDate] = React.useState<DateRange | undefined>({
-        from: statsGlobales.start_date ? parseISO(statsGlobales.start_date) : new Date(),
-        to: statsGlobales.end_date ? parseISO(statsGlobales.end_date) : new Date(),
+        from: filters.start_date ? parseISO(filters.start_date) : new Date(),
+        to: filters.end_date ? parseISO(filters.end_date) : new Date(),
     });
 
+    const [selectedUserIds, setSelectedUserIds] = React.useState<string[]>(filters.user_ids || []);
+
+    const updateFilters = (newDate?: DateRange, newUserIds?: string[]) => {
+        const startDate = newDate?.from
+            ? format(newDate.from, "yyyy-MM-dd")
+            : (filters.start_date || format(date?.from || new Date(), "yyyy-MM-dd"));
+
+        const endDate = newDate?.to
+            ? format(newDate.to, "yyyy-MM-dd")
+            : (filters.end_date || format(date?.to || new Date(), "yyyy-MM-dd"));
+
+        const uIds = newUserIds !== undefined ? newUserIds : (filters.user_ids || []);
+
+        router.get(route('dashboard'), {
+            start_date: startDate,
+            end_date: endDate,
+            user_ids: uIds,
+        }, {
+            preserveState: true,
+            replace: true,
+        });
+    };
     //Handle Function
     const handleSelect = (range: DateRange | undefined) => {
         setDate(range);
         if (range?.from && range?.to) {
-            router.get(route('dashboard'), {
-                start_date: format(range.from, "yyyy-MM-dd"),
-                end_date: format(range.to, "yyyy-MM-dd"),
-            }, {
-                preserveState: true,
-                replace: true,
-            });
+            updateFilters(range,selectedUserIds);
         }
     };
 
@@ -224,9 +242,14 @@ export default function Dashboard({ statsGlobales, statsTickets, statsAssets, st
                                             ) : "Sélectionnez une période"}
                                         </p>
                                     </div>
-                                     <MultiSelectAvatars
+                                    <MultiSelectAvatars
                                         users={users}
-                                     ></MultiSelectAvatars>
+                                        selectedIds={selectedUserIds}
+                                        onSelectionChange={(ids) => {
+                                            setSelectedUserIds(ids);
+                                            updateFilters(undefined, ids);
+                                        }}
+                                    ></MultiSelectAvatars>
                                 </div>
                                 <div className="pt-4 border-t">
                                     <SheetTrigger asChild>
