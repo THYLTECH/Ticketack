@@ -39,6 +39,7 @@ import React from 'react';
 import { format, parseISO } from 'date-fns';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
+import MultiSelectAvatars from '@/components/ui/MultiSelectAvatars';
 
 //Interface
 interface DashboardProps {
@@ -66,15 +67,24 @@ interface DashboardProps {
         by_asset: Array<{ id: number; title: string; description: string; icon: string; tickets_count: number; }>;
         by_attribute: Array<{ key: string; count: number }>;
     };
+
+    users : [
+        {
+            id : number
+            name :string
+            avatar : any[]
+            attachment_avatar: number
+        }
+    ]
 }
 
-export default function Dashboard({ statsGlobales, statsTickets, statsAssets, statsUsers }: DashboardProps) {
+export default function Dashboard({ statsGlobales, statsTickets, statsAssets, statsUsers ,users }: DashboardProps) {
     const __ = useTrans();
-    console.log('Statistiques Globales:', statsGlobales);
-    console.log('Statistiques Tickets:', statsTickets);
-    console.log('Statistiques Assets:', statsAssets);
-    console.log('Statistiques Users:', statsUsers);
-
+    // console.log('Statistiques Globales:', statsGlobales);
+    // console.log('Statistiques Tickets:', statsTickets);
+    // console.log('Statistiques Assets:', statsAssets);
+    // console.log('Statistiques Users:', statsUsers);
+    console.log('Users:', users);
     const globalStatsItems = [
         {
             label: __('dashboard.pages.stats.global_statistics.total_assets'),
@@ -154,7 +164,6 @@ export default function Dashboard({ statsGlobales, statsTickets, statsAssets, st
         from: statsGlobales.start_date ? parseISO(statsGlobales.start_date) : new Date(),
         to: statsGlobales.end_date ? parseISO(statsGlobales.end_date) : new Date(),
     });
-    const [isCalendarOpen, setIsCalendarOpen] = React.useState(false);
 
     //Handle Function
     const handleSelect = (range: DateRange | undefined) => {
@@ -176,15 +185,12 @@ export default function Dashboard({ statsGlobales, statsTickets, statsAssets, st
             <div className="p-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                        {/* Groupe de gauche : Titre + Description */}
                         <div className="grid gap-1">
                             <CardTitle>{__('dashboard.pages.breadcrumbs.dashboard')}</CardTitle>
                             <CardDescription>
                                 {__('dashboard.pages.description')}
                             </CardDescription>
                         </div>
-
-                        {/* Groupe de droite : Le bouton et son Sheet */}
                         <Sheet>
                             <SheetTrigger asChild>
                                 <Button variant="outline" size="icon" title="Paramètres du tableau de bord">
@@ -218,7 +224,9 @@ export default function Dashboard({ statsGlobales, statsTickets, statsAssets, st
                                             ) : "Sélectionnez une période"}
                                         </p>
                                     </div>
-
+                                     <MultiSelectAvatars
+                                        users={users}
+                                     ></MultiSelectAvatars>
                                 </div>
                                 <div className="pt-4 border-t">
                                     <SheetTrigger asChild>

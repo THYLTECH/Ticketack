@@ -137,6 +137,8 @@ class DashboardController extends Controller
                     ->get(),
         ];
 
+        //Users data for filters
+        $users = User ::select('id', 'name','attachment_avatar')->get();
         return Inertia::render('dashboard', [
             'statsGlobales' => $globalStats,
             'statsTickets' => $statsTickets,
@@ -145,7 +147,9 @@ class DashboardController extends Controller
             'filters' => [
                 'start_date' => $startDate,
                 'end_date' => $endDate,
-            ]
+                
+            ],
+            'users' => $users
         ]);
     }
 }
