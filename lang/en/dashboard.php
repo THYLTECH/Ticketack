@@ -55,12 +55,16 @@ return [
             ],
             'asset_statistics' => [
                 'description' =>'Ranking of assets by number of linked tickets',
-                'by_attribute' => 'Usage of Asset Attributes'
+                'by_attribute' => 'Usage of Asset Attributes',
             ],
             'no_data' => 'No data available',
         ],
         'filters' => [
             'period' => 'Period',
+            'label'=> [
+                'filter' => 'Chart filters',
+                'limit' => 'Number of item',
+            ]
         ]
 
     ],

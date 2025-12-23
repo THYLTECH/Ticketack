@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
 import { useInitials } from '@/hooks/use-initials'
+import { useTrans } from '@/lib/translation'
 
 interface MultiSelectAvatarsProps {
   users: any[],
@@ -25,6 +26,7 @@ interface MultiSelectAvatarsProps {
 };
 
 const MultiSelectAvatars = ({ users, selectedIds, onSelectionChange }: MultiSelectAvatarsProps) => {
+  const __ = useTrans();
   const id = React.useId();
   const [open, setOpen] = React.useState(false);
   const getInitials = useInitials();
@@ -48,7 +50,7 @@ const MultiSelectAvatars = ({ users, selectedIds, onSelectionChange }: MultiSele
 
   return (
     <div className='w-full max-w-sm space-y-2'>
-      <Label htmlFor={id}>Select users</Label>
+      <Label htmlFor={id}>{__('components.ui.multi_select.select_users')}</Label>
       <Popover open={open} onOpenChange={setOpen} modal={false}>
         <PopoverTrigger asChild>
           <Button
@@ -78,8 +80,8 @@ const MultiSelectAvatars = ({ users, selectedIds, onSelectionChange }: MultiSele
                         role="button"
                         className="ml-1 rounded-full outline-none hover:bg-muted-foreground/20 p-0.5"
                         onMouseDown={(e) => {
-                           e.preventDefault();
-                           e.stopPropagation();
+                          e.preventDefault();
+                          e.stopPropagation();
                         }}
                         onClick={(e) => {
                           e.preventDefault();
@@ -93,7 +95,7 @@ const MultiSelectAvatars = ({ users, selectedIds, onSelectionChange }: MultiSele
                   )
                 })
               ) : (
-                <span className="text-muted-foreground ml-1">Select users...</span>
+                <span className="text-muted-foreground ml-1">{__('components.ui.multi_select.placeholder_users')}</span>
               )}
             </div>
             <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
@@ -101,9 +103,9 @@ const MultiSelectAvatars = ({ users, selectedIds, onSelectionChange }: MultiSele
         </PopoverTrigger>
         <PopoverContent className="w-full p-0 z-50" align="start">
           <Command className='w-full'>
-            <CommandInput placeholder="Search user..." />
+            <CommandInput placeholder={__('components.ui.multi_select.search_user')} />
             <CommandList>
-              <CommandEmpty>No user found.</CommandEmpty>
+              <CommandEmpty>{__('components.ui.multi_select.no_item_found')}</CommandEmpty>
               <CommandGroup>
                 <CommandItem
                   onSelect={toggleAll}
@@ -115,9 +117,9 @@ const MultiSelectAvatars = ({ users, selectedIds, onSelectionChange }: MultiSele
                   )}>
                     {isAllSelected && <Check className="h-3 w-3" />}
                   </div>
-                  <span>{isAllSelected ? "Deselect all" : "Select all"}</span>
+                  <span>{isAllSelected ? __('components.ui.multi_select.deselect_all') : __('components.ui.multi_select.select_all')}</span>
                 </CommandItem>
-                
+
                 <CommandSeparator className="my-1" />
 
                 {users.map((item) => (

@@ -359,7 +359,7 @@ export default function Dashboard({ statsGlobales, statsTickets, statsAssets, st
                                                         </PopoverTrigger>
                                                         <PopoverContent className="w-72 space-y-4" align="end">
                                                             <div className="space-y-2">
-                                                                <h4 className="font-medium text-sm">Filtres du graphique</h4>
+                                                                <h4 className="font-medium text-sm">{__('dashboard.pages.filters.label.filter')}</h4>
                                                                 <MultiSelectAvatars
                                                                     users={usersForThisChart}
                                                                     selectedIds={filters.userIds}
@@ -367,7 +367,7 @@ export default function Dashboard({ statsGlobales, statsTickets, statsAssets, st
                                                                 />
                                                             </div>
                                                             <div className="space-y-2">
-                                                                <Label className="text-xs">Nombre d'utilisateurs à afficher</Label>
+                                                                <Label className="text-xs">{__('dashboard.pages.filters.label.limit')}</Label>
                                                                 <Input
                                                                     type="number"
                                                                     min={1}
@@ -417,13 +417,13 @@ export default function Dashboard({ statsGlobales, statsTickets, statsAssets, st
                                                 </PopoverTrigger>
                                                 <PopoverContent className="w-72 space-y-4" align="end">
                                                     <MultiSelectSimple
-                                                        label="Filtrer les assets"
+                                                        label={__('dashboard.pages.filters.label.filter')}
                                                         items={statsAssets.by_asset.map(a => ({ id: a.id.toString(), label: a.title }))}
                                                         selectedIds={assetChartFilters[0].selectedKeys}
                                                         onSelectionChange={(keys) => handleAssetFilterChange(0, 'selectedKeys', keys)}
                                                     />
                                                     <div className="space-y-2">
-                                                        <Label className="text-xs">Nombre d'assets à afficher</Label>
+                                                        <Label className="text-xs">{__('dashboard.pages.filters.label.limit')}</Label>
                                                         <Input
                                                             type="number"
                                                             min={1}
@@ -460,13 +460,13 @@ export default function Dashboard({ statsGlobales, statsTickets, statsAssets, st
                                                 </PopoverTrigger>
                                                 <PopoverContent className="w-72 space-y-4" align="end">
                                                     <MultiSelectSimple
-                                                        label="Filtrer les attributs"
+                                                        label={__('dashboard.pages.filters.label.filter')}
                                                         items={statsAssets.by_attribute.map(a => ({ id: a.key, label: a.key }))}
                                                         selectedIds={assetChartFilters[1].selectedKeys}
                                                         onSelectionChange={(keys) => handleAssetFilterChange(1, 'selectedKeys', keys)}
                                                     />
                                                     <div className="space-y-2">
-                                                        <Label className="text-xs">Nombre d'attributs à afficher</Label>
+                                                        <Label className="text-xs">{__('dashboard.pages.filters.label.limit')}</Label>
                                                         <Input
                                                             type="number"
                                                             min={1}
