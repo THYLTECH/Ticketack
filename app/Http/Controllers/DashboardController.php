@@ -24,7 +24,6 @@ class DashboardController extends Controller
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
         $userIds = $request->input('user_ids', []);
 
-        
         $createdTickets = DB::table('tickets')
             ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as count'))
             ->whereBetween('created_at', [$startDate, $endDate])
@@ -87,7 +86,6 @@ class DashboardController extends Controller
         ->selectRaw('count(tickets.id) as tickets_count')
         ->groupBy('users.id', 'users.name')
         ->orderBy('tickets_count', 'desc')
-        ->limit(5)
         ->get(),
 
     'by_created' => User::select('users.id', 'users.name')
@@ -96,7 +94,6 @@ class DashboardController extends Controller
         ->selectRaw('count(tickets.id) as tickets_count')
         ->groupBy('users.id', 'users.name')
         ->orderBy('tickets_count', 'desc')
-        ->limit(5)
         ->get(),
 
     'by_resolved' => User::select('users.id', 'users.name')
@@ -108,7 +105,6 @@ class DashboardController extends Controller
         ->selectRaw('count(tickets.id) as tickets_count')
         ->groupBy('users.id', 'users.name')
         ->orderBy('tickets_count', 'desc')
-        ->limit(5)
         ->get(),
 
     'by_time' => User::select('users.id', 'users.name')
@@ -117,7 +113,6 @@ class DashboardController extends Controller
         ->selectRaw('sum(ticket_entries.duration_seconds) as total_seconds')
         ->groupBy('users.id', 'users.name')
         ->orderBy('total_seconds', 'desc')
-        ->limit(5)
         ->get()
         ->map(function($user) {
             // Conversion en heures lisibles pour le frontend
@@ -125,6 +120,19 @@ class DashboardController extends Controller
             return $user;
         }),
     ];
+
+    $activeUserIds = collect([
+        $statsUsers['by_assigned']->pluck('id'),
+        $statsUsers['by_created']->pluck('id'),
+        $statsUsers['by_resolved']->pluck('id'),
+        $statsUsers['by_time']->pluck('id'),
+    ])->flatten()->unique();
+    
+    $users = User::select('id', 'name', 'attachment_avatar')
+        ->whereIn('id', $activeUserIds)
+        ->orderBy('name', 'asc')
+        ->get();
+
         //Asset Statistics
         $statsAssets = [
             'by_asset' => Asset::select('id', 'title', 'description', 'icon')
@@ -140,8 +148,6 @@ class DashboardController extends Controller
                     ->get(),
         ];
 
-        //Users data for filters
-        $users = User ::select('id', 'name','attachment_avatar')->get();
         return Inertia::render('dashboard', [
             'statsGlobales' => $globalStats,
             'statsTickets' => $statsTickets,

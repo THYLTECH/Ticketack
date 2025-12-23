@@ -29,7 +29,7 @@ import {
 import { type BreadcrumbItem } from '@/types';
 
 // Icons
-import { LayoutDashboard, Ticket, Users, Box, Clock, BarChart3, Settings } from 'lucide-react';
+import { LayoutDashboard, Ticket, Users, Box, Clock, BarChart3, Settings, CalendarIcon, Filter } from 'lucide-react';
 import { StatsPieChart } from '@/components/dashboard/StatsPieChart';
 import { StatsBarChart } from '@/components/dashboard/StatsBarChart';
 import { ActivityLineChart } from '@/components/dashboard/ActivityLineChart';
@@ -37,9 +37,13 @@ import { Calendar } from '@/components/ui/calendar';
 import { DateRange } from 'react-day-picker';
 import React from 'react';
 import { format, parseISO } from 'date-fns';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import MultiSelectAvatars from '@/components/ui/MultiSelectAvatars';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import { DateRangeFilter } from '@/components/dashboard/DateRangeFilter';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 //Interface
 interface DashboardProps {
@@ -169,32 +173,40 @@ export default function Dashboard({ statsGlobales, statsTickets, statsAssets, st
 
     const [selectedUserIds, setSelectedUserIds] = React.useState<string[]>(filters.user_ids || []);
 
-    const updateFilters = (newDate?: DateRange, newUserIds?: string[]) => {
-        const startDate = newDate?.from
-            ? format(newDate.from, "yyyy-MM-dd")
-            : (filters.start_date || format(date?.from || new Date(), "yyyy-MM-dd"));
-
-        const endDate = newDate?.to
-            ? format(newDate.to, "yyyy-MM-dd")
-            : (filters.end_date || format(date?.to || new Date(), "yyyy-MM-dd"));
-
-        const uIds = newUserIds !== undefined ? newUserIds : (filters.user_ids || []);
+    const [chartFilters, setChartFilters] = React.useState<Record<number, { userIds: string[], limit: number }>>({
+        0: { userIds: [], limit: 5 },
+        1: { userIds: [], limit: 5 },
+        2: { userIds: [], limit: 5 },
+        3: { userIds: [], limit: 5 },
+    });
+    const updateFilters = (newDate?: DateRange, newUserIds?: string[], newLimit?: number) => {
+        // Formattage des dates en string YYYY-MM-DD
+        const startDate = newDate?.from ? format(newDate.from, "yyyy-MM-dd") : format(date?.from || new Date(), "yyyy-MM-dd");
+        const endDate = newDate?.to ? format(newDate.to, "yyyy-MM-dd") : format(date?.to || new Date(), "yyyy-MM-dd");
 
         router.get(route('dashboard'), {
             start_date: startDate,
             end_date: endDate,
-            user_ids: uIds,
+            user_ids: newUserIds || selectedUserIds,
         }, {
             preserveState: true,
-            replace: true,
+            preserveScroll: true,
+            only: ['statsUsers','statsTickets','statsAssets','statsGlobales'],
         });
     };
     //Handle Function
     const handleSelect = (range: DateRange | undefined) => {
         setDate(range);
         if (range?.from && range?.to) {
-            updateFilters(range,selectedUserIds);
+            updateFilters(range, selectedUserIds);
         }
+    };
+
+    const handleChartFilterChange = (index: number, key: 'userIds' | 'limit', value: any) => {
+        setChartFilters(prev => ({
+            ...prev,
+            [index]: { ...prev[index], [key]: value }
+        }));
     };
 
     return (
@@ -203,62 +215,29 @@ export default function Dashboard({ statsGlobales, statsTickets, statsAssets, st
             <div className="p-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                        <div className="grid gap-1">
-                            <CardTitle>{__('dashboard.pages.breadcrumbs.dashboard')}</CardTitle>
-                            <CardDescription>
-                                {__('dashboard.pages.description')}
-                            </CardDescription>
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-2">
+                            <div className="grid gap-1">
+                                <CardTitle className="text-2xl font-bold tracking-tight">
+                                    {__('dashboard.pages.breadcrumbs.dashboard')}
+                                </CardTitle>
+                                <CardDescription className="text-muted-foreground">
+                                    {__('dashboard.pages.description')}
+                                </CardDescription>
+                            </div>
                         </div>
-                        <Sheet>
-                            <SheetTrigger asChild>
-                                <Button variant="outline" size="icon" title="Paramètres du tableau de bord">
-                                    <Settings className="size-5" />
-                                </Button>
-                            </SheetTrigger>
-
-                            <SheetContent side="right" className="w-[400px] sm:w-[540px] flex flex-col">
-                                <SheetHeader className="text-left">
-                                    <SheetTitle>{__('dashboard.pages.settings.title')}</SheetTitle>
-                                    <SheetDescription>
-                                        {__('dashboard.pages.settings.description')}
-                                    </SheetDescription>
-                                </SheetHeader>
-                                <div className="flex-1 overflow-y-auto py-6 space-y-8">
-                                    <div className="space-y-4">
-                                        <div className="flex w-full items-center justify-center p-1 border rounded-lg bg-muted/30 shadow-sm">
-                                            <Calendar
-                                                mode="range"
-                                                defaultMonth={date?.from}
-                                                selected={date}
-                                                onSelect={handleSelect}
-                                                className="rounded-md flex justify-center bg-muted/1 shadow-sm "
-                                            />
-                                        </div>
-                                        <p className="text-xs text-muted-foreground text-center italic">
-                                            {date?.from ? (
-                                                date.to ? (
-                                                    <>Données du <strong>{format(date.from, "dd/MM/yyyy")}</strong> au <strong>{format(date.to, "dd/MM/yyyy")}</strong></>
-                                                ) : "Sélectionnez une date de fin"
-                                            ) : "Sélectionnez une période"}
-                                        </p>
-                                    </div>
-                                    <MultiSelectAvatars
-                                        users={users}
-                                        selectedIds={selectedUserIds}
-                                        onSelectionChange={(ids) => {
-                                            setSelectedUserIds(ids);
-                                            updateFilters(undefined, ids);
-                                        }}
-                                    ></MultiSelectAvatars>
-                                </div>
-                                <div className="pt-4 border-t">
-                                    <SheetTrigger asChild>
-                                        <Button className="w-full">Appliquer les modifications</Button>
-                                    </SheetTrigger>
-                                </div>
-                            </SheetContent>
-                        </Sheet>
                     </CardHeader>
+                    <Separator />
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-muted-foreground whitespace-nowrap ml-10">
+                            {__('dashboard.pages.filters.period')} :
+                        </span>
+                        <DateRangeFilter
+                            date={date}
+                            onSelect={handleSelect}
+                            placeholder="Select a period"
+                        />
+                    </div>
+
                     <Separator />
 
                     <CardContent className="pt-6">
@@ -346,32 +325,71 @@ export default function Dashboard({ statsGlobales, statsTickets, statsAssets, st
                             {/* User Stats */}
                             <TabsContent value="users" className="space-y-4 pt-4">
                                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                    {userStatsItems.map((item, index) => (
-                                        <Card key={index}>
-                                            <CardHeader className="flex flex-row items-center justify-center pb-2">
-                                                <CardTitle className="text-sm font-medium">{item.title}</CardTitle>
-                                            </CardHeader>
-                                            <CardContent>
-                                                {item.data.length === 0 ? (
-                                                    <div className="relative flex h-[200px] w-full items-center justify-center overflow-hidden rounded-xl border border-dashed border-muted/20 bg-muted/5">
-                                                        <div className="absolute flex flex-col items-center gap-1">
-                                                            <BarChart3 className="size-8 text-muted-foreground/20" />
-                                                            <p className="text-xs font-medium text-muted-foreground/40">
-                                                                {__('dashboard.pages.stats.no_data')}
-                                                            </p>
+                                    {userStatsItems.map((item, index) => {
+                                        const filters = chartFilters[index];
+
+                                        const activeIdsForThisChart = item.data.map(u => u.id.toString());
+                                        const usersForThisChart = users.filter(u =>
+                                            activeIdsForThisChart.includes(u.id.toString())
+                                        );
+
+                                        const filteredData = item.data
+                                            .filter(user => filters.userIds.length === 0 || filters.userIds.includes(user.id.toString()))
+                                            .slice(0, filters.limit);
+
+                                        return (
+                                            <Card key={index} className="relative">
+                                                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                                                    <CardTitle className="text-sm font-medium">{item.title}</CardTitle>
+                                                    <Popover>
+                                                        <PopoverTrigger asChild>
+                                                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                                <Filter className="size-4 text-muted-foreground" />
+                                                            </Button>
+                                                        </PopoverTrigger>
+                                                        <PopoverContent className="w-72 space-y-4" align="end">
+                                                            <div className="space-y-2">
+                                                                <h4 className="font-medium text-sm">Filtres du graphique</h4>
+                                                                <MultiSelectAvatars
+                                                                    users={usersForThisChart}
+                                                                    selectedIds={filters.userIds}
+                                                                    onSelectionChange={(ids) => handleChartFilterChange(index, 'userIds', ids)}
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <Label className="text-xs">Nombre d'utilisateurs à afficher</Label>
+                                                                <Input
+                                                                    type="number"
+                                                                    min={1}
+                                                                    value={filters.limit}
+                                                                    onChange={(e) => handleChartFilterChange(index, 'limit', parseInt(e.target.value) || 1)}
+                                                                />
+                                                            </div>
+                                                        </PopoverContent>
+                                                    </Popover>
+                                                </CardHeader>
+                                                <CardContent>
+                                                    {filteredData.length === 0 ? (
+                                                        <div className="relative flex h-[200px] w-full items-center justify-center overflow-hidden rounded-xl border border-dashed border-muted/20 bg-muted/5">
+                                                            <div className="absolute flex flex-col items-center gap-1">
+                                                                <BarChart3 className="size-8 text-muted-foreground/20" />
+                                                                <p className="text-xs font-medium text-muted-foreground/40">
+                                                                    {__('dashboard.pages.stats.no_data')}
+                                                                </p>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                ) : (
-                                                    <StatsBarChart
-                                                        data={item.data}
-                                                        dataKey={index === 3 ? 'avg_resolution_time' : 'tickets_count'}
-                                                        labelKey="name"
-                                                        config={ChartConfig}
-                                                    />
-                                                )}
-                                            </CardContent>
-                                        </Card>
-                                    ))}
+                                                    ) : (
+                                                        <StatsBarChart
+                                                            data={filteredData}
+                                                            dataKey={index === 3 ? 'total_hours' : 'tickets_count'}
+                                                            labelKey="name"
+                                                            config={ChartConfig}
+                                                        />
+                                                    )}
+                                                </CardContent>
+                                            </Card>
+                                        );
+                                    })}
                                 </div>
                             </TabsContent>
                             {/* Asset Stats */}
@@ -412,8 +430,8 @@ export default function Dashboard({ statsGlobales, statsTickets, statsAssets, st
                         </Tabs>
                     </CardContent>
                 </Card>
-            </div>
-        </AppLayout>
+            </div >
+        </AppLayout >
     );
 
 }
