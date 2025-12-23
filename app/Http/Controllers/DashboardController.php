@@ -53,8 +53,8 @@ class DashboardController extends Controller
             ];
         })->values();
 
-        //Global Statistics
-        $globalStats = [
+        //General Statistics
+        $statsGeneral = [
             'total_assets' => Asset::count(),
             'total_users' => User::count(),
             'avg_resolution_time' => 0, // TODO
@@ -159,7 +159,7 @@ class DashboardController extends Controller
         ];
 
         return Inertia::render('dashboard', [
-            'statsGlobales' => $globalStats,
+            'statsGeneral' => $statsGeneral,
             'statsTickets' => $statsTickets,
             'statsAssets' => $statsAssets,
             'statsUsers' => $statsUsers,
