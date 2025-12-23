@@ -44,6 +44,7 @@ import { cn } from '@/lib/utils';
 import { DateRangeFilter } from '@/components/dashboard/DateRangeFilter';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import MultiSelectSimple from '@/components/ui/MultiSelectSimple';
 
 //Interface
 interface DashboardProps {
@@ -171,7 +172,6 @@ export default function Dashboard({ statsGlobales, statsTickets, statsAssets, st
         to: filters.end_date ? parseISO(filters.end_date) : new Date(),
     });
 
-    const [selectedUserIds, setSelectedUserIds] = React.useState<string[]>(filters.user_ids || []);
 
     const [chartFilters, setChartFilters] = React.useState<Record<number, { userIds: string[], limit: number }>>({
         0: { userIds: [], limit: 5 },
@@ -179,31 +179,41 @@ export default function Dashboard({ statsGlobales, statsTickets, statsAssets, st
         2: { userIds: [], limit: 5 },
         3: { userIds: [], limit: 5 },
     });
-    const updateFilters = (newDate?: DateRange, newUserIds?: string[], newLimit?: number) => {
-        // Formattage des dates en string YYYY-MM-DD
+
+    const [assetChartFilters, setAssetChartFilters] = React.useState<Record<number, { selectedKeys: string[], limit: number }>>({
+        0: { selectedKeys: [], limit: 5 },
+        1: { selectedKeys: [], limit: 5 },
+    });
+    const updateFilters = (newDate?: DateRange) => {
         const startDate = newDate?.from ? format(newDate.from, "yyyy-MM-dd") : format(date?.from || new Date(), "yyyy-MM-dd");
         const endDate = newDate?.to ? format(newDate.to, "yyyy-MM-dd") : format(date?.to || new Date(), "yyyy-MM-dd");
 
         router.get(route('dashboard'), {
             start_date: startDate,
             end_date: endDate,
-            user_ids: newUserIds || selectedUserIds,
         }, {
             preserveState: true,
             preserveScroll: true,
-            only: ['statsUsers','statsTickets','statsAssets','statsGlobales'],
+            only: ['statsUsers', 'statsTickets', 'statsAssets', 'statsGlobales'],
         });
     };
     //Handle Function
     const handleSelect = (range: DateRange | undefined) => {
         setDate(range);
         if (range?.from && range?.to) {
-            updateFilters(range, selectedUserIds);
+            updateFilters(range);
         }
     };
 
     const handleChartFilterChange = (index: number, key: 'userIds' | 'limit', value: any) => {
         setChartFilters(prev => ({
+            ...prev,
+            [index]: { ...prev[index], [key]: value }
+        }));
+    };
+
+    const handleAssetFilterChange = (index: number, key: 'selectedKeys' | 'limit', value: any) => {
+        setAssetChartFilters(prev => ({
             ...prev,
             [index]: { ...prev[index], [key]: value }
         }));
@@ -394,14 +404,42 @@ export default function Dashboard({ statsGlobales, statsTickets, statsAssets, st
                             </TabsContent>
                             {/* Asset Stats */}
                             <TabsContent value="assets" className="space-y-4 pt-4">
-                                <div className="text-muted-foreground flex flex-row flex-wrap justify-center gap-4">
-                                    <Card className='flex-1 min-w-[250px]'>
-                                        <CardHeader>
-                                            <CardTitle>{__('dashboard.pages.tabs.asset_statistics')}</CardTitle>
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                    {/* Graphique par Asset */}
+                                    <Card className="relative">
+                                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                                            <CardTitle className="text-sm font-medium">{__('dashboard.pages.tabs.asset_statistics')}</CardTitle>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                        <Filter className="size-4 text-muted-foreground" />
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-72 space-y-4" align="end">
+                                                    <MultiSelectSimple
+                                                        label="Filtrer les assets"
+                                                        items={statsAssets.by_asset.map(a => ({ id: a.id.toString(), label: a.title }))}
+                                                        selectedIds={assetChartFilters[0].selectedKeys}
+                                                        onSelectionChange={(keys) => handleAssetFilterChange(0, 'selectedKeys', keys)}
+                                                    />
+                                                    <div className="space-y-2">
+                                                        <Label className="text-xs">Nombre d'assets à afficher</Label>
+                                                        <Input
+                                                            type="number"
+                                                            min={1}
+                                                            value={assetChartFilters[0].limit}
+                                                            onChange={(e) => handleAssetFilterChange(0, 'limit', parseInt(e.target.value) || 1)}
+                                                        />
+                                                    </div>
+                                                </PopoverContent>
+                                            </Popover>
                                         </CardHeader>
-                                        <CardContent className="min-h-[400px]">
+                                        <CardContent className="min-h-[300px]">
                                             <StatsBarChart
-                                                data={statsAssets.by_asset}
+                                                data={statsAssets.by_asset
+                                                    .filter(a => assetChartFilters[0].selectedKeys.length === 0 || assetChartFilters[0].selectedKeys.includes(a.id.toString()))
+                                                    .slice(0, assetChartFilters[0].limit)
+                                                }
                                                 dataKey="tickets_count"
                                                 labelKey="title"
                                                 config={ChartConfig}
@@ -409,15 +447,42 @@ export default function Dashboard({ statsGlobales, statsTickets, statsAssets, st
                                             />
                                         </CardContent>
                                     </Card>
-                                    <Card className='flex-1 min-w-[250px]'>
-                                        <CardHeader>
-                                            <CardTitle className="text-sm font-medium">
-                                                {__('dashboard.pages.stats.asset_statistics.by_attribute')}
-                                            </CardTitle>
+
+                                    {/* Graphique par Attribut */}
+                                    <Card className="relative">
+                                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                                            <CardTitle className="text-sm font-medium">{__('dashboard.pages.stats.asset_statistics.by_attribute')}</CardTitle>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                        <Filter className="size-4 text-muted-foreground" />
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-72 space-y-4" align="end">
+                                                    <MultiSelectSimple
+                                                        label="Filtrer les attributs"
+                                                        items={statsAssets.by_attribute.map(a => ({ id: a.key, label: a.key }))}
+                                                        selectedIds={assetChartFilters[1].selectedKeys}
+                                                        onSelectionChange={(keys) => handleAssetFilterChange(1, 'selectedKeys', keys)}
+                                                    />
+                                                    <div className="space-y-2">
+                                                        <Label className="text-xs">Nombre d'attributs à afficher</Label>
+                                                        <Input
+                                                            type="number"
+                                                            min={1}
+                                                            value={assetChartFilters[1].limit}
+                                                            onChange={(e) => handleAssetFilterChange(1, 'limit', parseInt(e.target.value) || 1)}
+                                                        />
+                                                    </div>
+                                                </PopoverContent>
+                                            </Popover>
                                         </CardHeader>
-                                        <CardContent>
+                                        <CardContent className="min-h-[300px]">
                                             <StatsBarChart
-                                                data={statsAssets.by_attribute}
+                                                data={statsAssets.by_attribute
+                                                    .filter(a => assetChartFilters[1].selectedKeys.length === 0 || assetChartFilters[1].selectedKeys.includes(a.key))
+                                                    .slice(0, assetChartFilters[1].limit)
+                                                }
                                                 dataKey="count"
                                                 labelKey="key"
                                                 config={ChartConfig}
