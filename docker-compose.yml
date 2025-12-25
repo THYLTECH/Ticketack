@@ -140,6 +140,26 @@ services:
           - sail
       command: sh -c "celery -A src.celery_app worker --loglevel=info -P solo & python -m src.listener"
 
+  etl-api:
+      build:
+          context: ./backend-etl
+          dockerfile: Dockerfile
+      image: ticketack-etl
+      restart: unless-stopped
+      ports:
+          - "${FORWARD_ETL_API_PORT:-8001}:8000" # API exposed on port 8001
+      volumes:
+          - ./backend-etl:/app
+          - huggingface_cache:/root/.cache/huggingface
+          - lancedb_data:/data/lancedb # Same volume as worker to share the DB
+      environment:
+          - PYTHONUNBUFFERED=1
+          - LANCEDB_PATH=/data/lancedb
+      networks:
+          - sail
+      # API web server by Uvicorn (FastAPI)
+      command: uvicorn src.api:app --host 0.0.0.0 --port 8000 --reload
+
 networks:
   ticketack-network:
     driver: bridge

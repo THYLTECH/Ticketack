@@ -8,3 +8,6 @@ transformers
 lancedb
 pyarrow
 numpy
+fastapi
+uvicorn
+pydantic
