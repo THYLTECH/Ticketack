@@ -9,22 +9,36 @@ import { StatsBarChart } from '@/components/dashboard/StatsBarChart';
 import MultiSelectAvatars from '@/components/ui/MultiSelectAvatars';
 import { useTrans } from '@/lib/translation';
 
+interface Avatar {
+    id: number;
+    url: string;
+    file_name: string;
+    file_path: string;
+    file_extension: string;
+    file_size: number;
+    mime_type: string;
+    created_at: string;
+    updated_at: string;
+    description: string | null;
+    title: string | null;
+}
+
 interface UsersTabProps {
     statsUsers: {
         by_assigned: [{
-            avatar: any;
+            avatar: Avatar;
             id: number;
             name: string;
             tickets_count: number;
         }];
         by_created: [{
-            avatar: any;
+            avatar: Avatar;
             id: number;
             name: string;
             tickets_count: number;
         }];
         by_resolved: [{
-            avatar: any;
+            avatar: Avatar;
             id: number;
             name: string;
             tickets_count: number;
@@ -38,7 +52,7 @@ interface UsersTabProps {
     users: [{
         id : number;
         name : string;
-        avatar : any;
+        avatar : Avatar;
         attachment_avatar : number;
     }];
 

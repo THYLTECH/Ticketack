@@ -1,6 +1,20 @@
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
 
+interface Avatar {
+    id: number;
+    url: string;
+    file_name: string;
+    file_path: string;
+    file_extension: string;
+    file_size: number;
+    mime_type: string;
+    created_at: string;
+    updated_at: string;
+    description: string | null;
+    title: string | null;
+}
+
 interface StatsBarChartProps {
     data: {
         id?: number | string;
@@ -10,7 +24,7 @@ interface StatsBarChartProps {
         tickets_count?: number;
         count?: number;
         avg_resolution_time?: number;
-        avatar?: any;
+        avatar?: Avatar;
     }[];
     dataKey: string;
     labelKey: string;

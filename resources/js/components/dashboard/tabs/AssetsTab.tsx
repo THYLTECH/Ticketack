@@ -8,14 +8,21 @@ import { StatsBarChart } from '@/components/dashboard/StatsBarChart';
 import MultiSelectSimple from '@/components/ui/MultiSelectSimple';
 import { useTrans } from '@/lib/translation';
 
+interface ChartConfigItem {
+    label: string;
+    color?: string;
+}
+
+type ChartConfig = Record<string, ChartConfigItem>;
+
 interface AssetsTabProps {
     statsAssets: {
-        by_asset: [{ id: number; title: string; description: string; icon: string; tickets_count: number; }];
-        by_attribute: [{ key: string; count: number }];
+        by_asset: { id: number; title: string; description: string; icon: string; tickets_count: number; }[];
+        by_attribute: { key: string; count: number }[];
     };
     chartFilters: Record<number, { selectedKeys: string[], limit: number }>;
-    onFilterChange: (index: number, key: 'selectedKeys' | 'limit', value: any) => void;
-    chartConfig: any;
+    onFilterChange: (index: number, key: 'selectedKeys' | 'limit', value: string[] | number) => void;
+    chartConfig: ChartConfig;
 }
 
 export const AssetsTab = ({ statsAssets, chartFilters, onFilterChange, chartConfig }: AssetsTabProps) => {

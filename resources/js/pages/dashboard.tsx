@@ -35,10 +35,24 @@ import { UsersTab } from '@/components/dashboard/tabs/UsersTab';
 import { AssetsTab } from '@/components/dashboard/tabs/AssetsTab';
 
 //Interface
+interface Avatar {
+    id: number;
+    url: string;
+    file_name: string;
+    file_path: string;
+    file_extension: string;
+    file_size: number;
+    mime_type: string;
+    created_at: string;
+    updated_at: string;
+    description: string | null;
+    title: string | null;
+}
+
 interface DashboardProps {
     statsGeneral: { 
-        end_date: any;
-        start_date: any;
+        end_date: string;
+        start_date: string;
         total_assets: number;
         total_users: number;
         avg_resolution_time: number;
@@ -55,9 +69,9 @@ interface DashboardProps {
         by_priority: [{ title: string; tickets_count: number; color: string }];
     };
     statsUsers: {
-        by_assigned:[{ id: number; name: string; tickets_count: number; avatar: any; }];
-        by_created: [{ id: number; name: string; tickets_count: number; avatar: any; }];
-        by_resolved: [{ id: number; name: string; tickets_count: number;avatar: any; }];
+        by_assigned:[{ id: number; name: string; tickets_count: number; avatar: Avatar; }];
+        by_created: [{ id: number; name: string; tickets_count: number; avatar: Avatar; }];
+        by_resolved: [{ id: number; name: string; tickets_count: number;avatar: Avatar; }];
         by_time: [{ id: number; name: string; avg_resolution_time: number; }];
     };
     statsAssets: {

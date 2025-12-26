@@ -1,4 +1,3 @@
-import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Box, Users, Clock } from 'lucide-react';
 import { ActivityLineChart } from '@/components/dashboard/ActivityLineChart';
