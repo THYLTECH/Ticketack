@@ -65,7 +65,7 @@ interface DashboardProps {
         by_attribute: [{ key: string; count: number }];
     };
 
-    users: [{id: number, name: string, avatar: any[], attachment_avatar: number} ];
+    users: [{id: number, name: string, avatar: any, attachment_avatar: number}];
     filters: any
 }
 

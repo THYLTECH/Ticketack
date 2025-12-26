@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Check, ChevronsUpDown, CheckSquare, Square, X } from 'lucide-react' // Ajout de l'icône X
+import { Check, ChevronsUpDown, X } from 'lucide-react' // Ajout de l'icône X
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -20,7 +20,12 @@ import { useInitials } from '@/hooks/use-initials'
 import { useTrans } from '@/lib/translation'
 
 interface MultiSelectAvatarsProps {
-  users: any[],
+  users: {
+    id: number;
+    name: string;
+    avatar: any;
+    attachment_avatar: number;
+  }[];
   selectedIds: string[];
   onSelectionChange: (ids: string[]) => void;
 };
@@ -72,7 +77,7 @@ const MultiSelectAvatars = ({ users, selectedIds, onSelectionChange }: MultiSele
                     >
                       <Avatar className='size-4'>
                         <AvatarImage src={user?.avatar?.url} alt={user?.name} />
-                        <AvatarFallback className='text-[8px] rounded-full border'>{getInitials(user?.name)}</AvatarFallback>
+                        <AvatarFallback className='text-[8px] rounded-full border'>{getInitials(user?.name || '')}</AvatarFallback>
                       </Avatar>
                       {user?.name.split(' ')[0]}
 

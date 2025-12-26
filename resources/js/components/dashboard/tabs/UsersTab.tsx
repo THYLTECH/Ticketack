@@ -35,7 +35,12 @@ interface UsersTabProps {
             avg_resolution_time: number;
         }];
     };
-    users: any[];
+    users: [{
+        id : number;
+        name : string;
+        avatar : any;
+        attachment_avatar : number;
+    }];
 
     chartFilters: Record<number, { userIds: string[], limit: number }>;
 
