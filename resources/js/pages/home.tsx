@@ -1,24 +1,156 @@
-import { Head } from '@inertiajs/react';
-import { useTrans } from '@/lib/translation';
+import { Head, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app/layout';
-import { type BreadcrumbItem } from '@/types';
 
-export default function Home() {
+// Composants
+import { TicketTable } from '@/components/tickets/ticket-table';
+import { 
+    Card, 
+    CardContent, 
+    CardHeader, 
+    CardTitle, 
+    CardDescription 
+} from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
+
+// Hooks & Utilitaires
+import { useTrans } from '@/lib/translation';
+import { type BreadcrumbItem, SharedData, Ticket } from '@/types';
+import { userHasPermission } from '@/lib/utils';
+
+// Icônes
+import { Ticket as TicketIcon, Clock, CheckCircle2, LayoutDashboard } from 'lucide-react';
+
+interface PaginatedData<T> {
+    data: T[];
+    links: { url: string | null; label: string; active: boolean }[];
+}
+
+interface HomeProps {
+    userTickets: {
+        open: PaginatedData<Ticket>;
+        closed: PaginatedData<Ticket>;
+    };
+    assignedTickets: {
+        open: PaginatedData<Ticket>;
+        closed: PaginatedData<Ticket>;
+    };
+}
+
+export default function Home({ userTickets, assignedTickets }: HomeProps) {
     const __ = useTrans();
+    const { auth } = usePage<SharedData>().props;
+
+    const isSolverOrAdmin = userHasPermission({ 
+        user: auth.user, 
+        permission: 'view tickets' 
+    });
 
     const breadcrumbs: BreadcrumbItem[] = [
-        {
-            title: __('app.layout.sidebar.menugroups.platform.items.home'),
-            href: route('home'),
-        },
+        { 
+            title: __('app.layout.sidebar.menugroups.platform.items.home'), 
+            href: route('home') 
+        }
     ];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Home" />
-            <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-                {/* TO DO */}
-            </div>
+            <Head title={__('app.layout.sidebar.menugroups.platform.items.home')} />
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>{__('home.pages.breadcrumbs.home')}</CardTitle>
+                    <CardDescription>
+                        {__('home.pages.description', undefined, { name: auth.user.name })}
+                    </CardDescription>
+                </CardHeader>
+                <Separator />
+                
+                <CardContent className="pt-6">
+                    <Tabs defaultValue="my_tickets" className="w-full space-y-6">
+                        {isSolverOrAdmin && (
+                            <TabsList className="grid w-full grid-cols-2">
+                                <TabsTrigger value="my_tickets">
+                                    <TicketIcon className="mr-2 h-4 w-4" />
+                                    {__('home.sections.my_tickets')}
+                                </TabsTrigger>
+                                <TabsTrigger value="assigned_tickets">
+                                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                                    {__('home.sections.assigned_tickets')}
+                                </TabsTrigger>
+                            </TabsList>
+                        )}
+
+                        {/* ONGLET : MES TICKETS */}
+                        <TabsContent value="my_tickets" className="space-y-6 border-none p-0 outline-none">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                
+                                <div className="flex flex-col space-y-4">
+                                    <div className="flex items-center gap-2 px-1">
+                                        <Clock className="h-4 w-4 text-orange-500" />
+                                        <h3 className="text-sm font-semibold">{__('home.tabs.unresolved')}</h3>
+                                    </div>
+                                    <Card className="h-full flex flex-col overflow-hidden">
+                                        <CardContent className="p-0 flex-1">
+                                            <TicketTable 
+                                                data={userTickets.open} 
+                                                emptyMessage={__('home.messages.no_open_tickets')} 
+                                            />
+                                        </CardContent>
+                                    </Card>
+                                </div>
+
+                                <div className="flex flex-col space-y-4">
+                                    <div className="flex items-center gap-2 px-1">
+                                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                                        <h3 className="text-sm font-semibold">{__('home.tabs.closed_30_days')}</h3>
+                                    </div>
+                                    <Card className="h-full flex flex-col overflow-hidden">
+                                        <CardContent className="p-0 flex-1">
+                                            <TicketTable 
+                                                data={userTickets.closed} 
+                                                emptyMessage={__('home.messages.no_recent_closed_tickets')} 
+                                            />
+                                        </CardContent>
+                                    </Card>
+                                </div>
+                            </div>
+                        </TabsContent>
+
+                        {/* ONGLET : TICKETS ATTRIBUÉS */}
+                        {isSolverOrAdmin && (
+                            <TabsContent value="assigned_tickets" className="space-y-6 border-none p-0 outline-none">
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    
+                                    <div className="flex flex-col space-y-4">
+                                        <div className="flex items-center gap-2 px-1">
+                                            <Clock className="h-4 w-4 text-orange-500" />
+                                            <h3 className="text-sm font-semibold text-primary">{__('home.tabs.assigned_unresolved')}</h3>
+                                        </div>
+                                        <Card className="h-full flex flex-col overflow-hidden">
+                                            <CardContent className="p-0 flex-1">
+                                                <TicketTable data={assignedTickets.open} showAuthor={true} />
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+
+                                    <div className="flex flex-col space-y-4">
+                                        <div className="flex items-center gap-2 px-1">
+                                            <CheckCircle2 className="h-4 w-4 text-green-500" />
+                                            <h3 className="text-sm font-semibold text-primary">{__('home.tabs.assigned_closed_30_days')}</h3>
+                                        </div>
+                                        <Card className="h-full flex flex-col overflow-hidden">
+                                            <CardContent className="p-0 flex-1">
+                                                <TicketTable data={assignedTickets.closed} showAuthor={true} />
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+                                </div>
+                            </TabsContent>
+                        )}
+                    </Tabs>
+                </CardContent>
+            </Card>
         </AppLayout>
     );
 }
