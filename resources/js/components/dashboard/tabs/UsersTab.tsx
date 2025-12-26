@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { StatsBarChart } from '@/components/dashboard/StatsBarChart';
 import MultiSelectAvatars from '@/components/ui/MultiSelectAvatars';
 import { useTrans } from '@/lib/translation';
+import { ChartConfig } from '@/components/ui/chart';
 
 interface Avatar {
     id: number;
@@ -25,42 +26,42 @@ interface Avatar {
 
 interface UsersTabProps {
     statsUsers: {
-        by_assigned: [{
+        by_assigned: {
             avatar: Avatar;
             id: number;
             name: string;
             tickets_count: number;
-        }];
-        by_created: [{
+        }[];
+        by_created: {
             avatar: Avatar;
             id: number;
             name: string;
             tickets_count: number;
-        }];
-        by_resolved: [{
+        }[];
+        by_resolved: {
             avatar: Avatar;
             id: number;
             name: string;
             tickets_count: number;
-        }];
-        by_time: [{
+        }[];
+        by_time: {
             id: number; 
             name: string; 
             avg_resolution_time: number;
-        }];
+        }[];
     };
-    users: [{
-        id : number;
-        name : string;
-        avatar : Avatar;
-        attachment_avatar : number;
-    }];
+    users: {
+        id: number;
+        name: string;
+        avatar: Avatar;
+        attachment_avatar: number;
+    }[];
 
     chartFilters: Record<number, { userIds: string[], limit: number }>;
 
-    onFilterChange: (index: number, key: 'userIds' | 'limit', value: any) => void;
+    onFilterChange: (index: number, key: 'userIds' | 'limit', value: string[] | number) => void;
 
-    chartConfig: Record<string, any>;
+    chartConfig: ChartConfig;
 }
 
 export function UsersTab({ statsUsers, users, chartFilters, onFilterChange, chartConfig }: UsersTabProps) {

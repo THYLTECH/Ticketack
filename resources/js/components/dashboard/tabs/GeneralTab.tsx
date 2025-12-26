@@ -2,19 +2,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Box, Users, Clock } from 'lucide-react';
 import { ActivityLineChart } from '@/components/dashboard/ActivityLineChart';
 import { useTrans } from '@/lib/translation';
+import { ChartConfig } from '@/components/ui/chart';
 
 interface GeneralTabProps {
     stats: {
         total_assets: number;
         total_users: number;
         avg_resolution_time: number;
-        activity: [{
+        activity: {
             created : number;
             date : string;
             resolved : number;
-        }];
+        }[];
     };
-    chartConfig: any;
+    chartConfig: ChartConfig;
 }
 
 export const GeneralTab = ({ stats, chartConfig }: GeneralTabProps) => {

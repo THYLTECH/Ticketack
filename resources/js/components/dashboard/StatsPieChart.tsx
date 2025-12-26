@@ -15,7 +15,7 @@ import { useTrans } from "@/lib/translation";
 interface StatsPieChartProps {
     title: string;
     indicator?: string;
-    data: Array<{ title: string; tickets_count: number; color: string }>;
+    data: { title: string; tickets_count: number; color: string }[];
     total: number;
 }
 

@@ -56,42 +56,35 @@ interface DashboardProps {
         total_assets: number;
         total_users: number;
         avg_resolution_time: number;
-        activity: [{
+        activity: {
             created : number;
             date : string;
             resolved : number;
-        }]
+        }[]
     };
     statsTickets: {
         total: number;
-        by_status: [{ title: string; tickets_count: number; color: string }];
-        by_category: [{ title: string; tickets_count: number; color: string }];
-        by_priority: [{ title: string; tickets_count: number; color: string }];
+        by_status: { title: string; tickets_count: number; color: string }[];
+        by_category: { title: string; tickets_count: number; color: string }[];
+        by_priority: { title: string; tickets_count: number; color: string }[];
     };
     statsUsers: {
-        by_assigned:[{ id: number; name: string; tickets_count: number; avatar: Avatar; }];
-        by_created: [{ id: number; name: string; tickets_count: number; avatar: Avatar; }];
-        by_resolved: [{ id: number; name: string; tickets_count: number;avatar: Avatar; }];
-        by_time: [{ id: number; name: string; avg_resolution_time: number; }];
+        by_assigned:{ id: number; name: string; tickets_count: number; avatar: Avatar; }[];
+        by_created: { id: number; name: string; tickets_count: number; avatar: Avatar; }[];
+        by_resolved:{ id: number; name: string; tickets_count: number;avatar: Avatar; }[];
+        by_time: { id: number; name: string; avg_resolution_time: number; }[];
     };
     statsAssets: {
-        by_asset: [{ id: number; title: string; description: string; icon: string; tickets_count: number; }];
-        by_attribute: [{ key: string; count: number }];
+        by_asset: { id: number; title: string; description: string; icon: string; tickets_count: number; }[];
+        by_attribute: { key: string; count: number }[];
     };
 
-    users: [{id: number, name: string, avatar: any, attachment_avatar: number}];
-    filters: any
+    users: {id: number, name: string, avatar: Avatar, attachment_avatar: number}[];
+    filters: {start_date: string, end_date: string , users ?: string };
 }
 
 export default function Dashboard({ statsGeneral, statsTickets, statsAssets, statsUsers, users, filters }: DashboardProps) {
     const __ = useTrans();
-    console.log('Statistiques Générales:', statsGeneral);
-    console.log('Statistiques Tickets:', statsTickets);
-    console.log('Statistiques Assets:', statsAssets);
-    console.log('Statistiques Users:', statsUsers);
-    console.log('Users:', users);
-    console.log('Filters:', filters);
-
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: __('dashboard.pages.breadcrumbs.dashboard'),
@@ -143,14 +136,14 @@ export default function Dashboard({ statsGeneral, statsTickets, statsAssets, sta
         }
     };
 
-    const handleChartFilterChange = (index: number, key: 'userIds' | 'limit', value: any) => {
+    const handleChartFilterChange = (index: number, key: 'userIds' | 'limit', value: string[] | number) => {
         setChartFilters(prev => ({
             ...prev,
             [index]: { ...prev[index], [key]: value }
         }));
     };
 
-    const handleAssetFilterChange = (index: number, key: 'selectedKeys' | 'limit', value: any) => {
+    const handleAssetFilterChange = (index: number, key: 'selectedKeys' | 'limit', value: string[] | number) => {
         setAssetChartFilters(prev => ({
             ...prev,
             [index]: { ...prev[index], [key]: value }

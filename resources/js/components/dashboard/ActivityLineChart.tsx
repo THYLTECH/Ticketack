@@ -2,11 +2,11 @@ import { CartesianGrid, Legend, Line, LineChart, Tooltip, XAxis, YAxis } from "r
 import { ChartConfig, ChartContainer, ChartTooltipContent } from "../ui/chart";
 
 interface ActivityLineChartProps {
-    data: [{
+    data: {
         created : number;
         date : string;
         resolved : number;
-    }];
+    }[];
     labelKey: string;
     config: ChartConfig;
     colors?: string[];
