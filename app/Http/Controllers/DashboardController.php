@@ -140,10 +140,13 @@ class DashboardController extends Controller
 
         //Asset Statistics
         $statsAssets = [
-            'by_asset' => Asset::select('id', 'title', 'description', 'icon')
-                ->withCount(['tickets' => function ($query) use ($startDate, $endDate) {
-                    $query->whereBetween('created_at', [$startDate, $endDate]);
-                }])
+            'by_asset' => Asset::select('assets.id', 'assets.title', 'assets.description', 'assets.icon')
+                ->withCount([
+                    'tickets' => function ($query) use ($startDate, $endDate) {
+                        $query->whereBetween('created_at', [$startDate, $endDate]);
+                    }
+                ])
+                ->groupBy('assets.id', 'assets.title', 'assets.description', 'assets.icon') 
                 ->having('tickets_count', '>', 0)
                 ->orderBy('tickets_count', 'desc')
                 ->get(),
@@ -151,7 +154,7 @@ class DashboardController extends Controller
             'by_attribute' => AssetAttribute::join('tickets', 'asset_attributes.asset_id', '=', 'tickets.asset_id')
                 ->select('asset_attributes.key')
                 ->selectRaw('count(tickets.id) as count')
-                ->whereBetween('tickets.created_at', [$startDate, $endDate]) 
+                ->whereBetween('tickets.created_at', [$startDate, $endDate])
                 ->groupBy('asset_attributes.key')
                 ->orderBy('count', 'desc')
                 ->get(),
