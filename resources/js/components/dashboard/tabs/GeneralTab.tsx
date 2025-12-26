@@ -9,7 +9,11 @@ interface GeneralTabProps {
         total_assets: number;
         total_users: number;
         avg_resolution_time: number;
-        activity: [any];
+        activity: [{
+            created : number;
+            date : string;
+            resolved : number;
+        }];
     };
     chartConfig: any;
 }

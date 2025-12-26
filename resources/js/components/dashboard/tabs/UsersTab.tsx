@@ -1,7 +1,7 @@
-import React from 'react';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Filter } from 'lucide-react';
+import { BarChart3, Filter } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -11,17 +11,36 @@ import { useTrans } from '@/lib/translation';
 
 interface UsersTabProps {
     statsUsers: {
-        by_assigned: any[];
-        by_created: any[];
-        by_resolved: any[];
-        by_time: any[];
+        by_assigned: [{
+            avatar: any;
+            id: number;
+            name: string;
+            tickets_count: number;
+        }];
+        by_created: [{
+            avatar: any;
+            id: number;
+            name: string;
+            tickets_count: number;
+        }];
+        by_resolved: [{
+            avatar: any;
+            id: number;
+            name: string;
+            tickets_count: number;
+        }];
+        by_time: [{
+            id: number; 
+            name: string; 
+            avg_resolution_time: number;
+        }];
     };
     users: any[];
 
     chartFilters: Record<number, { userIds: string[], limit: number }>;
-    
+
     onFilterChange: (index: number, key: 'userIds' | 'limit', value: any) => void;
-    
+
     chartConfig: Record<string, any>;
 }
 
@@ -69,7 +88,14 @@ export function UsersTab({ statsUsers, users, chartFilters, onFilterChange, char
                         </CardHeader>
                         <CardContent>
                             {displayData.length === 0 ? (
-                                <div className="h-[200px] flex items-center justify-center border border-dashed rounded-lg text-xs text-muted-foreground">{__('dashboard.pages.stats.no_data')}</div>
+                                <div className="relative flex h-[200px] w-full items-center justify-center overflow-hidden rounded-xl border border-dashed border-muted/20 bg-muted/5">
+                                    <div className="absolute flex flex-col items-center gap-1">
+                                        <BarChart3 className="size-8 text-muted-foreground/20" />
+                                        <p className="text-xs font-medium text-muted-foreground/40">
+                                            {__('dashboard.pages.stats.no_data')}
+                                        </p>
+                                    </div>
+                                </div>
                             ) : (
                                 <StatsBarChart data={displayData} dataKey={section.key} labelKey="name" config={chartConfig} />
                             )}

@@ -1,7 +1,6 @@
-import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Filter } from 'lucide-react';
+import { BarChart3, Filter } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -11,8 +10,8 @@ import { useTrans } from '@/lib/translation';
 
 interface AssetsTabProps {
     statsAssets: {
-        by_asset: any[];
-        by_attribute: any[];
+        by_asset: [{ id: number; title: string; description: string; icon: string; tickets_count: number; }];
+        by_attribute: [{ key: string; count: number }];
     };
     chartFilters: Record<number, { selectedKeys: string[], limit: number }>;
     onFilterChange: (index: number, key: 'selectedKeys' | 'limit', value: any) => void;
@@ -22,15 +21,13 @@ interface AssetsTabProps {
 export const AssetsTab = ({ statsAssets, chartFilters, onFilterChange, chartConfig }: AssetsTabProps) => {
     const __ = useTrans();
 
-    // Configuration des deux sections d'assets
     const sections = [
         {
             title: __('dashboard.pages.tabs.asset_statistics'),
             data: statsAssets.by_asset,
             dataKey: "tickets_count",
             labelKey: "title",
-            filterLabel: "Filtrer les assets",
-            // Transformation pour le MultiSelect (id doit être string)
+            filterLabel: __('dashboard.pages.filters.label.filter'),
             selectItems: statsAssets.by_asset.map(a => ({ id: a.id.toString(), label: a.title }))
         },
         {
@@ -38,8 +35,7 @@ export const AssetsTab = ({ statsAssets, chartFilters, onFilterChange, chartConf
             data: statsAssets.by_attribute,
             dataKey: "count",
             labelKey: "key",
-            filterLabel: "Filtrer les attributs",
-            // Ici l'id est déjà la clé (string)
+            filterLabel: __('dashboard.pages.filters.label.filter'),
             selectItems: statsAssets.by_attribute.map(a => ({ id: a.key, label: a.key }))
         }
     ];
@@ -49,10 +45,9 @@ export const AssetsTab = ({ statsAssets, chartFilters, onFilterChange, chartConf
             {sections.map((section, index) => {
                 const filters = chartFilters[index];
 
-                // Logique de filtrage Front-end
                 const displayData = section.data
                     .filter(item => {
-                        const idToCheck = item.id ? item.id.toString() : item.key;
+                        const idToCheck = 'id' in item ? item.id.toString() : item.key;
                         return filters.selectedKeys.length === 0 || filters.selectedKeys.includes(idToCheck);
                     })
                     .slice(0, filters.limit);
@@ -90,8 +85,13 @@ export const AssetsTab = ({ statsAssets, chartFilters, onFilterChange, chartConf
                         </CardHeader>
                         <CardContent className="min-h-[300px]">
                             {displayData.length === 0 ? (
-                                <div className="h-[200px] flex items-center justify-center border border-dashed rounded-lg text-xs text-muted-foreground">
-                                    {__('dashboard.pages.stats.no_data')}
+                                <div className="relative flex h-[200px] w-full items-center justify-center overflow-hidden rounded-xl border border-dashed border-muted/20 bg-muted/5">
+                                    <div className="absolute flex flex-col items-center gap-1">
+                                        <BarChart3 className="size-8 text-muted-foreground/20" />
+                                        <p className="text-xs font-medium text-muted-foreground/40">
+                                            {__('dashboard.pages.stats.no_data')}
+                                        </p>
+                                    </div>
                                 </div>
                             ) : (
                                 <StatsBarChart

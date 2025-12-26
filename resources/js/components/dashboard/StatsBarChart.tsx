@@ -2,7 +2,16 @@ import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
 
 interface StatsBarChartProps {
-    data: any[];
+    data: {
+        id?: number | string;
+        name?: string;
+        title?: string;
+        key?: string;
+        tickets_count?: number;
+        count?: number;
+        avg_resolution_time?: number;
+        avatar?: any;
+    }[];
     dataKey: string;
     labelKey: string;
     layout?: "horizontal" | "vertical";
@@ -13,32 +22,32 @@ export function StatsBarChart({ data, dataKey, labelKey, layout = "horizontal", 
     return (
         <>
             {layout === "horizontal" ? (
-              <ChartContainer config={config} className="h-[200px] w-full">
-              <BarChart
-                  data={data}
-                  layout={layout}
-                  margin={{ left: 40, right: 20 }}
-              >
-                  <CartesianGrid horizontal={false} strokeDasharray="3 3" />
-                  <XAxis
-                      dataKey={labelKey}
-                      type="category"
-                      tickLine={false}
-                      axisLine={true}
-                  />
-                  <YAxis type="number" hide />
-                  <ChartTooltip
-                      cursor={false}
-                      content={<ChartTooltipContent hideIndicator />}
-                  />
-                  <Bar
-                      dataKey={dataKey}
-                      fill="var(--primary)"
-                      radius={[0, 4, 4, 0]}
-                      barSize={20}
-                  />
-              </BarChart>
-          </ChartContainer>
+                <ChartContainer config={config} className="h-[200px] w-full">
+                    <BarChart
+                        data={data}
+                        layout={layout}
+                        margin={{ left: 40, right: 20 }}
+                    >
+                        <CartesianGrid horizontal={false} strokeDasharray="3 3" />
+                        <XAxis
+                            dataKey={labelKey}
+                            type="category"
+                            tickLine={false}
+                            axisLine={true}
+                        />
+                        <YAxis type="number" hide />
+                        <ChartTooltip
+                            cursor={false}
+                            content={<ChartTooltipContent hideIndicator />}
+                        />
+                        <Bar
+                            dataKey={dataKey}
+                            fill="var(--primary)"
+                            radius={[0, 4, 4, 0]}
+                            barSize={20}
+                        />
+                    </BarChart>
+                </ChartContainer>
             ) : (
                 <ChartContainer config={config} className="h-full w-full">
                     <BarChart
@@ -68,6 +77,6 @@ export function StatsBarChart({ data, dataKey, labelKey, layout = "horizontal", 
                 </ChartContainer>
             )}
         </>
-        
+
     );
 }

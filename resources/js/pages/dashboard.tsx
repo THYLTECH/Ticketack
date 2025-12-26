@@ -29,7 +29,7 @@ import { DateRange } from 'react-day-picker';
 import React from 'react';
 import { format, parseISO } from 'date-fns';
 import { DateRangeFilter } from '@/components/dashboard/DateRangeFilter';
-import { GeneralTab } from '@/components/dashboard/tabs/GeneralStats';
+import { GeneralTab } from '@/components/dashboard/tabs/GeneralTab';
 import { TicketsTab } from '@/components/dashboard/tabs/TicketsTab';
 import { UsersTab } from '@/components/dashboard/tabs/UsersTab';
 import { AssetsTab } from '@/components/dashboard/tabs/AssetsTab';
@@ -42,23 +42,27 @@ interface DashboardProps {
         total_assets: number;
         total_users: number;
         avg_resolution_time: number;
-        activity: [any]
+        activity: [{
+            created : number;
+            date : string;
+            resolved : number;
+        }]
     };
     statsTickets: {
         total: number;
-        by_status: Array<{ title: string; tickets_count: number; color: string }>;
-        by_category: Array<{ title: string; tickets_count: number; color: string }>;
-        by_priority: Array<{ title: string; tickets_count: number; color: string }>;
+        by_status: [{ title: string; tickets_count: number; color: string }];
+        by_category: [{ title: string; tickets_count: number; color: string }];
+        by_priority: [{ title: string; tickets_count: number; color: string }];
     };
     statsUsers: {
-        by_assigned: Array<{ id: number; name: string; tickets_count: number; }>;
-        by_created: Array<{ id: number; name: string; tickets_count: number; }>;
-        by_resolved: Array<{ id: number; name: string; tickets_count: number; }>;
-        by_time: Array<{ id: number; name: string; avg_resolution_time: number; }>;
+        by_assigned:[{ id: number; name: string; tickets_count: number; avatar: any; }];
+        by_created: [{ id: number; name: string; tickets_count: number; avatar: any; }];
+        by_resolved: [{ id: number; name: string; tickets_count: number;avatar: any; }];
+        by_time: [{ id: number; name: string; avg_resolution_time: number; }];
     };
     statsAssets: {
-        by_asset: Array<{ id: number; title: string; description: string; icon: string; tickets_count: number; }>;
-        by_attribute: Array<{ key: string; count: number }>;
+        by_asset: [{ id: number; title: string; description: string; icon: string; tickets_count: number; }];
+        by_attribute: [{ key: string; count: number }];
     };
 
     users: [{id: number, name: string, avatar: any[], attachment_avatar: number} ];
@@ -67,12 +71,12 @@ interface DashboardProps {
 
 export default function Dashboard({ statsGeneral, statsTickets, statsAssets, statsUsers, users, filters }: DashboardProps) {
     const __ = useTrans();
-    // console.log('Statistiques Générales:', statsGeneral);
-    // console.log('Statistiques Tickets:', statsTickets);
-    // console.log('Statistiques Assets:', statsAssets);
-    // console.log('Statistiques Users:', statsUsers);
-    // console.log('Users:', users);
-    // console.log('Filters:', filters);
+    console.log('Statistiques Générales:', statsGeneral);
+    console.log('Statistiques Tickets:', statsTickets);
+    console.log('Statistiques Assets:', statsAssets);
+    console.log('Statistiques Users:', statsUsers);
+    console.log('Users:', users);
+    console.log('Filters:', filters);
 
     const breadcrumbs: BreadcrumbItem[] = [
         {

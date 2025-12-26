@@ -73,7 +73,7 @@ const MultiSelectSimple = ({ label, placeholder, items, selectedIds, onSelection
                                     )
                                 })
                             ) : (
-                                <span className="text-muted-foreground ml-1">{placeholder || __('components.ui.multi_select.placeholder_users') }</span>
+                                <span className="text-muted-foreground ml-1">{placeholder || __('components.ui.multi_select.placeholder_assets') }</span>
                             )}
                         </div>
                         <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
@@ -81,7 +81,7 @@ const MultiSelectSimple = ({ label, placeholder, items, selectedIds, onSelection
                 </PopoverTrigger>
                 <PopoverContent className="w-full p-0 z-50" align="start">
                     <Command className='w-full'>
-                        <CommandInput placeholder={__('components.ui.multi_select.search_user')} />
+                        <CommandInput placeholder={__('components.ui.multi_select.search_asset')} />
                         <CommandList>
                             <CommandEmpty>{__('components.ui.multi_select.no_user_found')}</CommandEmpty>
                             <CommandGroup>
