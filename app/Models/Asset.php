@@ -92,6 +92,14 @@ class Asset extends Model
     }
 
     /**
+     * Get all tickets associated with this asset.
+     */
+    public function tickets(): HasMany
+    {
+        return $this->hasMany(Ticket::class);
+    }
+
+    /**
      * Retrieves all root assets and recursively loads their children, 
      * returning a flat collection ordered by tree traversal (pre-order).
      *

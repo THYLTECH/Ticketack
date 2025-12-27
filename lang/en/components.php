@@ -22,6 +22,20 @@ return [
             'AttachmentsLabel' => 'Attachments',
             'emptyAttachmentsText' => 'No attachments uploaded yet.',
         ],
+        'multi_select' => [
+            'select_users' => 'Select users',
+            'placeholder_users' => 'Select users...',
+            'placeholder_assets' => 'Select assets...',
+            'placeholder_attributes' => 'Select attributes...',
+            'search_user' => 'Search user...',
+            'search_asset' => 'Search asset...',
+            'search_attribute' => 'Search attribute...',
+            'no_user_found' => 'No user found.',
+            'select_all' => 'Select all',
+            'deselect_all' => 'Deselect all',
+            'search' => 'Search...',
+            'no_item_found' => 'No item found.',
+        ],
     ],
 
 ];
