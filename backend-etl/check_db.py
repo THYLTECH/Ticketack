@@ -53,10 +53,11 @@ def main():
     for index, row in results.iterrows():
         # _distance is L2 (Euclidean) by default in LanceDB. Lower is better.
         print(f"#{index + 1} | Distance: {row['_distance']:.4f}")
-        print(f"    📂 File:   {row['filename']}")
-        print(f"    🎟️ ID:     {row.get('ticket_id', 'N/A')}")
-        print(f"    📝 Title:  {row['title']}")
-        print(f"    📄 Extract: {row['text'][:150].replace(chr(10), ' ')}...")
+        print(f"    📂 File:      {row['filename']}")
+        print(f"    🎟️ Ticket ID: {row.get('ticket_id', 'N/A')}")
+        print(f"    📦 Source:    {row.get('source_type', 'N/A')}")
+        print(f"    🧩 Chunk:     {row.get('chunk_index', 0)}")
+        print(f"    📄 Extract:   {row['text'][:150].replace(chr(10), ' ')}...")
         print("-" * 50)
 
 
