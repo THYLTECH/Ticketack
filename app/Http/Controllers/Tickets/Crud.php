@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Tickets;
 
 use App\Http\Controllers\Controller;
 use App\Models\Asset;
+use App\Models\TicketSchedule;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -77,27 +78,40 @@ class Crud extends Controller
     }
 
     public function show(Ticket $ticket) {
-        $ticket = $ticket->load([
+        $ticket->load([
             'user',
             'priority',
             'status',
             'category',
             'asset',
-
             'assignees.user',
             'comments.user',
             'logs.user',
-            'entries.user',
             'schedules.user',
-
             'attachments',
         ]);
 
+        $events = TicketSchedule::with([
+            'user',
+            'ticket.priority',
+            'ticket.status'
+        ])->get();
+
+        $solvers = User::role(['admin', 'solver'])->get()->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'profile_photo_url' => $user->profile_photo_url ?? $user->avatar_url,
+            ];
+        });
+
         return Inertia::render('tickets/show', [
             'ticket' => $ticket,
+            'events' => $events,
+            'solvers' => $solvers,
         ]);
     }
-
     public function store(RequestsStore $request) {
         $data = $request->validated();
 
