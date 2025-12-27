@@ -28,6 +28,7 @@ return [
                         'assets'    => 'Assets',
                         'roles'     => 'Roles',
                         'users'     => 'Users',
+                        'planning' => 'Planning',
                         'trash'     => 'Trash'
                     ],
                 ],

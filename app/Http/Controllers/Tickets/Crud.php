@@ -19,9 +19,7 @@ use App\Models\TicketPriority;
 use App\Models\TicketStatus;
 use App\Models\User;
 use App\Models\Attachment;
-
-// Requests
-use App\Http\Requests\Tickets\Store as RequestsStore;
+use App\Models\TicketSchedule;
 use App\Models\TicketAssignee;
 use App\Models\TicketAttachment;
 
@@ -93,8 +91,19 @@ class Crud extends Controller
             'attachments',
         ]);
 
+        $events = TicketSchedule::with([
+            'user',
+            'ticket.priority',
+            'ticket.category',
+            'ticket.status'
+        ])->get();
+
+        $solvers = User::role(['admin', 'solver'])->get();
+
         return Inertia::render('tickets/show', [
             'ticket' => $ticket,
+            'events' => $events,
+            'solvers' => $solvers,
         ]);
     }
 
@@ -114,14 +123,9 @@ class Crud extends Controller
         ]);
 
         if (isset($data['assignees'])) {
-            $assigneeIds = array_map(fn($assignee) => $assignee['id'], $data['assignees']);
-
             $assigneesToSave = [];
-            foreach ($assigneeIds as $userId) {
-                $assigneesToSave[] = new TicketAssignee([
-                    'user_id' => $userId,
-                    // TODO : Add role_title and role_description fields in next feature
-                ]);
+            foreach ($data['assignees'] as $assignee) {
+                $assigneesToSave[] = new TicketAssignee(['user_id' => $assignee['id']]);
             }
             $ticket->assignees()->saveMany($assigneesToSave);
         }

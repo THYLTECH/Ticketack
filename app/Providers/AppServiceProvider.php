@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\TicketSchedule;
+use App\Policies\TicketSchedulePolicy;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
@@ -57,6 +59,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Role::class, RolePolicy::class);
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Ticket::class, TicketPolicy::class);
+        Gate::policy(TicketSchedule::class, TicketSchedulePolicy::class);
 
         // Adding security scheme to the generated OpenAPI spec
         if (class_exists(Scramble::class)) {
