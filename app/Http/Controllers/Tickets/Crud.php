@@ -20,7 +20,6 @@ use App\Models\TicketPriority;
 use App\Models\TicketStatus;
 use App\Models\User;
 use App\Models\Attachment;
-use App\Models\TicketSchedule;
 use App\Models\TicketAssignee;
 use App\Models\TicketAttachment;
 
