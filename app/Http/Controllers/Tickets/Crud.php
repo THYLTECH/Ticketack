@@ -20,6 +20,9 @@ use App\Models\TicketPriority;
 use App\Models\TicketStatus;
 use App\Models\User;
 use App\Models\Attachment;
+
+// Requests
+use App\Http\Requests\Tickets\Store as RequestsStore;
 use App\Models\TicketAssignee;
 use App\Models\TicketAttachment;
 
