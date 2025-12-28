@@ -18,7 +18,7 @@ return [
         'no_description' => 'No description available.',
         'tabs' => [
             'planning' => 'Planning',
-            'chat' => 'Chat',
+            'comments' => 'Comments',
             'infos' => 'Infos',
         ],
         'planning' => [
@@ -41,7 +41,7 @@ return [
             'status' => 'Status',
             'description' => 'Description',
         ],
-        'chat' => [
+        'comment' => [
             'placeholder' => 'Write a message...',
             'no_messages' => 'No messages.',
             'me' => 'Me',
@@ -86,9 +86,7 @@ return [
             'planning' => 'Planning',
         ],
         'search_found' => 'Ticket #:id found',
-        'toast_scheduled' => 'Scheduled successfully',
         'toast_updated' => 'Updated successfully',
-        'toast_deleted' => 'Deleted successfully',
     ],
     'toolbar' => [
         'search_placeholder' => 'Search an intervention...',
@@ -102,7 +100,6 @@ return [
             'month' => 'Month',
         ],
         'edit_label' => 'Edit',
-        'toast_edit_on' => 'Edit mode enabled',
     ],
     'stats' => [
         'title' => 'Planning Dashboard',

@@ -78,7 +78,7 @@ class Crud extends Controller
     }
 
     public function show(Ticket $ticket) {
-        $ticket->load([
+        $ticket = $ticket->load([
             'user',
             'priority',
             'status',

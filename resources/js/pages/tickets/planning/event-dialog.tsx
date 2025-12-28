@@ -34,7 +34,6 @@ import {
     parseISO,
     set,
 } from 'date-fns';
-import { fr } from 'date-fns/locale';
 import {
     Calendar as CalendarIcon,
     Clock,
@@ -45,7 +44,7 @@ import {
     Trash2,
     User,
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 interface Props {
@@ -53,7 +52,7 @@ interface Props {
     onOpenChange: (open: boolean) => void;
     event: TicketSchedule | null;
     isEditMode: boolean;
-    onSave: (id: number, data: any) => void;
+    onSave: (id: number, data: Record<string, string | number>) => void;
     onDelete: (id: number) => void;
     onValidate: (event: TicketSchedule) => void;
 }
@@ -154,7 +153,7 @@ export function EventDialog({
                             </TabsTrigger>
                             <TabsTrigger value="comments" className="gap-2">
                                 <MessageCircle className="h-4 w-4" />{' '}
-                                {__('schedule.dialog.tabs.chat')}
+                                {__('schedule.dialog.tabs.comments')}
                             </TabsTrigger>
                             <TabsTrigger value="details" className="gap-2">
                                 <Info className="h-4 w-4" />{' '}
@@ -211,9 +210,6 @@ export function EventDialog({
                                                                 format(
                                                                     date,
                                                                     'EEEE d MMMM yyyy',
-                                                                    {
-                                                                        locale: fr,
-                                                                    },
                                                                 )
                                                             ) : (
                                                                 <span>
@@ -300,7 +296,6 @@ export function EventDialog({
                                                             event.start_date,
                                                         ),
                                                         'EEEE d MMMM yyyy',
-                                                        { locale: fr },
                                                     )}
                                                 </p>
                                             </div>
@@ -516,7 +511,7 @@ function TicketComments({
                     {localComments.length === 0 ? (
                         <div className="py-10 text-center opacity-50">
                             <p className="text-sm">
-                                {__('schedule.dialog.chat.no_messages')}
+                                {__('schedule.dialog.comment.no_messages')}
                             </p>
                         </div>
                     ) : (
@@ -557,7 +552,7 @@ function TicketComments({
                                             <span className="font-semibold text-foreground">
                                                 {isMe
                                                     ? __(
-                                                          'schedule.dialog.chat.me',
+                                                          'schedule.dialog.comment.me',
                                                       )
                                                     : comment.user?.name}
                                             </span>
@@ -566,10 +561,7 @@ function TicketComments({
                                                     new Date(
                                                         comment.created_at,
                                                     ),
-                                                    {
-                                                        addSuffix: true,
-                                                        locale: fr,
-                                                    },
+                                                    { addSuffix: true },
                                                 )}
                                             </span>
                                         </div>
@@ -594,14 +586,15 @@ function TicketComments({
             <div className="shrink-0 border-t bg-background p-4">
                 <form onSubmit={handleSubmit} className="flex items-end gap-2">
                     <Textarea
-                        placeholder={__('schedule.dialog.chat.placeholder')}
+                        placeholder={__('schedule.dialog.comment.placeholder')}
                         className="h-[40px] max-h-[120px] min-h-[40px] resize-none rounded-3xl px-4 py-2 text-sm shadow-sm focus-visible:ring-1"
                         value={data.content}
                         onChange={(e) => setData('content', e.target.value)}
-                        onKeyDown={(e) =>
-                            e.key === 'Enter' &&
+                        onKeyDown={(e) =>{
+                            return e.key === 'Enter' &&
                             !e.shiftKey &&
-                            (e.preventDefault(), handleSubmit(e))
+                            (e.preventDefault(), handleSubmit(e));
+                        }
                         }
                     />
                     <Button

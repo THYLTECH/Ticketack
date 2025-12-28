@@ -22,7 +22,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app/layout';
 import { useTrans } from '@/lib/translation';
 import { cn } from '@/lib/utils';
-import { SharedData, Ticket, TicketSchedule, User } from '@/types';
+import { SharedData, Ticket, TicketSchedule, UpdatePayload, User } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import {
     addDays,
@@ -142,7 +142,6 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                 {
                     preserveScroll: true,
                     onSuccess: () => {
-                        toast.success(__('schedule.page.toast_scheduled'));
                         setSelectedTicketId(null);
                     },
                 },
@@ -161,8 +160,13 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
         }
     };
 
-    const handleUpdateEvent = (id: number, data: any) => {
-        router.put(route('tickets.planning.update', id), data, {
+    const handleUpdateEvent = (
+        id: number,
+        data: UpdatePayload,
+    ) => {
+        const payload = data as unknown as Record<string, string | number | boolean | null | undefined>;
+
+        router.put(route('tickets.planning.update', id), payload, {
             preserveScroll: true,
             onSuccess: () => {
                 toast.success(__('schedule.page.toast_updated'));
@@ -175,7 +179,6 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
         router.delete(route('tickets.planning.destroy', id), {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success(__('schedule.page.toast_deleted'));
                 setIsModalOpen(false);
             },
         });
@@ -387,12 +390,6 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                 onCheckedChange={(v) => {
                                     setIsEditMode(v);
                                     setSelectedTicketId(null);
-                                    if (v)
-                                        toast.info(
-                                            __(
-                                                'schedule.toolbar.toast_edit_on',
-                                            ),
-                                        );
                                 }}
                                 className="scale-75"
                             />

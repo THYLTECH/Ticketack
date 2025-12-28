@@ -65,7 +65,7 @@ export function TicketSidebar({
 
     return (
         <div className="flex h-full flex-col overflow-hidden bg-card">
-            <div className="flex flex-col gap-4 border-b bg-muted/10 p-4">
+            <div className="h-[7rem] flex-col flex gap-4 border-b bg-muted/10 p-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-sm font-bold text-foreground">
                         <Inbox className="h-4 w-4 text-primary" />

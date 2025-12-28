@@ -1,8 +1,6 @@
 <?php
 
-// routes/tickets.php
 
-// Necessary imports
 use Illuminate\Support\Facades\Route;
 
 // Controllers
@@ -17,7 +15,7 @@ Route::prefix('tickets')->name('tickets.')->middleware(['auth', 'verified:auth.v
 
     // PLANNING & SCHEDULE OPERATIONS
     Route::controller(ControllersSchedules::class)->group(function() {
-        Route::get('/planning', 'index')->name('planning');
+        Route::get('/planning', 'index')->name('planning.index');
         Route::post('/planning', 'store')->name('planning.store');
         Route::put('/planning/{schedule}', 'update')->name('planning.update');
         Route::delete('/planning/{schedule}', 'destroy')->name('planning.destroy');

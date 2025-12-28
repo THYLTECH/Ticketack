@@ -13,8 +13,16 @@ use Inertia\Inertia;
 
 class Schedules extends Controller
 {
+
+    public function __construct()
+    {
+        $this->authorizeResource(TicketSchedule::class, 'schedule');
+    }
+
     public function index()
     {
+        $this->authorize('viewAny', TicketSchedule::class);
+
         return Inertia::render('tickets/planning/index', [
             'events' => TicketSchedule::with([
                 'user',

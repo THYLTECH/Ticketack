@@ -94,7 +94,7 @@ export function AppSidebar() {
     if (userHasPermission({ user: auth.user, permission: 'view planning' })) {
         mainNavItems.push({
             title: __('app.layout.sidebar.menugroups.platform.items.planning'),
-            href: route('tickets.planning'),
+            href: route('tickets.planning.index'),
             icon: Calendar,
         });
     }

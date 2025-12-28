@@ -38,6 +38,7 @@ import {
     SharedData,
     Ticket,
     TicketSchedule,
+    UpdatePayload,
     User,
 } from '@/types';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
@@ -68,6 +69,7 @@ import {
     formatPeriodTitle,
     navigateByView,
 } from '@/pages/tickets/planning/utils';
+import { ViewType } from '@/pages/tickets/planning';
 
 interface ShowProps {
     ticket: Ticket;
@@ -166,7 +168,7 @@ function CalendarTab({ ticket, events, solvers }: ShowProps) {
             : new Date();
 
     const [date, setDate] = useState(initialDate);
-    const [view, setView] = useState<'day' | 'week' | 'month'>('week');
+    const [view, setView] = useState<ViewType>('week');
     const [isEditMode, setIsEditMode] = useState(false);
     const [selectedEvent, setSelectedEvent] = useState<TicketSchedule | null>(
         null,
@@ -223,14 +225,24 @@ function CalendarTab({ ticket, events, solvers }: ShowProps) {
         }
     };
 
-    const handleUpdateEvent = (id: number, data: any) => {
-        router.put(route('tickets.planning.update', id), data, {
-            preserveScroll: true,
-            onSuccess: () => {
-                toast.success('Mis à jour');
-                setIsModalOpen(false);
+    const handleUpdateEvent = (
+        id: number,
+        data: UpdatePayload,
+    ) => {
+        router.put(
+            route('tickets.planning.update', id),
+            data as unknown as Record<
+                string,
+                string | number | boolean | null | undefined
+            >,
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success('Mis à jour');
+                    setIsModalOpen(false);
+                },
             },
-        });
+        );
     };
 
     const handleDeleteEvent = (id: number) => {
@@ -302,7 +314,11 @@ function CalendarTab({ ticket, events, solvers }: ShowProps) {
                             Planifier
                         </Label>
                     </div>
-                    <Tabs value={view} onValueChange={(v: any) => setView(v)}>
+                    <Tabs
+                        value={view}
+                        onValueChange={(v) => setView(v as ViewType)}
+                    >
+                        {' '}
                         <TabsList className="h-8">
                             <TabsTrigger
                                 value="day"

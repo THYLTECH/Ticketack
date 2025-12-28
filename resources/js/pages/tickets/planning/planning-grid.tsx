@@ -216,82 +216,96 @@ export function PlanningGrid({
             weekStartsOn: 1,
         });
         const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
-        const weekDays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+        const weekDays = [
+            'monday',
+            'tuesday',
+            'wednesday',
+            'thursday',
+            'friday',
+            'saturday',
+            'sunday',
+        ];
 
         return (
             <div className="flex h-full flex-col overflow-hidden bg-card select-none">
-                <div className="z-20 flex shrink-0 border-b bg-muted/40">
-                    {weekDays.map((dayKey) => (
-                        <div
-                            key={dayKey}
-                            className="flex-1 border-r border-border bg-muted/40 py-3 text-center text-xs font-semibold tracking-wider text-muted-foreground uppercase last:border-r-0"
-                        >
-                            {__(`schedule.days_short.${dayKey}`)}
-                        </div>
-                    ))}
-                </div>
-                <div className="grid flex-1 auto-rows-fr grid-cols-7 overflow-y-auto">
-                    {days.map((day, idx) => {
-                        const dayEvents = events.filter(
-                            (e) =>
-                                (isEditMode
-                                    ? e.user_id === currentUserId
-                                    : selectedSolvers.includes(e.user_id)) &&
-                                isSameDay(parseISO(e.start_date), day),
-                        );
-                        return (
+                <div className="flex flex-1 flex-col overflow-y-auto">
+                    <div className="sticky top-0 z-20 flex h-[7rem] shrink-0 border-b bg-background">
+                        {weekDays.map((dayKey) => (
                             <div
-                                key={day.toString()}
-                                className={cn(
-                                    'group relative min-h-[120px] border-r border-b p-2 transition-colors',
-                                    !isSameMonth(day, currentDate) &&
-                                        'bg-muted/5 text-muted-foreground',
-                                    idx % 7 === 6 && 'border-r-0',
-                                )}
-                                onDragOver={handleDragOver}
-                                onDrop={(e) => handleDrop(e, day)}
+                                key={dayKey}
+                                className="flex flex-1 items-center justify-center border-r border-border bg-muted/40 text-center text-xs font-semibold tracking-wider text-muted-foreground uppercase last:border-r-0"
                             >
-                                <span
+                                {__(`schedule.days.${dayKey}`)}
+                            </div>
+                        ))}
+                    </div>
+                    <div className="grid flex-1 auto-rows-fr grid-cols-7">
+                        {days.map((day, idx) => {
+                            const dayEvents = events.filter(
+                                (e) =>
+                                    (isEditMode
+                                        ? e.user_id === currentUserId
+                                        : selectedSolvers.includes(
+                                              e.user_id,
+                                          )) &&
+                                    isSameDay(parseISO(e.start_date), day),
+                            );
+                            return (
+                                <div
+                                    key={day.toString()}
                                     className={cn(
-                                        'mb-1 ml-auto flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium',
-                                        isToday(day)
-                                            ? 'bg-primary text-primary-foreground shadow-sm'
-                                            : 'text-foreground/70',
+                                        'group relative min-h-[120px] border-r border-b p-2 transition-colors',
+                                        !isSameMonth(day, currentDate) &&
+                                            'bg-muted/100 text-muted-foreground',
+                                        idx % 7 === 6 && 'border-r-0',
                                     )}
+                                    onDragOver={handleDragOver}
+                                    onDrop={(e) => handleDrop(e, day)}
                                 >
-                                    {format(day, 'd')}
-                                </span>
-                                {dayEvents.map((evt) => (
-                                    <div
-                                        key={evt.id}
-                                        draggable={isEditMode}
-                                        onDragStart={(e) => {
-                                            e.dataTransfer.setData(
-                                                'eventId',
-                                                evt.id.toString(),
-                                            );
-                                        }}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onEventClick(evt);
-                                        }}
+                                    <span
                                         className={cn(
-                                            'mb-1 cursor-pointer truncate rounded-md border px-2 py-1 text-[10px] font-medium transition-all hover:scale-[1.02] hover:shadow-sm hover:brightness-95',
-                                            COLORS[evt.user_id % COLORS.length],
+                                            'mb-1 ml-auto flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium',
+                                            isToday(day)
+                                                ? 'bg-primary text-primary-foreground shadow-sm'
+                                                : 'text-foreground/70',
                                         )}
                                     >
-                                        <span className="mr-1 font-bold opacity-70">
-                                            {format(
-                                                parseISO(evt.start_date),
-                                                'HH:mm',
+                                        {format(day, 'd')}
+                                    </span>
+                                    {dayEvents.map((evt) => (
+                                        <div
+                                            key={evt.id}
+                                            draggable={isEditMode}
+                                            onDragStart={(e) => {
+                                                e.dataTransfer.setData(
+                                                    'eventId',
+                                                    evt.id.toString(),
+                                                );
+                                            }}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onEventClick(evt);
+                                            }}
+                                            className={cn(
+                                                'mb-1 cursor-pointer truncate rounded-md border px-2 py-1 text-[10px] font-medium transition-all hover:scale-[1.02] hover:shadow-sm hover:brightness-95',
+                                                COLORS[
+                                                    evt.user_id % COLORS.length
+                                                ],
                                             )}
-                                        </span>
-                                        {evt.ticket.title}
-                                    </div>
-                                ))}
-                            </div>
-                        );
-                    })}
+                                        >
+                                            <span className="mr-1 font-bold opacity-70">
+                                                {format(
+                                                    parseISO(evt.start_date),
+                                                    'HH:mm',
+                                                )}
+                                            </span>
+                                            {evt.ticket.title}
+                                        </div>
+                                    ))}
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
             </div>
         );
@@ -307,40 +321,43 @@ export function PlanningGrid({
 
     return (
         <div className="flex h-full flex-col overflow-hidden bg-background">
-            <div className="z-50 flex shrink-0 border-b bg-card shadow-sm ring-1 ring-border/5">
+            <div className="z-50 flex h-[7rem] shrink-0 border-b bg-card shadow-sm ring-1 ring-border/5">
                 <div className="w-17 shrink-0 border-r border-border bg-card"></div>
-                <div className="flex flex-1">
-                    {days.map((day) => (
-                        <div
-                            key={day.toString()}
-                            style={{ width: colWidth }}
-                            className={cn(
-                                'flex flex-col items-center justify-center border-r border-border bg-card py-4 text-center last:border-r-0',
-                                isToday(day) && 'bg-primary/5',
-                            )}
-                        >
-                            <span
-                                className={cn(
-                                    'mb-1 text-xs font-bold tracking-wider uppercase',
-                                    isToday(day)
-                                        ? 'text-primary'
-                                        : 'text-muted-foreground',
-                                )}
-                            >
-                                {format(day, 'EEE')}
-                            </span>
+                <div className="flex h-full flex-1">
+                    {days.map((day) => {
+                        const dayKey = format(day, 'eeee').toLowerCase();
+                        return (
                             <div
+                                key={day.toString()}
+                                style={{ width: colWidth }}
                                 className={cn(
-                                    'flex h-8 w-8 items-center justify-center rounded-full text-lg font-bold transition-all',
-                                    isToday(day)
-                                        ? 'scale-110 bg-primary text-primary-foreground shadow-md'
-                                        : 'text-foreground',
+                                    'flex h-full flex-col items-center justify-center border-r border-border bg-card text-center last:border-r-0',
+                                    isToday(day) && 'bg-primary/5',
                                 )}
                             >
-                                {format(day, 'd')}
+                                <span
+                                    className={cn(
+                                        'mb-1 text-xs font-bold tracking-wider uppercase',
+                                        isToday(day)
+                                            ? 'text-primary'
+                                            : 'text-muted-foreground',
+                                    )}
+                                >
+                                    {__(`schedule.days.${dayKey}`)}
+                                </span>
+                                <div
+                                    className={cn(
+                                        'flex h-8 w-8 items-center justify-center rounded-full text-lg font-bold transition-all',
+                                        isToday(day)
+                                            ? 'scale-110 bg-primary text-primary-foreground shadow-md'
+                                            : 'text-foreground',
+                                    )}
+                                >
+                                    {format(day, 'd')}
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
 
