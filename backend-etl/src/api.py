@@ -87,15 +87,9 @@ async def search_tickets(search: SearchQuery):
         # 3. Format response
         response = []
         for _, row in results.iterrows():
-            # Convert L2 Distance to Similarity Score (Approximate)
-            # Distance 0 -> Score 1.0
-            # Distance 1 -> Score 0.0
-            distance = row['_distance']
-            similarity_score = max(0.0, 1.0 - distance)
-
             response.append(SearchResult(
                 ticket_id=row.get('ticket_id', 0),
-                score=round(similarity_score, 4),
+                score=round(row['_distance'], 4),
                 filename=row.get('filename', 'unknown')
             ))
 
