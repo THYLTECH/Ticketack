@@ -46,6 +46,12 @@ return [
             'no_messages' => 'No messages.',
             'me' => 'Me',
         ],
+        'conversion' => [
+            'title' => 'Convert to Ticket Entry',
+            'description' => 'Do you want to convert this scheduled intervention into a ticket entry ?',
+            'confirm_validate' => 'Convert',
+            'cancel' => 'Cancel',
+        ],
     ],
     'days' => [
         'monday' => 'Monday',
@@ -116,5 +122,7 @@ return [
         'updated' => 'Intervention updated successfully.',
         'deleted' => 'Intervention deleted successfully.',
         'overlap_error' => 'This slot is already occupied for this technician.',
+        'validated' => 'Intervention validated successfully and converted to an entry in the ticket list.',
+        'error' => 'An error occurred.'
     ],
 ];

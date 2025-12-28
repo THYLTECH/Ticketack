@@ -36,6 +36,7 @@ import {
 } from 'date-fns';
 import {
     Calendar as CalendarIcon,
+    CheckCircle,
     Clock,
     ExternalLink,
     Info,
@@ -46,6 +47,16 @@ import {
 } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface Props {
     open: boolean;
@@ -54,7 +65,6 @@ interface Props {
     isEditMode: boolean;
     onSave: (id: number, data: Record<string, string | number>) => void;
     onDelete: (id: number) => void;
-    onValidate: (event: TicketSchedule) => void;
 }
 
 export function EventDialog({
@@ -64,13 +74,13 @@ export function EventDialog({
     isEditMode,
     onSave,
     onDelete,
-    onValidate,
 }: Props) {
     const __ = useTrans();
     const [date, setDate] = useState<Date | undefined>(new Date());
     const [startTime, setStartTime] = useState('08:00');
     const [endTime, setEndTime] = useState('09:00');
     const [activeTab, setActiveTab] = useState('planning');
+    const [showConvertAlert, setShowConvertAlert] = useState(false);
 
     useEffect(() => {
         if (event) {
@@ -109,6 +119,25 @@ export function EventDialog({
         });
     };
 
+    const executeConversion = () => {
+        if (!event) return;
+
+        router.post(
+            route('tickets.planning.convert', event.id),
+            {},
+            {
+                onSuccess: () => {
+                    toast.success(__('schedule.flash.validated'));
+                    setShowConvertAlert(false);
+                    onOpenChange(false);
+                },
+                onError: () => {
+                    toast.error(__('schedule.flash.error'));
+                },
+            },
+        );
+    };
+
     if (!event) return null;
 
     return (
@@ -127,7 +156,8 @@ export function EventDialog({
                                 #{event.ticket.id}
                             </Badge>
                             <Badge className="border-0 bg-primary/10 text-primary hover:bg-primary/20">
-                                {event.ticket.category?.title || 'Intervention'}
+                                {event.ticket.category?.title ||
+                                    __('schedule.defaults.intervention')}
                             </Badge>
                         </div>
                         <DialogTitle className="line-clamp-1 text-xl leading-snug font-semibold tracking-tight text-foreground">
@@ -365,9 +395,12 @@ export function EventDialog({
                                     <div className="flex gap-2">
                                         <Button
                                             variant="outline"
-                                            className="text-emerald-700"
-                                            onClick={() => onValidate(event)}
+                                            className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
+                                            onClick={() =>
+                                                setShowConvertAlert(true)
+                                            }
                                         >
+                                            <CheckCircle className="mr-2 h-4 w-4" />
                                             {__(
                                                 'schedule.dialog.planning.validate',
                                             )}
@@ -449,6 +482,37 @@ export function EventDialog({
                     </div>
                 </Tabs>
             </DialogContent>
+
+            <AlertDialog
+                open={showConvertAlert}
+                onOpenChange={setShowConvertAlert}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            {__('schedule.dialog.conversion.title') ||
+                                'Valider cette intervention ?'}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {__('schedule.dialog.conversion.description') ||
+                                "Cette action convertira l'événement du planning en un pointage effectif et supprimera l'événement du calendrier. Cette action est irréversible."}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>
+                            {__('schedule.dialog.conversion.cancel')}
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={executeConversion}
+                            className="border-none bg-emerald-600 text-white hover:bg-emerald-700"
+                        >
+                            {__(
+                                'schedule.dialog.conversion.confirm_validate',
+                            )}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </Dialog>
     );
 }
@@ -590,12 +654,13 @@ function TicketComments({
                         className="h-[40px] max-h-[120px] min-h-[40px] resize-none rounded-3xl px-4 py-2 text-sm shadow-sm focus-visible:ring-1"
                         value={data.content}
                         onChange={(e) => setData('content', e.target.value)}
-                        onKeyDown={(e) =>{
-                            return e.key === 'Enter' &&
-                            !e.shiftKey &&
-                            (e.preventDefault(), handleSubmit(e));
-                        }
-                        }
+                        onKeyDown={(e) => {
+                            return (
+                                e.key === 'Enter' &&
+                                !e.shiftKey &&
+                                (e.preventDefault(), handleSubmit(e))
+                            );
+                        }}
                     />
                     <Button
                         type="submit"

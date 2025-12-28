@@ -10,8 +10,15 @@ use App\Http\Controllers\Tickets\Statuses as ControllersStatuses;
 use App\Http\Controllers\Tickets\Categories as ControllersCategories;
 use App\Http\Controllers\Tickets\Comments as ControllersComments;
 use App\Http\Controllers\Tickets\Schedules as ControllersSchedules;
+use App\Http\Controllers\Tickets\Entries as ControllersEntries;
 
 Route::prefix('tickets')->name('tickets.')->middleware(['auth', 'verified:auth.verification.notice'])->group(function() {
+
+    Route::controller(ControllersEntries::class)->prefix('entries')->name('entries.')->group(function() {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name('store');
+        Route::delete('/{entry}', 'destroy')->name('destroy');
+        Route::get('/report', 'report')->name('report');    });
 
     // PLANNING & SCHEDULE OPERATIONS
     Route::controller(ControllersSchedules::class)->group(function() {
@@ -19,6 +26,7 @@ Route::prefix('tickets')->name('tickets.')->middleware(['auth', 'verified:auth.v
         Route::post('/planning', 'store')->name('planning.store');
         Route::put('/planning/{schedule}', 'update')->name('planning.update');
         Route::delete('/planning/{schedule}', 'destroy')->name('planning.destroy');
+        Route::post('/planning/{schedule}/convert', 'convert')->name('planning.convert');
     });
 
     // CRUD OPERATIONS

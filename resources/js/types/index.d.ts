@@ -308,6 +308,10 @@ export interface TicketLog {
 export interface TicketEntry {
     id: number;
 
+    ticket_id: number;
+    ticket?: Ticket;
+    user_id: number;
+
     user: UserSimplified;
 
     note: string | null;
