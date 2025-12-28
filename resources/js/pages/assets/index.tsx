@@ -3,7 +3,8 @@
 // Necessary imports
 import { cn, userHasPermission } from '@/lib/utils';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
+import {Badge} from "@/components/ui/badge";
 
 // Layout
 import AppLayout from '@/layouts/app/layout';
@@ -52,6 +53,8 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 
+import InputSearch from '@/components/ui/inputSearch';
+
 // Icons
 import {
     ChevronDown,
@@ -71,6 +74,7 @@ interface AssetRowProps {
     openState: Record<string, boolean>;
     toggleNode: (id: string) => void;
     renderAssetRows: (parentId: string | null) => React.ReactNode;
+    search?: string;
 }
 
 interface AssetTableControls {
@@ -85,6 +89,7 @@ interface AssetTableProps {
     assetsByParent: Record<string, Asset[]>;
     openState: Record<string, boolean>;
     toggleNode: (id: string) => void;
+    search?: string;
 }
 
 interface PaginationLink {
@@ -93,11 +98,52 @@ interface PaginationLink {
     active: boolean;
 }
 
-export default function Index({ assets }: { assets: { data: Asset[], links: PaginationLink[] } }) {
+export default function Index({ assets }: { assets: { data: Asset[], links: PaginationLink[] , filters:{search?: string} } }) {
     const __ = useTrans();
+    const filters = {
+        search: '', // Default value for search
+    };
 
     // ---------------------------------------
     const [openState, setOpenState] = useState<Record<string, boolean>>({});
+    const [searchTerm, setSearchTerm] = useState(filters?.search || '');
+    useEffect(()=> {
+        if(!searchTerm)
+        {
+            setOpenState({});
+            return;
+        }
+
+        const assetMap = new Map(assets.data.map(a=>[a.id, a]));
+        const parentsToExpand = new Set<string>();
+        assets.data.forEach((asset) => {
+            
+            if (asset.title.toLowerCase().includes(searchTerm.toLowerCase())
+            || hasMatchedAttributes(asset, searchTerm)) {
+                let currentParentId = asset.parent_id;
+                
+                // Traverse up the parent chain
+                while (currentParentId) {
+                    const parentIdString = String(currentParentId)
+                    parentsToExpand.add(parentIdString);
+                    
+                    const parentAsset = assetMap.get(currentParentId);
+                    
+                    if(!parentAsset) break;
+                    
+                    currentParentId = parentAsset.parent_id;
+
+                }
+            }
+        });
+        const newOpenState: Record<string, boolean> = {};
+        parentsToExpand.forEach((id) => {
+            newOpenState[id] = true;
+        });
+
+        setOpenState(newOpenState);
+        
+    },[searchTerm, assets.data]);
 
     const assetsByParent = useMemo(
         () =>
@@ -172,6 +218,23 @@ export default function Index({ assets }: { assets: { data: Asset[], links: Pagi
                     </CardDescription>
 
                     <CardAction className="flex items-center gap-2">
+                    <div className="relative">
+                        {/* <Input
+                            id="search"
+                            type="text"
+                            placeholder={__('assets.pages.index.filter.placeholder')}
+                            className="w-64"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        /> */}
+                        <InputSearch
+                            type="text"
+                            placeholder={__('assets.pages.index.filter.placeholder')}
+                            className="w-64"
+                            value={searchTerm} 
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
                         <ExpandCollapseButtons {...controls} />
 
                         {userHasPermission({
@@ -181,7 +244,9 @@ export default function Index({ assets }: { assets: { data: Asset[], links: Pagi
                             <Button asChild>
                                 <Link href={route('assets.create')}>
                                     <Plus />
+                                    <span className="sr-only sm:not-sr-only">
                                     {__('assets.pages.index.buttons.create')}
+                                    </span>
                                 </Link>
                             </Button>
                         )}
@@ -199,6 +264,7 @@ export default function Index({ assets }: { assets: { data: Asset[], links: Pagi
                                 assetsByParent={assetsByParent}
                                 openState={openState}
                                 toggleNode={toggleNode}
+                                search={searchTerm}
                             />
 
                             <div className="mt-4">
@@ -290,6 +356,7 @@ function AssetTable({
     assetsByParent,
     openState,
     toggleNode,
+    search,
 }: AssetTableProps) {
     const __ = useTrans();
 
@@ -304,6 +371,7 @@ function AssetTable({
                 openState={openState}
                 toggleNode={toggleNode}
                 renderAssetRows={renderAssetRows}
+                search={search}
             />
         ));
     };
@@ -314,6 +382,9 @@ function AssetTable({
                 <TableRow>
                     <TableHead className="pl-6 text-xs text-muted-foreground">
                         {__('assets.pages.index.table.headers.asset')}
+                    </TableHead>
+                    <TableHead className="w-[8rem] text-right text-xs text-muted-foreground text-center">
+                        {__('assets.pages.index.table.headers.attributes')}
                     </TableHead>
                     <TableHead className="w-[8rem] text-right text-xs text-muted-foreground">
                         {__('assets.pages.index.table.headers.updated_at')}
@@ -334,9 +405,11 @@ function AssetRow({
     openState,
     toggleNode,
     renderAssetRows,
+    search
 }: AssetRowProps) {
     const hasChildren = !!assetsByParent[asset.id]?.length;
-
+    const isMatch = search && (asset.title.toLowerCase().includes(search.toLowerCase())
+        || hasMatchedAttributes(asset, search));
     const isOpen = openState[asset.id] || false;
 
     const depthLevel = asset.depth_level || 0;
@@ -394,7 +467,7 @@ function AssetRow({
                                 size="icon-sm"
                                 onClick={(e) => handleToggle(e, asset.id)}
                                 className={cn(
-                                    'z-1 shrink-0 transition-transform duration-200',
+                                    'z-10 shrink-0 transition-transform duration-200',
                                     isOpen ? 'rotate-180' : 'rotate-0',
                                 )}
                             >
@@ -410,9 +483,30 @@ function AssetRow({
                             {Icon && (
                                 <Icon className="h-6 w-6 rounded-md border p-0.5 text-muted-foreground" />
                             )}
-
+                            <span className={isMatch ? "bg-yellow-200 text-black px-1 rounded" : ""}>
                             {asset.title}
+                            </span>
                         </div>
+                    </div>
+                </TableCell>
+
+                <TableCell className="w-[8rem] text-right">
+                    <div className="flex flex-wrap gap-1 items-center">
+                        {asset.attributes && asset.attributes.length <= 3 && asset.attributes.map((attr, index) => (
+                            <Badge key={index} variant="default" className="text-xs font-normal align-middle">
+                                {attr.key}
+                            </Badge>
+                        ))}
+                        {asset.attributes && asset.attributes.length > 3 && asset.attributes?.slice(0,3).map((attr, index) => (
+                            <Badge key={index} variant="default" className="text-xs font-normal align-middle">
+                                {attr.key}
+                            </Badge>
+                        ))}
+                        {asset.attributes && asset.attributes.length > 3 && (
+                            <Badge variant="secondary" className="text-xs font-normal align-middle">
+                                + {asset.attributes.length - 3} 
+                            </Badge>
+                        )}
                     </div>
                 </TableCell>
 
@@ -427,4 +521,23 @@ function AssetRow({
             {isOpen && hasChildren && renderAssetRows(asset.id)}
         </>
     );
+}
+
+/**
+ * @description Checks if any attribute of the asset matches the search term.
+ * @param asset 
+ * @param search 
+ * @returns boolean
+ */
+function hasMatchedAttributes(asset: Asset, search: string) {
+    if (!search) return false;
+    if (asset.attributes.length === 0) return false;
+
+    for (const attr of asset.attributes) {
+        if (attr.key.toLowerCase().includes(search.toLowerCase()) ||
+            attr.value.toLowerCase().includes(search.toLowerCase())) {
+            return true;
+        }
+    }
+    return false;
 }

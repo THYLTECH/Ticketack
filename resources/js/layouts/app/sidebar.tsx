@@ -59,7 +59,10 @@ import {
     Settings,
     Shield,
     Users,
-    Trash2
+    Trash2,
+    Ticket,
+    Calendar,
+    Home,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
@@ -76,14 +79,37 @@ export function AppSidebar() {
     // Sidebar menus
     const mainNavItems: NavItem[] = [
         {
+            title: __('app.layout.sidebar.menugroups.platform.items.home'),
+            href: route('home'),
+            icon: Home,
+        },
+        {
             title: __('app.layout.sidebar.menugroups.platform.items.dashboard'),
             href: route('dashboard'),
             icon: LayoutGrid,
         },
     ];
 
+    // Planning
+    if (userHasPermission({ user: auth.user, permission: 'view planning' })) {
+        mainNavItems.push({
+            title: __('app.layout.sidebar.menugroups.platform.items.planning'),
+            href: route('tickets.planning.index'),
+            icon: Calendar,
+        });
+    }
+
+    // Tickets
+    if (userHasPermission({ user: auth.user, permission: 'view tickets' })) {
+        mainNavItems.push({
+            title: __('app.layout.sidebar.menugroups.platform.items.tickets'),
+            href: route('tickets.index'),
+            icon: Ticket,
+        });
+    }
+
     // Assets
-    if(userHasPermission({ user: auth.user, permission: 'view assets' })) {
+    if (userHasPermission({ user: auth.user, permission: 'view assets' })) {
         mainNavItems.push({
             title: __('app.layout.sidebar.menugroups.platform.items.assets'),
             href: route('assets.index'),
@@ -92,7 +118,7 @@ export function AppSidebar() {
     }
 
     // Users
-    if(userHasPermission({ user: auth.user, permission: 'view users' })) {
+    if (userHasPermission({ user: auth.user, permission: 'view users' })) {
         mainNavItems.push({
             title: __('app.layout.sidebar.menugroups.platform.items.users'),
             href: route('users.index'),
@@ -101,7 +127,7 @@ export function AppSidebar() {
     }
 
     // Roles
-    if(userHasPermission({ user: auth.user, permission: 'view roles' })) {
+    if (userHasPermission({ user: auth.user, permission: 'view roles' })) {
         mainNavItems.push({
             title: __('app.layout.sidebar.menugroups.platform.items.roles'),
             href: route('roles.index'),
@@ -114,6 +140,7 @@ export function AppSidebar() {
             title: __('app.layout.sidebar.menugroups.footer.items.repository'),
             href: 'https://github.com/THYLTECH/Ticketack',
             icon: Folder,
+            external: true,
         },
         {
             title: __(
@@ -121,11 +148,12 @@ export function AppSidebar() {
             ),
             href: '/docs/api',
             icon: BookOpen,
+            external: true,
         },
     ];
 
     // Trash
-    if(userHasPermission({ user: auth.user, permission: 'view trash' })) {
+    if (userHasPermission({ user: auth.user, permission: 'view trash' })) {
         footerNavItems.push({
             title: __('app.layout.sidebar.menugroups.platform.items.trash'),
             href: route('trash.index'),
@@ -139,7 +167,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href={route('dashboard')} prefetch>
+                            <Link href={route('home')} prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>
@@ -173,32 +201,35 @@ function NavFooter({
         >
             <SidebarGroupContent>
                 <SidebarMenu>
-                    {items.map((item) => (
-                        <SidebarMenuItem key={item.title}>
-                            <SidebarMenuButton
-                                asChild
-                                className="text-neutral-600 hover:text-neutral-800 dark:text-neutral-300 dark:hover:text-neutral-100"
-                            >
-                                <a
-                                    href={
-                                        typeof item.href === 'string'
-                                            ? item.href
-                                            : item.href.url
-                                    }
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                    {items.map((item) => {
+                        const url = typeof item.href === 'string' ? item.href : item.href.url;
+                        const isExternal = item.external ?? false;
+
+                        return (
+                            <SidebarMenuItem key={item.title}>
+                                <SidebarMenuButton
+                                    asChild
+                                    className="text-neutral-600 hover:text-neutral-800 dark:text-neutral-300 dark:hover:text-neutral-100"
                                 >
-                                    {item.icon && (
-                                        <Icon
-                                            iconNode={item.icon}
-                                            className="h-5 w-5"
-                                        />
+                                    {isExternal ? (
+                                        <a
+                                            href={url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            {item.icon && <Icon iconNode={item.icon} className="h-5 w-5" />}
+                                            <span>{item.title}</span>
+                                        </a>
+                                    ) : (
+                                        <Link href={url} prefetch>
+                                            {item.icon && <Icon iconNode={item.icon} className="h-5 w-5" />}
+                                            <span>{item.title}</span>
+                                        </Link>
                                     )}
-                                    <span>{item.title}</span>
-                                </a>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                    ))}
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                        );
+                    })}
                 </SidebarMenu>
             </SidebarGroupContent>
         </SidebarGroup>

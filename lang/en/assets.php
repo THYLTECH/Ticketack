@@ -53,10 +53,14 @@ return [
             'table' => [
                 'headers' => [
                     'asset' => 'Asset',
+                    'attributes' => 'Attributes',
                     'updated_at' => 'Last Updated',
                     'created_at' => 'Created At',
                 ],
             ],
+            'filter' => [
+                'placeholder' => 'Search assets...',
+            ]
         ],
         'create' => [
             'head_title' => 'Create Asset',

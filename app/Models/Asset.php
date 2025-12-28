@@ -49,7 +49,7 @@ class Asset extends Model
      */
     public function parent(): BelongsTo
     {
-        return $this->belongsTo(Asset::class, 'parent_id');
+        return $this->belongsTo(Asset::class, 'parent_id')->withTrashed();
     }
 
     public function children(): HasMany
@@ -89,6 +89,14 @@ class Asset extends Model
         return $this->belongsToMany(Attachment::class, 'asset_attachments')
                     ->using(AssetAttachment::class)
                     ->withTimestamps();
+    }
+
+    /**
+     * Get all tickets associated with this asset.
+     */
+    public function tickets(): HasMany
+    {
+        return $this->hasMany(Ticket::class);
     }
 
     /**

@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\TicketSchedule;
+use App\Policies\TicketSchedulePolicy;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
@@ -16,12 +18,14 @@ use Illuminate\Support\Facades\URL;
 use App\Models\Asset;
 use Spatie\Permission\Models\Role;
 use App\Models\User;
+use App\Models\Ticket;
 
 // Policies
 use App\Policies\Asset as AssetPolicy;
 use App\Policies\Role as RolePolicy;
 use App\Policies\User as UserPolicy;
 use Symfony\Component\HttpFoundation\Request;
+use App\Policies\Ticket as TicketPolicy;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -44,12 +48,18 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
-
+        /** @noinspection PhpParamsInspection */
+        Gate::define('viewApiDocs', function (User $user) {
+            return $user->hasAnyRole(['admin', 'Admin'])
+                || ($user->can('update users') && $user->can('update assets'));
+        });
 
         // Policies
         Gate::policy(Asset::class, AssetPolicy::class);
         Gate::policy(Role::class, RolePolicy::class);
         Gate::policy(User::class, UserPolicy::class);
+        Gate::policy(Ticket::class, TicketPolicy::class);
+        Gate::policy(TicketSchedule::class, TicketSchedulePolicy::class);
 
         // Adding security scheme to the generated OpenAPI spec
         if (class_exists(Scramble::class)) {

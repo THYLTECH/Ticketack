@@ -9,19 +9,21 @@ use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Notification;
+use App\Http\Controllers\HomeController;
 
 Route::get('/', function () {
     // abort(404);
     return Inertia::render('landing');
-})->name('home');
+})->name('landing');
 
 Route::middleware(['auth', 'verified:auth.verification.notice'])->group(function () {
-    Route::get('/dashboard', function () {
+    // Nouvelle route Home
+    Route::get('/home', [HomeController::class, 'index'])->name('home');
 
-        // Notification::send(Auth::user(), new \App\Notifications\Example());
-
-        return Inertia::render('dashboard');
-    })->name('dashboard');
+    // Route::get('/dashboard', function () {
+        
+    //     return Inertia::render('dashboard');
+    // })->name('dashboard');
 });
 
 Route::get('/errors', function(Request $request) {
@@ -56,6 +58,12 @@ require __DIR__.'/users.php';
 
 // Trash routes
 require __DIR__.'/trash.php';
+
+// Tickets routes
+require __DIR__.'/tickets.php';
+
+// Dashboard routes
+require __DIR__.'/dashboard.php';
 
 // Todo : Tickets, assets, settings etc....
 
