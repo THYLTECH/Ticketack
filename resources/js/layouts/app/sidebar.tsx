@@ -61,6 +61,7 @@ import {
     Users,
     Trash2,
     Ticket,
+    Calendar,
     Home,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -89,8 +90,17 @@ export function AppSidebar() {
         },
     ];
 
+    // Planning
+    if (userHasPermission({ user: auth.user, permission: 'view planning' })) {
+        mainNavItems.push({
+            title: __('app.layout.sidebar.menugroups.platform.items.planning'),
+            href: route('tickets.planning.index'),
+            icon: Calendar,
+        });
+    }
+
     // Tickets
-    if(userHasPermission({ user: auth.user, permission: 'view tickets' })) {
+    if (userHasPermission({ user: auth.user, permission: 'view tickets' })) {
         mainNavItems.push({
             title: __('app.layout.sidebar.menugroups.platform.items.tickets'),
             href: route('tickets.index'),
@@ -99,7 +109,7 @@ export function AppSidebar() {
     }
 
     // Assets
-    if(userHasPermission({ user: auth.user, permission: 'view assets' })) {
+    if (userHasPermission({ user: auth.user, permission: 'view assets' })) {
         mainNavItems.push({
             title: __('app.layout.sidebar.menugroups.platform.items.assets'),
             href: route('assets.index'),
@@ -108,7 +118,7 @@ export function AppSidebar() {
     }
 
     // Users
-    if(userHasPermission({ user: auth.user, permission: 'view users' })) {
+    if (userHasPermission({ user: auth.user, permission: 'view users' })) {
         mainNavItems.push({
             title: __('app.layout.sidebar.menugroups.platform.items.users'),
             href: route('users.index'),
@@ -117,7 +127,7 @@ export function AppSidebar() {
     }
 
     // Roles
-    if(userHasPermission({ user: auth.user, permission: 'view roles' })) {
+    if (userHasPermission({ user: auth.user, permission: 'view roles' })) {
         mainNavItems.push({
             title: __('app.layout.sidebar.menugroups.platform.items.roles'),
             href: route('roles.index'),
@@ -143,7 +153,7 @@ export function AppSidebar() {
     ];
 
     // Trash
-    if(userHasPermission({ user: auth.user, permission: 'view trash' })) {
+    if (userHasPermission({ user: auth.user, permission: 'view trash' })) {
         footerNavItems.push({
             title: __('app.layout.sidebar.menugroups.platform.items.trash'),
             href: route('trash.index'),

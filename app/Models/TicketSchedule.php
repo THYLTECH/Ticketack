@@ -17,8 +17,8 @@ class TicketSchedule extends Model
     protected $fillable = [
         'ticket_id',
         'user_id',
-        'start_at',
-        'end_at',
+        'start_date',
+        'end_date',
         'duration_minutes',
     ];
 

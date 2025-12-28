@@ -78,7 +78,7 @@ class Crud extends Controller
     }
 
     public function show(Ticket $ticket) {
-        $ticket->load([
+        $ticket = $ticket->load([
             'user',
             'priority',
             'status',
@@ -128,14 +128,9 @@ class Crud extends Controller
         ]);
 
         if (isset($data['assignees'])) {
-            $assigneeIds = array_map(fn($assignee) => $assignee['id'], $data['assignees']);
-
             $assigneesToSave = [];
-            foreach ($assigneeIds as $userId) {
-                $assigneesToSave[] = new TicketAssignee([
-                    'user_id' => $userId,
-                    // TODO : Add role_title and role_description fields in next feature
-                ]);
+            foreach ($data['assignees'] as $assignee) {
+                $assigneesToSave[] = new TicketAssignee(['user_id' => $assignee['id']]);
             }
             $ticket->assignees()->saveMany($assigneesToSave);
         }

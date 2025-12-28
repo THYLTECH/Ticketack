@@ -15,6 +15,8 @@ export interface User {
     email: string;
     attachment_avatar?: string;
     avatar: { url: string } | null;
+    // Ajouté pour compatibilité avec le planning
+    profile_photo_url?: string;
     email_verified_at: string | null;
     language: string;
     timezone: string;
@@ -33,6 +35,8 @@ export interface UserSimplified {
     email: string;
     attachment_avatar?: string;
     avatar: { url: string } | null;
+    // Ajouté pour compatibilité avec le planning
+    profile_photo_url?: string;
     email_verified_at: string | null;
     language: string;
     timezone: string;
@@ -52,7 +56,7 @@ export interface Language {
 export interface Timezone {
     value: string;
     utc: string;
-} ;
+}
 
 export interface Theme {
     value: string;
@@ -94,10 +98,15 @@ export interface SharedData {
     [key: string]: unknown;
 }
 
+// Helper pour utiliser PageProps dans les composants
+export type PageProps<
+    T extends Record<string, unknown> = Record<string, unknown>,
+> = T & SharedData;
+
 export interface PaginationProps {
     current_page: number;
     first_page_url: string;
-    from : number;
+    from: number;
     last_page: number;
     last_page_url: string;
     next_page_url: string | null;
@@ -111,7 +120,7 @@ export interface PaginationProps {
         active: boolean;
         label: string;
         page: number | null;
-    }
+    };
 }
 
 // ---------------------------------------
@@ -166,7 +175,7 @@ export interface Notification {
         message: string;
         action?: string | null;
         action_url?: string | null;
-    }
+    };
     created_at: string;
     read_at: string | null;
 }
@@ -311,13 +320,20 @@ export interface TicketEntry {
     updated_at: string;
 }
 
+// MISE À JOUR MAJEURE ICI
 export interface TicketSchedule {
     id: number;
 
-    user: UserSimplified;
+    // Champs ajoutés pour correspondre à la BDD et au code React
+    ticket_id: number;
+    user_id: number;
+    description?: string | null;
 
-    start_at: string;
-    end_at: string;
+    user: UserSimplified;
+    ticket: Ticket;
+
+    start_date: string;
+    end_date: string;
     duration_minutes: number;
 
     created_at: string;
@@ -327,4 +343,11 @@ export interface TicketSchedule {
 interface TicketAssignee {
     id: number;
     user: UserSimplified;
+}
+
+export interface UpdatePayload {
+    start_date?: string;
+    duration_minutes?: number;
+    user_id?: number;
+    [key: string]: unknown;
 }

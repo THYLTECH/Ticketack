@@ -1,23 +1,11 @@
 <?php
 
-// database/seeders/RolesAndPermissionsSeeder.php
-
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-
-// Models
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
-/**
- * Seed roles and permissions into the database.
- *
- * This seeder creates default roles and permissions for the application.
- *
- * @package Database\Seeders
- */
 class RolesAndPermissionsSeeder extends Seeder
 {
     /**
@@ -27,63 +15,45 @@ class RolesAndPermissionsSeeder extends Seeder
     {
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        /**
-         * Permissions
-         */
         $permissions = [
             // Assets
-            'view assets',
-            'show assets',
-            'create assets',
-            'update assets',
-            'delete assets',
-            'restore assets',
-            'force delete assets',
-
+            'view assets', 'show assets', 'create assets', 'update assets', 'delete assets', 'restore assets', 'force delete assets',
             // Users
-            'view users',
-            'show users',
-            'create users',
-            'update users',
-            'delete users',
-
+            'view users', 'show users', 'create users', 'update users', 'delete users',
             // Roles
-            'view roles',
-            'show roles',
-            'create roles',
-            'update roles',
-            'delete roles',
-
+            'view roles', 'show roles', 'create roles', 'update roles', 'delete roles',
             // Tickets
-            'view tickets',
-            'show tickets',
-            'create tickets',
-            'update tickets',
-            'delete tickets',
-            'restore tickets',
-            'force delete tickets',
-
+            'view tickets', 'show tickets', 'create tickets', 'update tickets', 'delete tickets', 'restore tickets', 'force delete tickets',
             // Trash
-            'view trash',
-            'edit trash'
+            'view trash', 'edit trash',
+            // Planning
+            'view planning', 'manage planning'
         ];
 
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(['name' => $permission]);
         }
 
-        /**
-         * Roles
-         */
-
-        // Admin
+        // Rôle Admin : Toutes les permissions
         $roleAdmin = Role::firstOrCreate(['name' => 'admin']);
-
-        // Sync permissions (avoid duplicates)
         $roleAdmin->syncPermissions(Permission::all());
 
-        // Solver
+        // Rôle Solveur : Accès aux tickets et au planning (RG023)
+        $roleSolveur = Role::firstOrCreate(['name' => 'solver']);
+        $roleSolveur->syncPermissions([
+            'view tickets',
+            'show tickets',
+            'update tickets',
+            'view planning',
+            'manage planning'
+        ]);
 
-        // User
+        // Rôle Utilisateur : Création et consultation de ses tickets
+        $roleUser = Role::firstOrCreate(['name' => 'utilisateur']);
+        $roleUser->syncPermissions([
+            'view tickets',
+            'show tickets',
+            'create tickets'
+        ]);
     }
 }

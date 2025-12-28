@@ -1,8 +1,6 @@
-<?php 
+<?php
 
-// routes/tickets.php
 
-// Necessary imports
 use Illuminate\Support\Facades\Route;
 
 // Controllers
@@ -11,9 +9,18 @@ use App\Http\Controllers\Tickets\Priorities as ControllersPriorities;
 use App\Http\Controllers\Tickets\Statuses as ControllersStatuses;
 use App\Http\Controllers\Tickets\Categories as ControllersCategories;
 use App\Http\Controllers\Tickets\Comments as ControllersComments;
+use App\Http\Controllers\Tickets\Schedules as ControllersSchedules;
 
-Route::prefix('tickets/')->name('tickets.')->middleware(['auth', 'verified:auth.verification.notice'])->group(function() {
-    
+Route::prefix('tickets')->name('tickets.')->middleware(['auth', 'verified:auth.verification.notice'])->group(function() {
+
+    // PLANNING & SCHEDULE OPERATIONS
+    Route::controller(ControllersSchedules::class)->group(function() {
+        Route::get('/planning', 'index')->name('planning.index');
+        Route::post('/planning', 'store')->name('planning.store');
+        Route::put('/planning/{schedule}', 'update')->name('planning.update');
+        Route::delete('/planning/{schedule}', 'destroy')->name('planning.destroy');
+    });
+
     // CRUD OPERATIONS
     Route::controller(ControllersCrud::class)->group(function() {
         Route::get('/', 'index')->name('index');

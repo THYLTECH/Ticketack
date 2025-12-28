@@ -160,10 +160,10 @@ function TicketTable({ tickets }: { tickets: Ticket[] }) {
                 </TableRow>
             </TableHeader>
             <TableBody>
-                {tickets.map((Ticket) => (
+                {tickets.map((ticket) => (
                     <TableRow
                         className="relative cursor-pointer"
-                        key={Ticket.id}
+                        key={ticket.id}
                         onClick={() => {
                             if (
                                 userHasPermission({
@@ -171,20 +171,18 @@ function TicketTable({ tickets }: { tickets: Ticket[] }) {
                                     permission: 'show tickets',
                                 })
                             ) {
-                                router.get(
-                                    route('tickets.show', { Ticket: Ticket.id }),
-                                );
+                                router.visit(route('tickets.show', ticket.id));
                             }
                         }}
                     >
                         <TableCell>
-                            {Ticket.title}
+                            {ticket.title}
                         </TableCell>
                         <TableCell className="text-right">
-                            {formatDate(Ticket.updated_at)}
+                            {formatDate(ticket.updated_at)}
                         </TableCell>
                         <TableCell className="text-right">
-                            {formatDate(Ticket.created_at)}
+                            {formatDate(ticket.created_at)}
                         </TableCell>
                     </TableRow>
                 ))}
