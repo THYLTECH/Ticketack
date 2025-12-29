@@ -22,7 +22,13 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app/layout';
 import { useTrans } from '@/lib/translation';
 import { cn } from '@/lib/utils';
-import { SharedData, Ticket, TicketSchedule, UpdatePayload, User } from '@/types';
+import {
+    SharedData,
+    Ticket,
+    TicketSchedule,
+    UpdatePayload,
+    User,
+} from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import {
     addDays,
@@ -43,6 +49,7 @@ import {
     ChevronRight,
     CircleDashed,
     Clock,
+    Globe,
     LucideIcon,
     Search,
     Target,
@@ -51,6 +58,7 @@ import {
 import React, { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
+import { PreFillData, TimeEntryDialog } from '../entries/create-dialog';
 import { EventDialog } from './event-dialog';
 import { PlanningGrid } from './planning-grid';
 import { SolverFilters } from './solver-filters';
@@ -79,6 +87,9 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
         null,
     );
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const [convertingEvent, setConvertingEvent] =
+        useState<TicketSchedule | null>(null);
 
     const [selectedSolvers, setSelectedSolvers] = useState<number[]>(
         solvers.map((s) => s.id),
@@ -160,11 +171,11 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
         }
     };
 
-    const handleUpdateEvent = (
-        id: number,
-        data: UpdatePayload,
-    ) => {
-        const payload = data as unknown as Record<string, string | number | boolean | null | undefined>;
+    const handleUpdateEvent = (id: number, data: UpdatePayload) => {
+        const payload = data as unknown as Record<
+            string,
+            string | number | boolean | null | undefined
+        >;
 
         router.put(route('tickets.planning.update', id), payload, {
             preserveScroll: true,
@@ -184,11 +195,28 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
         });
     };
 
+    const handleValidateEvent = (event: TicketSchedule) => {
+        setIsModalOpen(false);
+        setConvertingEvent(event);
+    };
+
     const getPeriodTitle = () => {
         if (view === 'day') return format(date, 'd MMMM yyyy', { locale: fr });
         if (view === 'month') return format(date, 'MMMM yyyy', { locale: fr });
         return `${format(startOfWeek(date, { weekStartsOn: 1 }), 'd MMM')} - ${format(endOfWeek(date, { weekStartsOn: 1 }), 'd MMM yyyy', { locale: fr })}`;
     };
+
+    const prefillData: PreFillData | undefined = useMemo(() => {
+        return convertingEvent
+            ? {
+                  date: parseISO(convertingEvent.start_date),
+                  hours: Math.floor(convertingEvent.duration_minutes / 60),
+                  minutes: convertingEvent.duration_minutes % 60,
+                  description: '',
+                  schedule_id: convertingEvent.id,
+              }
+            : undefined;
+    }, [convertingEvent]);
 
     return (
         <AppLayout
@@ -246,6 +274,13 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                             >
                                 <ChevronRight className="h-4 w-4" />
                             </Button>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 rounded-md border border-border/50 bg-muted/50 px-2 py-2.5">
+                            <Globe className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">
+                                {auth.user.timezone || 'UTC'}
+                            </span>
                         </div>
 
                         <Popover
@@ -467,6 +502,7 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                 </div>
             </div>
 
+            {/* Modale de visualisation/édition du planning */}
             <EventDialog
                 open={isModalOpen}
                 onOpenChange={setIsModalOpen}
@@ -474,7 +510,21 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                 isEditMode={isEditMode}
                 onSave={handleUpdateEvent}
                 onDelete={handleDeleteEvent}
-                onValidate={() => setIsModalOpen(false)}
+                onValidate={handleValidateEvent}
+            />
+
+            {/* Modale de conversion en pointage */}
+            <TimeEntryDialog
+                open={!!convertingEvent}
+                onOpenChange={(open) => {
+                    if (!open) setConvertingEvent(null);
+                }}
+                ticket={convertingEvent?.ticket}
+                availableTickets={myTickets.map((t) => ({
+                    id: t.id,
+                    title: t.title,
+                }))}
+                initialValues={prefillData}
             />
         </AppLayout>
     );

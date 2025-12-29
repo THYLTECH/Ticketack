@@ -36,6 +36,7 @@ import {
 } from 'date-fns';
 import {
     Calendar as CalendarIcon,
+    CheckCircle,
     Clock,
     ExternalLink,
     Info,
@@ -127,7 +128,8 @@ export function EventDialog({
                                 #{event.ticket.id}
                             </Badge>
                             <Badge className="border-0 bg-primary/10 text-primary hover:bg-primary/20">
-                                {event.ticket.category?.title || 'Intervention'}
+                                {event.ticket.category?.title ||
+                                    __('schedule.defaults.intervention')}
                             </Badge>
                         </div>
                         <DialogTitle className="line-clamp-1 text-xl leading-snug font-semibold tracking-tight text-foreground">
@@ -365,9 +367,13 @@ export function EventDialog({
                                     <div className="flex gap-2">
                                         <Button
                                             variant="outline"
-                                            className="text-emerald-700"
-                                            onClick={() => onValidate(event)}
+                                            className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
+                                            onClick={() => {
+                                                onOpenChange(false);
+                                                onValidate(event);
+                                            }}
                                         >
+                                            <CheckCircle className="mr-2 h-4 w-4" />
                                             {__(
                                                 'schedule.dialog.planning.validate',
                                             )}
@@ -590,12 +596,13 @@ function TicketComments({
                         className="h-[40px] max-h-[120px] min-h-[40px] resize-none rounded-3xl px-4 py-2 text-sm shadow-sm focus-visible:ring-1"
                         value={data.content}
                         onChange={(e) => setData('content', e.target.value)}
-                        onKeyDown={(e) =>{
-                            return e.key === 'Enter' &&
-                            !e.shiftKey &&
-                            (e.preventDefault(), handleSubmit(e));
-                        }
-                        }
+                        onKeyDown={(e) => {
+                            return (
+                                e.key === 'Enter' &&
+                                !e.shiftKey &&
+                                (e.preventDefault(), handleSubmit(e))
+                            );
+                        }}
                     />
                     <Button
                         type="submit"

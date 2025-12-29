@@ -63,6 +63,7 @@ import {
     Ticket,
     Calendar,
     Home,
+    Clock,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
@@ -96,6 +97,14 @@ export function AppSidebar() {
             title: __('app.layout.sidebar.menugroups.platform.items.planning'),
             href: route('tickets.planning.index'),
             icon: Calendar,
+        });
+    }
+
+    if (userHasPermission({ user: auth.user, permission: 'view tickets' })) {
+        mainNavItems.push({
+            title: __('app.layout.sidebar.menugroups.platform.items.entries'),
+            href: route('tickets.entries.index'),
+            icon: Clock,
         });
     }
 
