@@ -1,3 +1,13 @@
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -47,16 +57,6 @@ import {
 } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 
 interface Props {
     open: boolean;
@@ -68,19 +68,21 @@ interface Props {
 }
 
 export function EventDialog({
-    open,
-    onOpenChange,
-    event,
-    isEditMode,
-    onSave,
-    onDelete,
-}: Props) {
+                                open,
+                                onOpenChange,
+                                event,
+                                isEditMode,
+                                onSave,
+                                onDelete,
+                            }: Props) {
     const __ = useTrans();
     const [date, setDate] = useState<Date | undefined>(new Date());
     const [startTime, setStartTime] = useState('08:00');
     const [endTime, setEndTime] = useState('09:00');
     const [activeTab, setActiveTab] = useState('planning');
+
     const [showConvertAlert, setShowConvertAlert] = useState(false);
+    const [conversionNote, setConversionNote] = useState('');
 
     useEffect(() => {
         if (event) {
@@ -92,6 +94,12 @@ export function EventDialog({
             setEndTime(format(end, 'HH:mm'));
         }
     }, [event]);
+
+    useEffect(() => {
+        if (showConvertAlert) {
+            setConversionNote('');
+        }
+    }, [showConvertAlert]);
 
     const getDuration = () => {
         if (!date) return 0;
@@ -124,7 +132,9 @@ export function EventDialog({
 
         router.post(
             route('tickets.planning.convert', event.id),
-            {},
+            {
+                note: conversionNote
+            },
             {
                 onSuccess: () => {
                     toast.success(__('schedule.flash.validated'));
@@ -232,7 +242,7 @@ export function EventDialog({
                                                             className={cn(
                                                                 'w-full justify-start text-left font-normal',
                                                                 !date &&
-                                                                    'text-muted-foreground',
+                                                                'text-muted-foreground',
                                                             )}
                                                         >
                                                             <CalendarIcon className="mr-2 h-4 w-4" />
@@ -442,9 +452,9 @@ export function EventDialog({
                                                 <Badge
                                                     style={{
                                                         backgroundColor:
-                                                            event.ticket
-                                                                .priority
-                                                                ?.color,
+                                                        event.ticket
+                                                            .priority
+                                                            ?.color,
                                                     }}
                                                 >
                                                     {
@@ -490,13 +500,28 @@ export function EventDialog({
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
-                            {__('schedule.dialog.conversion.title') ||
-                                'Valider cette intervention ?'}
+                            {__('schedule.dialog.conversion.title')}
                         </AlertDialogTitle>
                         <AlertDialogDescription>
-                            {__('schedule.dialog.conversion.description') ||
-                                "Cette action convertira l'événement du planning en un pointage effectif et supprimera l'événement du calendrier. Cette action est irréversible."}
+                            {__('schedule.dialog.conversion.description')}
                         </AlertDialogDescription>
+
+                        <div className="grid gap-2 py-4">
+                            <Label htmlFor="conversionNote">
+                                {__('schedule.dialog.conversion.note_label')}
+                            </Label>
+                            <Textarea
+                                id="conversionNote"
+                                value={conversionNote}
+                                onChange={(e) =>
+                                    setConversionNote(e.target.value)
+                                }
+                                placeholder={__(
+                                    'schedule.dialog.conversion.note_placeholder',
+                                )}
+                                className="resize-none"
+                            />
+                        </div>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>
@@ -518,9 +543,9 @@ export function EventDialog({
 }
 
 function TicketComments({
-    ticketId,
-    comments: initialComments,
-}: {
+                            ticketId,
+                            comments: initialComments,
+                        }: {
     ticketId: number;
     comments: Array<{
         id: number;
@@ -616,8 +641,8 @@ function TicketComments({
                                             <span className="font-semibold text-foreground">
                                                 {isMe
                                                     ? __(
-                                                          'schedule.dialog.comment.me',
-                                                      )
+                                                        'schedule.dialog.comment.me',
+                                                    )
                                                     : comment.user?.name}
                                             </span>
                                             <span>

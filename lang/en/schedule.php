@@ -47,8 +47,10 @@ return [
             'me' => 'Me',
         ],
         'conversion' => [
-            'title' => 'Convert to Ticket Entry',
-            'description' => 'Do you want to convert this scheduled intervention into a ticket entry ?',
+            'title' => 'Validate this intervention?',
+            'description' => 'This action will convert the scheduled event into a billable time entry and remove it from the planning.',
+            'note_label' => 'Realization Note (Optional)',
+            'note_placeholder' => 'Details about the work done (leaves empty to use ticket title)',
             'confirm_validate' => 'Convert',
             'cancel' => 'Cancel',
         ],

@@ -68,6 +68,7 @@ export default function EntriesIndex({
         setFilterValues(newFilters);
         const cleanFilters = Object.fromEntries(
             Object.entries(newFilters).filter(
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 ([_, v]) => v != null && v !== '' && v !== 'all',
             ),
         ) as Record<string, string>;
@@ -94,6 +95,7 @@ export default function EntriesIndex({
             };
             if (range.to || range.from) applyFilters(newFilters);
         } else {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { start_date, end_date, ...rest } = filterValues;
             applyFilters({
                 ...rest,

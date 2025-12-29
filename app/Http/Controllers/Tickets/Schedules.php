@@ -77,7 +77,6 @@ class Schedules extends Controller
         $data = $request->validate([
             'start_date' => 'required|date',
             'duration_minutes' => 'required|integer|min:15',
-            'description' => 'nullable|string'
         ]);
 
         $this->checkOverlap($schedule->user_id, $data['start_date'], $data['duration_minutes'], $schedule->id);
@@ -89,7 +88,6 @@ class Schedules extends Controller
             'start_date' => $startDate,
             'end_date' => $endDate,
             'duration_minutes' => $data['duration_minutes'],
-            'description' => $data['description'] ?? $schedule->description,
         ]);
 
         return back()->with('success', __('schedule.flash.updated'));
@@ -102,15 +100,19 @@ class Schedules extends Controller
         return back()->with('success', __('schedule.flash.deleted'));
     }
 
-    public function convert(TicketSchedule $schedule)
+    public function convert(Request $request, TicketSchedule $schedule)
     {
+        $schedule->load('ticket');
+
+        $note = $request->input('note') ?: ($schedule->ticket->title);
+
         TicketEntry::create([
             'ticket_id' => $schedule->ticket_id,
             'user_id' => $schedule->user_id,
             'start_at' => $schedule->start_date,
             'end_at' => $schedule->end_date,
             'duration_seconds' => $schedule->duration_minutes * 60,
-            'note' => $schedule->description ?? 'Réalisation planifiée',
+            'note' => $note,
             'billable' => true,
         ]);
 
@@ -118,7 +120,6 @@ class Schedules extends Controller
 
         return back()->with('success');
     }
-
     private function checkOverlap($userId, $startDate, $duration, $excludeId = null)
     {
         $newStart = Carbon::parse($startDate);
