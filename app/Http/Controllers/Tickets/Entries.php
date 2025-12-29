@@ -17,6 +17,8 @@ use Inertia\Inertia;
 
 class Entries extends Controller
 {
+    private const DATE_FORMAT = 'd/m/Y';
+
     public function index(Request $request)
     {
         /** @var User $user */
@@ -49,7 +51,7 @@ class Entries extends Controller
         $minDate = $statsQuery->min('start_at');
         $maxDate = $statsQuery->max('start_at');
         $period = ($minDate && $maxDate)
-            ? Carbon::parse($minDate)->format('d/m') . ' - ' . Carbon::parse($maxDate)->format('d/m/Y')
+            ? Carbon::parse($minDate)->format('d/m') . ' - ' . Carbon::parse($maxDate)->format(self::DATE_FORMAT)
             : '-';
 
         $sort = $request->input('sort', 'start_at');
@@ -160,7 +162,7 @@ class Entries extends Controller
                 'totalHours' => $totalHours,
                 'period' => $period,
                 'user' => $user,
-                'date' => now()->format('d/m/Y'),
+                'date' => now()->format(self::DATE_FORMAT),
             ]);
 
             $pdf->setPaper('a4', 'portrait');
@@ -175,55 +177,60 @@ class Entries extends Controller
             "Expires" => "0"
         ];
 
-        $callback = function () use ($entries, $totalHours) {
-            $file = fopen('php://output', 'w');
+        return response()->stream(
+            fn () => $this->streamCsv($entries, $totalHours),
+            200,
+            $headers
+        );
+    }
 
-            fputs($file, "\xEF\xBB\xBF");
+    private function streamCsv($entries, float $totalHours): void
+    {
+        $file = fopen('php://output', 'w');
 
-            $delimiter = ',';
+        fputs($file, "\xEF\xBB\xBF");
 
-            fputcsv($file, [
-                __('entries.report.csv.headers.date'),
-                __('entries.report.csv.headers.time'),
-                __('entries.report.csv.headers.ticket_id'),
-                __('entries.report.csv.headers.ticket_title'),
-                __('entries.report.csv.headers.category'),
-                __('entries.report.csv.headers.duration'),
-                __('entries.report.csv.headers.description'),
-                __('entries.report.csv.headers.billable')
-            ], $delimiter);
+        $delimiter = ',';
 
-            /** @var TicketEntry $entry */
-            foreach ($entries as $entry) {
-                /** @var Ticket|null $ticket */
-                $ticket = $entry->ticket;
-                /** @var TicketCategory|null $category */
-                $category = $ticket?->category;
+        fputcsv($file, [
+            __('entries.report.csv.headers.date'),
+            __('entries.report.csv.headers.time'),
+            __('entries.report.csv.headers.ticket_id'),
+            __('entries.report.csv.headers.ticket_title'),
+            __('entries.report.csv.headers.category'),
+            __('entries.report.csv.headers.duration'),
+            __('entries.report.csv.headers.description'),
+            __('entries.report.csv.headers.billable')
+        ], $delimiter);
 
-                fputcsv($file, [
-                    Carbon::parse($entry->start_at)->format('d/m/Y'),
-                    Carbon::parse($entry->start_at)->format('H:i'),
-                    $entry->ticket_id,
-                    $ticket ? $ticket->title : __('entries.report.csv.deleted_ticket'),
-                    $category ? $category->title : '-',
-                    round($entry->duration_seconds / 3600, 2),
-                    $entry->note,
-                    $entry->billable ? __('entries.report.csv.yes') : __('entries.report.csv.no'),
-                ], $delimiter);
-            }
-
-            fputcsv($file, [], $delimiter);
+        /** @var TicketEntry $entry */
+        foreach ($entries as $entry) {
+            /** @var Ticket|null $ticket */
+            $ticket = $entry->ticket;
+            /** @var TicketCategory|null $category */
+            $category = $ticket?->category;
 
             fputcsv($file, [
-                '', '', '', '', __('entries.report.csv.total_hours'),
-                $totalHours,
-                '', ''
+                Carbon::parse($entry->start_at)->format(self::DATE_FORMAT),
+                Carbon::parse($entry->start_at)->format('H:i'),
+                $entry->ticket_id,
+                $ticket ? $ticket->title : __('entries.report.csv.deleted_ticket'),
+                $category ? $category->title : '-',
+                round($entry->duration_seconds / 3600, 2),
+                $entry->note,
+                $entry->billable ? __('entries.report.csv.yes') : __('entries.report.csv.no'),
             ], $delimiter);
+        }
 
-            fclose($file);
-        };
+        fputcsv($file, [], $delimiter);
 
-        return response()->stream($callback, 200, $headers);
+        fputcsv($file, [
+            '', '', '', '', __('entries.report.csv.total_hours'),
+            $totalHours,
+            '', ''
+        ], $delimiter);
+
+        fclose($file);
     }
 
     private function applyFilters(Builder $query, Request $request): void

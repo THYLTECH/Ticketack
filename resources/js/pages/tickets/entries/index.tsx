@@ -158,7 +158,13 @@ export default function EntriesIndex({
                             {__('entries.pagination.results')}
                         </div>
                         <LaravelPagination
-                            links={entries.links as any}
+                            links={
+                                entries.links as unknown as Array<{
+                                    url: string | null;
+                                    label: string;
+                                    active: boolean;
+                                }>
+                            }
                             className="mt-0"
                         />
                     </div>

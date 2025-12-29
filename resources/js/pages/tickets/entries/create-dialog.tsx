@@ -93,7 +93,7 @@ export function TimeEntryDialog({
             setSelectedTicketId(ticket.id);
             setData('ticket_id', ticket.id);
         }
-    }, [ticket]);
+    }, [setData, ticket]);
 
     useEffect(() => {
         if (wasSuccessful) {

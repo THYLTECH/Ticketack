@@ -18,7 +18,8 @@ Route::prefix('tickets')->name('tickets.')->middleware(['auth', 'verified:auth.v
         Route::get('/', 'index')->name('index');
         Route::post('/', 'store')->name('store');
         Route::delete('/{entry}', 'destroy')->name('destroy');
-        Route::get('/report', 'report')->name('report');    });
+        Route::get('/report', 'report')->name('report');
+    });
 
     // PLANNING & SCHEDULE OPERATIONS
     Route::controller(ControllersSchedules::class)->group(function() {

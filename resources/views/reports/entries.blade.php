@@ -30,7 +30,7 @@
 <body>
 
 <div class="header-container">
-    <table style="width: 100%">
+    <table style="width: 100%" role="presentation">
         <tr>
             <td>
                 <div class="company-name">{{ __('entries.pdf.company_name') }}</div>
@@ -44,7 +44,7 @@
     </table>
 </div>
 
-<table class="info-grid">
+<table class="info-grid" role="presentation">
     <tr>
         <td style="padding: 0; padding-right: 10px; width: 70%; border: none; background: none;">
             <div class="info-box">
