@@ -24,8 +24,8 @@ class Entries extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $statuses = TicketStatus::query()->select(['id', 'title', 'color'])->orderBy('order')->get();
-        $priorities = TicketPriority::query()->select(['id', 'title', 'color'])->orderBy('order')->get();
+        $statuses = TicketStatus::query()->select(['id', 'title', 'color'])->orderBy('sort_order')->get();
+        $priorities = TicketPriority::query()->select(['id', 'title', 'color'])->orderBy('sort_order')->get();
         $categories = TicketCategory::query()->select(['id', 'title', 'color'])->orderBy('title')->get();
 
         $tickets = Ticket::query()

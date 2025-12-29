@@ -4,6 +4,7 @@ namespace Tests\Feature\Tickets;
 
 use App\Models\Ticket;
 use App\Models\TicketEntry;
+use App\Models\TicketStatus;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -73,6 +74,87 @@ test('user can filter entries by date', function () {
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->has('entries.data', 1)
+        );
+});
+
+test('user can filter entries by billable status', function () {
+    $ticket = Ticket::factory()->create();
+
+    TicketEntry::create([
+        'ticket_id' => $ticket->id,
+        'user_id' => $this->user->id,
+        'start_at' => now(),
+        'end_at' => now()->addHour(),
+        'duration_seconds' => 3600,
+        'billable' => true,
+    ]);
+
+    TicketEntry::create([
+        'ticket_id' => $ticket->id,
+        'user_id' => $this->user->id,
+        'start_at' => now(),
+        'end_at' => now()->addHour(),
+        'duration_seconds' => 3600,
+        'billable' => false,
+    ]);
+
+    get(route('tickets.entries.index', ['billable' => '1']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->has('entries.data', 1));
+});
+
+test('user can filter entries by ticket attributes', function () {
+    $status1 = TicketStatus::factory()->create();
+    $status2 = TicketStatus::factory()->create();
+
+    $ticket1 = Ticket::factory()->create(['status_id' => $status1->id]);
+    $ticket2 = Ticket::factory()->create(['status_id' => $status2->id]);
+
+    TicketEntry::create([
+        'ticket_id' => $ticket1->id,
+        'user_id' => $this->user->id,
+        'start_at' => now(),
+        'end_at' => now()->addHour(),
+        'duration_seconds' => 3600,
+    ]);
+
+    TicketEntry::create([
+        'ticket_id' => $ticket2->id,
+        'user_id' => $this->user->id,
+        'start_at' => now(),
+        'end_at' => now()->addHour(),
+        'duration_seconds' => 3600,
+    ]);
+
+    get(route('tickets.entries.index', ['ticket_status' => $status1->id]))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->has('entries.data', 1));
+});
+
+test('user can sort entries', function () {
+    $ticket = Ticket::factory()->create();
+
+    $entry1 = TicketEntry::create([
+        'ticket_id' => $ticket->id,
+        'user_id' => $this->user->id,
+        'start_at' => now()->subDays(2),
+        'end_at' => now()->subDays(2)->addHour(),
+        'duration_seconds' => 3600,
+    ]);
+
+    $entry2 = TicketEntry::create([
+        'ticket_id' => $ticket->id,
+        'user_id' => $this->user->id,
+        'start_at' => now(),
+        'end_at' => now()->addHour(),
+        'duration_seconds' => 7200,
+    ]);
+
+    get(route('tickets.entries.index', ['sort' => 'duration_seconds', 'direction' => 'desc']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('entries.data.0.id', $entry2->id)
+            ->where('entries.data.1.id', $entry1->id)
         );
 });
 
@@ -162,6 +244,20 @@ test('report can download csv', function () {
 
     $disposition = $response->headers->get('content-disposition');
     $this->assertStringContainsString('attachment; filename=Time_Report_', $disposition);
+});
+
+test('report generates correct filename with date filters', function () {
+    $start = now()->subDays(5)->format('Y-m-d');
+    $end = now()->format('Y-m-d');
+
+    $response = get(route('tickets.entries.report', [
+        'start_date' => $start,
+        'end_date' => $end
+    ]));
+
+    $response->assertOk();
+    $disposition = $response->headers->get('content-disposition');
+    $this->assertStringContainsString('from_', $disposition);
 });
 
 test('report can download pdf', function () {
