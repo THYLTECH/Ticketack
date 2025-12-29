@@ -15,7 +15,6 @@ class TicketPriorityFactory extends Factory
             'title' => $this->faker->unique()->word(),
             'color' => $this->faker->hexColor(),
             'sort_order' => $this->faker->numberBetween(0, 100),
-            'is_default' => false,
         ];
     }
 }

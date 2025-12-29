@@ -282,3 +282,175 @@ test('report can download pdf', function () {
     get(route('tickets.entries.report', ['format' => 'pdf']))
         ->assertOk();
 });
+
+test('user can filter entries by ticket priority', function () {
+    $priority1 = \App\Models\TicketPriority::factory()->create();
+    $priority2 = \App\Models\TicketPriority::factory()->create();
+
+    $ticket1 = Ticket::factory()->create(['priority_id' => $priority1->id]);
+    $ticket2 = Ticket::factory()->create(['priority_id' => $priority2->id]);
+
+    TicketEntry::factory()->create([
+        'ticket_id' => $ticket1->id,
+        'user_id' => $this->user->id,
+    ]);
+
+    TicketEntry::factory()->create([
+        'ticket_id' => $ticket2->id,
+        'user_id' => $this->user->id,
+    ]);
+
+    get(route('tickets.entries.index', [
+        'ticket_priority' => $priority1->id,
+    ]))
+        ->assertOk()
+        ->assertInertia(fn ($page) =>
+        $page->has('entries.data', 1)
+        );
+});
+
+test('user can filter entries by ticket category', function () {
+    $category1 = \App\Models\TicketCategory::factory()->create();
+    $category2 = \App\Models\TicketCategory::factory()->create();
+
+    $ticket1 = Ticket::factory()->create(['category_id' => $category1->id]);
+    $ticket2 = Ticket::factory()->create(['category_id' => $category2->id]);
+
+    TicketEntry::factory()->create([
+        'ticket_id' => $ticket1->id,
+        'user_id' => $this->user->id,
+    ]);
+
+    TicketEntry::factory()->create([
+        'ticket_id' => $ticket2->id,
+        'user_id' => $this->user->id,
+    ]);
+
+    get(route('tickets.entries.index', [
+        'ticket_category' => $category1->id,
+    ]))
+        ->assertOk()
+        ->assertInertia(fn ($page) =>
+        $page->has('entries.data', 1)
+        );
+});
+
+test('user can combine multiple filters', function () {
+    $status = TicketStatus::factory()->create();
+
+    $ticket = Ticket::factory()->create([
+        'status_id' => $status->id,
+    ]);
+
+    TicketEntry::factory()->create([
+        'ticket_id' => $ticket->id,
+        'user_id' => $this->user->id,
+        'billable' => true,
+        'start_at' => now(),
+    ]);
+
+    TicketEntry::factory()->create([
+        'ticket_id' => $ticket->id,
+        'user_id' => $this->user->id,
+        'billable' => false,
+        'start_at' => now(),
+    ]);
+
+    get(route('tickets.entries.index', [
+        'billable' => '1',
+        'ticket_status' => $status->id,
+        'start_date' => now()->format('Y-m-d'),
+    ]))
+        ->assertOk()
+        ->assertInertia(fn ($page) =>
+        $page->has('entries.data', 1)
+        );
+});
+
+test('user can store entry with explicit start time', function () {
+    $ticket = Ticket::factory()->create();
+
+    post(route('tickets.entries.store'), [
+        'ticket_id' => $ticket->id,
+        'date' => now()->format('Y-m-d'),
+        'start_time' => '08:30',
+        'hours' => 1,
+        'minutes' => 30,
+    ])->assertRedirect();
+
+    $this->assertDatabaseHas('ticket_entries', [
+        'ticket_id' => $ticket->id,
+        'duration_seconds' => 5400,
+    ]);
+});
+
+test('store deletes related schedule when schedule_id is provided', function () {
+    $ticket = Ticket::factory()->create();
+
+    $schedule = \App\Models\TicketSchedule::factory()->create([
+        'ticket_id' => $ticket->id,
+        'user_id' => $this->user->id,
+    ]);
+
+    post(route('tickets.entries.store'), [
+        'ticket_id' => $ticket->id,
+        'date' => now()->format('Y-m-d'),
+        'hours' => 1,
+        'minutes' => 0,
+        'schedule_id' => $schedule->id,
+    ])->assertRedirect();
+
+    $this->assertDatabaseMissing('ticket_schedules', [
+        'id' => $schedule->id,
+    ]);
+});
+
+test('destroy aborts with 403 when user is not owner', function () {
+    $other = User::factory()->create();
+
+    $entry = TicketEntry::factory()->create([
+        'user_id' => $other->id,
+    ]);
+
+    actingAs($this->user)
+        ->delete(route('tickets.entries.destroy', $entry))
+        ->assertStatus(403);
+});
+
+test('csv report contains headers', function () {
+    TicketEntry::factory()->create([
+        'user_id' => $this->user->id,
+    ]);
+
+    $response = get(route('tickets.entries.report'));
+
+    $response->assertOk();
+
+    $content = $response->streamedContent();
+    expect($content)->toContain(__('entries.report.csv.headers.date'));
+});
+
+test('csv report contains total hours row', function () {
+    TicketEntry::factory()->create([
+        'user_id' => $this->user->id,
+        'duration_seconds' => 7200,
+    ]);
+
+    $response = get(route('tickets.entries.report'));
+
+    $content = $response->streamedContent();
+    expect($content)->toContain(__('entries.report.csv.total_hours'));
+});
+
+test('pdf report without date filters uses all history label', function () {
+    Pdf::shouldReceive('loadView')->once()->andReturnSelf();
+    Pdf::shouldReceive('setPaper')->once()->andReturnSelf();
+    Pdf::shouldReceive('download')
+        ->once()
+        ->with(Mockery::pattern('/Time_Report_all_history_/'))
+        ->andReturn(response('pdf', 200));
+
+    get(route('tickets.entries.report', ['format' => 'pdf']))
+        ->assertOk();
+});
+
