@@ -52,11 +52,19 @@ class DashboardController extends Controller
             ];
         })->values();
 
+        $avgTime = DB::table('ticket_entries')
+        ->whereBetween('end_at', [$startDate, $endDate])
+        ->selectRaw('SUM(duration_seconds) as total_per_ticket')
+        ->groupBy('ticket_id')
+        ->get()
+        ->avg('total_per_ticket') ?? 0;
+        //Convert time in seconds to hours 
+        $avgTime = round($avgTime / 3600, 1);
         //General Statistics
         $statsGeneral = [
             'total_assets' => Asset::count(),
             'total_users' => User::count(),
-            'avg_resolution_time' => 0, // TODO
+            'avg_resolution_time' => $avgTime, 
             'activity' => $activityData
         ];
 
@@ -114,18 +122,18 @@ class DashboardController extends Controller
 
             'by_time' => User::select('users.id', 'users.name')
                 ->join('ticket_entries', 'users.id', '=', 'ticket_entries.user_id')
-                ->whereBetween('ticket_entries.created_at', [$startDate, $endDate])
+                ->whereBetween('ticket_entries.end_at', [$startDate, $endDate])
                 ->selectRaw('sum(ticket_entries.duration_seconds) as total_seconds')
                 ->groupBy('users.id', 'users.name')
                 ->orderBy('total_seconds', 'desc')
                 ->get()
                 ->map(function ($user) {
-                    // Conversion en heures lisibles pour le frontend
+                    // Convert time in seconds to hours
                     $user->total_hours = round($user->total_seconds / 3600, 1);
                     return $user;
                 }),
         ];
-
+        //Get only users that are present in any of the stats
         $activeUserIds = collect([
             $statsUsers['by_assigned']->pluck('id'),
             $statsUsers['by_created']->pluck('id'),
@@ -153,10 +161,10 @@ class DashboardController extends Controller
 
             'by_attribute' => AssetAttribute::join('tickets', 'asset_attributes.asset_id', '=', 'tickets.asset_id')
                 ->select('asset_attributes.key')
-                ->selectRaw('count(tickets.id) as count')
+                ->selectRaw('count(distinct tickets.asset_id) as count_assets') 
                 ->whereBetween('tickets.created_at', [$startDate, $endDate])
                 ->groupBy('asset_attributes.key')
-                ->orderBy('count', 'desc')
+                ->orderBy('count_assets', 'desc')
                 ->get(),
         ];
 
