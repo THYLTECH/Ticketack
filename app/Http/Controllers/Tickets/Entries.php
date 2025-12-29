@@ -7,6 +7,7 @@ use App\Models\Ticket;
 use App\Models\TicketCategory;
 use App\Models\TicketEntry;
 use App\Models\TicketPriority;
+use App\Models\TicketSchedule;
 use App\Models\TicketStatus;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -90,10 +91,12 @@ class Entries extends Controller
         $data = $request->validate([
             'ticket_id' => 'required|exists:tickets,id',
             'date' => 'required|date',
+            'start_time' => 'nullable|date_format:H:i',
             'hours' => 'required|integer|min:0',
             'minutes' => 'required|integer|min:0|max:59',
             'description' => 'nullable|string',
             'billable' => 'boolean',
+            'schedule_id' => 'nullable|exists:ticket_schedules,id',
         ]);
 
         $durationSeconds = ($data['hours'] * 3600) + ($data['minutes'] * 60);
@@ -102,8 +105,19 @@ class Entries extends Controller
             return back()->withErrors(['duration' => __('entries.controller.store.duration_error')]);
         }
 
-        $startAt = Carbon::parse($data['date'])->setTimeFrom(now());
+        $startAt = Carbon::parse($data['date']);
+
+        if (!empty($data['start_time'])) {
+            $startAt->setTimeFromTimeString($data['start_time']);
+        } else {
+            $startAt->setTimeFrom(now());
+        }
+
         $endAt = $startAt->copy()->addSeconds($durationSeconds);
+
+        if (!empty($data['schedule_id'])) {
+            TicketSchedule::where('id', $data['schedule_id'])->delete();
+        }
 
         /** @var User $user */
         $user = $request->user();
@@ -157,14 +171,13 @@ class Entries extends Controller
                 ? str_replace('-', '/', $start) . ' to ' . str_replace('-', '/', $end)
                 : __('entries.report.period_all');
 
-            // Grouping for the PDF Layout
             $dailySummary = $entries->groupBy(fn($entry) => $entry->start_at->format('Y-m-d'))
                 ->map(fn($dayEntries) => round($dayEntries->sum('duration_seconds') / 3600, 2));
 
             $weeklyEntries = $entries->groupBy(fn($entry) => $entry->start_at->format('W/Y'));
 
             $pdf = Pdf::loadView('reports.entries', [
-                'entries' => $entries, // Raw entries if needed
+                'entries' => $entries,
                 'dailySummary' => $dailySummary,
                 'weeklyEntries' => $weeklyEntries,
                 'totalHours' => $totalHours,

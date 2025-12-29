@@ -3,12 +3,13 @@ import AppLayout from '@/layouts/app/layout';
 import { useTrans } from '@/lib/translation';
 import {
     PaginationProps,
+    SharedData,
     TicketCategory,
     TicketEntry,
     TicketPriority,
     TicketStatus,
 } from '@/types';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { format, parseISO } from 'date-fns';
 import { useState } from 'react';
 import { DateRange } from 'react-day-picker';
@@ -19,6 +20,8 @@ import { EntriesStats } from './entries-stats';
 import { EntriesTable } from './entries-table';
 import { EntriesToolbar, FilterState } from './entries-toolbar';
 import { ReportDialog } from './report-dialog';
+import { Globe } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 
 type TicketEntryPagination = PaginationProps & {
     data: TicketEntry[];
@@ -47,6 +50,7 @@ export default function EntriesIndex({
     priorities,
     categories,
 }: Props) {
+    const { auth } = usePage<SharedData>().props;
     const __ = useTrans();
     const [filterValues, setFilterValues] = useState<FilterState>(filters);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -123,11 +127,19 @@ export default function EntriesIndex({
         >
             <Head title={__('entries.index.title')} />
 
-            <div className="container mx-auto max-w-[1600px] space-y-8 px-4 py-8 sm:px-6 lg:px-8">
+            <div className="container mx-auto max-w-[1600px] space-y-5 px-4 py-8 sm:px-6 lg:px-8">
                 <EntriesHeader
                     onCreateClick={() => setIsCreateOpen(true)}
                     onReportClick={() => setIsReportOpen(true)}
                 />
+
+                <div className="flex items-center rounded-full border bg-background/50 px-3 py-1 shadow-sm w-fit">
+                    <Globe className="h-3.5 w-3.5 text-muted-foreground" />
+                    <Separator orientation="vertical" className="h-3" />
+                    <span className="text-[11px] font-medium tracking-tight text-foreground uppercase">
+                        TIMEZONE : {auth.user.timezone || 'UTC'}
+                    </span>
+                </div>
 
                 <EntriesStats stats={stats} />
 

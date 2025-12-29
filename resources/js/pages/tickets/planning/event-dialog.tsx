@@ -1,13 +1,3 @@
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -65,24 +55,23 @@ interface Props {
     isEditMode: boolean;
     onSave: (id: number, data: Record<string, string | number>) => void;
     onDelete: (id: number) => void;
+    onValidate: (event: TicketSchedule) => void;
 }
 
 export function EventDialog({
-                                open,
-                                onOpenChange,
-                                event,
-                                isEditMode,
-                                onSave,
-                                onDelete,
-                            }: Props) {
+    open,
+    onOpenChange,
+    event,
+    isEditMode,
+    onSave,
+    onDelete,
+    onValidate,
+}: Props) {
     const __ = useTrans();
     const [date, setDate] = useState<Date | undefined>(new Date());
     const [startTime, setStartTime] = useState('08:00');
     const [endTime, setEndTime] = useState('09:00');
     const [activeTab, setActiveTab] = useState('planning');
-
-    const [showConvertAlert, setShowConvertAlert] = useState(false);
-    const [conversionNote, setConversionNote] = useState('');
 
     useEffect(() => {
         if (event) {
@@ -94,12 +83,6 @@ export function EventDialog({
             setEndTime(format(end, 'HH:mm'));
         }
     }, [event]);
-
-    useEffect(() => {
-        if (showConvertAlert) {
-            setConversionNote('');
-        }
-    }, [showConvertAlert]);
 
     const getDuration = () => {
         if (!date) return 0;
@@ -125,27 +108,6 @@ export function EventDialog({
             start_date: formattedStartDate,
             duration_minutes: duration,
         });
-    };
-
-    const executeConversion = () => {
-        if (!event) return;
-
-        router.post(
-            route('tickets.planning.convert', event.id),
-            {
-                note: conversionNote
-            },
-            {
-                onSuccess: () => {
-                    toast.success(__('schedule.flash.validated'));
-                    setShowConvertAlert(false);
-                    onOpenChange(false);
-                },
-                onError: () => {
-                    toast.error(__('schedule.flash.error'));
-                },
-            },
-        );
     };
 
     if (!event) return null;
@@ -242,7 +204,7 @@ export function EventDialog({
                                                             className={cn(
                                                                 'w-full justify-start text-left font-normal',
                                                                 !date &&
-                                                                'text-muted-foreground',
+                                                                    'text-muted-foreground',
                                                             )}
                                                         >
                                                             <CalendarIcon className="mr-2 h-4 w-4" />
@@ -406,9 +368,10 @@ export function EventDialog({
                                         <Button
                                             variant="outline"
                                             className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
-                                            onClick={() =>
-                                                setShowConvertAlert(true)
-                                            }
+                                            onClick={() => {
+                                                onOpenChange(false);
+                                                onValidate(event);
+                                            }}
                                         >
                                             <CheckCircle className="mr-2 h-4 w-4" />
                                             {__(
@@ -452,9 +415,9 @@ export function EventDialog({
                                                 <Badge
                                                     style={{
                                                         backgroundColor:
-                                                        event.ticket
-                                                            .priority
-                                                            ?.color,
+                                                            event.ticket
+                                                                .priority
+                                                                ?.color,
                                                     }}
                                                 >
                                                     {
@@ -492,60 +455,14 @@ export function EventDialog({
                     </div>
                 </Tabs>
             </DialogContent>
-
-            <AlertDialog
-                open={showConvertAlert}
-                onOpenChange={setShowConvertAlert}
-            >
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>
-                            {__('schedule.dialog.conversion.title')}
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                            {__('schedule.dialog.conversion.description')}
-                        </AlertDialogDescription>
-
-                        <div className="grid gap-2 py-4">
-                            <Label htmlFor="conversionNote">
-                                {__('schedule.dialog.conversion.note_label')}
-                            </Label>
-                            <Textarea
-                                id="conversionNote"
-                                value={conversionNote}
-                                onChange={(e) =>
-                                    setConversionNote(e.target.value)
-                                }
-                                placeholder={__(
-                                    'schedule.dialog.conversion.note_placeholder',
-                                )}
-                                className="resize-none"
-                            />
-                        </div>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>
-                            {__('schedule.dialog.conversion.cancel')}
-                        </AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={executeConversion}
-                            className="border-none bg-emerald-600 text-white hover:bg-emerald-700"
-                        >
-                            {__(
-                                'schedule.dialog.conversion.confirm_validate',
-                            )}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
         </Dialog>
     );
 }
 
 function TicketComments({
-                            ticketId,
-                            comments: initialComments,
-                        }: {
+    ticketId,
+    comments: initialComments,
+}: {
     ticketId: number;
     comments: Array<{
         id: number;
@@ -641,8 +558,8 @@ function TicketComments({
                                             <span className="font-semibold text-foreground">
                                                 {isMe
                                                     ? __(
-                                                        'schedule.dialog.comment.me',
-                                                    )
+                                                          'schedule.dialog.comment.me',
+                                                      )
                                                     : comment.user?.name}
                                             </span>
                                             <span>

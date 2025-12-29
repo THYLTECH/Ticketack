@@ -36,7 +36,7 @@ import { useTrans } from '@/lib/translation';
 import { cn } from '@/lib/utils';
 import { TicketEntry } from '@/types';
 import { Link, router } from '@inertiajs/react';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import {
     ArrowDown,
@@ -183,14 +183,14 @@ export function EntriesTable({ entries, showTicketColumn = true }: Props) {
                                     <div className="flex flex-col">
                                         <span className="text-sm font-medium text-foreground tabular-nums">
                                             {format(
-                                                new Date(entry.start_at),
+                                                parseISO(entry.start_at),
                                                 'dd MMM yyyy',
                                                 { locale: fr },
                                             )}
                                         </span>
                                         <span className="font-mono text-xs text-muted-foreground">
                                             {format(
-                                                new Date(entry.start_at),
+                                                parseISO(entry.start_at),
                                                 'HH:mm',
                                             )}
                                         </span>
@@ -364,7 +364,7 @@ export function EntriesTable({ entries, showTicketColumn = true }: Props) {
                             <span className="text-xs text-muted-foreground">
                                 {previewEntry?.start_at &&
                                     format(
-                                        new Date(previewEntry.start_at),
+                                        parseISO(previewEntry.start_at),
                                         'dd MMMM yyyy',
                                         { locale: fr },
                                     )}

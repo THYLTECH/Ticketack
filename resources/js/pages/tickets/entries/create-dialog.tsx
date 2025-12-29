@@ -41,20 +41,31 @@ import {
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
+export interface PreFillData {
+    date: Date;
+    hours: number;
+    minutes: number;
+    description?: string;
+    schedule_id?: number;
+}
+
 interface Props {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     ticket?: Ticket;
     availableTickets?: { id: number; title: string }[];
+    initialValues?: PreFillData;
 }
 
 interface FormData {
     ticket_id: string | number;
     date: Date | undefined;
+    start_time: string;
     hours: number;
     minutes: number;
     description: string;
     billable: string;
+    schedule_id?: number;
 }
 
 export function TimeEntryDialog({
@@ -62,6 +73,7 @@ export function TimeEntryDialog({
     onOpenChange,
     ticket,
     availableTickets = [],
+    initialValues,
 }: Props) {
     const __ = useTrans();
     const [selectedTicketId, setSelectedTicketId] = useState<number | null>(
@@ -82,11 +94,38 @@ export function TimeEntryDialog({
     } = useForm<FormData>({
         ticket_id: ticket ? ticket.id : '',
         date: new Date(),
+        start_time: format(new Date(), 'HH:mm'),
         hours: 0,
         minutes: 30,
         description: '',
         billable: '0',
     });
+
+    useEffect(() => {
+        if (initialValues && open) {
+            setData((prev) => ({
+                ...prev,
+                date: initialValues.date,
+                start_time: format(initialValues.date, 'HH:mm'),
+                hours: initialValues.hours,
+                minutes: initialValues.minutes,
+                description: initialValues.description || '',
+                schedule_id: initialValues.schedule_id,
+                billable: '1',
+            }));
+        } else if (!open && !initialValues) {
+            setData({
+                ticket_id: ticket ? ticket.id : '',
+                date: new Date(),
+                start_time: format(new Date(), 'HH:mm'),
+                hours: 0,
+                minutes: 30,
+                description: '',
+                billable: '0',
+            });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [initialValues, open]);
 
     useEffect(() => {
         if (ticket) {
@@ -116,6 +155,8 @@ export function TimeEntryDialog({
             date: format(data.date!, 'yyyy-MM-dd'),
             ticket_id: parseInt(data.ticket_id.toString()),
             billable: data.billable === '1',
+            start_time: data.start_time,
+            schedule_id: data.schedule_id,
         }));
 
         post(route('tickets.entries.store'), {
@@ -123,18 +164,24 @@ export function TimeEntryDialog({
             onError: () => toast.error(__('entries.dialog.toast.error')),
         });
     };
-
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                    <DialogTitle>{__('entries.dialog.title')}</DialogTitle>
+                    <DialogTitle>
+                        {initialValues
+                            ? __('schedule.dialog.conversion.title')
+                            : __('entries.dialog.title')}
+                    </DialogTitle>
                     <DialogDescription>
-                        {__('entries.dialog.description_indication')}
+                        {initialValues
+                            ? __('schedule.dialog.conversion.description')
+                            : __('entries.dialog.description_indication')}
                     </DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-6 py-2">
+                    {/* --- SÉLECTION DU TICKET --- */}
                     <div className="grid gap-2">
                         <Label>{__('entries.dialog.ticket.label')}</Label>
                         {ticket ? (
@@ -242,54 +289,76 @@ export function TimeEntryDialog({
                         )}
                     </div>
 
-                    <div className="grid gap-2">
-                        <Label>{__('entries.dialog.date.label')}</Label>
-                        <Popover
-                            open={datePopoverOpen}
-                            onOpenChange={setDatePopoverOpen}
-                        >
-                            <PopoverTrigger asChild>
-                                <Button
-                                    variant="outline"
-                                    className={cn(
-                                        'w-full justify-start text-left font-normal',
-                                        !data.date && 'text-muted-foreground',
-                                    )}
-                                >
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {data.date ? (
-                                        format(data.date, 'dd MMMM yyyy')
-                                    ) : (
-                                        <span>
-                                            {__(
-                                                'entries.dialog.date.placeholder',
-                                            )}
-                                        </span>
-                                    )}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent
-                                className="w-auto p-0"
-                                align="start"
+                    {/* --- GROUPE DATE ET HEURE --- */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="grid gap-2">
+                            <Label>{__('entries.dialog.date.label')}</Label>
+                            <Popover
+                                open={datePopoverOpen}
+                                onOpenChange={setDatePopoverOpen}
                             >
-                                <Calendar
-                                    mode="single"
-                                    selected={data.date}
-                                    onSelect={(d) => {
-                                        setData('date', d);
-                                        setDatePopoverOpen(false);
-                                    }}
-                                    initialFocus
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        className={cn(
+                                            'w-full justify-start text-left font-normal',
+                                            !data.date &&
+                                                'text-muted-foreground',
+                                        )}
+                                    >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {data.date ? (
+                                            format(data.date, 'dd MMMM yyyy')
+                                        ) : (
+                                            <span>
+                                                {__(
+                                                    'entries.dialog.date.placeholder',
+                                                )}
+                                            </span>
+                                        )}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent
+                                    className="w-auto p-0"
+                                    align="start"
+                                >
+                                    <Calendar
+                                        mode="single"
+                                        selected={data.date}
+                                        onSelect={(d) => {
+                                            setData('date', d);
+                                            setDatePopoverOpen(false);
+                                        }}
+                                        initialFocus
+                                    />
+                                </PopoverContent>
+                            </Popover>
+                            {errors.date && (
+                                <p className="text-xs text-destructive">
+                                    {errors.date}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Nouveau champ Heure de début */}
+                        <div className="grid gap-2">
+                            <Label>
+                                {__('schedule.dialog.planning.start_time')}
+                            </Label>
+                            <div className="relative">
+                                <Input
+                                    type="time"
+                                    value={data.start_time}
+                                    onChange={(e) =>
+                                        setData('start_time', e.target.value)
+                                    }
                                 />
-                            </PopoverContent>
-                        </Popover>
-                        {errors.date && (
-                            <p className="text-xs text-destructive">
-                                {errors.date}
-                            </p>
-                        )}
+                                <Clock className="pointer-events-none absolute top-2.5 right-3 h-4 w-4 text-muted-foreground" />
+                            </div>
+                        </div>
                     </div>
 
+                    {/* --- DURÉE --- */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="hours">
@@ -349,6 +418,7 @@ export function TimeEntryDialog({
                         </p>
                     )}
 
+                    {/* --- DESCRIPTION --- */}
                     <div className="grid gap-2">
                         <Label htmlFor="description">
                             {__('entries.dialog.description.label')}
@@ -372,6 +442,7 @@ export function TimeEntryDialog({
                         )}
                     </div>
 
+                    {/* --- FACTURABLE --- */}
                     <div className="grid gap-3">
                         <Label>{__('entries.dialog.billable.label')}</Label>
                         <RadioGroup
@@ -440,7 +511,9 @@ export function TimeEntryDialog({
                             {processing && (
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             )}
-                            {__('entries.dialog.actions.save')}
+                            {initialValues
+                                ? __('schedule.dialog.planning.validate')
+                                : __('entries.dialog.actions.save')}
                         </Button>
                     </DialogFooter>
                 </form>
