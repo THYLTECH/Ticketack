@@ -181,7 +181,6 @@ export function TimeEntryDialog({
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-6 py-2">
-                    {/* --- SÉLECTION DU TICKET --- */}
                     <div className="grid gap-2">
                         <Label>{__('entries.dialog.ticket.label')}</Label>
                         {ticket ? (
@@ -289,7 +288,6 @@ export function TimeEntryDialog({
                         )}
                     </div>
 
-                    {/* --- GROUPE DATE ET HEURE --- */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="grid gap-2">
                             <Label>{__('entries.dialog.date.label')}</Label>
@@ -340,7 +338,6 @@ export function TimeEntryDialog({
                             )}
                         </div>
 
-                        {/* Nouveau champ Heure de début */}
                         <div className="grid gap-2">
                             <Label>
                                 {__('schedule.dialog.planning.start_time')}
@@ -353,12 +350,10 @@ export function TimeEntryDialog({
                                         setData('start_time', e.target.value)
                                     }
                                 />
-                                <Clock className="pointer-events-none absolute top-2.5 right-3 h-4 w-4 text-muted-foreground" />
                             </div>
                         </div>
                     </div>
 
-                    {/* --- DURÉE --- */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="hours">
@@ -418,7 +413,6 @@ export function TimeEntryDialog({
                         </p>
                     )}
 
-                    {/* --- DESCRIPTION --- */}
                     <div className="grid gap-2">
                         <Label htmlFor="description">
                             {__('entries.dialog.description.label')}
@@ -442,7 +436,6 @@ export function TimeEntryDialog({
                         )}
                     </div>
 
-                    {/* --- FACTURABLE --- */}
                     <div className="grid gap-3">
                         <Label>{__('entries.dialog.billable.label')}</Label>
                         <RadioGroup

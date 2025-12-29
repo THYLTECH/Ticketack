@@ -8,7 +8,7 @@ return [
         'description' => 'Analyze your performance and export your data.',
         'actions' => [
             'report' => 'Report',
-            'log_time' => 'Log Time',
+            'log_time' => 'Log time',
         ],
     ],
     'pdf' => [
@@ -88,7 +88,7 @@ return [
         ],
         'period' => [
             'title' => 'Active Period',
-            'description' => 'Selected date range',
+            'description' => 'Active date range',
         ],
     ],
     'table' => [
@@ -173,7 +173,7 @@ return [
         'results' => 'results',
     ],
     'dialog' => [
-        'title' => 'Log Time',
+        'title' => 'Log time',
         'description_indication' => 'Fill out the form below to record your intervention.',
         'ticket' => [
             'label' => 'Ticket',
