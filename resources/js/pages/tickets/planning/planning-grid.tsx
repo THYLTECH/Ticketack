@@ -274,7 +274,7 @@ export function PlanningGrid({
                                     </span>
                                     {dayEvents.map((evt) => (
                                         <div
-                                            key={evt.id}
+                                            key={`${evt.id}-${evt.updated_at}`}
                                             draggable={isEditMode}
                                             onDragStart={(e) => {
                                                 e.dataTransfer.setData(
@@ -457,7 +457,7 @@ export function PlanningGrid({
 
                                         return (
                                             <div
-                                                key={event.id}
+                                                key={`${event.id}-${event.updated_at}`}
                                                 draggable={
                                                     isEditMode && !isResizing
                                                 }

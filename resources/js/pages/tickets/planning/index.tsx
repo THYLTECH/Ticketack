@@ -154,6 +154,7 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                     preserveScroll: true,
                     onSuccess: () => {
                         setSelectedTicketId(null);
+                        setSelectedEvent(null);
                     },
                 },
             );
@@ -197,6 +198,7 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
 
     const handleValidateEvent = (event: TicketSchedule) => {
         setIsModalOpen(false);
+        setSelectedEvent(null);
         setConvertingEvent(event);
     };
 
@@ -502,10 +504,12 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                 </div>
             </div>
 
-            {/* Modale de visualisation/édition du planning */}
             <EventDialog
                 open={isModalOpen}
-                onOpenChange={setIsModalOpen}
+                onOpenChange={(open) => {
+                    setIsModalOpen(open);
+                    if (!open) setSelectedEvent(null);
+                }}
                 event={selectedEvent}
                 isEditMode={isEditMode}
                 onSave={handleUpdateEvent}
@@ -513,11 +517,13 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                 onValidate={handleValidateEvent}
             />
 
-            {/* Modale de conversion en pointage */}
             <TimeEntryDialog
                 open={!!convertingEvent}
                 onOpenChange={(open) => {
-                    if (!open) setConvertingEvent(null);
+                    if (!open) {
+                        setConvertingEvent(null);
+                        setSelectedEvent(null);
+                    }
                 }}
                 ticket={convertingEvent?.ticket}
                 availableTickets={myTickets.map((t) => ({

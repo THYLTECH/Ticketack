@@ -94,7 +94,8 @@ class Crud extends Controller
         $events = TicketSchedule::with([
             'user',
             'ticket.priority',
-            'ticket.status'
+            'ticket.status',
+            'ticket.category',
         ])->get();
 
         $solvers = User::role(['admin', 'solver'])->get()->map(function ($user) {

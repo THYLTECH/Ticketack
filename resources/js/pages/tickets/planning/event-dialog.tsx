@@ -2,6 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
+import { PreFillData, TimeEntryDialog } from '../entries/create-dialog';
 import {
     Dialog,
     DialogContent,
@@ -45,7 +46,7 @@ import {
     Trash2,
     User,
 } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 interface Props {
@@ -65,13 +66,25 @@ export function EventDialog({
     isEditMode,
     onSave,
     onDelete,
-    onValidate,
 }: Props) {
     const __ = useTrans();
     const [date, setDate] = useState<Date | undefined>(new Date());
     const [startTime, setStartTime] = useState('08:00');
     const [endTime, setEndTime] = useState('09:00');
     const [activeTab, setActiveTab] = useState('planning');
+    const [showTimeEntryDialog, setShowTimeEntryDialog] = useState(false);
+
+    const prefillData: PreFillData | undefined = useMemo(() => {
+        return event
+            ? {
+                  date: parseISO(event.start_date),
+                  hours: Math.floor(event.duration_minutes / 60),
+                  minutes: event.duration_minutes % 60,
+                  description: '',
+                  schedule_id: event.id,
+              }
+            : undefined;
+    }, [event]);
 
     useEffect(() => {
         if (event) {
@@ -369,8 +382,7 @@ export function EventDialog({
                                             variant="outline"
                                             className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
                                             onClick={() => {
-                                                onOpenChange(false);
-                                                onValidate(event);
+                                                setShowTimeEntryDialog(true);
                                             }}
                                         >
                                             <CheckCircle className="mr-2 h-4 w-4" />
@@ -455,6 +467,23 @@ export function EventDialog({
                     </div>
                 </Tabs>
             </DialogContent>
+            <TimeEntryDialog
+                open={showTimeEntryDialog}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setShowTimeEntryDialog(false);
+                        onOpenChange(false);
+                    }
+                }}
+                ticket={event?.ticket}
+                availableTickets={[
+                    {
+                        id: event!.ticket.id,
+                        title: event!.ticket.title,
+                    },
+                ]}
+                initialValues={prefillData}
+            />
         </Dialog>
     );
 }
