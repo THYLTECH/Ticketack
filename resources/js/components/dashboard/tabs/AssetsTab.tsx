@@ -40,7 +40,7 @@ export const AssetsTab = ({ statsAssets, chartFilters, onFilterChange, chartConf
         {
             title: __('dashboard.pages.stats.asset_statistics.by_attribute'),
             data: statsAssets.by_attribute,
-            dataKey: "count",
+            dataKey: "count_assets",
             labelKey: "key",
             filterLabel: __('dashboard.pages.filters.label.filter'),
             selectItems: statsAssets.by_attribute.map(a => ({ id: a.key, label: a.key }))
