@@ -29,6 +29,12 @@ return [
             'billable' => 'Billable',
             'duration' => 'Duration',
         ],
+        'daily_summary' => 'Daily Hours Distribution',
+        'weekly_details' => 'Weekly Detailed Entries',
+        'week' => 'Week',
+        'date' => 'Date',
+        'hours' => 'Hours',
+        'total' => 'Total',
     ],
     'controller' => [
         'store' => [

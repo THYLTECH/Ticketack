@@ -157,8 +157,16 @@ class Entries extends Controller
                 ? str_replace('-', '/', $start) . ' to ' . str_replace('-', '/', $end)
                 : __('entries.report.period_all');
 
+            // Grouping for the PDF Layout
+            $dailySummary = $entries->groupBy(fn($entry) => $entry->start_at->format('Y-m-d'))
+                ->map(fn($dayEntries) => round($dayEntries->sum('duration_seconds') / 3600, 2));
+
+            $weeklyEntries = $entries->groupBy(fn($entry) => $entry->start_at->format('W/Y'));
+
             $pdf = Pdf::loadView('reports.entries', [
-                'entries' => $entries,
+                'entries' => $entries, // Raw entries if needed
+                'dailySummary' => $dailySummary,
+                'weeklyEntries' => $weeklyEntries,
                 'totalHours' => $totalHours,
                 'period' => $period,
                 'user' => $user,
