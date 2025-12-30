@@ -1,55 +1,105 @@
-// resources/js/pages/tickets/manage.tsx
-
-// Necessary imports
-import { Head, Link, router, usePage } from '@inertiajs/react';
-
-// Layout
-import AppLayout from '@/layouts/app/layout';
-
-// Translation Hook
-import { useTrans } from '@/lib/translation';
-
-// Custom functions
-import { formatDate, userHasPermission } from '@/lib/utils';
-
-// Types
-import type { BreadcrumbItem, Ticket, SharedData } from '@/types';
-
-// Custom components
-
-// Shadcn UI Components
 import { Button } from '@/components/ui/button';
+import AppLayout from '@/layouts/app/layout';
+import { useTrans } from '@/lib/translation';
+import { userHasPermission } from '@/lib/utils';
 import {
-    Card,
-    CardAction,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
-import {
-    Empty,
-    EmptyContent,
-    EmptyDescription,
-    EmptyHeader,
-    EmptyMedia,
-    EmptyTitle,
-} from '@/components/ui/empty';
-import { Separator } from '@/components/ui/separator';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
+    Asset,
+    BreadcrumbItem,
+    SharedData,
+    Ticket,
+    TicketCategory,
+    TicketPriority,
+    TicketStatus,
+    User,
+} from '@/types';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { ArrowLeft, Plus } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useDebounce } from 'use-debounce';
+import { TicketEmpty } from './components/ticket-empty';
+import { TicketTable } from './components/ticket-table';
+import { TicketToolbar } from './components/ticket-toolbar';
 
-// Icons
-import { ArrowLeft, Plus, RefreshCcw, TicketIcon } from 'lucide-react';
+interface PaginatedData<T> {
+    data: T[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from: number;
+    to: number;
+    links: {
+        url: string | null;
+        label: string;
+        active: boolean;
+    }[];
+}
 
-export default function Index({ tickets }: { tickets: Ticket[] }) {
+interface Props {
+    tickets: PaginatedData<Ticket>;
+    filters: Record<string, string>;
+    statuses: TicketStatus[];
+    priorities: TicketPriority[];
+    categories: TicketCategory[];
+    assets: Asset[];
+    solvers: User[];
+}
+
+export default function Manage({
+    tickets,
+    filters = {},
+    statuses = [],
+    priorities = [],
+    categories = [],
+    assets = [],
+    solvers = [],
+}: Props) {
     const __ = useTrans();
+    const { auth } = usePage<SharedData>().props;
+
+    const [searchTerm, setSearchTerm] = useState(filters.search || '');
+    const [debouncedSearch] = useDebounce(searchTerm, 300);
+
+    const updateFilters = useCallback(
+        (key: string, value: string | null) => {
+            const newFilters: Record<string, string> = {
+                ...filters,
+                search: searchTerm,
+            };
+            if (value && value !== 'all') {
+                newFilters[key] = value;
+            } else {
+                delete newFilters[key];
+            }
+            router.get(route('tickets.manage'), newFilters, {
+                preserveState: true,
+                replace: true,
+            });
+        },
+        [filters, searchTerm],
+    );
+
+    useEffect(() => {
+        if (debouncedSearch !== (filters.search || '')) {
+            router.get(
+                route('tickets.manage'),
+                { ...filters, search: debouncedSearch },
+                { preserveState: true, replace: true },
+            );
+        }
+    }, [debouncedSearch, filters]);
+
+    const clearFilters = () => {
+        setSearchTerm('');
+        router.get(route('tickets.manage'));
+    };
+
+    const hasActiveFilters = useMemo(() => {
+        return (
+            Object.keys(filters).length > 0 &&
+            Object.values(filters).some((v) => v)
+        );
+    }, [filters]);
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -61,132 +111,71 @@ export default function Index({ tickets }: { tickets: Ticket[] }) {
             href: route('tickets.index'),
         },
         {
-            title: 'Manage',
+            title: __('tickets.pages.index.buttons.manage'),
             href: '#',
         },
     ];
 
-    const { auth } = usePage<SharedData>().props;
-
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={__('tickets.pages.index.head_title')} />
+            <Head title={__('tickets.pages.index.buttons.manage')} />
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Tickets management</CardTitle>
-                    <CardDescription>
-                        Manage all tickets in the system below.
-                    </CardDescription>
+            <div className="container mx-auto max-w-[1600px] space-y-5 px-4 py-8 sm:px-6 lg:px-8">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h2 className="text-2xl font-bold tracking-tight text-foreground">
+                            {__('tickets.pages.index.buttons.manage')}
+                        </h2>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                            {auth.user.roles?.some((r) => r.name === 'admin')
+                                ? __('tickets.pages.index.description')
+                                : __('tickets.pages.index.description')}
+                        </p>
+                    </div>
 
-                    <CardAction className="flex items-center gap-2">
-                        <Button asChild variant={"secondary"}>
+                    <div className="flex items-center gap-2">
+                        <Button asChild variant="secondary" size="sm">
                             <Link href={route('tickets.index')}>
-                                <ArrowLeft />
-                                Go back to your tickets
+                                <ArrowLeft className="mr-2 h-4 w-4" />
+                                {__('tickets.pages.form.buttons.back')}
                             </Link>
                         </Button>
                         {userHasPermission({
                             user: auth.user,
                             permission: 'create tickets',
                         }) && (
-                            <Button asChild>
+                            <Button asChild size="sm">
                                 <Link href={route('tickets.create')}>
-                                    <Plus />
+                                    <Plus className="mr-2 h-4 w-4" />
                                     {__('tickets.pages.index.buttons.create')}
                                 </Link>
                             </Button>
                         )}
-                    </CardAction>
-                </CardHeader>
-                <Separator />
+                    </div>
+                </div>
 
-                <CardContent>
-                    {tickets.length === 0 ? (
+                <div className="flex flex-col gap-4">
+                    <TicketToolbar
+                        searchTerm={searchTerm}
+                        onSearchChange={setSearchTerm}
+                        filters={filters}
+                        onFilterChange={updateFilters}
+                        onClearFilters={clearFilters}
+                        statuses={statuses}
+                        priorities={priorities}
+                        categories={categories}
+                        assets={assets}
+                        solvers={solvers}
+                        hasActiveFilters={hasActiveFilters}
+                    />
+
+                    {tickets.data.length === 0 ? (
                         <TicketEmpty />
                     ) : (
-                        <TicketTable tickets={tickets} />
+                        <TicketTable tickets={tickets} auth={auth} />
                     )}
-                </CardContent>
-            </Card>
+                </div>
+            </div>
         </AppLayout>
-    );
-}
-
-function TicketEmpty() {
-    const __ = useTrans();
-
-    return (
-        <Empty className="border border-dashed">
-            <EmptyHeader>
-                <EmptyMedia variant="icon">
-                    <TicketIcon />
-                </EmptyMedia>
-                <EmptyTitle>{__('tickets.pages.index.empty.title')}</EmptyTitle>
-                <EmptyDescription>
-                    {__('tickets.pages.index.empty.description')}
-                </EmptyDescription>
-            </EmptyHeader>
-            <EmptyContent>
-                <Button variant="outline" size="sm" asChild>
-                    <Link href={route('tickets.index')}>
-                        <RefreshCcw />
-                        {__('tickets.pages.index.empty.button')}
-                    </Link>
-                </Button>
-            </EmptyContent>
-        </Empty>
-    );
-}
-
-function TicketTable({ tickets }: { tickets: Ticket[] }) {
-    const __ = useTrans();
-
-    const auth = usePage<SharedData>().props.auth;
-
-    return (
-        <Table>
-            <TableHeader>
-                <TableRow>
-                    <TableHead className="text-xs text-muted-foreground">
-                        {__('tickets.pages.index.table.columns.title')}
-                    </TableHead>
-                    <TableHead className="w-[8rem] text-right text-xs text-muted-foreground">
-                        {__('tickets.pages.index.table.columns.updated_at')}
-                    </TableHead>
-                    <TableHead className="w-[8rem] text-right text-xs text-muted-foreground">
-                        {__('tickets.pages.index.table.columns.created_at')}
-                    </TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {tickets.map((ticket) => (
-                    <TableRow
-                        className="relative cursor-pointer"
-                        key={ticket.id}
-                        onClick={() => {
-                            if (
-                                userHasPermission({
-                                    user: auth.user,
-                                    permission: 'show tickets',
-                                })
-                            ) {
-                                router.visit(route('tickets.show', ticket.id));
-                            }
-                        }}
-                    >
-                        <TableCell>
-                            {ticket.title}
-                        </TableCell>
-                        <TableCell className="text-right">
-                            {formatDate(ticket.updated_at)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                            {formatDate(ticket.created_at)}
-                        </TableCell>
-                    </TableRow>
-                ))}
-            </TableBody>
-        </Table>
     );
 }

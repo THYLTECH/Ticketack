@@ -64,6 +64,7 @@ import {
     Calendar,
     Home,
     Clock,
+    Plus
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
@@ -178,6 +179,22 @@ export function AppSidebar() {
                         <SidebarMenuButton size="lg" asChild>
                             <Link href={route('home')} prefetch>
                                 <AppLogo />
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem className="px-2 pb-2 mt-2">
+                        <SidebarMenuButton
+                            asChild
+                            variant="default"
+                            className="w-full justify-center gap-2 bg-primary text-primary-foreground shadow-sm transition-all group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:p-0 hover:bg-primary/90"
+                        >
+                            <Link href={route('tickets.create')}>
+                                <Plus className="size-4 shrink-0" />
+                                <span className="font-semibold group-data-[collapsible=icon]:hidden">
+                                    {__(
+                                        'app.layout.sidebar.actions.create_ticket',
+                                    ) || 'Créer un ticket'}
+                                </span>
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>

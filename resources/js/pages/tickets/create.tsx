@@ -1,35 +1,13 @@
-// resources/js/pages/tickets/create.tsx
-
-// Necessary imports
-import { userHasPermission } from '@/lib/utils';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
-
-// Layout
-import AppLayout from '@/layouts/app/layout';
-
-// Translation Hook
-import { useTrans } from '@/lib/translation';
-
-// Custom components
-import { InformationsTab, UsersTab } from '@/pages/tickets/form';
-
-// Shadnc UI Components
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardAction,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Spinner } from '@/components/ui/spinner';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
-// Types
-import type {
+import { FileWithPreview } from '@/hooks/use-file-upload';
+import AppLayout from '@/layouts/app/layout';
+import { useTrans } from '@/lib/translation';
+import { userHasPermission } from '@/lib/utils';
+import { InformationsTab, UsersTab } from '@/pages/tickets/form';
+import {
     Asset,
     BreadcrumbItem,
     SharedData,
@@ -38,10 +16,9 @@ import type {
     TicketStatus,
     User,
 } from '@/types';
-
-// Icons
-import { FileWithPreview } from '@/hooks/use-file-upload';
-import { ArrowLeft, File, Plus, Users } from 'lucide-react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { ArrowLeft, Check, FileText, Users } from 'lucide-react';
+import React from 'react';
 
 interface CreateProps {
     priorities: TicketPriority[];
@@ -70,7 +47,7 @@ export default function Create({
             href: route('tickets.index'),
         },
         {
-            title: 'Manage',
+            title: __('tickets.pages.index.buttons.manage'),
             href: route('tickets.manage'),
         },
         {
@@ -83,43 +60,48 @@ export default function Create({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={__('tickets.pages.create.head_title')} />
 
-            <CreateForm
-                priorities={priorities}
-                categories={categories}
-                statuses={statuses}
-                assets={assets}
-                users={users}
-            />
+            <div className="container mx-auto max-w-[1600px] space-y-5 px-4 py-8 sm:px-6 lg:px-8">
+                <CreateForm
+                    priorities={priorities}
+                    categories={categories}
+                    statuses={statuses}
+                    assets={assets}
+                    users={users}
+                />
+            </div>
         </AppLayout>
     );
 }
 
-function CreateForm({ priorities, categories, statuses, assets, users }: CreateProps) {
+function CreateForm({
+    priorities,
+    categories,
+    statuses,
+    assets,
+    users,
+}: CreateProps) {
     const __ = useTrans();
+    const { auth } = usePage<SharedData>().props;
 
     const { data, setData, processing, errors, post } = useForm<{
         title: string;
         description: string;
-
+        is_public: boolean;
         priority_id: number | null;
         status_id: number | null;
         category_id: number | null;
         asset_id: number | null;
-
         attachments: FileWithPreview[];
-
         assignees: User[];
     }>({
         title: '',
         description: '',
-
+        is_public: false,
         priority_id: null,
         status_id: null,
         category_id: null,
         asset_id: null,
-
         attachments: [],
-
         assignees: [],
     });
 
@@ -129,72 +111,113 @@ function CreateForm({ priorities, categories, statuses, assets, users }: CreateP
     };
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>{__('tickets.pages.create.title')}</CardTitle>
-                <CardDescription>
-                    {__('tickets.pages.create.description')}
-                </CardDescription>
-                <CardAction>
-                    <Button asChild variant={'secondary'}>
+        <>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <h2 className="text-2xl font-bold tracking-tight text-foreground">
+                        {__('tickets.pages.create.title')}
+                    </h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        {__('tickets.pages.create.description')}
+                    </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <Button asChild variant="secondary" size="sm">
                         <Link href={route('tickets.manage')}>
-                            <ArrowLeft />
+                            <ArrowLeft className="mr-2 h-4 w-4" />
                             {__('tickets.pages.form.buttons.back')}
                         </Link>
                     </Button>
-                </CardAction>
-            </CardHeader>
-            <Separator />
+                </div>
+            </div>
 
-            <form onSubmit={handleSubmit}>
-                <CardContent>
-                    <Tabs
-                        defaultValue={'informations'}
-                        className="w-full space-y-4"
-                    >
-                        <TabsList className="w-full">
-                            <TabsTrigger value={'informations'}>
-                                <File />
-                                {__('tickets.pages.form.tabs.informations')}
-                            </TabsTrigger>
-                            <TabsTrigger value={'users'}>
-                                <Users />
-                                Assignees
-                            </TabsTrigger>
-                        </TabsList>
+            <div className="mx-auto max-w-5xl">
+                <form onSubmit={handleSubmit}>
+                    <Card className="border-none shadow-sm ring-1 ring-border/50">
+                        <CardContent className="p-6">
+                            <Tabs
+                                defaultValue="informations"
+                                className="w-full"
+                            >
+                                <TabsList className="grid w-full grid-cols-2 bg-muted/20 p-1 md:w-[400px]">
+                                    <TabsTrigger
+                                        value="informations"
+                                        className="gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                                    >
+                                        <FileText className="h-4 w-4" />
+                                        {__(
+                                            'tickets.pages.form.tabs.informations',
+                                        )}
+                                    </TabsTrigger>
+                                    <TabsTrigger
+                                        value="users"
+                                        className="gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                                    >
+                                        <Users className="h-4 w-4" />
+                                        {__(
+                                            'tickets.pages.form.tabs.assignees',
+                                        )}
+                                    </TabsTrigger>
+                                </TabsList>
 
-                        <InformationsTab
-                            data={data}
-                            setData={setData}
-                            errors={errors}
-                            disabled={processing}
-                            priorities={priorities}
-                            statuses={statuses}
-                            categories={categories}
-                            assets={assets}
-                        />
+                                <div className="mt-6">
+                                    <div className="space-y-4">
+                                        <InformationsTab
+                                            data={data}
+                                            setData={setData}
+                                            errors={errors}
+                                            disabled={processing}
+                                            priorities={priorities}
+                                            statuses={statuses}
+                                            categories={categories}
+                                            assets={assets}
+                                        />
 
-                        <UsersTab   
-                            data={data}
-                            setData={setData}
-                            users={users}
-                            disabled={processing}
-                        />
-                    </Tabs>
-                </CardContent>
-                <Separator className="my-6" />
-                {userHasPermission({
-                    user: usePage<SharedData>().props.auth.user,
-                    permission: 'create tickets',
-                }) && (
-                    <CardFooter>
-                        <Button disabled={processing} className="w-full">
-                            {processing ? <Spinner /> : <Plus />}
-                            {__('tickets.pages.form.buttons.store')}
-                        </Button>
-                    </CardFooter>
-                )}
-            </form>
-        </Card>
+                                        <UsersTab
+                                            data={data}
+                                            setData={setData}
+                                            users={users}
+                                            disabled={processing}
+                                        />
+                                    </div>
+                                </div>
+                            </Tabs>
+                        </CardContent>
+
+                        {userHasPermission({
+                            user: auth.user,
+                            permission: 'create tickets',
+                        }) && (
+                            <CardFooter className="flex items-center justify-between border-t bg-muted/5 px-6 py-4">
+                                <Button
+                                    variant="ghost"
+                                    asChild
+                                    disabled={processing}
+                                    type="button"
+                                >
+                                    <Link href={route('tickets.manage')}>
+                                        {__(
+                                            'tickets.pages.delete.buttons.cancel',
+                                        )}
+                                    </Link>
+                                </Button>
+                                <Button
+                                    disabled={processing}
+                                    className="min-w-[150px] gap-2"
+                                >
+                                    {processing ? (
+                                        <Spinner className="h-4 w-4 text-primary-foreground" />
+                                    ) : (
+                                        <Check className="h-4 w-4" />
+                                    )}
+                                    {__('tickets.pages.form.buttons.store')}
+                                </Button>
+                            </CardFooter>
+                        )}
+                    </Card>
+                </form>
+            </div>
+        </>
     );
 }

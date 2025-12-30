@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\TicketSchedule;
+use App\Observers\TicketObserver;
 use App\Policies\TicketSchedulePolicy;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
@@ -74,5 +75,6 @@ class AppServiceProvider extends ServiceProvider
         Authenticate::redirectUsing(function ($request) {
             return redirect()->route('auth.login')->with(['error' => ['title' => __('common.flash.error'), 'description' => __('auth.flash.middleware.auth_required')]])->getTargetUrl();
         });
+        Ticket::observe(TicketObserver::class);
     }
 }

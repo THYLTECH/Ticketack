@@ -4,10 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Ticket extends Model
 {
@@ -21,64 +21,98 @@ class Ticket extends Model
         'asset_id',
         'title',
         'description',
+        'is_public'
     ];
 
-    // --- Relations ---
+    protected $casts = [
+        'is_public' => 'boolean',
+    ];
 
+    /**
+     * @return BelongsTo
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'author_id');
     }
 
+    /**
+     * @return BelongsTo
+     */
     public function priority(): BelongsTo
     {
         return $this->belongsTo(TicketPriority::class);
     }
 
+    /**
+     * @return BelongsTo
+     */
     public function status(): BelongsTo
     {
         return $this->belongsTo(TicketStatus::class);
     }
 
+    /**
+     * @return BelongsTo
+     */
     public function category(): BelongsTo
     {
         return $this->belongsTo(TicketCategory::class);
     }
 
+    /**
+     * @return BelongsTo
+     */
     public function asset(): BelongsTo
     {
         return $this->belongsTo(Asset::class);
     }
 
-    // Relations vers les tables satellites (Logs, Commentaires, etc.)
-
+    /**
+     * @return HasMany
+     */
     public function assignees(): HasMany
     {
         return $this->hasMany(TicketAssignee::class);
     }
 
+    /**
+     * @return HasMany
+     */
     public function comments(): HasMany
     {
         return $this->hasMany(TicketComment::class);
     }
 
+    /**
+     * @return HasMany
+     */
     public function logs(): HasMany
     {
         return $this->hasMany(TicketLog::class);
     }
 
+    /**
+     * @return HasMany
+     */
     public function entries(): HasMany
     {
         return $this->hasMany(TicketEntry::class);
     }
 
+    /**
+     * @return HasMany
+     */
     public function schedules(): HasMany
     {
         return $this->hasMany(TicketSchedule::class);
     }
 
-
-    public function attachments() {
+    /**
+     * @return HasManyThrough
+     */
+    public function attachments(): HasManyThrough
+    {
         return $this->hasManyThrough(
             Attachment::class,
             TicketAttachment::class,
