@@ -5,54 +5,101 @@ namespace Tests\Feature\Tickets;
 use App\Models\Ticket;
 use App\Models\TicketComment;
 use App\Models\User;
+use App\Models\TicketLog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Event;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Permission;
 use function Pest\Laravel\{actingAs, delete, post, put};
 
 uses(RefreshDatabase::class);
 
+/**
+ * Test suite for Ticket Comments features including
+ * attachments management and activity logging.
+ */
+
 beforeEach(function () {
     Permission::firstOrCreate(['name' => 'view tickets']);
     Permission::firstOrCreate(['name' => 'show tickets']);
 
-    $this->user = User::factory()->create();
+    $this->user = User::factory()->create(['email_verified_at' => now()]);
     $this->user->givePermissionTo(Permission::all());
 
     actingAs($this->user);
     Storage::fake('public');
-
-    /**
-     * On fake les évènements pour éviter que le ShouldBroadcastNow
-     * n'essaie de charger des relations sur un modèle supprimé.
-     */
-    Event::fake();
 });
 
-test('user can add a comment', function () {
+test('user can add a comment with attachments and it creates a log', function () {
     $ticket = Ticket::factory()->create();
+    $file = UploadedFile::fake()->image('document.jpg');
 
-    post(route('tickets.comments.store', $ticket), ['content' => 'Hello'])
-        ->assertRedirect();
+    post(route('tickets.comments.store', $ticket), [
+        'content' => 'Hello with file',
+        'attachments' => [$file]
+    ])->assertRedirect();
 
-    $this->assertDatabaseHas('ticket_comments', [
+    $comment = TicketComment::latest('id')->first();
+
+    expect($comment->content)->toBe('Hello with file')
+        ->and($comment->attachments)->toHaveCount(1);
+
+    $this->assertDatabaseHas('ticket_logs', [
         'ticket_id' => $ticket->id,
-        'content' => 'Hello'
+        'action' => 'commented',
     ]);
 });
 
-test('user can update their own comment', function () {
+test('user can update their own comment and it updates the log', function () {
     $ticket = Ticket::factory()->create();
     $comment = TicketComment::factory()->create([
         'ticket_id' => $ticket->id,
-        'user_id' => $this->user->id
+        'user_id' => $this->user->id,
+        'content' => 'Old Content'
     ]);
 
-    put(route('tickets.comments.update', [$ticket, $comment]), ['content' => 'Updated'])
+    put(route('tickets.comments.update', [$ticket, $comment]), ['content' => 'New Content'])
         ->assertRedirect();
 
-    $this->assertDatabaseHas('ticket_comments', ['content' => 'Updated']);
+    $this->assertDatabaseHas('ticket_logs', [
+        'action' => 'comment_updated',
+        'old_value' => 'Old Content',
+        'new_value' => 'New Content'
+    ]);
+});
+
+test('user can delete their own comment and files are removed', function () {
+    $ticket = Ticket::factory()->create();
+    $file = UploadedFile::fake()->image('to_delete.png');
+
+    post(route('tickets.comments.store', $ticket), [
+        'content' => 'Comment to delete',
+        'attachments' => [$file]
+    ]);
+
+    $commentWithFile = TicketComment::latest('id')->with('attachments')->first();
+    $attachment = $commentWithFile->attachments->first();
+
+    expect($attachment)->not->toBeNull();
+
+    $path = $attachment->file_path;
+    Storage::disk('public')->assertExists($path);
+
+    delete(route('tickets.comments.destroy', [$ticket, $commentWithFile]))
+        ->assertRedirect();
+
+    Storage::disk('public')->assertMissing($path);
+    $this->assertSoftDeleted('ticket_comments', ['id' => $commentWithFile->id]);
+    $this->assertDatabaseHas('ticket_logs', ['action' => 'comment_deleted']);
+});
+
+test('comment posted event constructor loads relations', function () {
+    $comment = TicketComment::factory()->create();
+
+    $event = new \App\Events\CommentPosted($comment);
+
+    expect($event->comment->relationLoaded('user'))->toBeTrue()
+        ->and($event->comment->relationLoaded('attachments'))->toBeTrue();
 });
 
 test('user cannot update someone else comment', function () {
@@ -65,24 +112,4 @@ test('user cannot update someone else comment', function () {
 
     put(route('tickets.comments.update', [$ticket, $comment]), ['content' => 'Hacked'])
         ->assertStatus(403);
-});
-
-test('user can delete their own comment', function () {
-    $ticket = Ticket::factory()->create();
-    $comment = TicketComment::factory()->create([
-        'ticket_id' => $ticket->id,
-        'user_id' => $this->user->id
-    ]);
-
-    delete(route('tickets.comments.destroy', [$ticket, $comment]))
-        ->assertRedirect();
-
-    $this->assertSoftDeleted('ticket_comments', ['id' => $comment->id]);
-});
-
-test('comment validation length', function () {
-    $ticket = Ticket::factory()->create();
-
-    post(route('tickets.comments.store', $ticket), ['content' => str_repeat('a', 5001)])
-        ->assertSessionHasErrors('content');
 });

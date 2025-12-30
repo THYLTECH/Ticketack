@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 class TicketSchedule extends Model
 {
     use HasFactory;
+    public const DATE_FORMAT = 'd/m H:i';
 
     /**
      * @var array<int, string>
@@ -46,7 +47,7 @@ class TicketSchedule extends Model
     {
         static::created(function (TicketSchedule $schedule) {
             $user = User::find($schedule->user_id)?->name ?? 'Unknown';
-            $start = Carbon::parse($schedule->start_date)->format('d/m H:i');
+            $start = Carbon::parse($schedule->start_date)->format(self::DATE_FORMAT);
 
             $schedule->ticket->logs()->create([
                 'user_id' => Auth::id(),
@@ -71,8 +72,8 @@ class TicketSchedule extends Model
             }
 
             if ($schedule->isDirty(['start_date', 'duration_minutes'])) {
-                $oldStart = Carbon::parse($schedule->getOriginal('start_date'))->format('d/m H:i');
-                $newStart = Carbon::parse($schedule->start_date)->format('d/m H:i');
+                $oldStart = Carbon::parse($schedule->getOriginal('start_date'))->format(self::DATE_FORMAT);
+                $newStart = Carbon::parse($schedule->start_date)->format(self::DATE_FORMAT);
 
                 $schedule->ticket->logs()->create([
                     'user_id' => Auth::id(),

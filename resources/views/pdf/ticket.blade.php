@@ -125,31 +125,41 @@
 
 <div class="card">
     <table class="grid">
+        <thead>
+        <tr style="display: none;">
+            <th scope="col">{{ __('Field') }}</th>
+            <th scope="col">{{ __('Value') }}</th>
+            <th scope="col">{{ __('Field') }}</th>
+            <th scope="col">{{ __('Value') }}</th>
+        </tr>
+        </thead>
+        <tbody>
         <tr>
-            <<td class="label">{{ __('tickets.column.status') }}</td>
+            <th scope="row" class="label">{{ __('tickets.column.status') }}</th>
             <td style="font-weight: 600; color: #0f172a;">
                 <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background-color: {{ $ticket->status->color }}; margin-right: 4px;"></span>
                 {{ $ticket->status->title }}
             </td>
-            <td class="label">{{ __('tickets.column.priority') }}</td>
+            <th scope="row" class="label">{{ __('tickets.column.priority') }}</th>
             <td>
-                <span class="badge" style="border: 1px solid {{ $ticket->priority->color }}40; color: {{ $ticket->priority->color }}; background: {{ $ticket->priority->color }}08;">
-                    {{ $ticket->priority->title }}
-                </span>
+                    <span class="badge" style="border: 1px solid {{ $ticket->priority->color }}40; color: {{ $ticket->priority->color }}; background: {{ $ticket->priority->color }}08;">
+                        {{ $ticket->priority->title }}
+                    </span>
             </td>
         </tr>
         <tr>
-            <td class="label">{{ __('tickets.column.category') }}</td>
+            <th scope="row" class="label">{{ __('tickets.column.category') }}</th>
             <td style="font-weight: 600; color: #0f172a;">{{ $ticket->category->title }}</td>
-            <td class="label">{{ __('tickets.filters.equipment') }}</td>
+            <th scope="row" class="label">{{ __('tickets.filters.equipment') }}</th>
             <td style="font-weight: 600; color: #0f172a;">{{ $ticket->asset->title ?? '—' }}</td>
         </tr>
         <tr>
-            <td class="label">{{ __('tickets.column.author') }}</td>
+            <th scope="row" class="label">{{ __('tickets.column.author') }}</th>
             <td style="color: #0f172a;">{{ $ticket->user->name }}</td>
-            <td class="label">{{ __('tickets.column.assignee') }}</td>
+            <th scope="row" class="label">{{ __('tickets.column.assignee') }}</th>
             <td style="color: #0f172a;">{{ $ticket->assignees->map(fn($a) => $a->user->name)->implode(', ') ?: __('tickets.pages.show.tabs.info_content.no_assignees') }}</td>
         </tr>
+        </tbody>
     </table>
 </div>
 
