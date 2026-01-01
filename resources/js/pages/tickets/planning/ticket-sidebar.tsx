@@ -64,8 +64,8 @@ export function TicketSidebar({
     };
 
     return (
-        <div className="flex h-full flex-col overflow-hidden bg-card">
-            <div className="h-[7rem] flex-col flex gap-4 border-b bg-muted/10 p-4">
+        <div className="flex h-full flex-col overflow-hidden">
+            <div className="flex flex-col gap-4 border-b bg-muted/10 p-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-sm font-bold text-foreground">
                         <Inbox className="h-4 w-4 text-primary" />
@@ -136,35 +136,40 @@ export function TicketSidebar({
                                     onSelect(isSelected ? null : ticket.id)
                                 }
                                 className={cn(
-                                    'group relative flex cursor-grab flex-col gap-2 rounded-lg border bg-card p-3 shadow-sm transition-all duration-200 active:cursor-grabbing',
+                                    'group flex w-full cursor-grab overflow-hidden rounded-lg border bg-card text-left shadow-sm transition-all duration-200 select-none active:cursor-grabbing',
                                     isSelected
-                                        ? 'border-primary bg-primary/5 shadow-md ring-1 ring-primary'
-                                        : 'hover:border-primary/50 hover:bg-muted/30 hover:shadow-md',
+                                        ? 'border-primary ring-1 ring-primary'
+                                        : 'hover:border-primary/50 hover:shadow-md',
                                 )}
                             >
+                                {/* Barre de couleur latérale intégrée via Flexbox */}
                                 <div
-                                    className="absolute top-0 left-0 h-full w-1 rounded-l-lg transition-colors"
+                                    className="w-1.5 shrink-0"
                                     style={{
                                         backgroundColor:
                                             ticket.priority?.color ||
                                             'hsl(var(--border))',
                                     }}
                                 />
-                                <div className="ml-2 flex flex-col gap-1">
+
+                                <div className="flex flex-1 flex-col gap-1.5 p-3">
                                     <div className="flex items-start justify-between gap-2">
                                         <span className="line-clamp-2 text-xs leading-snug font-semibold text-foreground/90">
                                             {ticket.title}
                                         </span>
-                                        <GripVertical className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground/30 transition-opacity group-hover:text-muted-foreground" />
+                                        <GripVertical className="h-4 w-4 shrink-0 text-muted-foreground/30 transition-colors group-hover:text-muted-foreground" />
                                     </div>
-                                    <div className="mt-1 flex items-center justify-between">
-                                        <Badge
-                                            variant="outline"
-                                            className="h-5 border-border/50 bg-background/50 px-1.5 font-mono text-[9px] text-muted-foreground"
-                                        >
-                                            #{ticket.id}
-                                        </Badge>
-                                        <span className="max-w-[100px] truncate text-[9px] font-medium tracking-wider text-muted-foreground/70 uppercase">
+
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <Badge
+                                                variant="outline"
+                                                className="h-5 border-border/50 bg-background/50 px-1.5 font-mono text-[9px] text-muted-foreground"
+                                            >
+                                                #{ticket.id}
+                                            </Badge>
+                                        </div>
+                                        <span className="max-w-[80px] truncate text-[9px] font-medium tracking-wider text-muted-foreground/70 uppercase">
                                             {ticket.category?.title}
                                         </span>
                                     </div>

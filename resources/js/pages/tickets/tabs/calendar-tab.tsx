@@ -6,6 +6,13 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+} from '@/components/ui/sheet';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTrans } from '@/lib/translation';
@@ -27,8 +34,8 @@ import {
 } from '@/types';
 import { router, usePage } from '@inertiajs/react';
 import { format, parseISO } from 'date-fns';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useState } from 'react';
+import { ChevronLeft, ChevronRight, Inbox } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 interface Props {
@@ -57,6 +64,18 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
     const [selectedTicketId, setSelectedTicketId] = useState<number | null>(
         null,
     );
+    const [isTicketsSheetOpen, setIsTicketsSheetOpen] = useState(false);
+
+    useEffect(() => {
+        const checkMobileView = () => {
+            if (window.innerWidth < 768) {
+                setView('day');
+            }
+        };
+        checkMobileView();
+        window.addEventListener('resize', checkMobileView);
+        return () => window.removeEventListener('resize', checkMobileView);
+    }, []);
 
     const scheduledTicketIds = events.map((e) => e.ticket_id);
 
@@ -81,11 +100,6 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                 {
                     preserveScroll: true,
                     onSuccess: () => {
-                        toast.success(
-                            __(
-                                'tickets.pages.show.calendar.notifications.scheduled',
-                            ),
-                        );
                         setSelectedTicketId(null);
                     },
                 },
@@ -101,12 +115,6 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                 },
                 {
                     preserveScroll: true,
-                    onSuccess: () =>
-                        toast.success(
-                            __(
-                                'tickets.pages.show.calendar.notifications.moved',
-                            ),
-                        ),
                 },
             );
         }
@@ -122,9 +130,6 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success(
-                        __('tickets.pages.show.calendar.notifications.updated'),
-                    );
                     setIsModalOpen(false);
                 },
             },
@@ -135,9 +140,6 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
         router.delete(route('tickets.planning.destroy', id), {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success(
-                    __('tickets.pages.show.calendar.notifications.deleted'),
-                );
                 setIsModalOpen(false);
             },
         });
@@ -145,8 +147,8 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
 
     return (
         <TabsContent value="calendar" className="space-y-4">
-            <div className="flex items-center justify-between rounded-md border bg-background p-2 shadow-sm">
-                <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-3 rounded-md border bg-background p-2 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center justify-between gap-2 sm:justify-start">
                     <Button
                         variant="outline"
                         size="icon"
@@ -160,7 +162,7 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                         <PopoverTrigger asChild>
                             <Button
                                 variant="outline"
-                                className="h-8 min-w-[200px] justify-start text-sm font-medium"
+                                className="h-8 min-w-[140px] flex-1 justify-start text-sm font-medium sm:min-w-[200px] sm:flex-none"
                             >
                                 <span className="truncate capitalize">
                                     {formatPeriodTitle(date, view)}
@@ -186,20 +188,76 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                     </Button>
                 </div>
 
-                <div className="flex items-center gap-4">
-                    <div className="flex items-center space-x-2">
-                        <Switch
-                            id="edit-mode-tab"
-                            checked={isEditMode}
-                            onCheckedChange={setIsEditMode}
-                        />
-                        <Label
-                            htmlFor="edit-mode-tab"
-                            className="text-xs font-medium"
-                        >
-                            {__('tickets.pages.show.calendar.edit_mode')}
-                        </Label>
+                <div className="flex items-center justify-between gap-4 sm:justify-end">
+                    <div className="flex items-center gap-2">
+                        {isEditMode && (
+                            <Sheet
+                                open={isTicketsSheetOpen}
+                                onOpenChange={setIsTicketsSheetOpen}
+                            >
+                                <SheetTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-8 gap-2 border-dashed border-primary/50 px-2 text-xs text-primary sm:hidden"
+                                    >
+                                        <Inbox className="h-3.5 w-3.5" />
+                                        <span>Tickets</span>
+                                    </Button>
+                                </SheetTrigger>
+                                <SheetContent
+                                    side="left"
+                                    className="flex w-[85vw] flex-col gap-0 border-r bg-background p-0 sm:w-[380px]"
+                                >
+                                    <SheetHeader className="border-b px-4 py-3 text-left">
+                                        <SheetTitle>
+                                            {__('schedule.sidebar.title')}
+                                        </SheetTitle>
+                                    </SheetHeader>
+                                    <div className="flex-1 overflow-hidden">
+                                        <TicketSidebar
+                                            tickets={[ticket]}
+                                            scheduledTicketIds={
+                                                scheduledTicketIds
+                                            }
+                                            selectedId={selectedTicketId}
+                                            onSelect={(id) => {
+                                                setSelectedTicketId(id);
+                                                if (id) {
+                                                    setIsTicketsSheetOpen(
+                                                        false,
+                                                    );
+                                                    toast.info(
+                                                        'Ticket sélectionné',
+                                                        {
+                                                            description:
+                                                                'Appuyez sur une case du planning pour le planifier.',
+                                                        },
+                                                    );
+                                                }
+                                            }}
+                                            onUnschedule={handleDeleteEvent}
+                                        />
+                                    </div>
+                                </SheetContent>
+                            </Sheet>
+                        )}
+
+                        <div className="flex items-center space-x-2">
+                            <Switch
+                                id="edit-mode-tab"
+                                checked={isEditMode}
+                                onCheckedChange={setIsEditMode}
+                            />
+                            <Label
+                                htmlFor="edit-mode-tab"
+                                className="cursor-pointer text-xs font-medium"
+                            >
+                                {__('tickets.pages.show.calendar.edit_mode')}
+                            </Label>
+                        </div>
                     </div>
+
                     <Tabs
                         value={view}
                         onValueChange={(v) => setView(v as ViewType)}
@@ -213,7 +271,7 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                             </TabsTrigger>
                             <TabsTrigger
                                 value="week"
-                                className="text-[10px] uppercase"
+                                className="hidden text-[10px] uppercase sm:inline-flex"
                             >
                                 {__('tickets.pages.show.calendar.views.week')}
                             </TabsTrigger>
@@ -231,7 +289,7 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
             <div className="flex h-[600px] flex-1 overflow-hidden rounded-md border bg-muted/10">
                 <div
                     className={cn(
-                        'relative flex flex-col overflow-hidden border-r bg-background transition-all duration-300 ease-in-out',
+                        'relative hidden flex-col overflow-hidden border-r bg-background transition-all duration-300 ease-in-out sm:flex',
                         isEditMode
                             ? 'w-72 opacity-100'
                             : 'w-0 border-none opacity-0',
@@ -259,7 +317,20 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                         onDrop={handleDropEvent}
                         onUpdate={handleUpdateEvent}
                         onEventClick={(evt) => {
-                            setSelectedEvent(evt);
+                            const fullEvent = {
+                                ...evt,
+                                user: evt.user ||
+                                    solvers.find(
+                                        (s) => s.id === evt.user_id,
+                                    ) || {
+                                        id: evt.user_id,
+                                        name: 'Technicien',
+                                        email: '',
+                                        avatar: null,
+                                    },
+                                ticket: evt.ticket || ticket,
+                            };
+                            setSelectedEvent(fullEvent);
                             setIsModalOpen(true);
                         }}
                     />

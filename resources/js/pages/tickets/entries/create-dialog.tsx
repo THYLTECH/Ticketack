@@ -159,8 +159,6 @@ export function TimeEntryDialog({
         }));
 
         post(route('tickets.entries.store'), {
-            onSuccess: () => toast.success(__('entries.dialog.toast.success')),
-            onError: () => toast.error(__('entries.dialog.toast.error')),
         });
     };
     return (
