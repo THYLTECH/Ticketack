@@ -48,6 +48,9 @@ return [
                     'logout' => 'Logout',
                 ],
             ],
+            'actions' => [
+                'create_ticket' => 'Create ticket',
+            ],
         ],
     ],
 

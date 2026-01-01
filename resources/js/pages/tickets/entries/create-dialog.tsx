@@ -124,8 +124,7 @@ export function TimeEntryDialog({
                 billable: '0',
             });
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [initialValues, open]);
+    }, [initialValues, open, setData, ticket]);
 
     useEffect(() => {
         if (ticket) {
@@ -160,8 +159,6 @@ export function TimeEntryDialog({
         }));
 
         post(route('tickets.entries.store'), {
-            onSuccess: () => toast.success(__('entries.dialog.toast.success')),
-            onError: () => toast.error(__('entries.dialog.toast.error')),
         });
     };
     return (
@@ -181,7 +178,6 @@ export function TimeEntryDialog({
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-6 py-2">
-                    {/* --- SÉLECTION DU TICKET --- */}
                     <div className="grid gap-2">
                         <Label>{__('entries.dialog.ticket.label')}</Label>
                         {ticket ? (
@@ -222,7 +218,7 @@ export function TimeEntryDialog({
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent
-                                    className="w-[450px] p-0"
+                                    className="w-[calc(100vw-3rem)] p-0 sm:w-[450px]"
                                     align="start"
                                 >
                                     <Command>
@@ -289,7 +285,6 @@ export function TimeEntryDialog({
                         )}
                     </div>
 
-                    {/* --- GROUPE DATE ET HEURE --- */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="grid gap-2">
                             <Label>{__('entries.dialog.date.label')}</Label>
@@ -329,7 +324,7 @@ export function TimeEntryDialog({
                                             setData('date', d);
                                             setDatePopoverOpen(false);
                                         }}
-                                        initialFocus
+                                        autoFocus
                                     />
                                 </PopoverContent>
                             </Popover>
@@ -340,7 +335,6 @@ export function TimeEntryDialog({
                             )}
                         </div>
 
-                        {/* Nouveau champ Heure de début */}
                         <div className="grid gap-2">
                             <Label>
                                 {__('schedule.dialog.planning.start_time')}
@@ -353,12 +347,10 @@ export function TimeEntryDialog({
                                         setData('start_time', e.target.value)
                                     }
                                 />
-                                <Clock className="pointer-events-none absolute top-2.5 right-3 h-4 w-4 text-muted-foreground" />
                             </div>
                         </div>
                     </div>
 
-                    {/* --- DURÉE --- */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="hours">
@@ -418,7 +410,6 @@ export function TimeEntryDialog({
                         </p>
                     )}
 
-                    {/* --- DESCRIPTION --- */}
                     <div className="grid gap-2">
                         <Label htmlFor="description">
                             {__('entries.dialog.description.label')}
@@ -442,7 +433,6 @@ export function TimeEntryDialog({
                         )}
                     </div>
 
-                    {/* --- FACTURABLE --- */}
                     <div className="grid gap-3">
                         <Label>{__('entries.dialog.billable.label')}</Label>
                         <RadioGroup

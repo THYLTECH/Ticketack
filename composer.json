@@ -16,6 +16,7 @@
         "guzzlehttp/guzzle": "^7.10",
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/framework": "^12.0",
+        "laravel/reverb": "^1.0",
         "laravel/sanctum": "^4.2",
         "laravel/tinker": "^2.10.1",
         "laravel/vonage-notification-channel": "^3.3",
@@ -100,6 +101,6 @@
             "php-http/discovery": true
         }
     },
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "prefer-stable": true
 }

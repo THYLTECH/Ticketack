@@ -31,12 +31,17 @@ return [
                 'force_delete_short' => 'Delete',
                 'clear_search' => 'Clear search',
             ],
+            'toolbar' => [
+                'title' => 'Delete/Restore',
+                'search' => 'Search deleted items...'
+            ]
         ],
     ],
     'tabs' => [
         'users' => 'Users',
         'assets' => 'Assets',
         'roles' => 'Roles',
+        'tickets' => 'Tickets',
     ],
     'common' => [
         'item_unnamed' => 'Item',

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * @property int $id
@@ -23,7 +24,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $deleted_at
  * @property-read Ticket $ticket
  * @property-read User $user
- *  * @mixin Builder
+ * @mixin Builder
  */
 class TicketEntry extends Model
 {
@@ -46,14 +47,49 @@ class TicketEntry extends Model
         'duration_seconds' => 'integer',
     ];
 
-    // --- Relations ---
+    /**
+     * @return BelongsTo
+     */
     public function ticket(): BelongsTo
     {
         return $this->belongsTo(Ticket::class);
     }
 
+    /**
+     * @return BelongsTo
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * @return void
+     */
+    protected static function booted(): void
+    {
+        static::created(function (TicketEntry $entry) {
+            $duration = round($entry->duration_seconds / 60);
+            $billable = $entry->billable ? 'Billable' : 'Non-billable';
+            $note = $entry->note ? " - Note: $entry->note" : "";
+
+            $entry->ticket->logs()->create([
+                'user_id' => Auth::id(),
+                'action' => 'time_logged',
+                'field' => 'entry',
+                'new_value' => "$duration min recorded ($billable)$note",
+            ]);
+        });
+
+        static::deleted(function (TicketEntry $entry) {
+            $duration = round($entry->duration_seconds / 60);
+
+            $entry->ticket->logs()->create([
+                'user_id' => Auth::id(),
+                'action' => 'time_deleted',
+                'field' => 'entry',
+                'old_value' => "Entry of $duration min removed",
+            ]);
+        });
     }
 }

@@ -4,6 +4,7 @@
 
 namespace App\Http\Requests\Tickets;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 
@@ -26,7 +27,7 @@ class Store extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array|string>
      */
     public function rules(): array
     {
@@ -36,6 +37,7 @@ class Store extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string', 'max:5000'],
+            'is_public' => ['boolean'],
             'priority_id' => ['required', 'integer', 'exists:ticket_priorities,id'],
             'category_id' => ['required', 'integer', 'exists:ticket_categories,id'],
             'status_id' => ['required', 'integer', 'exists:ticket_statuses,id'],

@@ -5,6 +5,7 @@
 > php >= v8.3
 > node >= v20
 > composer >= 2.6
+> pm2 (npm install pm2 -g)
 
 ## 🐳 Docker Installation
 
@@ -84,6 +85,25 @@ php artisan migrate
 ```
 
 ## Starting project
+## Automated Start (Recommended)
+The project uses PM2 to manage all background services (Server, Vite, WebSockets, and Queues) with a single command via the ecosystem.config.cjs file.
+
+### Start all services (Backend, Frontend, Reverb, Queue)
+```bash
+pm2 start ecosystem.config.cjs
+```
+
+### Monitor services status
+```bash
+pm2 status
+```
+
+### View logs in real-time
+```bash
+pm2 logs
+```
+
+## Manual Start (Alternative)
 
 ### Apache server
 ```bash

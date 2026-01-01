@@ -1,16 +1,13 @@
-import { Link } from '@inertiajs/react';
-import {
-    ChevronLeft,
-    ChevronRight,
-    MoreHorizontal
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
 import {
     Pagination,
     PaginationContent,
     PaginationItem,
 } from '@/components/ui/pagination';
+import { useTrans } from '@/lib/translation';
+import { cn } from '@/lib/utils';
+import { Link } from '@inertiajs/react';
+import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
 
 interface PaginationLink {
     url: string | null;
@@ -23,11 +20,16 @@ interface LaravelPaginationProps {
     className?: string;
 }
 
-export default function LaravelPagination({ links, className }: LaravelPaginationProps) {
+export default function LaravelPagination({
+    links,
+    className,
+}: LaravelPaginationProps) {
+    const __ = useTrans();
+
     if (links.length <= 3) return null;
 
     return (
-        <Pagination className={cn("mt-6", className)}>
+        <Pagination className={cn('mt-6', className)}>
             <PaginationContent className="flex-wrap justify-center gap-1">
                 {links.map((link, key) => {
                     const label = link.label
@@ -37,8 +39,12 @@ export default function LaravelPagination({ links, className }: LaravelPaginatio
                         .replace('&raquo;', '')
                         .trim();
 
-                    const isPrevious = link.label.includes('Previous') || link.label.includes('&laquo;');
-                    const isNext = link.label.includes('Next') || link.label.includes('&raquo;');
+                    const isPrevious =
+                        link.label.includes('Previous') ||
+                        link.label.includes('&laquo;');
+                    const isNext =
+                        link.label.includes('Next') ||
+                        link.label.includes('&raquo;');
                     const isEllipsis = link.label === '...';
 
                     if (isEllipsis) {
@@ -57,20 +63,33 @@ export default function LaravelPagination({ links, className }: LaravelPaginatio
                                 <div
                                     className={cn(
                                         buttonVariants({
-                                            variant: "ghost",
-                                            size: "icon",
+                                            variant: 'ghost',
+                                            size: 'icon',
                                         }),
-                                        "opacity-50 cursor-not-allowed",
-                                        (isPrevious || isNext) && "gap-1 px-2.5 w-auto"
+                                        'cursor-not-allowed opacity-50',
+                                        (isPrevious || isNext) &&
+                                            'w-auto gap-1 px-2.5',
                                     )}
                                 >
-                                    {isPrevious && <ChevronLeft className="h-4 w-4" />}
-                                    {isPrevious && <span className="hidden sm:block">Précédent</span>}
+                                    {isPrevious && (
+                                        <ChevronLeft className="h-4 w-4" />
+                                    )}
+                                    {isPrevious && (
+                                        <span className="hidden sm:block">
+                                            {__('pagination.previous')}
+                                        </span>
+                                    )}
 
                                     {!isPrevious && !isNext && label}
 
-                                    {isNext && <span className="hidden sm:block">Suivant</span>}
-                                    {isNext && <ChevronRight className="h-4 w-4" />}
+                                    {isNext && (
+                                        <span className="hidden sm:block">
+                                            {__('pagination.next')}
+                                        </span>
+                                    )}
+                                    {isNext && (
+                                        <ChevronRight className="h-4 w-4" />
+                                    )}
                                 </div>
                             </PaginationItem>
                         );
@@ -84,19 +103,35 @@ export default function LaravelPagination({ links, className }: LaravelPaginatio
                                 preserveState
                                 className={cn(
                                     buttonVariants({
-                                        variant: link.active ? "outline" : "ghost",
-                                        size: (isPrevious || isNext) ? "default" : "icon",
+                                        variant: link.active
+                                            ? 'outline'
+                                            : 'ghost',
+                                        size:
+                                            isPrevious || isNext
+                                                ? 'default'
+                                                : 'icon',
                                     }),
-                                    (isPrevious || isNext) && "gap-1 px-2.5 sm:px-4",
-                                    link.active && "pointer-events-none"
+                                    (isPrevious || isNext) &&
+                                        'gap-1 px-2.5 sm:px-4',
+                                    link.active && 'pointer-events-none',
                                 )}
                             >
-                                {isPrevious && <ChevronLeft className="h-4 w-4" />}
-                                {isPrevious && <span className="hidden sm:block">Précédent</span>}
+                                {isPrevious && (
+                                    <ChevronLeft className="h-4 w-4" />
+                                )}
+                                {isPrevious && (
+                                    <span className="hidden sm:block">
+                                        {__('pagination.previous')}
+                                    </span>
+                                )}
 
                                 {!isPrevious && !isNext && label}
 
-                                {isNext && <span className="hidden sm:block">Suivant</span>}
+                                {isNext && (
+                                    <span className="hidden sm:block">
+                                        {__('pagination.next')}
+                                    </span>
+                                )}
                                 {isNext && <ChevronRight className="h-4 w-4" />}
                             </Link>
                         </PaginationItem>

@@ -284,8 +284,8 @@ test('report can download pdf', function () {
 });
 
 test('user can filter entries by ticket priority', function () {
-    $priority1 = \App\Models\TicketPriority::factory()->create();
-    $priority2 = \App\Models\TicketPriority::factory()->create();
+    $priority1 = \App\Models\TicketPriority::factory()->create(['sort_order' => 1]);
+    $priority2 = \App\Models\TicketPriority::factory()->create(['sort_order' => 2]);
 
     $ticket1 = Ticket::factory()->create(['priority_id' => $priority1->id]);
     $ticket2 = Ticket::factory()->create(['priority_id' => $priority2->id]);
@@ -304,8 +304,9 @@ test('user can filter entries by ticket priority', function () {
         'ticket_priority' => $priority1->id,
     ]))
         ->assertOk()
-        ->assertInertia(fn ($page) =>
-        $page->has('entries.data', 1)
+        ->assertInertia(fn ($page) => $page
+            ->has('entries.data', 1)
+            ->where('entries.data.0.ticket.priority_id', $priority1->id)
         );
 });
 
