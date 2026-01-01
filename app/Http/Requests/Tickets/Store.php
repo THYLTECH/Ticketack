@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
 /**
  * Class Store
  *
- * Request class for validating ticket category store requests.
+ * Request class for validating ticket store requests.
  */
 class Store extends FormRequest
 {
@@ -38,6 +38,8 @@ class Store extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string', 'max:5000'],
             'is_public' => ['boolean'],
+            'is_referenced' => ['boolean'],
+            'detailed_solution' => ['nullable', 'string'],
             'priority_id' => ['required', 'integer', 'exists:ticket_priorities,id'],
             'category_id' => ['required', 'integer', 'exists:ticket_categories,id'],
             'status_id' => ['required', 'integer', 'exists:ticket_statuses,id'],

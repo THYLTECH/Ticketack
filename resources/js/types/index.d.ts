@@ -235,6 +235,8 @@ export interface Ticket {
     title: string;
     description: string;
     is_public: boolean;
+    is_referenced: boolean;
+    detailed_solution: string | null;
     updated_at: string;
     created_at: string;
 }

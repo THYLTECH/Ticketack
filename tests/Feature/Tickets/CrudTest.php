@@ -13,7 +13,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-use function Pest\Laravel\{actingAs, delete, get, patch, post, put};
+use function Pest\Laravel\{actingAs, delete, get, post, put};
 
 uses(RefreshDatabase::class);
 
@@ -40,7 +40,7 @@ beforeEach(function () {
     $this->priority = TicketPriority::create(['title' => 'High', 'color' => '#ff0000', 'sort_order' => 1]);
     $this->status = TicketStatus::create(['title' => 'New', 'color' => '#00ff00', 'sort_order' => 1, 'is_default' => true]);
     $this->category = TicketCategory::create(['title' => 'Bug', 'color' => '#0000ff', 'sort_order' => 1]);
-    $this->asset = Asset::factory()->create();
+    $this->asset = Asset::factory()->create(['title' => 'Laptop']);
 });
 
 test('index page loads with pagination and filters', function () {
@@ -50,13 +50,17 @@ test('index page loads with pagination and filters', function () {
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->component('tickets/index')
-            ->has('tickets.data')
+            ->has('tickets.data', 5)
+            ->has('filters')
+            ->has('solvers')
         );
 });
 
-test('index restricts view for non-admin users', function () {
+test('index restricts view for non-admin/non-solver users', function () {
     $this->user->removeRole('admin');
-    Ticket::factory()->create();
+
+    $otherUser = User::factory()->create();
+    Ticket::factory()->create(['author_id' => $otherUser->id]);
 
     get(route('tickets.index'))
         ->assertInertia(fn ($page) => $page
@@ -64,10 +68,18 @@ test('index restricts view for non-admin users', function () {
         );
 });
 
-test('manage page filters for assigned tickets', function () {
+test('manage page filters for assigned tickets for non-admins', function () {
     $ticket = Ticket::factory()->create();
     $ticket->assignees()->create(['user_id' => $this->user->id]);
 
+    get(route('tickets.manage'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('tickets/manage')
+            ->has('tickets.data', 1)
+        );
+
+    $this->user->removeRole('admin');
     get(route('tickets.manage'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
@@ -79,6 +91,7 @@ test('create page provides all necessary metadata', function () {
     get(route('tickets.create'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
+            ->component('tickets/create')
             ->has('priorities')
             ->has('categories')
             ->has('statuses')
@@ -93,6 +106,7 @@ test('show page loads ticket and relations', function () {
     get(route('tickets.show', $ticket))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
+            ->component('tickets/show')
             ->where('ticket.id', $ticket->id)
             ->has('events')
             ->has('solvers')
@@ -104,7 +118,10 @@ test('edit page loads ticket data', function () {
 
     get(route('tickets.edit', $ticket))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->where('ticket.id', $ticket->id));
+        ->assertInertia(fn ($page) => $page
+            ->component('tickets/edit')
+            ->where('ticket.id', $ticket->id)
+        );
 });
 
 test('store saves ticket and handles attachments', function () {
@@ -118,31 +135,51 @@ test('store saves ticket and handles attachments', function () {
         'category_id' => $this->category->id,
         'asset_id' => $this->asset->id,
         'is_public' => true,
+        'is_referenced' => false,
         'assignees' => [['id' => $this->user->id]],
         'attachments' => [[
-            'title' => 'Log',
-            'file' => $file
+            'title' => 'Log Screenshot',
+            'file' => $file,
+            'description' => 'Error log'
         ]]
     ];
 
     post(route('tickets.store'), $data)
         ->assertRedirect(route('tickets.manage'));
 
-    $this->assertDatabaseHas('tickets', ['title' => 'New Issue']);
-    $this->assertDatabaseHas('attachments', ['file_name' => 'debug.png']);
+    $this->assertDatabaseHas('tickets', [
+        'title' => 'New Issue',
+        'author_id' => $this->user->id
+    ]);
+
+    $this->assertDatabaseHas('attachments', [
+        'file_name' => 'debug.png',
+        'title' => 'Log Screenshot'
+    ]);
+
+    $ticket = Ticket::where('title', 'New Issue')->first();
+    $this->assertDatabaseHas('ticket_attachments', ['ticket_id' => $ticket->id]);
+    $this->assertDatabaseHas('ticket_assignees', ['ticket_id' => $ticket->id, 'user_id' => $this->user->id]);
 });
 
 test('update syncs assignees correctly', function () {
-    $ticket = Ticket::factory()->create();
+    $ticket = Ticket::factory()->create([
+        'priority_id' => $this->priority->id,
+        'status_id' => $this->status->id,
+        'category_id' => $this->category->id,
+    ]);
+
     $newUser = User::factory()->create();
 
     $data = [
-        'title' => 'Updated',
-        'description' => 'Updated desc',
-        'priority_id' => $ticket->priority_id,
-        'status_id' => $ticket->status_id,
-        'category_id' => $ticket->category_id,
-        'asset_id' => $ticket->asset_id,
+        'title' => 'Updated Title',
+        'description' => 'Updated description',
+        'priority_id' => $this->priority->id,
+        'status_id' => $this->status->id,
+        'category_id' => $this->category->id,
+        'asset_id' => $this->asset->id,
+        'is_public' => false,
+        'is_referenced' => true,
         'assignees' => [['id' => $newUser->id]]
     ];
 
@@ -153,6 +190,12 @@ test('update syncs assignees correctly', function () {
         'ticket_id' => $ticket->id,
         'user_id' => $newUser->id
     ]);
+
+    $this->assertDatabaseHas('tickets', [
+        'id' => $ticket->id,
+        'title' => 'Updated Title',
+        'is_referenced' => true
+    ]);
 });
 
 test('soft delete, restore and force delete workflow', function () {
@@ -160,14 +203,17 @@ test('soft delete, restore and force delete workflow', function () {
 
     delete(route('tickets.destroy', $ticket))
         ->assertRedirect(route('tickets.manage'));
+
     $this->assertSoftDeleted('tickets', ['id' => $ticket->id]);
 
     post(route('tickets.restore', $ticket))
         ->assertRedirect();
+
     $this->assertNotSoftDeleted('tickets', ['id' => $ticket->id]);
 
     $ticket->delete();
     delete(route('tickets.force_delete', $ticket))
         ->assertRedirect(route('tickets.manage'));
+
     $this->assertDatabaseMissing('tickets', ['id' => $ticket->id]);
 });
