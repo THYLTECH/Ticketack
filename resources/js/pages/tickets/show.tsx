@@ -67,7 +67,7 @@ export default function Show({ ticket, events, solvers }: ShowProps) {
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                         <Button
                             asChild
                             size="sm"

@@ -124,8 +124,7 @@ export function TimeEntryDialog({
                 billable: '0',
             });
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [initialValues, open]);
+    }, [initialValues, open, setData, ticket]);
 
     useEffect(() => {
         if (ticket) {
@@ -221,7 +220,7 @@ export function TimeEntryDialog({
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent
-                                    className="w-[450px] p-0"
+                                    className="w-[calc(100vw-3rem)] p-0 sm:w-[450px]"
                                     align="start"
                                 >
                                     <Command>
@@ -327,7 +326,7 @@ export function TimeEntryDialog({
                                             setData('date', d);
                                             setDatePopoverOpen(false);
                                         }}
-                                        initialFocus
+                                        autoFocus
                                     />
                                 </PopoverContent>
                             </Popover>

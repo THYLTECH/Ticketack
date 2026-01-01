@@ -76,7 +76,7 @@ class TicketComment extends Model
         static::updated(function (TicketComment $comment) {
             $comment->ticket?->logs()->create([
                 'user_id' => Auth::id(),
-                'action' => 'comment_updated',
+                'action' => 'updated a comment',
                 'field' => 'comment',
                 'old_value' => (string) str($comment->getOriginal('content'))->limit(100),
                 'new_value' => (string) str($comment->content)->limit(100),

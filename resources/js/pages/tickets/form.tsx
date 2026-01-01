@@ -185,6 +185,7 @@ export function InformationsTab({
                     required
                     placeholder={__('tickets.pages.form.placeholders.title')}
                     disabled={disabled}
+                    className={errors.title ? 'border-destructive' : ''}
                 />
                 {errors.title && (
                     <p className="text-sm text-destructive">{errors.title}</p>
@@ -200,7 +201,7 @@ export function InformationsTab({
                     placeholder={__(
                         'tickets.pages.form.placeholders.description',
                     )}
-                    className="max-h-[24rem] min-h-[8rem]"
+                    className={`max-h-[24rem] min-h-[8rem] ${errors.description ? 'border-destructive' : ''}`}
                     value={data.description}
                     required
                     onChange={(e) => setData('description', e.target.value)}
@@ -228,7 +229,9 @@ export function InformationsTab({
                                 setData('priority_id', val ? Number(val) : null)
                             }
                         >
-                            <SelectTrigger className="w-full">
+                            <SelectTrigger
+                                className={`w-full ${errors.priority_id ? 'border-destructive' : ''}`}
+                            >
                                 <SelectValue
                                     placeholder={__(
                                         'tickets.pages.form.placeholders.select_priority',
@@ -261,6 +264,11 @@ export function InformationsTab({
                         </Button>
                     </PrioritiesSheet>
                 </div>
+                {errors.priority_id && (
+                    <p className="text-sm text-destructive">
+                        {errors.priority_id}
+                    </p>
+                )}
             </div>
 
             <div className="grid gap-2 md:col-span-1">
@@ -276,7 +284,9 @@ export function InformationsTab({
                                 setData('status_id', val ? Number(val) : null)
                             }
                         >
-                            <SelectTrigger className="w-full">
+                            <SelectTrigger
+                                className={`w-full ${errors.status_id ? 'border-destructive' : ''}`}
+                            >
                                 <SelectValue
                                     placeholder={__(
                                         'tickets.pages.form.placeholders.select_status',
@@ -309,6 +319,11 @@ export function InformationsTab({
                         </Button>
                     </StatusesSheet>
                 </div>
+                {errors.status_id && (
+                    <p className="text-sm text-destructive">
+                        {errors.status_id}
+                    </p>
+                )}
             </div>
 
             <div className="grid gap-2 md:col-span-1">
@@ -326,7 +341,9 @@ export function InformationsTab({
                                 setData('category_id', val ? Number(val) : null)
                             }
                         >
-                            <SelectTrigger className="w-full">
+                            <SelectTrigger
+                                className={`w-full ${errors.category_id ? 'border-destructive' : ''}`}
+                            >
                                 <SelectValue
                                     placeholder={__(
                                         'tickets.pages.form.placeholders.select_category',
@@ -359,6 +376,11 @@ export function InformationsTab({
                         </Button>
                     </CategoriesSheet>
                 </div>
+                {errors.category_id && (
+                    <p className="text-sm text-destructive">
+                        {errors.category_id}
+                    </p>
+                )}
             </div>
 
             <div className="grid gap-2 md:col-span-1">
@@ -374,7 +396,9 @@ export function InformationsTab({
                                 setData('asset_id', val ? Number(val) : null)
                             }
                         >
-                            <SelectTrigger className="w-full">
+                            <SelectTrigger
+                                className={`w-full ${errors.asset_id ? 'border-destructive' : ''}`}
+                            >
                                 <SelectValue
                                     placeholder={__(
                                         'tickets.pages.form.placeholders.select_asset',
@@ -407,6 +431,11 @@ export function InformationsTab({
                         </Link>
                     </Button>
                 </div>
+                {errors.asset_id && (
+                    <p className="text-sm text-destructive">
+                        {errors.asset_id}
+                    </p>
+                )}
             </div>
 
             <div className="grid md:col-span-2">
@@ -526,20 +555,16 @@ export function UsersTab({
                     <DialogTrigger asChild>
                         <Button variant="outline" size="sm" disabled={disabled}>
                             <Plus className="mr-2 h-4 w-4" />
-                            {__(
-                                'tickets.pages.show.calendar.notifications.scheduled',
-                            )}
+                            {__('tickets.pages.create.assign.title')}
                         </Button>
                     </DialogTrigger>
                     <DialogContent className="gap-0 p-0 sm:max-w-[500px]">
                         <DialogHeader className="border-b px-6 py-4">
                             <DialogTitle>
-                                {__('tickets.pages.form.tabs.assignees')}
+                                {__('tickets.pages.create.assign.title')}
                             </DialogTitle>
                             <DialogDescription>
-                                {__(
-                                    'tickets.pages.show.comments.editor.placeholder',
-                                )}
+                                {__('tickets.pages.create.assign.description')}
                             </DialogDescription>
                         </DialogHeader>
                         <div className="border-b px-4 py-3">
@@ -604,7 +629,7 @@ export function UsersTab({
                                                 className="h-7 opacity-0 transition-opacity group-hover:opacity-100"
                                             >
                                                 {__(
-                                                    'tickets.pages.show.calendar.notifications.scheduled',
+                                                    'tickets.pages.create.assign.title',
                                                 )}
                                             </Button>
                                         </div>

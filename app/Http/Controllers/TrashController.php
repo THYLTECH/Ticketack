@@ -2,46 +2,63 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Models\Role;
 use App\Models\Asset;
+use App\Models\Role;
+use App\Models\Ticket;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
+use Inertia\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class TrashController extends Controller
 {
-    /**
-     * Show the trash page with search and pagination.
-     */
-    public function index(Request $request)
+    public function index(Request $request): Response
     {
+        Gate::authorize('view trash');
+
         $search = $request->input('search');
 
         return Inertia::render('trash/index', [
+            'deletedTickets' => Ticket::onlyTrashed()
+                ->when($search, fn(Builder $query, $search) => $query->where(function (Builder $q) use ($search) {
+                    $q->where('title', 'like', '%' . $search . '%')
+                        ->orWhere('id', 'like', '%' . $search . '%');
+                }))
+                ->with(['user.avatar', 'status', 'priority', 'category', 'asset', 'assignees.user.avatar'])
+                ->orderByDesc('deleted_at')
+                ->paginate(5, ['*'], 'tickets_page')
+                ->withQueryString(),
 
             'deletedUsers' => User::onlyTrashed()
-                ->when($search, function ($query, $search) {
-                    $query->where(function ($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%")
-                            ->orWhere('email', 'like', "%{$search}%");
-                    });
-                })
+                ->when($search, fn(Builder $query, $search) => $query->where(function (Builder $q) use ($search) {
+                    $q->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('email', 'like', '%' . $search . '%');
+                }))
+                ->with(['avatar', 'roles'])
+                ->withCount('tickets')
                 ->orderByDesc('deleted_at')
                 ->paginate(5, ['*'], 'users_page')
                 ->withQueryString(),
 
             'deletedRoles' => Role::onlyTrashed()
-                ->when($search, function ($query, $search) {
-                    $query->where('name', 'like', "%{$search}%");
-                })
+                ->when($search, fn(Builder $query, $search) => $query->where('name', 'like', '%' . $search . '%'))
+                ->withCount(['permissions', 'users'])
                 ->orderByDesc('deleted_at')
                 ->paginate(5, ['*'], 'roles_page')
                 ->withQueryString(),
 
             'deletedAssets' => Asset::onlyTrashed()
-                ->when($search, function ($query, $search) {
-                    $query->where('title', 'like', "%{$search}%");
-                })
+                ->when($search, fn(Builder $query, $search) => $query->where(function (Builder $q) use ($search) {
+                    $q->where('title', 'like', '%' . $search . '%')
+                        ->orWhere('serial_number', 'like', '%' . $search . '%');
+                }))
+                ->withCount('tickets')
                 ->orderByDesc('deleted_at')
                 ->paginate(5, ['*'], 'assets_page')
                 ->withQueryString(),
@@ -50,56 +67,94 @@ class TrashController extends Controller
         ]);
     }
 
-    public function restore(Request $request, string $type, int $id)
+    public function restore(string $type, int $id): RedirectResponse
     {
+        Gate::authorize('restore items');
+
+        /** @var Model|SoftDeletes $model */
         $model = $this->getModelByType($type, $id);
         $model->restore();
 
         return back()->with('success', trans_choice('trash.notifications.restored', 1));
     }
 
-    public function forceDelete(Request $request, string $type, int $id)
+    public function forceDelete(string $type, int $id): RedirectResponse
     {
+        Gate::authorize('force delete items');
+
+        /** @var Model|SoftDeletes $model */
         $model = $this->getModelByType($type, $id);
         $model->forceDelete();
 
         return back()->with('success', trans_choice('trash.notifications.deleted', 1));
     }
 
-    public function bulkRestore(Request $request)
+    public function bulkRestore(Request $request): RedirectResponse
     {
-        $request->validate(['ids' => 'required|array', 'type' => 'required|string']);
+        Gate::authorize('restore items');
+
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer',
+            'type' => 'required|string|in:ticket,user,role,asset',
+        ]);
+
         $modelClass = $this->getModelClass($request->type);
 
-        $count = $modelClass::onlyTrashed()->whereIn('id', $request->ids)->restore();
+        /** @var Builder $query */
+        $query = (new $modelClass)->onlyTrashed();
+
+        $count = $query->whereIn('id', $request->ids)->restore();
 
         return back()->with('success', trans_choice('trash.notifications.restored', $count));
     }
 
-    public function bulkForceDelete(Request $request)
+    public function bulkForceDelete(Request $request): RedirectResponse
     {
-        $request->validate(['ids' => 'required|array', 'type' => 'required|string']);
+        Gate::authorize('force delete items');
+
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer',
+            'type' => 'required|string|in:ticket,user,role,asset',
+        ]);
+
         $modelClass = $this->getModelClass($request->type);
 
-        $count = $modelClass::onlyTrashed()->whereIn('id', $request->ids)->forceDelete();
+        /** @var Builder $query */
+        $query = (new $modelClass)->onlyTrashed();
+
+        $items = $query->whereIn('id', $request->ids)->get();
+        $count = 0;
+
+        foreach ($items as $item) {
+            /** @var Model|SoftDeletes $item */
+            if ($item->forceDelete()) {
+                $count++;
+            }
+        }
 
         return back()->with('success', trans_choice('trash.notifications.deleted', $count));
     }
 
-    private function getModelClass(string $type)
+    private function getModelClass(string $type): string
     {
         return match ($type) {
+            'ticket' => Ticket::class,
             'user' => User::class,
             'role' => Role::class,
             'asset' => Asset::class,
-            default => abort(404, "Type d'élément inconnu"),
+            default => throw new NotFoundHttpException(),
         };
     }
 
-    private function getModelByType(string $type, int $id)
+    private function getModelByType(string $type, int $id): Model
     {
         $class = $this->getModelClass($type);
 
-        return $class::onlyTrashed()->findOrFail($id);
+        /** @var Builder $query */
+        $query = (new $class)->onlyTrashed();
+
+        return $query->findOrFail($id);
     }
 }

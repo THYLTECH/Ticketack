@@ -18,7 +18,9 @@ import {
     startOfWeek,
 } from 'date-fns';
 import React, { useEffect, useRef, useState } from 'react';
-import { ViewType } from './index';
+
+// On définit le type ici pour éviter les dépendances circulaires avec index.tsx
+export type ViewType = 'day' | 'week' | 'month';
 
 const START_HOUR = 0;
 const END_HOUR = 24;
@@ -37,6 +39,14 @@ const COLORS = [
     'bg-rose-500/10 border-l-4 border-rose-500 text-rose-700 dark:text-rose-100',
 ];
 
+const DOT_COLORS = [
+    'bg-blue-500',
+    'bg-emerald-500',
+    'bg-violet-500',
+    'bg-amber-500',
+    'bg-rose-500',
+];
+
 interface Props {
     events: TicketSchedule[];
     view: ViewType;
@@ -47,6 +57,7 @@ interface Props {
     onDrop: (date: Date, ticketId?: number, eventId?: number) => void;
     onUpdate: (id: number, data: UpdatePayload) => void;
     onEventClick: (event: TicketSchedule) => void;
+    onSlotClick?: (date: Date) => void;
 }
 
 export function PlanningGrid({
@@ -59,6 +70,7 @@ export function PlanningGrid({
     onDrop,
     onUpdate,
     onEventClick,
+    onSlotClick,
 }: Props) {
     const __ = useTrans();
     const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -73,6 +85,7 @@ export function PlanningGrid({
 
     const isResizingRef = useRef(false);
 
+    // Scroll automatique à 08:00
     useEffect(() => {
         if (scrollAreaRef.current && (view === 'week' || view === 'day')) {
             scrollAreaRef.current.scrollTop =
@@ -80,6 +93,7 @@ export function PlanningGrid({
         }
     }, [view]);
 
+    // Calcul de la disposition des événements pour éviter les chevauchements
     const getEventLayout = (dayEvents: TicketSchedule[]) => {
         const sorted = [...dayEvents].sort(
             (a, b) =>
@@ -133,6 +147,29 @@ export function PlanningGrid({
         return layout;
     };
 
+    // Calcul du style CSS (position absolute) d'un événement
+    const getEventStyle = (
+        event: TicketSchedule,
+        layoutData: { left: number; width: number } | undefined,
+    ) => {
+        const isResizing = resizingEvent?.id === event.id;
+        const duration = isResizing
+            ? resizingEvent.currentDuration
+            : event.duration_minutes;
+        const start = parseISO(event.start_date);
+        const minutesFromStart =
+            (getHours(start) - START_HOUR) * 60 + getMinutes(start);
+
+        return {
+            top: `${(minutesFromStart / 60) * CELL_HEIGHT}px`,
+            height: `${Math.max((duration / 60) * CELL_HEIGHT, 24)}px`,
+            left: layoutData ? `${layoutData.left}%` : '0%',
+            width: layoutData ? `${layoutData.width}%` : '100%',
+            zIndex: isResizing ? 60 : 20,
+        };
+    };
+
+    // Gestion du redimensionnement (Resize)
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
             if (!resizingEvent) return;
@@ -187,27 +224,14 @@ export function PlanningGrid({
         if (eventId) onDrop(targetDate, undefined, parseInt(eventId));
     };
 
-    const getEventStyle = (
-        event: TicketSchedule,
-        layoutData: { left: number; width: number } | undefined,
-    ) => {
-        const isResizing = resizingEvent?.id === event.id;
-        const duration = isResizing
-            ? resizingEvent.currentDuration
-            : event.duration_minutes;
-        const start = parseISO(event.start_date);
-        const minutesFromStart =
-            (getHours(start) - START_HOUR) * 60 + getMinutes(start);
-
-        return {
-            top: `${(minutesFromStart / 60) * CELL_HEIGHT}px`,
-            height: `${Math.max((duration / 60) * CELL_HEIGHT, 24)}px`,
-            left: layoutData ? `${layoutData.left}%` : '0%',
-            width: layoutData ? `${layoutData.width}%` : '100%',
-            zIndex: isResizing ? 60 : 20,
-        };
+    const handleSlotClick = (day: Date, hour: number) => {
+        if (!isEditMode || !onSlotClick) return;
+        const targetDate = new Date(day);
+        targetDate.setHours(hour, 0, 0, 0);
+        onSlotClick(targetDate);
     };
 
+    // --- RENDER : VUE MOIS ---
     if (view === 'month') {
         const monthStart = startOfWeek(startOfMonth(currentDate), {
             weekStartsOn: 1,
@@ -229,16 +253,24 @@ export function PlanningGrid({
         return (
             <div className="flex h-full flex-col overflow-hidden bg-card select-none">
                 <div className="flex flex-1 flex-col overflow-y-auto">
-                    <div className="sticky top-0 z-20 flex h-[7rem] shrink-0 border-b bg-background">
+                    {/* En-têtes Jours */}
+                    <div className="sticky top-0 z-20 flex h-[3rem] shrink-0 border-b bg-background sm:h-[7rem]">
                         {weekDays.map((dayKey) => (
                             <div
                                 key={dayKey}
                                 className="flex flex-1 items-center justify-center border-r border-border bg-muted/40 text-center text-xs font-semibold tracking-wider text-muted-foreground uppercase last:border-r-0"
                             >
-                                {__(`schedule.days.${dayKey}`)}
+                                <span className="hidden sm:inline">
+                                    {__(`schedule.days.${dayKey}`)}
+                                </span>
+                                <span className="sm:hidden">
+                                    {__(`schedule.days.${dayKey}`).charAt(0)}
+                                </span>
                             </div>
                         ))}
                     </div>
+
+                    {/* Grille du mois */}
                     <div className="grid flex-1 auto-rows-fr grid-cols-7">
                         {days.map((day, idx) => {
                             const dayEvents = events.filter(
@@ -254,54 +286,87 @@ export function PlanningGrid({
                                 <div
                                     key={day.toString()}
                                     className={cn(
-                                        'group relative min-h-[120px] border-r border-b p-2 transition-colors',
+                                        'group relative min-h-[60px] border-r border-b p-1 transition-colors sm:min-h-[120px] sm:p-2',
                                         !isSameMonth(day, currentDate) &&
                                             'bg-muted/100 text-muted-foreground',
                                         idx % 7 === 6 && 'border-r-0',
+                                        isEditMode &&
+                                            'cursor-pointer hover:bg-muted/50',
                                     )}
                                     onDragOver={handleDragOver}
                                     onDrop={(e) => handleDrop(e, day)}
+                                    onClick={() => handleSlotClick(day, 8)}
                                 >
-                                    <span
-                                        className={cn(
-                                            'mb-1 ml-auto flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium',
-                                            isToday(day)
-                                                ? 'bg-primary text-primary-foreground shadow-sm'
-                                                : 'text-foreground/70',
-                                        )}
-                                    >
-                                        {format(day, 'd')}
-                                    </span>
-                                    {dayEvents.map((evt) => (
-                                        <div
-                                            key={`${evt.id}-${evt.updated_at}`}
-                                            draggable={isEditMode}
-                                            onDragStart={(e) => {
-                                                e.dataTransfer.setData(
-                                                    'eventId',
-                                                    evt.id.toString(),
-                                                );
-                                            }}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                onEventClick(evt);
-                                            }}
+                                    {/* Numéro du jour */}
+                                    <div className="mb-1 flex justify-center sm:justify-end">
+                                        <span
                                             className={cn(
-                                                'mb-1 cursor-pointer truncate rounded-md border px-2 py-1 text-[10px] font-medium transition-all hover:scale-[1.02] hover:shadow-sm hover:brightness-95',
-                                                COLORS[
-                                                    evt.user_id % COLORS.length
-                                                ],
+                                                'flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium',
+                                                isToday(day)
+                                                    ? 'bg-primary text-primary-foreground shadow-sm'
+                                                    : 'text-foreground/70',
                                             )}
                                         >
-                                            <span className="mr-1 font-bold opacity-70">
-                                                {format(
-                                                    parseISO(evt.start_date),
-                                                    'HH:mm',
+                                            {format(day, 'd')}
+                                        </span>
+                                    </div>
+
+                                    {/* MOBILE: Affichage "Points" (Dots) */}
+                                    <div className="mt-1 flex flex-wrap justify-center gap-1 sm:hidden">
+                                        {dayEvents.map((evt) => (
+                                            <div
+                                                key={evt.id}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onEventClick(evt);
+                                                }}
+                                                className={cn(
+                                                    'h-1.5 w-1.5 cursor-pointer rounded-full',
+                                                    DOT_COLORS[
+                                                        evt.user_id %
+                                                            DOT_COLORS.length
+                                                    ],
                                                 )}
-                                            </span>
-                                            {evt.ticket.title}
-                                        </div>
-                                    ))}
+                                            />
+                                        ))}
+                                    </div>
+
+                                    {/* DESKTOP: Affichage "Barres" complètes */}
+                                    <div className="hidden sm:block">
+                                        {dayEvents.map((evt) => (
+                                            <div
+                                                key={`${evt.id}-${evt.updated_at}`}
+                                                draggable={isEditMode}
+                                                onDragStart={(e) => {
+                                                    e.dataTransfer.setData(
+                                                        'eventId',
+                                                        evt.id.toString(),
+                                                    );
+                                                }}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onEventClick(evt);
+                                                }}
+                                                className={cn(
+                                                    'mb-1 cursor-pointer truncate rounded-md border px-2 py-1 text-[10px] font-medium transition-all hover:scale-[1.02] hover:shadow-sm hover:brightness-95',
+                                                    COLORS[
+                                                        evt.user_id %
+                                                            COLORS.length
+                                                    ],
+                                                )}
+                                            >
+                                                <span className="mr-1 font-bold opacity-70">
+                                                    {format(
+                                                        parseISO(
+                                                            evt.start_date,
+                                                        ),
+                                                        'HH:mm',
+                                                    )}
+                                                </span>
+                                                {evt.ticket.title}
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             );
                         })}
@@ -311,6 +376,7 @@ export function PlanningGrid({
         );
     }
 
+    // --- RENDER : VUE JOUR & SEMAINE ---
     const days =
         view === 'day'
             ? [currentDate]
@@ -321,6 +387,7 @@ export function PlanningGrid({
 
     return (
         <div className="flex h-full flex-col overflow-hidden bg-background">
+            {/* En-tête de la grille */}
             <div className="z-50 flex h-[7rem] shrink-0 border-b bg-card shadow-sm ring-1 ring-border/5">
                 <div className="w-17 shrink-0 border-r border-border bg-card"></div>
                 <div className="flex h-full flex-1">
@@ -361,6 +428,7 @@ export function PlanningGrid({
                 </div>
             </div>
 
+            {/* Corps de la grille (Scrollable) */}
             <div
                 ref={scrollAreaRef}
                 className="scrollbar-thin relative z-0 flex-1 overflow-y-auto"
@@ -369,6 +437,7 @@ export function PlanningGrid({
                     className="relative flex min-h-full"
                     style={{ height: HOURS.length * CELL_HEIGHT }}
                 >
+                    {/* Colonne des heures */}
                     <div className="z-30 flex w-17 shrink-0 flex-col border-r bg-card shadow-[4px_0_24px_rgba(0,0,0,0.02)] select-none">
                         {HOURS.map((hour) => (
                             <div
@@ -389,7 +458,9 @@ export function PlanningGrid({
                         ))}
                     </div>
 
+                    {/* Colonnes des jours */}
                     <div className="relative flex flex-1">
+                        {/* Lignes de fond (grille) */}
                         <div className="pointer-events-none absolute inset-0 z-0 w-full">
                             {HOURS.map((hour) => (
                                 <div
@@ -422,6 +493,7 @@ export function PlanningGrid({
                                         'hover:z-50',
                                     )}
                                 >
+                                    {/* Zones cliquables/droppables pour chaque heure */}
                                     {HOURS.map((hour) => (
                                         <div
                                             key={hour}
@@ -429,15 +501,19 @@ export function PlanningGrid({
                                             className={cn(
                                                 'w-full transition-colors',
                                                 isEditMode &&
-                                                    'hover:bg-primary/5',
+                                                    'cursor-pointer hover:bg-primary/5 active:bg-primary/10',
                                             )}
                                             onDragOver={handleDragOver}
                                             onDrop={(e) =>
                                                 handleDrop(e, day, hour)
                                             }
+                                            onClick={() =>
+                                                handleSlotClick(day, hour)
+                                            }
                                         />
                                     ))}
 
+                                    {/* Ligne "Maintenant" (rouge) */}
                                     {isToday(day) && (
                                         <div
                                             className="pointer-events-none absolute z-50 flex w-full -translate-y-1/2 transform items-center"
@@ -450,6 +526,7 @@ export function PlanningGrid({
                                         </div>
                                     )}
 
+                                    {/* Événements */}
                                     {dayEvents.map((event) => {
                                         const isResizing =
                                             resizingEvent?.id === event.id;

@@ -125,7 +125,7 @@ export function TicketToolbar({
                     date={date}
                     onDateChange={handleDateSelect}
                     placeholder={__('tickets.column.created_at')}
-                    className="h-8 w-auto border-dashed shadow-none hover:bg-accent"
+                    className="h-9"
                 />
 
                 <FilterMultiSelect

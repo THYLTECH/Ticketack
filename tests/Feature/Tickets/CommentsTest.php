@@ -62,7 +62,7 @@ test('user can update their own comment and it updates the log', function () {
         ->assertRedirect();
 
     $this->assertDatabaseHas('ticket_logs', [
-        'action' => 'comment_updated',
+        'action' => 'updated a comment',
         'old_value' => 'Old Content',
         'new_value' => 'New Content'
     ]);

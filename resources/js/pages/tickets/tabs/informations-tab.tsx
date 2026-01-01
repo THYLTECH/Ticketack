@@ -15,26 +15,25 @@ interface Props {
     ticket: Ticket;
 }
 
+interface DetailCardProps {
+    title: string;
+    content: string | React.ReactNode;
+}
+
+function DetailCard({ title, content }: DetailCardProps) {
+    return (
+        <div className="rounded-lg border bg-card p-3 shadow-sm transition-colors hover:bg-muted/5">
+            <h3 className="mb-1.5 text-xs font-medium tracking-wider text-muted-foreground uppercase">
+                {title}
+            </h3>
+            <div className="text-sm font-medium">{content}</div>
+        </div>
+    );
+}
+
 export function InformationsTab({ ticket }: Props) {
     const __ = useTrans();
     const getInitials = useInitials();
-
-    function DetailCard({
-        title,
-        content,
-    }: {
-        title: string;
-        content: string | React.ReactNode;
-    }) {
-        return (
-            <div className="rounded-lg border bg-card p-3 shadow-sm transition-colors hover:bg-muted/5">
-                <h3 className="mb-1.5 text-xs font-medium tracking-wider text-muted-foreground uppercase">
-                    {title}
-                </h3>
-                <div className="text-sm font-medium">{content}</div>
-            </div>
-        );
-    }
 
     return (
         <TabsContent value="informations" className="grid gap-8">

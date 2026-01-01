@@ -175,14 +175,16 @@ export function CommentsTab({ ticket }: Props) {
                     <div className="flex items-center justify-between rounded-t-lg border border-b-0 border-primary/30 bg-primary/5 px-4 py-2 transition-all">
                         <div className="flex items-center gap-2 text-xs font-medium text-primary">
                             <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
-                            {__('tickets.pages.show.comments.edit_mode')}
+                            {__('tickets.pages.show.comments.editor.edit_mode')}
                         </div>
                         <button
                             onClick={cancelEditing}
                             className="flex items-center gap-1 text-[10px] tracking-wider text-muted-foreground uppercase hover:text-foreground"
                         >
                             <X className="h-3 w-3" />
-                            {__('tickets.pages.show.comments.actions.cancel')}
+                            {__(
+                                'tickets.pages.show.comments.editor.cancel_edit',
+                            )}
                         </button>
                     </div>
                 )}
