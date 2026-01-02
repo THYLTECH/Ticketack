@@ -30,6 +30,9 @@ fi
 echo "Création du lien de stockage symbolique..."
 php artisan storage:link
 
-# 4. Starting PHP-FPM
+# 4. Lancement du serveur de websocket Reverb
+echo "Démarrage du serveur de websocket Reverb en arrière-plan..."
+php artisan reverb:start --host=0.0.0.0 --port=8080 &
+# 5. Starting PHP-FPM
 echo "Démarrage de l'application !"
 exec php-fpm
