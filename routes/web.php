@@ -21,7 +21,7 @@ Route::middleware(['auth', 'verified:auth.verification.notice'])->group(function
     Route::get('/home', [HomeController::class, 'index'])->name('home');
 
     // Route::get('/dashboard', function () {
-        
+
     //     return Inertia::render('dashboard');
     // })->name('dashboard');
 });
@@ -64,6 +64,9 @@ require __DIR__.'/tickets.php';
 
 // Dashboard routes
 require __DIR__.'/dashboard.php';
+
+// Knowledge routes
+require __DIR__.'/knowledge.php';
 
 // Todo : Tickets, assets, settings etc....
 
