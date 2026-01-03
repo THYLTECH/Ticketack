@@ -3,10 +3,9 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
-if [ ! -d "vendor" ]; then
-    echo "Dossier vendor manquant, installation des dépendances..."
-    composer install --no-progress --no-interaction
-fi
+# dependency check
+echo "Vérification des dépendances Composer..."
+composer install --no-progress --no-interaction
 
 # 1. .env file management
 if [ ! -f ".env" ]; then
