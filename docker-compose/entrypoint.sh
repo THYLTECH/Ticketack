@@ -30,6 +30,11 @@ fi
 echo "Création du lien de stockage symbolique..."
 php artisan storage:link
 
+# 3b. Run Migrations
+echo "Lancement des migrations de base de données..."
+# On utilise --force pour éviter que Laravel ne demande confirmation
+php artisan migrate --force
+
 # 4. Lancement du serveur de websocket Reverb
 echo "Démarrage du serveur de websocket Reverb en arrière-plan..."
 php artisan reverb:start --host=0.0.0.0 --port=8080 &
