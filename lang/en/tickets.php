@@ -99,6 +99,7 @@ return [
             'assign' => [
                 'title' => 'Assign Ticket',
                 'description' => 'Select users to assign to this ticket.',
+                'cancel' => 'Cancel',
             ],
         ],
         'form' => [

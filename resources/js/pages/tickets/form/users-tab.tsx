@@ -5,6 +5,7 @@ import {
     Dialog,
     DialogContent,
     DialogDescription,
+    DialogFooter,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
@@ -27,9 +28,10 @@ import {
 import { TabsContent } from '@/components/ui/tabs';
 import { useInitials } from '@/hooks/use-initials';
 import { useTrans } from '@/lib/translation';
+import { cn } from '@/lib/utils';
 import { SharedData, User } from '@/types';
 import { usePage } from '@inertiajs/react';
-import { MinusCircle, Plus, Search, UserMinus } from 'lucide-react';
+import { Check, MinusCircle, Plus, Search, UserMinus } from 'lucide-react';
 import * as React from 'react';
 import { toast } from 'sonner';
 import { TicketFormData } from './types';
@@ -53,6 +55,7 @@ export function UsersTab({
     const { auth } = usePage<SharedData>().props;
     const [open, setOpen] = React.useState(false);
     const [searchQuery, setSearchQuery] = React.useState('');
+    const [selectedUserIds, setSelectedUserIds] = React.useState<number[]>([]);
 
     const availableUsers = React.useMemo(() => {
         const assignedIds = data.assignees.map((u) => u.id);
@@ -65,10 +68,20 @@ export function UsersTab({
         });
     }, [users, data.assignees, searchQuery]);
 
-    const handleAddUser = (user: User) => {
-        setData('assignees', [...data.assignees, user]);
+    const handleToggleUser = (userId: number) => {
+        setSelectedUserIds((prev) =>
+            prev.includes(userId)
+                ? prev.filter((id) => id !== userId)
+                : [...prev, userId],
+        );
+    };
+
+    const handleConfirmSelection = () => {
+        const usersToAdd = users.filter((u) => selectedUserIds.includes(u.id));
+        setData('assignees', [...data.assignees, ...usersToAdd]);
         setOpen(false);
         setSearchQuery('');
+        setSelectedUserIds([]);
         toast.success(__('tickets.pages.form.users_tab.notifications.added'));
     };
 
@@ -79,6 +92,13 @@ export function UsersTab({
         );
         toast.success(__('tickets.pages.form.users_tab.notifications.removed'));
     };
+
+    React.useEffect(() => {
+        if (!open) {
+            setSelectedUserIds([]);
+            setSearchQuery('');
+        }
+    }, [open]);
 
     return (
         <TabsContent value="users" className="space-y-6">
@@ -98,7 +118,7 @@ export function UsersTab({
                             {__('tickets.pages.form.buttons.add')}
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="gap-0 p-0 sm:max-w-[500px]">
+                    <DialogContent className="flex max-h-[90vh] flex-col gap-0 p-0 sm:max-w-125">
                         <DialogHeader className="border-b px-6 py-4">
                             <DialogTitle>
                                 {__('tickets.pages.create.assign.title')}
@@ -107,6 +127,7 @@ export function UsersTab({
                                 {__('tickets.pages.create.assign.description')}
                             </DialogDescription>
                         </DialogHeader>
+
                         <div className="border-b px-4 py-3">
                             <div className="relative flex items-center">
                                 <Search className="absolute left-2 h-4 w-4 text-muted-foreground" />
@@ -123,7 +144,8 @@ export function UsersTab({
                                 />
                             </div>
                         </div>
-                        <div className="max-h-[350px] overflow-y-auto p-2">
+
+                        <div className="flex-1 overflow-y-auto p-2">
                             {availableUsers.length === 0 ? (
                                 <div className="flex h-24 flex-col items-center justify-center text-center text-sm text-muted-foreground">
                                     <p>
@@ -134,47 +156,91 @@ export function UsersTab({
                                 </div>
                             ) : (
                                 <div className="space-y-1">
-                                    {availableUsers.map((user) => (
-                                        <div
-                                            key={user.id}
-                                            className="group flex cursor-pointer items-center justify-between rounded-md p-2 hover:bg-muted"
-                                            onClick={() => handleAddUser(user)}
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <Avatar className="h-9 w-9 border">
-                                                    <AvatarImage
-                                                        src={
-                                                            user.avatar?.url ??
-                                                            undefined
-                                                        }
-                                                    />
-                                                    <AvatarFallback className="text-xs">
-                                                        {getInitials(user.name)}
-                                                    </AvatarFallback>
-                                                </Avatar>
-                                                <div className="flex flex-col">
-                                                    <span className="text-sm font-medium">
-                                                        {user.name}
-                                                    </span>
-                                                    <span className="text-xs text-muted-foreground">
-                                                        {user.email}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <Button
-                                                size="sm"
-                                                variant="secondary"
-                                                className="h-7 opacity-0 transition-opacity group-hover:opacity-100"
-                                            >
-                                                {__(
-                                                    'tickets.pages.form.users_tab.add_button',
+                                    {availableUsers.map((user) => {
+                                        const isSelected =
+                                            selectedUserIds.includes(user.id);
+                                        return (
+                                            <div
+                                                key={user.id}
+                                                className={cn(
+                                                    'group flex cursor-pointer items-center justify-between rounded-md p-2 hover:bg-muted',
+                                                    isSelected &&
+                                                        'bg-muted/80 ring-1 ring-primary/20 ring-inset',
                                                 )}
-                                            </Button>
-                                        </div>
-                                    ))}
+                                                onClick={() =>
+                                                    handleToggleUser(user.id)
+                                                }
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className="relative">
+                                                        <Avatar className="h-9 w-9 border">
+                                                            <AvatarImage
+                                                                src={
+                                                                    user.avatar
+                                                                        ?.url ??
+                                                                    undefined
+                                                                }
+                                                            />
+                                                            <AvatarFallback className="text-xs">
+                                                                {getInitials(
+                                                                    user.name,
+                                                                )}
+                                                            </AvatarFallback>
+                                                        </Avatar>
+                                                        {isSelected && (
+                                                            <div className="absolute -right-1 -bottom-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm ring-2 ring-background">
+                                                                <Check className="h-2.5 w-2.5" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-sm font-medium">
+                                                            {user.name}
+                                                        </span>
+                                                        <span className="text-xs text-muted-foreground">
+                                                            {user.email}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                {isSelected && (
+                                                    <Check className="h-4 w-4 text-primary" />
+                                                )}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             )}
                         </div>
+
+                        <DialogFooter className="border-t p-4">
+                            <div className="flex w-full items-center justify-between">
+                                <div className="text-xs text-muted-foreground">
+                                    {selectedUserIds.length > 0
+                                        ? `${selectedUserIds.length} selected`
+                                        : ''}
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setOpen(false)}
+                                    >
+                                        {__(
+                                            'tickets.pages.create.assign.cancel',
+                                        )}
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        onClick={handleConfirmSelection}
+                                        disabled={selectedUserIds.length === 0}
+                                    >
+                                        {__(
+                                            'tickets.pages.form.users_tab.add_button',
+                                        )}
+                                    </Button>
+                                </div>
+                            </div>
+                        </DialogFooter>
                     </DialogContent>
                 </Dialog>
             </div>
@@ -207,7 +273,7 @@ export function UsersTab({
                                         'tickets.pages.form.users_tab.table.role',
                                     )}
                                 </TableHead>
-                                <TableHead className="w-[80px]"></TableHead>
+                                <TableHead className="w-20"></TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
