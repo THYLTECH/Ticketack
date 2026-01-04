@@ -1,4 +1,14 @@
 import { FileUpload } from '@/components/file-upload';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -15,6 +25,13 @@ import { Switch } from '@/components/ui/switch';
 import { TabsContent } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { formatBytes } from '@/hooks/use-file-upload';
+import {
     renderAsset,
     renderTicketCategory,
     renderTicketPriority,
@@ -24,14 +41,24 @@ import { useTrans } from '@/lib/translation';
 import { CategoriesSheet } from '@/pages/tickets/relations/categories';
 import { PrioritiesSheet } from '@/pages/tickets/relations/priorities';
 import { StatusesSheet } from '@/pages/tickets/relations/statuses';
-import { Asset, TicketCategory, TicketPriority, TicketStatus } from '@/types';
-import { Link } from '@inertiajs/react';
+import {
+    Asset,
+    Attachment,
+    TicketCategory,
+    TicketPriority,
+    TicketStatus,
+} from '@/types';
+import { Link, router } from '@inertiajs/react';
 import {
     BookOpenCheck,
+    Download,
     Ellipsis,
     Eye,
     EyeOff,
+    FileText,
     MinusCircle,
+    SquareArrowOutUpRight,
+    Trash2,
     X,
 } from 'lucide-react';
 import * as React from 'react';
@@ -51,6 +78,7 @@ interface InformationsTabProps {
     categories: TicketCategory[];
     assets: Asset[];
     clearErrors?: (field?: keyof TicketFormData) => void;
+    existingAttachments?: Attachment[];
 }
 
 export function InformationsTab({
@@ -63,11 +91,18 @@ export function InformationsTab({
     categories,
     assets,
     clearErrors,
+    existingAttachments = [],
 }: InformationsTabProps) {
     const __ = useTrans();
+    const [fileToDelete, setFileToDelete] = React.useState<Attachment | null>(
+        null,
+    );
+
+    const maxTotalFiles = 10;
+    const remainingSlots = Math.max(0, maxTotalFiles - existingAttachments.length);
 
     const config = {
-        maxFiles: 10,
+        maxFiles: remainingSlots,
         maxSizeMB: 10,
         accept: 'image/*,application/pdf',
     };
@@ -101,6 +136,15 @@ export function InformationsTab({
         data.asset_id,
         setData,
     ]);
+
+    const handleDeleteAttachment = () => {
+        if (!fileToDelete) return;
+
+        router.delete(route('attachments.destroy', fileToDelete.id), {
+            preserveScroll: true,
+            onFinish: () => setFileToDelete(null),
+        });
+    };
 
     return (
         <TabsContent
@@ -233,7 +277,7 @@ export function InformationsTab({
                         placeholder={__(
                             'tickets.pages.form.placeholders.description',
                         )}
-                        className={`min-h-[10rem] resize-y ${errors.description ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+                        className={`min-h-40 resize-y ${errors.description ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                         value={data.description}
                         required
                         onChange={(e) => {
@@ -315,7 +359,7 @@ export function InformationsTab({
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="status_id" indicator="required">
+                    <Label htmlFor="status_id">
                         {__('tickets.column.status')}
                     </Label>
                     <div className="flex w-full items-center gap-2">
@@ -443,7 +487,7 @@ export function InformationsTab({
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="asset_id" indicator="required">
+                    <Label htmlFor="asset_id">
                         {__('tickets.filters.equipment')}
                     </Label>
                     <div className="flex w-full items-center gap-2">
@@ -511,14 +555,124 @@ export function InformationsTab({
                 </div>
             </div>
 
-            <div className="grid gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {existingAttachments.length > 0 && (
+                    <div className="mb-4 space-y-3">
+                        <Label>
+                            {__(
+                                'tickets.pages.edit.attachments.existing_attachments',
+                            )}
+                        </Label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {existingAttachments.map((attachment) => (
+                                <div
+                                    key={attachment.id}
+                                    className="flex items-center justify-between gap-2 rounded-lg border bg-muted/40 p-2 pe-3 transition-all"
+                                >
+                                    <div className="flex flex-1 items-center gap-3 overflow-hidden">
+                                        <div className="flex aspect-square size-10 shrink-0 items-center justify-center rounded border bg-background">
+                                            <FileText className="size-5 text-muted-foreground" />
+                                        </div>
+                                        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                                            <p className="truncate text-sm font-medium">
+                                                {attachment.file_name ||
+                                                    attachment.title ||
+                                                    'Sans titre'}
+                                            </p>
+                                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                                <p>
+                                                    {formatBytes(
+                                                        attachment.file_size ||
+                                                            0,
+                                                    )}
+                                                </p>
+                                                {attachment.mime_type && (
+                                                    <>
+                                                        <span>∙</span>
+                                                        <p>
+                                                            {
+                                                                attachment.mime_type
+                                                            }
+                                                        </p>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <TooltipProvider>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Button
+                                                        size="icon-sm"
+                                                        variant="ghost"
+                                                        asChild
+                                                    >
+                                                        <a
+                                                            href={
+                                                                attachment.url
+                                                            }
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                        >
+                                                            {attachment.mime_type?.startsWith(
+                                                                'image/',
+                                                            ) ||
+                                                            attachment.mime_type ===
+                                                                'application/pdf' ? (
+                                                                <SquareArrowOutUpRight className="size-4" />
+                                                            ) : (
+                                                                <Download className="size-4" />
+                                                            )}
+                                                        </a>
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    {__(
+                                                        'tickets.pages.edit.attachments.view_or_download',
+                                                    )}
+                                                </TooltipContent>
+                                            </Tooltip>
+
+                                            {!disabled && (
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button
+                                                            type="button"
+                                                            size="icon-sm"
+                                                            variant="ghost"
+                                                            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                                            onClick={() =>
+                                                                setFileToDelete(
+                                                                    attachment,
+                                                                )
+                                                            }
+                                                        >
+                                                            <Trash2 className="size-4" />
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        {__(
+                                                            'tickets.pages.edit.attachments.delete_button',
+                                                        )}
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            )}
+                                        </TooltipProvider>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 <FileUpload
                     value={data.attachments || []}
                     onValueChange={(files) => setData('attachments', files)}
                     accept={config.accept}
                     maxFiles={config.maxFiles}
                     maxSizeMB={config.maxSizeMB}
-                    disabled={disabled}
+                    disabled={disabled || remainingSlots === 0}
                     texts={{
                         dropAreaTitle: __(
                             'components.ui.file-upload.dropAreaTitle',
@@ -564,6 +718,37 @@ export function InformationsTab({
                     }}
                 />
             </div>
+
+            <AlertDialog
+                open={!!fileToDelete}
+                onOpenChange={(open) => !open && setFileToDelete(null)}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            {__('tickets.pages.edit.attachments.dialog.title')}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {__(
+                                'tickets.pages.edit.attachments.dialog.description',
+                            )}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>
+                            {__('tickets.pages.edit.attachments.dialog.cancel')}
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleDeleteAttachment}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                            {__(
+                                'tickets.pages.edit.attachments.dialog.confirm',
+                            )}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </TabsContent>
     );
 }

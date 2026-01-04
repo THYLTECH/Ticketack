@@ -15,25 +15,6 @@ use Illuminate\Support\Facades\Storage;
 Route::middleware(['auth'])->group(function () {
     Route::get('/tickets/{ticket}/pdf', [PdfExport::class, 'generate'])->name('tickets.pdf');
 
-    Route::delete('/attachments/{attachment}', function (Attachment $attachment) {
-        $comment = $attachment->comments()->first();
-
-        if (!$comment) {
-            abort(404);
-        }
-
-        if ($comment->user_id !== auth()->id() && !auth()->user()->hasRole('admin')) {
-            abort(403);
-        }
-
-        if ($attachment->file_path && Storage::disk('public')->exists($attachment->file_path)) {
-            Storage::disk('public')->delete($attachment->file_path);
-        }
-
-        $attachment->delete();
-
-        return back();
-    })->name('attachments.destroy');
 });
 
 Route::prefix('tickets')->name('tickets.')->middleware(['auth', 'verified:auth.verification.notice'])->group(function () {
