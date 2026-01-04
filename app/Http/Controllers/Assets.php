@@ -56,6 +56,13 @@ class Assets extends Controller
             });
         }
 
+        if ($request->filled('sort')) {
+            $sortField = $request->input('sort');
+            $direction = $request->input('direction', 'asc');
+
+            $query->orderBy($sortField, $direction);
+        }
+
         // assets pagination
         $assets = $query->paginate(100)->withQueryString();
 

@@ -7,10 +7,10 @@ use App\Models\User as ModelsUser;
 
 /**
  * Policy class for managing permissions related to User model.
- * 
+ *
  * This class defines the authorization logic for various actions
  * that can be performed on User instances.
- * 
+ *
  * @package App\Policies
  */
 class User
@@ -54,4 +54,21 @@ class User
     {
         return $user->can('delete users');
     }
+
+    /**
+     * Determine whether the user can restore the model.
+     */
+    public function restore(ModelsUser $user): bool
+    {
+        return $user->can('restore users');
+    }
+
+    /**
+     * Determine whether the user can permanently delete the model.
+     */
+    public function forceDelete(ModelsUser $user): bool
+    {
+        return $user->can('force delete users');
+    }
+
 }
