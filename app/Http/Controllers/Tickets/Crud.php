@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Tickets;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Tickets\Store as RequestsStore;
+use App\Http\Requests\Tickets\Update as RequestsUpdate;
 use App\Models\Asset;
 use App\Models\Attachment;
 use App\Models\Ticket;
@@ -32,48 +33,40 @@ class Crud extends Controller
 
     /**
      * Display a listing of tickets with filters.
-     *
-     * @param Request $request
-     * @return Response
      */
     public function index(Request $request): Response
     {
-        $query = $this->getBaseQuery($request);
-
-        if (!Auth::user()->hasRole(['admin', 'solver'])) {
-            $query->where(function (Builder $q) {
-                $q->where('author_id', Auth::id())
-                    ->orWhereHas('assignees', fn($sq) => $sq->where('user_id', Auth::id()));
-            });
-        }
-
-        return Inertia::render('tickets/index', [
-            'tickets' => $query->paginate(10)->withQueryString(),
-            'filters' => $request->only(['search', 'status', 'priority', 'category', 'equipment', 'assignee', 'date_from', 'date_to']),
-            'statuses' => TicketStatus::orderBy('sort_order')->get(['id', 'title']),
-            'priorities' => TicketPriority::orderBy('sort_order')->get(['id', 'title', 'color']),
-            'categories' => TicketCategory::orderBy('sort_order')->get(['id', 'title']),
-            'assets' => Asset::orderBy('title')->get(['id', 'title']),
-            'solvers' => User::role(['admin', 'solver'])->get(['id', 'name']),
-        ]);
+        return $this->renderTicketList($request, 'tickets/index');
     }
 
     /**
      * Display management view for solver/admin.
-     *
-     * @param Request $request
-     * @return Response
      */
     public function manage(Request $request): Response
+    {
+        return $this->renderTicketList($request, 'tickets/manage');
+    }
+
+    /**
+     * Helper to render a ticket list based on roles.
+     */
+    private function renderTicketList(Request $request, string $view): Response
     {
         $query = $this->getBaseQuery($request);
         $user = Auth::user();
 
         if (!$user->hasRole('admin')) {
-            $query->whereHas('assignees', fn($q) => $q->where('user_id', $user->id));
+            if ($user->hasRole('solver')) {
+                $query->where(function (Builder $q) use ($user) {
+                    $q->whereHas('assignees', fn($sq) => $sq->where('user_id', $user->id))
+                        ->orWhere('author_id', $user->id);
+                });
+            } else {
+                $query->where('author_id', $user->id);
+            }
         }
 
-        return Inertia::render('tickets/manage', [
+        return Inertia::render($view, [
             'tickets' => $query->paginate(10)->withQueryString(),
             'filters' => $request->only(['search', 'status', 'priority', 'category', 'equipment', 'assignee', 'date_from', 'date_to']),
             'statuses' => TicketStatus::orderBy('sort_order')->get(['id', 'title', 'color']),
@@ -84,11 +77,6 @@ class Crud extends Controller
         ]);
     }
 
-    /**
-     * Show creation form.
-     *
-     * @return Response
-     */
     public function create(): Response
     {
         return Inertia::render('tickets/create', [
@@ -100,12 +88,6 @@ class Crud extends Controller
         ]);
     }
 
-    /**
-     * Display a detailed ticket view.
-     *
-     * @param Ticket $ticket
-     * @return Response
-     */
     public function show(Ticket $ticket): Response
     {
         $ticket->load([
@@ -116,74 +98,58 @@ class Crud extends Controller
 
         return Inertia::render('tickets/show', [
             'ticket' => $ticket,
-            'events' => TicketSchedule::with(['user', 'ticket.priority', 'ticket.status', 'ticket.category'])->get(),
+            'events' => TicketSchedule::with(['user', 'ticket.priority', 'ticket.status', 'ticket.category'])
+                ->where('ticket_id', $ticket->id)
+                ->get(),
             'solvers' => User::role(['admin', 'solver'])->get(['id', 'name', 'email']),
         ]);
     }
 
     /**
-     * Store a newly created ticket.
-     *
-     * @param RequestsStore $request
-     * @return RedirectResponse
      * @throws Throwable
      */
     public function store(RequestsStore $request): RedirectResponse
     {
         return DB::transaction(function () use ($request) {
             $data = $request->validated();
+            $user = $request->user();
+
+            if (!$user->hasAnyRole(['admin', 'solver'])) {
+                unset(
+                    $data['detailed_solution'],
+                    $data['is_referenced'],
+                    $data['assignees'],
+                    $data['status_id']
+                );
+            }
 
             $ticket = Ticket::create([
                 'title' => $data['title'],
                 'description' => $data['description'],
-                'author_id' => $request->user()->id,
+                'author_id' => $user->id,
                 'is_public' => $data['is_public'] ?? false,
                 'is_referenced' => $data['is_referenced'] ?? false,
                 'detailed_solution' => $data['detailed_solution'] ?? null,
                 'priority_id' => $data['priority_id'],
                 'category_id' => $data['category_id'],
-                'status_id' => $data['status_id'] ?? null,
+                'status_id' => $data['status_id'] ?? TicketStatus::orderBy('sort_order')->first()->id ?? null,
                 'asset_id' => $data['asset_id'] ?? null,
             ]);
 
-            if (!empty($data['assignees'])) {
+            if (!empty($data['assignees']) && $user->hasAnyRole(['admin', 'solver'])) {
                 foreach ($data['assignees'] as $assignee) {
                     $ticket->assignees()->create(['user_id' => $assignee['id']]);
                 }
             }
 
             if ($request->hasFile('attachments')) {
-                foreach ($request->file('attachments') as $file) {
-                    $path = Storage::disk('public')->putFile("tickets/$ticket->id/attachments", $file);
-                    $originalName = $file->getClientOriginalName();
-
-                    $attachment = Attachment::create([
-                        'title' => $originalName,
-                        'description' => null,
-                        'file_name' => $originalName,
-                        'file_path' => $path,
-                        'mime_type' => $file->getMimeType(),
-                        'file_extension' => $file->getClientOriginalExtension(),
-                        'file_size' => $file->getSize(),
-                    ]);
-
-                    TicketAttachment::create([
-                        'ticket_id' => $ticket->id,
-                        'attachment_id' => $attachment->id,
-                    ]);
-                }
+                $this->handleAttachments($request->file('attachments'), $ticket);
             }
 
             return redirect()->route('tickets.manage')->with('success', __('tickets.flash.created'));
         });
     }
 
-    /**
-     * Show edit form.
-     *
-     * @param Ticket $ticket
-     * @return Response
-     */
     public function edit(Ticket $ticket): Response
     {
         $ticket->load(['assignees.user', 'attachments']);
@@ -199,37 +165,11 @@ class Crud extends Controller
     }
 
     /**
-     * Update existing ticket.
-     *
-     * @param Request $request
-     * @param Ticket $ticket
-     * @return RedirectResponse
      * @throws Throwable
      */
-    public function update(Request $request, Ticket $ticket): RedirectResponse
+    public function update(RequestsUpdate $request, Ticket $ticket): RedirectResponse
     {
-        $fileMaxSize = config('filesystems.upload_max_size', "8192");
-
-        $data = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'is_public' => 'boolean',
-            'is_referenced' => 'boolean',
-            'detailed_solution' => 'nullable|string',
-            'priority_id' => 'required|exists:ticket_priorities,id',
-            'category_id' => 'required|exists:ticket_categories,id',
-            'status_id' => 'nullable|exists:ticket_statuses,id',
-            'asset_id' => 'nullable|exists:assets,id',
-            'assignees' => 'nullable|array',
-            'assignees.*.id' => 'required|exists:users,id',
-            'attachments' => ['nullable', 'array', 'max:10'],
-            'attachments.*' => [
-                'required',
-                'file',
-                'max:' . $fileMaxSize,
-                'mimes:jpg,jpeg,png,webp,svg,pdf',
-            ],
-        ]);
+        $data = $request->validated();
 
         $newFilesCount = count($request->file('attachments') ?? []);
         $existingFilesCount = $ticket->attachments()->count();
@@ -239,9 +179,15 @@ class Crud extends Controller
         }
 
         return DB::transaction(function () use ($data, $ticket, $request) {
+            $user = $request->user();
+
+            if (!$user->hasAnyRole(['admin', 'solver'])) {
+                $data = collect($data)->only(['title', 'description', 'asset_id', 'is_public'])->toArray();
+            }
+
             $ticket->update($data);
 
-            if (isset($data['assignees'])) {
+            if (isset($data['assignees']) && $user->hasAnyRole(['admin', 'solver'])) {
                 $newIds = collect($data['assignees'])->pluck('id')->toArray();
                 $ticket->assignees()->whereNotIn('user_id', $newIds)->get()->each->delete();
 
@@ -251,48 +197,52 @@ class Crud extends Controller
             }
 
             if ($request->hasFile('attachments')) {
-                foreach ($request->file('attachments') as $file) {
-                    $path = Storage::disk('public')->putFile("tickets/$ticket->id/attachments", $file);
-                    $originalName = $file->getClientOriginalName();
-
-                    $attachment = Attachment::create([
-                        'title' => $originalName,
-                        'file_name' => $originalName,
-                        'file_path' => $path,
-                        'mime_type' => $file->getMimeType(),
-                        'file_extension' => $file->getClientOriginalExtension(),
-                        'file_size' => $file->getSize(),
-                    ]);
-
-                    TicketAttachment::create([
-                        'ticket_id' => $ticket->id,
-                        'attachment_id' => $attachment->id,
-                    ]);
-                }
+                $this->handleAttachments($request->file('attachments'), $ticket);
             }
 
             return redirect()->route('tickets.show', $ticket)->with('success', __('tickets.flash.updated'));
         });
     }
 
-    /**
-     * Remove the specified ticket from storage.
-     *
-     * @param Ticket $ticket
-     * @return RedirectResponse
-     */
     public function destroy(Ticket $ticket): RedirectResponse
     {
+        $user = Auth::user();
+
+        $isAssigned = $ticket->assignees()->where('user_id', $user->id)->exists();
+
+        if (!$user->hasRole('admin') && !$isAssigned) {
+            abort(403, "Action non autorisée. Seul un administrateur ou le solveur assigné peut archiver ce ticket.");
+        }
+
         $ticket->delete();
         return redirect()->route('tickets.manage')->with('success', __('tickets.flash.deleted'));
     }
 
     /**
-     * Build the base query for index and manage.
-     *
-     * @param Request $request
-     * @return Builder
+     * Helper pour gérer le téléchargement des pièces jointes.
      */
+    private function handleAttachments(array $files, Ticket $ticket): void
+    {
+        foreach ($files as $file) {
+            $path = Storage::disk('public')->putFile("tickets/$ticket->id/attachments", $file);
+            $originalName = $file->getClientOriginalName();
+
+            $attachment = Attachment::create([
+                'title' => $originalName,
+                'file_name' => $originalName,
+                'file_path' => $path,
+                'mime_type' => $file->getMimeType(),
+                'file_extension' => $file->getClientOriginalExtension(),
+                'file_size' => $file->getSize(),
+            ]);
+
+            TicketAttachment::create([
+                'ticket_id' => $ticket->id,
+                'attachment_id' => $attachment->id,
+            ]);
+        }
+    }
+
     private function getBaseQuery(Request $request): Builder
     {
         $query = Ticket::query()->with(['status', 'priority', 'category', 'asset', 'user', 'assignees.user']);
@@ -302,7 +252,10 @@ class Crud extends Controller
             $query->where(function (Builder $q) use ($search) {
                 $q->where('title', 'like', "%$search%")
                     ->orWhere('id', 'like', "%$search%")
-                    ->orWhere('description', 'like', "%$search%");
+                    ->orWhere('description', 'like', "%$search%")
+                    ->orWhereHas('asset', function (Builder $qAsset) use ($search) {
+                        $qAsset->where('title', 'like', "%$search%");
+                    });
             });
         }
 
@@ -327,12 +280,6 @@ class Crud extends Controller
         return $query->orderBy(in_array($sort, $allowedSorts) ? $sort : 'updated_at', $direction);
     }
 
-    /**
-     * Restore a soft-deleted ticket.
-     *
-     * @param Ticket $ticket
-     * @return RedirectResponse
-     */
     public function restore(Ticket $ticket): RedirectResponse
     {
         $this->authorize('restore', $ticket);
@@ -340,12 +287,6 @@ class Crud extends Controller
         return redirect()->back()->with('success', __('Ticket restored successfully.'));
     }
 
-    /**
-     * Permanently delete a ticket.
-     *
-     * @param Ticket $ticket
-     * @return RedirectResponse
-     */
     public function forceDelete(Ticket $ticket): RedirectResponse
     {
         $this->authorize('forceDelete', $ticket);

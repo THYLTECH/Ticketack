@@ -171,6 +171,7 @@ return [
         'showing' => 'Showing',
         'of' => 'of',
         'results' => 'results',
+        'show' => 'Show'
     ],
     'dialog' => [
         'title' => 'Log time',

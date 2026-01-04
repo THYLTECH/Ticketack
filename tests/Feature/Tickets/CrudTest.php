@@ -82,6 +82,8 @@ test('manage page filters for assigned tickets for non-admins', function () {
         );
 
     $this->user->removeRole('admin');
+    $this->user->assignRole('solver');
+
     get(route('tickets.manage'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
@@ -271,7 +273,7 @@ test('it can save a ticket without status and asset', function () {
 
     $this->assertDatabaseHas('tickets', [
         'title' => 'Minimal Ticket',
-        'status_id' => null,
+        'status_id' => $this->status->id,
         'asset_id' => null,
     ]);
 });

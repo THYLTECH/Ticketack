@@ -104,8 +104,8 @@ test('user can filter entries by billable status', function () {
 });
 
 test('user can filter entries by ticket attributes', function () {
-    $status1 = TicketStatus::factory()->create();
-    $status2 = TicketStatus::factory()->create();
+    $status1 = TicketStatus::factory()->create(['sort_order' => 10]);
+    $status2 = TicketStatus::factory()->create(['sort_order' => 20]);
 
     $ticket1 = Ticket::factory()->create(['status_id' => $status1->id]);
     $ticket2 = Ticket::factory()->create(['status_id' => $status2->id]);

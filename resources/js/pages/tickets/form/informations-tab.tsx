@@ -44,11 +44,12 @@ import { StatusesSheet } from '@/pages/tickets/relations/statuses';
 import {
     Asset,
     Attachment,
+    SharedData,
     TicketCategory,
     TicketPriority,
     TicketStatus,
 } from '@/types';
-import { Link, router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import {
     BookOpenCheck,
     Download,
@@ -94,18 +95,27 @@ export function InformationsTab({
     existingAttachments = [],
 }: InformationsTabProps) {
     const __ = useTrans();
+    const { auth } = usePage<SharedData>().props;
     const [fileToDelete, setFileToDelete] = React.useState<Attachment | null>(
         null,
     );
 
     const maxTotalFiles = 10;
-    const remainingSlots = Math.max(0, maxTotalFiles - existingAttachments.length);
+    const remainingSlots = Math.max(
+        0,
+        maxTotalFiles - existingAttachments.length,
+    );
 
     const config = {
         maxFiles: remainingSlots,
         maxSizeMB: 8,
         accept: 'image/*,application/pdf',
     };
+
+    const canManageKnowledgeBase =
+        auth.user.roles?.some((role) =>
+            ['admin', 'solver'].includes(role.name),
+        ) ?? false;
 
     React.useEffect(() => {
         if (
@@ -151,62 +161,64 @@ export function InformationsTab({
             value="informations"
             className="animate-in space-y-8 fade-in slide-in-from-bottom-2"
         >
-            <Card className="border-l-4 border-l-emerald-500 bg-emerald-50/20 shadow-sm transition-all hover:shadow-md dark:bg-emerald-950/10">
-                <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-4">
-                    <div className="space-y-1">
-                        <CardTitle className="flex items-center gap-2 text-lg font-semibold text-emerald-900 dark:text-emerald-100">
-                            <BookOpenCheck className="h-5 w-5" />
-                            {__('tickets.pages.form.knowledge_base.title')}
-                        </CardTitle>
-                        <p className="text-sm text-emerald-700/80 dark:text-emerald-300/80">
-                            {__(
-                                'tickets.pages.form.knowledge_base.description',
-                            )}
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-3 rounded-lg border bg-background/50 px-3 py-2 shadow-sm">
-                        <Label
-                            htmlFor="reference-mode"
-                            className="cursor-pointer text-sm font-medium text-emerald-800 dark:text-emerald-200"
-                        >
-                            {data.is_referenced
-                                ? __(
-                                      'tickets.pages.form.knowledge_base.status_on',
-                                  )
-                                : __(
-                                      'tickets.pages.form.knowledge_base.status_off',
-                                  )}
-                        </Label>
-                        <Switch
-                            id="reference-mode"
-                            checked={data.is_referenced}
-                            onCheckedChange={(checked) =>
-                                setData('is_referenced', checked)
-                            }
-                            disabled={disabled}
-                            className="data-[state=checked]:bg-emerald-600"
-                        />
-                    </div>
-                </CardHeader>
-                {data.is_referenced && (
-                    <CardContent className="animate-in pt-0 fade-in slide-in-from-top-4">
-                        <Separator className="mb-6 bg-emerald-200/50" />
-                        <MarkdownEditor
-                            value={data.detailed_solution || ''}
-                            onChange={(val: string) =>
-                                setData('detailed_solution', val)
-                            }
-                            disabled={disabled}
-                        />
-                        {errors.detailed_solution && (
-                            <p className="mt-2 flex items-center gap-2 text-sm font-medium text-destructive">
-                                <MinusCircle className="h-4 w-4" />
-                                {errors.detailed_solution}
+            {canManageKnowledgeBase && (
+                <Card className="border-l-4 border-l-emerald-500 bg-emerald-50/20 shadow-sm transition-all hover:shadow-md dark:bg-emerald-950/10">
+                    <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-4">
+                        <div className="space-y-1">
+                            <CardTitle className="flex items-center gap-2 text-lg font-semibold text-emerald-900 dark:text-emerald-100">
+                                <BookOpenCheck className="h-5 w-5" />
+                                {__('tickets.pages.form.knowledge_base.title')}
+                            </CardTitle>
+                            <p className="text-sm text-emerald-700/80 dark:text-emerald-300/80">
+                                {__(
+                                    'tickets.pages.form.knowledge_base.description',
+                                )}
                             </p>
-                        )}
-                    </CardContent>
-                )}
-            </Card>
+                        </div>
+                        <div className="flex items-center gap-3 rounded-lg border bg-background/50 px-3 py-2 shadow-sm">
+                            <Label
+                                htmlFor="reference-mode"
+                                className="cursor-pointer text-sm font-medium text-emerald-800 dark:text-emerald-200"
+                            >
+                                {data.is_referenced
+                                    ? __(
+                                          'tickets.pages.form.knowledge_base.status_on',
+                                      )
+                                    : __(
+                                          'tickets.pages.form.knowledge_base.status_off',
+                                      )}
+                            </Label>
+                            <Switch
+                                id="reference-mode"
+                                checked={data.is_referenced}
+                                onCheckedChange={(checked) =>
+                                    setData('is_referenced', checked)
+                                }
+                                disabled={disabled}
+                                className="data-[state=checked]:bg-emerald-600"
+                            />
+                        </div>
+                    </CardHeader>
+                    {data.is_referenced && (
+                        <CardContent className="animate-in pt-0 fade-in slide-in-from-top-4">
+                            <Separator className="mb-6 bg-emerald-200/50" />
+                            <MarkdownEditor
+                                value={data.detailed_solution || ''}
+                                onChange={(val: string) =>
+                                    setData('detailed_solution', val)
+                                }
+                                disabled={disabled}
+                            />
+                            {errors.detailed_solution && (
+                                <p className="mt-2 flex items-center gap-2 text-sm font-medium text-destructive">
+                                    <MinusCircle className="h-4 w-4" />
+                                    {errors.detailed_solution}
+                                </p>
+                            )}
+                        </CardContent>
+                    )}
+                </Card>
+            )}
 
             <div className="flex items-center justify-between rounded-xl border bg-card p-4 shadow-sm transition-all hover:border-primary/20 hover:shadow-md">
                 <div className="space-y-1">
@@ -555,7 +567,7 @@ export function InformationsTab({
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 {existingAttachments.length > 0 && (
                     <div className="mb-4 space-y-3">
                         <Label>
@@ -563,7 +575,7 @@ export function InformationsTab({
                                 'tickets.pages.edit.attachments.existing_attachments',
                             )}
                         </Label>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                             {existingAttachments.map((attachment) => (
                                 <div
                                     key={attachment.id}

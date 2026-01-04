@@ -34,7 +34,8 @@ class Entries extends Controller
         $categories = TicketCategory::query()->select(['id', 'title', 'color'])->orderBy('title')->get();
 
         $tickets = Ticket::query()
-            ->select(['id', 'title'])
+            ->select(['id', 'title', 'description', 'asset_id'])
+            ->with(['asset:id,title'])
             ->whereHas('assignees', function (Builder $q) use ($user) {
                 $q->where('user_id', $user->id);
             })
@@ -69,7 +70,8 @@ class Entries extends Controller
             $query->orderByDesc('start_at');
         }
 
-        $entries = $query->paginate(15)->withQueryString();
+        $perPage = $request->input('per_page', 15);
+        $entries = $query->paginate($perPage)->withQueryString();
 
         return Inertia::render('tickets/entries/index', [
             'entries' => $entries,
@@ -83,6 +85,7 @@ class Entries extends Controller
             'priorities' => $priorities,
             'categories' => $categories,
             'filters' => $request->only([
+                'search',
                 'start_date', 'end_date', 'billable',
                 'ticket_status', 'ticket_priority', 'ticket_category',
                 'sort', 'direction'
@@ -178,9 +181,11 @@ class Entries extends Controller
             $dailySummary = $entries->groupBy(fn($entry) => $entry->start_at->format('Y-m-d'))
                 ->map(fn($dayEntries) => round($dayEntries->sum('duration_seconds') / 3600, 2));
 
-            $weeklyEntries = $entries->groupBy(fn($entry) => $entry->start_at->format('W/Y'));
+            $weeklyEntries = $entries->groupBy(function($entry) {
+                return $entry->start_at->format('o-W');
+            })->sortKeysDesc();
 
-            $pdf = Pdf::loadView('reports.entries', [
+            $pdf = Pdf::loadView('pdf.reports.entries', [
                 'entries' => $entries,
                 'dailySummary' => $dailySummary,
                 'weeklyEntries' => $weeklyEntries,
@@ -260,6 +265,18 @@ class Entries extends Controller
 
     private function applyFilters(Builder $query, Request $request): void
     {
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->whereHas('ticket', function (Builder $q) use ($search) {
+                $q->where('title', 'like', "%$search%")
+                    ->orWhere('id', 'like', "%$search%")
+                    ->orWhere('description', 'like', "%$search%")
+                    ->orWhereHas('asset', function (Builder $qAsset) use ($search) {
+                        $qAsset->where('title', 'like', "%$search%");
+                    });
+            });
+        }
+
         if ($request->filled('start_date')) {
             $query->whereDate('start_at', '>=', $request->input('start_date'));
         }

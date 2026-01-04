@@ -62,7 +62,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-bottom: 0;
         }
 
         th {
@@ -105,8 +105,12 @@
             font-weight: bold;
             padding: 8px;
             font-size: 11px;
-            margin-top: 15px;
+            border-bottom: 1px solid #cbd5e1;
             page-break-after: avoid;
+        }
+
+        .week-container {
+            margin-top: 20px;
         }
 
         .text-right {
@@ -142,9 +146,14 @@
             margin-top: 2px;
         }
 
+        .nowrap {
+            white-space: nowrap;
+        }
+
         .total-box {
             margin-top: 30px;
             text-align: right;
+            page-break-inside: avoid;
         }
 
         .total-label {
@@ -224,57 +233,64 @@
 
 <div class="section-title">{{ __('entries.pdf.weekly_details') }}</div>
 
-@forelse($weeklyEntries as $week => $entries)
-    <div class="week-header">{{ __('entries.pdf.week') }} {{ $week }}</div>
-    <table>
-        <thead>
-        <tr>
-            <th style="width: 15%">{{ __('entries.pdf.table.date') }}</th>
-            <th style="width: 45%">{{ __('entries.pdf.table.description') }}</th>
-            <th style="width: 15%">{{ __('entries.pdf.table.billable') }}</th>
-            <th style="width: 15%" class="text-right">{{ __('entries.pdf.table.duration') }}</th>
-        </tr>
-        </thead>
-        <tbody>
-        @foreach($entries as $entry)
+@forelse($weeklyEntries as $weekKey => $entries)
+    @php
+        $weekParts = explode('-', $weekKey);
+        $displayWeek = (count($weekParts) === 2) ? $weekParts[1] . '/' . $weekParts[0] : $weekKey;
+    @endphp
+
+    <div class="week-container">
+        <div class="week-header">{{ __('entries.pdf.week') }} {{ $displayWeek }}</div>
+        <table>
+            <thead>
             <tr>
-                <td>
-                    <div style="font-weight: bold;">{{ Carbon::parse($entry->start_at)->format('d/m/Y') }}</div>
-                    <div
-                        style="color: #64748b; font-size: 10px;">{{ Carbon::parse($entry->start_at)->format('H:i') }}</div>
-                </td>
-                <td>
-                    <div style="color: #0f172a; font-weight: bold;">
-                        {{ $entry->ticket ? $entry->ticket->title : __('entries.pdf.ticket_deleted', ['id' => $entry->ticket_id]) }}
-                    </div>
-
-                    <div class="ticket-meta">
-                        ID #{{ $entry->ticket_id }}
-                        @if($entry->ticket && $entry->ticket->category)
-                            • {{ $entry->ticket->category->title }}
-                        @endif
-                    </div>
-
-                    @if($entry->note)
-                        <div style="margin-top: 5px; font-style: italic; color: #475569;">
-                            "{{ $entry->note }}"
-                        </div>
-                    @endif
-                </td>
-                <td>
-                    @if($entry->billable)
-                        <span class="badge badge-yes">{{ __('entries.pdf.yes') }}</span>
-                    @else
-                        <span class="badge badge-no">{{ __('entries.pdf.no') }}</span>
-                    @endif
-                </td>
-                <td class="text-right font-mono">
-                    <strong>{{ round($entry->duration_seconds / 3600, 2) }}</strong> h
-                </td>
+                <th style="width: 15%">{{ __('entries.pdf.table.date') }}</th>
+                <th style="width: 45%">{{ __('entries.pdf.table.description') }}</th>
+                <th style="width: 15%">{{ __('entries.pdf.table.billable') }}</th>
+                <th style="width: 15%" class="text-right">{{ __('entries.pdf.table.duration') }}</th>
             </tr>
-        @endforeach
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+            @foreach($entries as $entry)
+                <tr>
+                    <td class="nowrap">
+                        <div style="font-weight: bold;">{{ Carbon::parse($entry->start_at)->format('d/m/Y') }}</div>
+                        <div
+                            style="color: #64748b; font-size: 10px;">{{ Carbon::parse($entry->start_at)->format('H:i') }}</div>
+                    </td>
+                    <td>
+                        <div style="color: #0f172a; font-weight: bold;">
+                            {{ $entry->ticket ? $entry->ticket->title : __('entries.pdf.ticket_deleted', ['id' => $entry->ticket_id]) }}
+                        </div>
+
+                        <div class="ticket-meta">
+                            ID #{{ $entry->ticket_id }}
+                            @if($entry->ticket && $entry->ticket->category)
+                                • {{ $entry->ticket->category->title }}
+                            @endif
+                        </div>
+
+                        @if($entry->note)
+                            <div style="margin-top: 5px; font-style: italic; color: #475569;">
+                                "{{ $entry->note }}"
+                            </div>
+                        @endif
+                    </td>
+                    <td>
+                        @if($entry->billable)
+                            <span class="badge badge-yes">{{ __('entries.pdf.yes') }}</span>
+                        @else
+                            <span class="badge badge-no">{{ __('entries.pdf.no') }}</span>
+                        @endif
+                    </td>
+                    <td class="text-right font-mono nowrap">
+                        <strong>{{ round($entry->duration_seconds / 3600, 2) }}</strong> h
+                    </td>
+                </tr>
+            @endforeach
+            </tbody>
+        </table>
+    </div>
 @empty
     <div style="text-align: center; padding: 30px; color: #64748b; border: 1px dashed #cbd5e1;">
         {{ __('entries.pdf.no_entries') }}
