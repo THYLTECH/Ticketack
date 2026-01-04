@@ -7,12 +7,17 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Spatie\Permission\Models\Role;
 use function Pest\Laravel\{actingAs, delete};
 
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
+    $role = Role::create(['name' => 'admin']);
+
     $this->user = User::factory()->create();
+    $this->user->assignRole($role);
+
     actingAs($this->user);
     Storage::fake('public');
 });

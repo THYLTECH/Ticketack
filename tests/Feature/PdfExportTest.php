@@ -13,23 +13,20 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     Permission::firstOrCreate(['name' => 'view tickets']);
+    Permission::firstOrCreate(['name' => 'show tickets']);
 
     $this->user = User::factory()->create(['color_scheme' => 'blue']);
-    $this->user->givePermissionTo('view tickets');
+    $this->user->givePermissionTo(['view tickets', 'show tickets']);
 
     actingAs($this->user);
 
-    /**
-     * On mock l'appel HTTP pour éviter de dépendre de l'API externe
-     * et pour accélérer les tests.
-     */
     Http::fake([
         'api.qrserver.com/*' => Http::response('fake-qr-code-content', 200),
     ]);
 });
 
 test('user can download ticket pdf', function () {
-    $ticket = Ticket::factory()->create();
+    $ticket = Ticket::factory()->create(['author_id' => $this->user->id]);
 
     $response = get(route('tickets.pdf', $ticket));
 
@@ -43,7 +40,7 @@ test('pdf generation handles qr code api failure gracefully', function () {
         'api.qrserver.com/*' => Http::response([], 500),
     ]);
 
-    $ticket = Ticket::factory()->create();
+    $ticket = Ticket::factory()->create(['author_id' => $this->user->id]);
 
     $response = get(route('tickets.pdf', $ticket));
 

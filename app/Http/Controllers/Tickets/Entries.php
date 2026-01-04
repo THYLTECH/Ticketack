@@ -25,6 +25,10 @@ class Entries extends Controller
         /** @var User $user */
         $user = $request->user();
 
+        if (!$user->can('view ticket entries')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $statuses = TicketStatus::query()->select(['id', 'title', 'color'])->orderBy('sort_order')->get();
         $priorities = TicketPriority::query()->select(['id', 'title', 'color'])->orderBy('sort_order')->get();
         $categories = TicketCategory::query()->select(['id', 'title', 'color'])->orderBy('title')->get();

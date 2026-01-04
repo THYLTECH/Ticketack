@@ -10,10 +10,10 @@ use Illuminate\Auth\Access\Response;
 
 /**
  * Policy class for managing permissions related to Asset model.
- * 
+ *
  * This class defines the authorization logic for various actions
  * that can be performed on Asset instances.
- * 
+ *
  * @package App\Policies
  */
 class Asset
@@ -63,7 +63,7 @@ class Asset
      */
     public function restore(User $user, ModelsAsset $asset): bool
     {
-        return $user->can('delete assets');
+        return $user->can('restore assets');
     }
 
     /**
@@ -71,6 +71,6 @@ class Asset
      */
     public function forceDelete(User $user, ModelsAsset $asset): bool
     {
-        return $user->can('delete assets');
+        return $user->can('force delete assets');
     }
 }

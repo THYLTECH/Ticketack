@@ -65,7 +65,8 @@ export function CommentList({
     const prevCommentsLengthRef = useRef(comments.length);
 
     const [deleteId, setDeleteId] = useState<number | null>(null);
-    const { delete: destroy } = useForm();
+
+    const { delete: destroy } = useForm({});
 
     const handleScroll = () => {
         if (!scrollRef.current) return;
@@ -308,7 +309,7 @@ export function CommentList({
                                         {comment.content && (
                                             <div
                                                 className={cn(
-                                                    'relative min-w-[80px] rounded-2xl border px-5 py-3 text-sm shadow-sm transition-all',
+                                                    'relative min-w-20 rounded-2xl border px-5 py-3 text-sm shadow-sm transition-all',
                                                     isMe
                                                         ? 'rounded-tr-none border-primary bg-primary text-primary-foreground'
                                                         : 'rounded-tl-none border-border/60 bg-card text-card-foreground',
@@ -318,7 +319,7 @@ export function CommentList({
                                             >
                                                 <div
                                                     className={cn(
-                                                        'prose prose-sm max-w-none leading-relaxed break-words',
+                                                        'prose prose-sm max-w-none leading-relaxed wrap-break-word',
                                                         isMe
                                                             ? 'prose-invert'
                                                             : 'dark:prose-invert',
@@ -385,7 +386,8 @@ export function CommentList({
                                                                     <div className="flex items-center gap-2 rounded-md border bg-card p-2 text-xs shadow-sm hover:bg-accent/50">
                                                                         <FileIcon className="h-4 w-4 text-primary" />
                                                                         <div className="flex flex-col overflow-hidden">
-                                                                            <span className="max-w-[120px] truncate font-medium">
+                                                                            {/* Correction: max-w-[120px] -> max-w-30 */}
+                                                                            <span className="max-w-30 truncate font-medium">
                                                                                 {
                                                                                     att.file_name
                                                                                 }

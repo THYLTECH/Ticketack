@@ -20,6 +20,8 @@ class PdfExport extends Controller
      */
     public function generate(Ticket $ticket): Response
     {
+        $this->authorize('view', $ticket);
+
         $ticket->load([
             'user',
             'priority',

@@ -2,31 +2,33 @@
 
 namespace App\Providers;
 
-use App\Models\TicketSchedule;
-use App\Observers\TicketObserver;
-use App\Policies\TicketSchedulePolicy;
+use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Auth\Middleware\Authenticate;
+
+// External Libs
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
-use Illuminate\Auth\Middleware\Authenticate;
-use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\URL;
 
 // Models
 use App\Models\Asset;
-use Spatie\Permission\Models\Role;
-use App\Models\User;
 use App\Models\Ticket;
+use App\Models\TicketSchedule;
+use App\Models\User;
+use Spatie\Permission\Models\Role;
 
 // Policies
 use App\Policies\Asset as AssetPolicy;
+use App\Policies\Ticket as TicketPolicy;
+use App\Policies\TicketSchedulePolicy;
 use App\Policies\Role as RolePolicy;
 use App\Policies\User as UserPolicy;
-use Symfony\Component\HttpFoundation\Request;
-use App\Policies\Ticket as TicketPolicy;
+
+// Observers
+use App\Observers\TicketObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -49,20 +51,24 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
-        /** @noinspection PhpParamsInspection */
+        Gate::before(function ($user) {
+            return $user->hasRole('admin') ? true : null;
+        });
+
+        // --- 2. Documentation API Gate ---
         Gate::define('viewApiDocs', function (User $user) {
-            return $user->hasAnyRole(['admin', 'Admin'])
+            return $user->hasRole('admin')
                 || ($user->can('update users') && $user->can('update assets'));
         });
 
-        // Policies
+        // --- 3. Enregistrement explicite des Policies ---
         Gate::policy(Asset::class, AssetPolicy::class);
         Gate::policy(Role::class, RolePolicy::class);
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Ticket::class, TicketPolicy::class);
         Gate::policy(TicketSchedule::class, TicketSchedulePolicy::class);
 
-        // Adding security scheme to the generated OpenAPI spec
+        // --- 4. Configuration Scramble (Doc API) ---
         if (class_exists(Scramble::class)) {
             Scramble::afterOpenApiGenerated(function (OpenApi $openApi) {
                 $openApi->secure(
@@ -71,10 +77,18 @@ class AppServiceProvider extends ServiceProvider
             });
         }
 
-        // Customizing the authentication redirect behavior
-        Authenticate::redirectUsing(function ($request) {
-            return redirect()->route('auth.login')->with(['error' => ['title' => __('common.flash.error'), 'description' => __('auth.flash.middleware.auth_required')]])->getTargetUrl();
+        // --- 5. Redirection Auth Custom ---
+        Authenticate::redirectUsing(function () {
+            return redirect()
+                ->route('auth.login')
+                ->with(['error' => [
+                    'title' => __('common.flash.error'),
+                    'description' => __('auth.flash.middleware.auth_required')
+                ]])
+                ->getTargetUrl();
         });
+
+        // --- 6. Observers ---
         Ticket::observe(TicketObserver::class);
     }
 }

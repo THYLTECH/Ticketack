@@ -13,19 +13,16 @@ use function Pest\Laravel\{actingAs, delete, get, post, put};
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    // Création des permissions
     Permission::firstOrCreate(['name' => 'view trash']);
-    Permission::firstOrCreate(['name' => 'restore items']);
-    Permission::firstOrCreate(['name' => 'force delete items']);
+    Permission::firstOrCreate(['name' => 'restore trash']);
+    Permission::firstOrCreate(['name' => 'force delete trash']);
 
-    // User admin avec toutes les permissions
+    $role = Role::firstOrCreate(['name' => 'admin']);
     $this->user = User::factory()->create();
-    $this->user->givePermissionTo(Permission::all());
+    $this->user->assignRole($role);
 
     actingAs($this->user);
 });
-
-// --- TESTS EXISTANTS ---
 
 test('trash index page loads and shows deleted items', function () {
     User::factory()->create(['name' => 'Active User']);
@@ -146,7 +143,6 @@ test('cannot perform actions on unknown types', function () {
     $user = User::factory()->create();
     $user->delete();
 
-    // Avec abort(404) dans le controlleur, ceci passera
     put(route('trash.restore', ['type' => 'spaceship', 'id' => $user->id]))
         ->assertStatus(404);
 });
@@ -186,19 +182,18 @@ test('can force delete a single ticket', function () {
     $this->assertModelMissing($ticket);
 });
 
-// --- NOUVEAUX TESTS DE PERMISSIONS ET ASSETS ---
 
 test('user without view permission cannot see trash', function () {
-    $user = User::factory()->create(); // Pas de permissions données
+    $user = User::factory()->create();
     actingAs($user);
 
     get(route('trash.index'))
-        ->assertForbidden(); // Attend une 403
+        ->assertForbidden();
 });
 
 test('user without restore permission cannot restore items', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo('view trash'); // A le droit de voir mais pas restaurer
+    $user->givePermissionTo('view trash');
     actingAs($user);
 
     $ticket = Ticket::factory()->create();
@@ -224,7 +219,6 @@ test('can handle assets in trash', function () {
     $asset = Asset::factory()->create(['title' => 'Deleted Asset']);
     $asset->delete();
 
-    // Index
     get(route('trash.index'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
@@ -232,7 +226,6 @@ test('can handle assets in trash', function () {
             ->where('deletedAssets.data.0.id', $asset->id)
         );
 
-    // Restore
     put(route('trash.restore', ['type' => 'asset', 'id' => $asset->id]))
         ->assertRedirect()
         ->assertSessionHas('success');

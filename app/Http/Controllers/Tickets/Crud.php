@@ -335,6 +335,7 @@ class Crud extends Controller
      */
     public function restore(Ticket $ticket): RedirectResponse
     {
+        $this->authorize('restore', $ticket);
         $ticket->restore();
         return redirect()->back()->with('success', __('Ticket restored successfully.'));
     }
@@ -347,6 +348,7 @@ class Crud extends Controller
      */
     public function forceDelete(Ticket $ticket): RedirectResponse
     {
+        $this->authorize('forceDelete', $ticket);
         $ticket->forceDelete();
         return redirect()->route('tickets.manage')->with('success', __('Ticket permanently deleted.'));
     }

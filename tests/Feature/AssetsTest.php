@@ -10,22 +10,16 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use function Pest\Laravel\{actingAs, delete, get, post, put};
 
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    Permission::create(['name' => 'view assets']);
-    Permission::create(['name' => 'show assets']);
-    Permission::create(['name' => 'create assets']);
-    Permission::create(['name' => 'update assets']);
-    Permission::create(['name' => 'delete assets']);
-    Permission::create(['name' => 'view trash']);
-    Permission::create(['name' => 'restore items']);
-    Permission::create(['name' => 'force delete items']);
+    $role = Role::firstOrCreate(['name' => 'admin']);
 
     $this->user = User::factory()->create();
-    $this->user->givePermissionTo(Permission::all());
+    $this->user->assignRole($role);
 
     actingAs($this->user);
 
@@ -448,7 +442,7 @@ test('asset index page passes search filters to frontend', function () {
 test('asset index page filters assets by title', function () {
     Asset::factory()->create(['title' => 'Server 1 - Ubuntu']);
     Asset::factory()->create(['title' => 'Database Backup']);
-    
+
     $response = get(route('assets.index', ['search' => 'server']));
 
     $response
@@ -464,7 +458,7 @@ test('asset index page returns depth_level for hierarchy visualization', functio
 
     $child = Asset::factory()->create(['title' => 'Child', 'parent_id' => $parent->id]);
 
-    $response = get(route('assets.index', ['limit' => 20])); 
+    $response = get(route('assets.index', ['limit' => 20]));
 
     $response
         ->assertOk()
@@ -488,6 +482,6 @@ test('asset index page does not fail when a parent is soft-deleted', function ()
         ->assertInertia(fn ($page) => $page
             ->has('assets.data', 1)
             ->where('assets.data.0.title', 'Child')
-            ->where('assets.data.0.depth_level', 1) 
+            ->where('assets.data.0.depth_level', 1)
         );
 });
