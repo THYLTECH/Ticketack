@@ -20,6 +20,14 @@ The following command builds the containers, installs dependencies
 docker-compose up -d --build
 ```
 
+```bash
+npm i
+```
+
+```bash
+npm run dev
+```
+
 > **Note:** The very first launch may take a few minutes while the installation
 completes.
 
@@ -30,14 +38,7 @@ Once ready, access the application at:
 * **Email:** `test@example.com`
 * **Password:** `password`
 
-### 2. Development (Hot Reload)
-If you are modifying JS/CSS files and want to see changes in real-time (Vite):
-
-```bash
-docker-compose exec app npm run dev
-```
-
-### 3. Stop the application
+### 2. Stop the application
 To stop and remove the containers:
 
 ```bash
