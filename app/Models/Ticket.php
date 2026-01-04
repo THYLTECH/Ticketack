@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Ticket extends Model
+class   Ticket extends Model
 {
     use HasFactory, SoftDeletes;
 
@@ -21,11 +21,14 @@ class Ticket extends Model
         'asset_id',
         'title',
         'description',
-        'is_public'
+        'is_public',
+        'is_referenced',
+        'detailed_solution',
     ];
 
     protected $casts = [
         'is_public' => 'boolean',
+        'is_referenced' => 'boolean',
     ];
 
     /**

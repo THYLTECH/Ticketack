@@ -102,6 +102,12 @@ return [
             ],
         ],
         'form' => [
+            'knowledge_base' => [
+                'title' => 'Knowledge Base (AI)',
+                'description' => 'Mark as a reference to improve automated suggestions.',
+                'status_on' => 'Referenced',
+                'status_off' => 'Not referenced',
+            ],
             'buttons' => [
                 'back' => 'Go back to tickets',
                 'store' => 'Store Ticket',
@@ -126,6 +132,46 @@ return [
                 'select_status' => 'Select Status',
                 'select_category' => 'Select Category',
                 'select_asset' => 'Select Asset',
+            ],
+            'users_tab' => [
+                'description' => 'Manage assignees for this ticket.',
+                'add_button' => 'Add',
+                'me_badge' => 'Me',
+                'notifications' => [
+                    'added' => 'Assignee added successfully.',
+                    'removed' => 'Assignee removed successfully.',
+                ],
+                'table' => [
+                    'assignee' => 'Assignee',
+                    'role' => 'Role',
+                ],
+            ],
+            'editor' => [
+                'label' => 'Markdown Editor',
+                'placeholder' => "# Technical Solution...\n\nDescribe the resolution steps.",
+                'markdown_active' => 'Markdown supported',
+                'mode_zen' => 'Zen Mode',
+                'preview' => 'Preview',
+                'empty_preview' => 'Preview will appear here...',
+                'actions' => [
+                    'fullscreen' => 'Fullscreen',
+                    'exit' => 'Exit',
+                ],
+                'formatting' => [
+                    'bold' => 'Bold',
+                    'italic' => 'Italic',
+                    'strike' => 'Strikethrough',
+                    'h1' => 'Heading 1',
+                    'h2' => 'Heading 2',
+                    'list' => 'Bulleted List',
+                    'ordered_list' => 'Ordered List',
+                    'link' => 'Link',
+                    'image' => 'Image',
+                    'table' => 'Table',
+                    'code' => 'Code Block',
+                    'quote' => 'Quote',
+                    'separator' => 'Separator',
+                ],
             ],
         ],
         'edit' => [
@@ -179,6 +225,11 @@ return [
                         'unassigned' => 'removed an assignee',
                     ],
                 ],
+            ],
+            'knowledge_base' => [
+                'title' => 'Reference Solution',
+                'badge' => 'Knowledge Base',
+                'footer' => 'Validated by the technical team',
             ],
             'comments' => [
                 'image_modal' => [

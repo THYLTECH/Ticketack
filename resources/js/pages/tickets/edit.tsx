@@ -127,6 +127,8 @@ function EditForm({
             title: ticket.title || '',
             description: ticket.description || '',
             is_public: Boolean(ticket.is_public),
+            is_referenced: Boolean(ticket.is_referenced),
+            detailed_solution: ticket.detailed_solution || '',
             priority_id: ticketWithFK.priority_id
                 ? Number(ticketWithFK.priority_id)
                 : (ticket.priority?.id ?? null),
