@@ -38,7 +38,11 @@ class Store extends FormRequest
             'assignees' => ['nullable', 'array'],
             'assignees.*.id' => ['required', 'integer', 'exists:users,id'],
             'attachments' => ['nullable', 'array', 'max:10'],
-            'attachments.*' => ['required', 'file', 'max:' . $fileMaxSize, 'mimes:jpg,jpeg,png,webp,svg,pdf'],
-        ];
+            'attachments.*' => [
+                'required',
+                'file',
+                'max:' . $fileMaxSize,
+                'mimes:jpg,jpeg,png,webp,svg,pdf',
+            ],        ];
     }
 }

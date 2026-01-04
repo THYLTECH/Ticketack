@@ -3,7 +3,9 @@
 namespace Tests\Feature\Tickets;
 
 use App\Models\Asset;
+use App\Models\Attachment;
 use App\Models\Ticket;
+use App\Models\TicketAttachment;
 use App\Models\TicketCategory;
 use App\Models\TicketPriority;
 use App\Models\TicketStatus;
@@ -211,4 +213,65 @@ test('soft delete, restore and force delete workflow', function () {
         ->assertRedirect(route('tickets.manage'));
 
     $this->assertDatabaseMissing('tickets', ['id' => $ticket->id]);
+});
+
+test('it prevents adding more than 10 attachments on update', function () {
+    $ticket = Ticket::factory()->create([
+        'priority_id' => $this->priority->id,
+        'category_id' => $this->category->id,
+    ]);
+
+    for ($i = 0; $i < 10; $i++) {
+        $attachment = Attachment::create([
+            'title' => "file$i.png",
+            'file_name' => "file$i.png",
+            'file_path' => "path/file$i.png",
+            'mime_type' => 'image/png',
+            'file_extension' => 'png',
+            'file_size' => 1024,
+        ]);
+
+        TicketAttachment::create([
+            'ticket_id' => $ticket->id,
+            'attachment_id' => $attachment->id,
+        ]);
+    }
+
+    $file = UploadedFile::fake()->image('extra.png');
+
+    $data = [
+        'title' => 'Updated Title',
+        'description' => 'Updated description',
+        'priority_id' => $this->priority->id,
+        'status_id' => $this->status->id,
+        'category_id' => $this->category->id,
+        'asset_id' => $this->asset->id,
+        'is_public' => false,
+        'is_referenced' => true,
+        'assignees' => [['id' => $this->user->id]],
+        'attachments' => [$file]
+    ];
+
+    put(route('tickets.update', $ticket), $data)
+        ->assertSessionHasErrors();
+});
+
+test('it can save a ticket without status and asset', function () {
+    $data = [
+        'title' => 'Minimal Ticket',
+        'description' => 'Only required fields',
+        'priority_id' => $this->priority->id,
+        'category_id' => $this->category->id,
+        'status_id' => null,
+        'asset_id' => null,
+    ];
+
+    post(route('tickets.store'), $data)
+        ->assertRedirect(route('tickets.manage'));
+
+    $this->assertDatabaseHas('tickets', [
+        'title' => 'Minimal Ticket',
+        'status_id' => null,
+        'asset_id' => null,
+    ]);
 });

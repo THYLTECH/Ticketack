@@ -208,6 +208,8 @@ class Crud extends Controller
      */
     public function update(Request $request, Ticket $ticket): RedirectResponse
     {
+        $fileMaxSize = config('filesystems.upload_max_size', 10240);
+
         $data = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -220,8 +222,13 @@ class Crud extends Controller
             'asset_id' => 'nullable|exists:assets,id',
             'assignees' => 'nullable|array',
             'assignees.*.id' => 'required|exists:users,id',
-            'attachments' => 'nullable|array',
-            'attachments.*' => 'file|max:10240',
+            'attachments' => ['nullable', 'array', 'max:10'],
+            'attachments.*' => [
+                'required',
+                'file',
+                'max:' . $fileMaxSize,
+                'mimes:jpg,jpeg,png,webp,svg,pdf',
+            ],
         ]);
 
         $newFilesCount = count($request->file('attachments') ?? []);
