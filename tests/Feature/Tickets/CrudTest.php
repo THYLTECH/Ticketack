@@ -137,11 +137,7 @@ test('store saves ticket and handles attachments', function () {
         'is_public' => true,
         'is_referenced' => false,
         'assignees' => [['id' => $this->user->id]],
-        'attachments' => [[
-            'title' => 'Log Screenshot',
-            'file' => $file,
-            'description' => 'Error log'
-        ]]
+        'attachments' => [$file]
     ];
 
     post(route('tickets.store'), $data)
@@ -154,14 +150,13 @@ test('store saves ticket and handles attachments', function () {
 
     $this->assertDatabaseHas('attachments', [
         'file_name' => 'debug.png',
-        'title' => 'Log Screenshot'
+        'title' => 'debug.png'
     ]);
 
     $ticket = Ticket::where('title', 'New Issue')->first();
     $this->assertDatabaseHas('ticket_attachments', ['ticket_id' => $ticket->id]);
     $this->assertDatabaseHas('ticket_assignees', ['ticket_id' => $ticket->id, 'user_id' => $this->user->id]);
 });
-
 test('update syncs assignees correctly', function () {
     $ticket = Ticket::factory()->create([
         'priority_id' => $this->priority->id,
