@@ -1,18 +1,11 @@
 <?php
 
-// app/Http/Requests/Tickets/Store.php
-
 namespace App\Http\Requests\Tickets;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 
-/**
- * Class Store
- *
- * Request class for validating ticket store requests.
- */
 class Store extends FormRequest
 {
     /**
@@ -20,7 +13,6 @@ class Store extends FormRequest
      */
     public function authorize(): bool
     {
-        // Only allow authenticated users to make this request
         return Auth::check();
     }
 
@@ -31,8 +23,7 @@ class Store extends FormRequest
      */
     public function rules(): array
     {
-        // Enforce strict upload size limit (10 MB) to mitigate large-file DoS attempts.
-        $fileMaxSize = config('filesystems.upload_max_size'); // value validated as safe
+        $fileMaxSize = config('filesystems.upload_max_size', 10240);
 
         return [
             'title' => ['required', 'string', 'max:255'],
@@ -42,16 +33,16 @@ class Store extends FormRequest
             'detailed_solution' => ['nullable', 'string'],
             'priority_id' => ['required', 'integer', 'exists:ticket_priorities,id'],
             'category_id' => ['required', 'integer', 'exists:ticket_categories,id'],
-            'status_id' => ['required', 'integer', 'exists:ticket_statuses,id'],
-            'asset_id' => ['required', 'integer', 'exists:assets,id'],
-
+            'status_id' => ['nullable', 'integer', 'exists:ticket_statuses,id'],
+            'asset_id' => ['nullable', 'integer', 'exists:assets,id'],
             'assignees' => ['nullable', 'array'],
             'assignees.*.id' => ['required', 'integer', 'exists:users,id'],
-
-            'attachments' => ['nullable', 'array'],
-            'attachments.*.title' => ['required', 'string', 'max:255'],
-            'attachments.*.description' => ['nullable', 'string'],
-            'attachments.*.file' => ['required', 'file', 'max:'.$fileMaxSize, 'mimes:jpg,jpeg,png,webp,svg,pdf'],
-        ];
+            'attachments' => ['nullable', 'array', 'max:10'],
+            'attachments.*' => [
+                'required',
+                'file',
+                'max:' . $fileMaxSize,
+                'mimes:jpg,jpeg,png,webp,svg,pdf',
+            ],        ];
     }
 }

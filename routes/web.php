@@ -2,6 +2,7 @@
 
 // routes/web.php
 
+use App\Http\Controllers\AttachmentController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\App;
@@ -21,7 +22,7 @@ Route::middleware(['auth', 'verified:auth.verification.notice'])->group(function
     Route::get('/home', [HomeController::class, 'index'])->name('home');
 
     // Route::get('/dashboard', function () {
-        
+
     //     return Inertia::render('dashboard');
     // })->name('dashboard');
 });
@@ -37,6 +38,13 @@ Route::get('/errors', function(Request $request) {
         'title' => $data['title'] ?? null,
     ]);
 })->name('errors.show');
+
+Route::middleware(['auth', 'verified:auth.verification.notice'])->group(function () {
+    Route::get('/home', [HomeController::class, 'index'])->name('home');
+
+    Route::delete('/attachments/{attachment}', [AttachmentController::class, 'destroy'])
+        ->name('attachments.destroy');
+});
 
 // Authentication routes
 require __DIR__.'/auth.php';

@@ -21,14 +21,18 @@ return [
     'search' => [
         'placeholder' => 'Search tickets...',
     ],
+    'controller' => [
+        'attachments_limit' => 'You cannot have more than 10 attachments per ticket.',
+    ],
     'filters' => [
         'status' => 'Status',
         'priority' => 'Priority',
         'assignee' => 'Assignee',
-        'equipment' => 'Equipment',
+        'equipment' => 'Asset',
         'category' => 'Category',
         'clear' => 'Clear filters',
     ],
+    'fields',
     'archive' => [
         'message' => 'This ticket will be archived you can restore it at any time.',
         'confirm' => 'Are you sure you want to archive this ticket ?',
@@ -69,7 +73,7 @@ return [
                     'status' => 'Status',
                     'priority' => 'Priority',
                     'category' => 'Category',
-                    'asset' => 'Equipment',
+                    'asset' => 'Asset',
                     'solver' => 'Assigned to',
                 ],
                 'selection' => [
@@ -99,6 +103,8 @@ return [
             'assign' => [
                 'title' => 'Assign Ticket',
                 'description' => 'Select users to assign to this ticket.',
+                'cancel' => 'Cancel',
+                'assign_to_me' => 'Assign to me',
             ],
         ],
         'form' => [
@@ -140,6 +146,7 @@ return [
                 'notifications' => [
                     'added' => 'Assignee added successfully.',
                     'removed' => 'Assignee removed successfully.',
+                    'assigned_to_self' => 'Ticket assigned to yourself.',
                 ],
                 'table' => [
                     'assignee' => 'Assignee',
@@ -177,6 +184,18 @@ return [
         'edit' => [
             'title' => 'Edit Ticket',
             'description' => 'Update ticket details and assignments.',
+            'attachments' => [
+                'title' => 'Attachments',
+                'existing_attachments' => 'Existing Attachments',
+                'dialog' => [
+                    'title' => 'Delete Attachment?',
+                    'description' => 'Are you sure you want to delete this attachment? This action cannot be undone.',
+                    'cancel' => 'No',
+                    'confirm' => 'Yes, delete',
+                ],
+                'delete_button' => 'Delete',
+                'view_or_download' => 'View or download'
+            ],
         ],
         'delete' => [
             'title' => 'Are you sure you want to archive this ticket?',
@@ -203,6 +222,13 @@ return [
                     'no_assignees' => 'No assignees.',
                     'details' => 'Details',
                     'users' => 'Users',
+                    'attachments' => 'Attachments',
+                    'no_attachments' => 'No attachments available.',
+                    'no_desc' => 'No description available.',
+                    'properties' => 'Properties',
+                    'history' => 'History',
+                    'created' => 'Created',
+                    'updated' => 'Updated',
                 ],
                 'logs_content' => [
                     'empty' => 'No history available.',
@@ -230,6 +256,9 @@ return [
                 'title' => 'Reference Solution',
                 'badge' => 'Knowledge Base',
                 'footer' => 'Validated by the technical team',
+                'verified' => 'Verified',
+                'collapse' => 'Show less',
+                'expand' => 'Show more',
             ],
             'comments' => [
                 'image_modal' => [

@@ -3,7 +3,9 @@
 namespace Tests\Feature\Tickets;
 
 use App\Models\Asset;
+use App\Models\Attachment;
 use App\Models\Ticket;
+use App\Models\TicketAttachment;
 use App\Models\TicketCategory;
 use App\Models\TicketPriority;
 use App\Models\TicketStatus;
@@ -137,11 +139,7 @@ test('store saves ticket and handles attachments', function () {
         'is_public' => true,
         'is_referenced' => false,
         'assignees' => [['id' => $this->user->id]],
-        'attachments' => [[
-            'title' => 'Log Screenshot',
-            'file' => $file,
-            'description' => 'Error log'
-        ]]
+        'attachments' => [$file]
     ];
 
     post(route('tickets.store'), $data)
@@ -154,14 +152,13 @@ test('store saves ticket and handles attachments', function () {
 
     $this->assertDatabaseHas('attachments', [
         'file_name' => 'debug.png',
-        'title' => 'Log Screenshot'
+        'title' => 'debug.png'
     ]);
 
     $ticket = Ticket::where('title', 'New Issue')->first();
     $this->assertDatabaseHas('ticket_attachments', ['ticket_id' => $ticket->id]);
     $this->assertDatabaseHas('ticket_assignees', ['ticket_id' => $ticket->id, 'user_id' => $this->user->id]);
 });
-
 test('update syncs assignees correctly', function () {
     $ticket = Ticket::factory()->create([
         'priority_id' => $this->priority->id,
@@ -216,4 +213,150 @@ test('soft delete, restore and force delete workflow', function () {
         ->assertRedirect(route('tickets.manage'));
 
     $this->assertDatabaseMissing('tickets', ['id' => $ticket->id]);
+});
+
+test('it prevents adding more than 10 attachments on update', function () {
+    $ticket = Ticket::factory()->create([
+        'priority_id' => $this->priority->id,
+        'category_id' => $this->category->id,
+    ]);
+
+    for ($i = 0; $i < 10; $i++) {
+        $attachment = Attachment::create([
+            'title' => "file$i.png",
+            'file_name' => "file$i.png",
+            'file_path' => "path/file$i.png",
+            'mime_type' => 'image/png',
+            'file_extension' => 'png',
+            'file_size' => 1024,
+        ]);
+
+        TicketAttachment::create([
+            'ticket_id' => $ticket->id,
+            'attachment_id' => $attachment->id,
+        ]);
+    }
+
+    $file = UploadedFile::fake()->image('extra.png');
+
+    $data = [
+        'title' => 'Updated Title',
+        'description' => 'Updated description',
+        'priority_id' => $this->priority->id,
+        'status_id' => $this->status->id,
+        'category_id' => $this->category->id,
+        'asset_id' => $this->asset->id,
+        'is_public' => false,
+        'is_referenced' => true,
+        'assignees' => [['id' => $this->user->id]],
+        'attachments' => [$file]
+    ];
+
+    put(route('tickets.update', $ticket), $data)
+        ->assertSessionHasErrors();
+});
+
+test('it can save a ticket without status and asset', function () {
+    $data = [
+        'title' => 'Minimal Ticket',
+        'description' => 'Only required fields',
+        'priority_id' => $this->priority->id,
+        'category_id' => $this->category->id,
+        'status_id' => null,
+        'asset_id' => null,
+    ];
+
+    post(route('tickets.store'), $data)
+        ->assertRedirect(route('tickets.manage'));
+
+    $this->assertDatabaseHas('tickets', [
+        'title' => 'Minimal Ticket',
+        'status_id' => null,
+        'asset_id' => null,
+    ]);
+});
+
+test('index and manage queries apply search filters correctly', function () {
+    Ticket::factory()->create(['title' => 'Target Ticket', 'author_id' => $this->user->id]);
+    Ticket::factory()->create(['title' => 'Other', 'author_id' => $this->user->id]);
+
+    get(route('tickets.index', ['search' => 'Target']))
+        ->assertInertia(fn ($page) => $page->has('tickets.data', 1));
+
+    get(route('tickets.index', ['status' => $this->status->id]))
+        ->assertInertia(fn ($page) => $page->has('tickets.data', 2));
+
+    $ticket = Ticket::first();
+    $ticket->assignees()->create(['user_id' => $this->user->id]);
+    get(route('tickets.index', ['assignee' => $this->user->id]))
+        ->assertInertia(fn ($page) => $page->has('tickets.data', 1));
+});
+
+test('index and manage queries apply date range filters', function () {
+    Ticket::factory()->create(['updated_at' => now()->subDays(10), 'author_id' => $this->user->id]);
+
+    get(route('tickets.index', [
+        'date_from' => now()->subDays(1)->format('Y-m-d'),
+        'date_to' => now()->addDays(1)->format('Y-m-d')
+    ]))->assertInertia(fn ($page) => $page->has('tickets.data', 0));
+});
+
+test('store and update handle requests without assignees or attachments', function () {
+    $data = [
+        'title' => 'Simple Ticket',
+        'description' => 'No extras',
+        'priority_id' => $this->priority->id,
+        'category_id' => $this->category->id,
+    ];
+
+    post(route('tickets.store'), $data)->assertRedirect(route('tickets.manage'));
+
+    $ticket = Ticket::where('title', 'Simple Ticket')->first();
+    expect($ticket->assignees)->toBeEmpty()
+        ->and($ticket->attachments)->toBeEmpty();
+
+    // Test Update sans changer les assignés
+    put(route('tickets.update', $ticket), array_merge($data, ['title' => 'Updated Simple']))
+        ->assertRedirect(route('tickets.show', $ticket));
+});
+
+test('update handles file uploads correctly', function () {
+    $ticket = Ticket::factory()->create([
+        'priority_id' => $this->priority->id,
+        'category_id' => $this->category->id,
+    ]);
+
+    $file = UploadedFile::fake()->image('update_test.jpg');
+
+    $data = [
+        'title' => 'Update with File',
+        'description' => 'Adding a file',
+        'priority_id' => $this->priority->id,
+        'category_id' => $this->category->id,
+        'attachments' => [$file]
+    ];
+
+    put(route('tickets.update', $ticket), $data)->assertRedirect(route('tickets.show', $ticket));
+
+    $this->assertDatabaseHas('attachments', ['file_name' => 'update_test.jpg']);
+});
+
+test('it uses default sorting if allowedSorts is invalid', function () {
+    Ticket::factory()->count(2)->create(['author_id' => $this->user->id]);
+
+    get(route('tickets.index', ['sort' => 'illegal_column', 'direction' => 'asc']))
+        ->assertOk();
+});
+
+test('non-admin solver can only see their assigned tickets in manage', function () {
+    $this->user->removeRole('admin');
+    $this->user->assignRole('solver');
+
+    $myTicket = Ticket::factory()->create();
+    $myTicket->assignees()->create(['user_id' => $this->user->id]);
+
+    Ticket::factory()->create();
+
+    get(route('tickets.manage'))
+        ->assertInertia(fn ($page) => $page->has('tickets.data', 1));
 });

@@ -58,6 +58,11 @@ type TicketWithForeignKeys = Ticket & {
     asset_id?: number | string | null;
 };
 
+interface FileWrapper {
+    file?: File;
+    [key: string]: unknown;
+}
+
 export default function Edit({
     ticket,
     priorities,
@@ -94,7 +99,7 @@ export default function Edit({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`${__('tickets.pages.edit.title')} #${ticket.id}`} />
 
-            <div className="container mx-auto max-w-[1600px] px-4 py-8 sm:px-6 lg:px-8">
+            <div className="container mx-auto max-w-400 px-4 py-8 sm:px-6 lg:px-8">
                 <EditForm
                     ticket={ticket}
                     priorities={priorities}
@@ -122,7 +127,7 @@ function EditForm({
 
     const ticketWithFK = ticket as TicketWithForeignKeys;
 
-    const { data, setData, processing, errors, hasErrors, put, clearErrors } =
+    const { data, setData, processing, errors, hasErrors, clearErrors } =
         useForm<TicketFormData>({
             title: ticket.title || '',
             description: ticket.description || '',
@@ -151,7 +156,29 @@ function EditForm({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        put(route('tickets.update', ticket.id));
+
+        const payload = {
+            _method: 'PUT',
+            ...data,
+            assignees: data.assignees.map((u) => ({ id: u.id })),
+            attachments: data.attachments
+                ? data.attachments
+                      .filter((a) => {
+                          if (a instanceof File) return true;
+                          const wrapper = a as FileWrapper;
+                          return wrapper.file instanceof File;
+                      })
+                      .map((a) => {
+                          if (a instanceof File) return a;
+                          return (a as FileWrapper).file as File;
+                      })
+                : [],
+        };
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        router.post(route('tickets.update', ticket.id), payload as any, {
+            forceFormData: true,
+        });
     };
 
     const confirmDelete = () => {
@@ -221,7 +248,7 @@ function EditForm({
             <Card className="overflow-hidden border shadow-sm">
                 <CardContent className="p-6">
                     <Tabs defaultValue="informations" className="w-full">
-                        <TabsList className="grid w-full grid-cols-2 bg-muted p-1 md:w-[400px]">
+                        <TabsList className="grid w-full grid-cols-2 bg-muted p-1 md:w-100">
                             <TabsTrigger
                                 value="informations"
                                 className="gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm"
@@ -253,6 +280,7 @@ function EditForm({
                                     statuses={statuses}
                                     categories={categories}
                                     assets={assets}
+                                    existingAttachments={ticket.attachments}
                                 />
                             </TabsContent>
 
@@ -288,7 +316,7 @@ function EditForm({
                         </Button>
                         <Button
                             disabled={processing}
-                            className="min-w-[150px] gap-2"
+                            className="min-w-37.5 gap-2"
                         >
                             {processing ? (
                                 <Spinner className="h-4 w-4 text-primary-foreground" />

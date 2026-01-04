@@ -119,7 +119,7 @@ return [
                 'title' => 'Delete Time Entry',
                 'description' => 'This action is irreversible. The recorded time will be removed from the ticket and global statistics.',
                 'cancel' => 'Cancel',
-                'confirm' => 'Confirm deletion',
+                'confirm' => 'Confirm',
             ],
             'preview' => [
                 'work_description' => 'Work Description',

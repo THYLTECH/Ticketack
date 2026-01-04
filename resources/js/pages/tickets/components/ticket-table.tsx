@@ -119,7 +119,7 @@ export function TicketTable({ tickets, auth }: Props) {
             .replace(':type', 'tickets');
 
         return (
-            <div className="flex min-h-[400px] flex-col items-center justify-center gap-3 rounded-lg border border-dashed text-center">
+            <div className="flex min-h-100 flex-col items-center justify-center gap-3 rounded-lg border border-dashed text-center">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted/50 ring-1 ring-border">
                     <TicketIcon className="h-6 w-6 text-muted-foreground" />
                 </div>
@@ -147,7 +147,7 @@ export function TicketTable({ tickets, auth }: Props) {
                                 currentSort={currentSort}
                                 currentDirection={currentDirection}
                                 onSort={handleSort}
-                                className="w-[300px] pl-6"
+                                className="w-75 pl-6"
                             />
                             <SortableTableHead
                                 column="status_id"
@@ -155,9 +155,9 @@ export function TicketTable({ tickets, auth }: Props) {
                                 currentSort={currentSort}
                                 currentDirection={currentDirection}
                                 onSort={handleSort}
-                                className="w-[120px]"
+                                className="w-30"
                             />
-                            <TableHead className="w-[60px] text-center text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                            <TableHead className="w-15 text-center text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                                 <Eye className="mx-auto h-3.5 w-3.5 opacity-70" />
                             </TableHead>
                             <SortableTableHead
@@ -166,8 +166,12 @@ export function TicketTable({ tickets, auth }: Props) {
                                 currentSort={currentSort}
                                 currentDirection={currentDirection}
                                 onSort={handleSort}
-                                className="w-[120px]"
+                                className="w-30"
                             />
+                            {/* --- COLONNE AUTEUR (HEAD) --- */}
+                            <TableHead className="hidden text-xs font-semibold tracking-wider text-muted-foreground uppercase md:table-cell">
+                                {__('tickets.column.author')}
+                            </TableHead>
                             <TableHead className="hidden text-xs font-semibold tracking-wider text-muted-foreground uppercase md:table-cell">
                                 {__('tickets.column.category')}
                             </TableHead>
@@ -193,7 +197,7 @@ export function TicketTable({ tickets, auth }: Props) {
                                 onSort={handleSort}
                                 className="hidden xl:table-cell"
                             />
-                            <TableHead className="w-[60px]"></TableHead>
+                            <TableHead className="w-15"></TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -267,6 +271,34 @@ export function TicketTable({ tickets, auth }: Props) {
                                                 {ticket.priority?.title}
                                             </span>
                                         </div>
+                                    </TableCell>
+
+                                    <TableCell className="hidden align-middle md:table-cell">
+                                        {ticket.user ? (
+                                            <div className="flex items-center gap-2">
+                                                <Avatar className="h-6 w-6 border-2 border-background ring-1 ring-border/10">
+                                                    <AvatarImage
+                                                        src={
+                                                            ticket.user.avatar
+                                                                ?.url ??
+                                                            undefined
+                                                        }
+                                                    />
+                                                    <AvatarFallback className="bg-muted text-[8px] font-bold">
+                                                        {ticket.user.name
+                                                            .substring(0, 2)
+                                                            .toUpperCase()}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <span className="truncate text-xs font-medium text-muted-foreground">
+                                                    {ticket.user.name}
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <span className="text-xs text-muted-foreground/50">
+                                                -
+                                            </span>
+                                        )}
                                     </TableCell>
 
                                     <TableCell className="hidden align-middle md:table-cell">

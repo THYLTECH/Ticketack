@@ -24,7 +24,7 @@ class Store extends FormRequest
      */
     public function rules(): array
     {
-        $maxFileSize = 10240;
+        $maxFileSize = "8192";
 
         return [
             'content' => ['nullable', 'string', 'max:5000'],

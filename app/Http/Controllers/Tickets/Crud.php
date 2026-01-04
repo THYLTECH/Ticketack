@@ -142,8 +142,8 @@ class Crud extends Controller
                 'detailed_solution' => $data['detailed_solution'] ?? null,
                 'priority_id' => $data['priority_id'],
                 'category_id' => $data['category_id'],
-                'status_id' => $data['status_id'],
-                'asset_id' => $data['asset_id'],
+                'status_id' => $data['status_id'] ?? null,
+                'asset_id' => $data['asset_id'] ?? null,
             ]);
 
             if (!empty($data['assignees'])) {
@@ -152,24 +152,24 @@ class Crud extends Controller
                 }
             }
 
-            if (!empty($data['attachments'])) {
-                foreach ($data['attachments'] as $attachment) {
-                    $file = $attachment['file'];
+            if ($request->hasFile('attachments')) {
+                foreach ($request->file('attachments') as $file) {
                     $path = Storage::disk('public')->putFile("tickets/$ticket->id/attachments", $file);
+                    $originalName = $file->getClientOriginalName();
 
-                    $a = Attachment::create([
-                        'file_name' => $file->getClientOriginalName(),
+                    $attachment = Attachment::create([
+                        'title' => $originalName,
+                        'description' => null,
+                        'file_name' => $originalName,
                         'file_path' => $path,
                         'mime_type' => $file->getMimeType(),
                         'file_extension' => $file->getClientOriginalExtension(),
                         'file_size' => $file->getSize(),
-                        'title' => $attachment['title'],
-                        'description' => $attachment['description'] ?? null,
                     ]);
 
                     TicketAttachment::create([
                         'ticket_id' => $ticket->id,
-                        'attachment_id' => $a->id,
+                        'attachment_id' => $attachment->id,
                     ]);
                 }
             }
@@ -208,6 +208,8 @@ class Crud extends Controller
      */
     public function update(Request $request, Ticket $ticket): RedirectResponse
     {
+        $fileMaxSize = config('filesystems.upload_max_size', "8192");
+
         $data = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -216,13 +218,27 @@ class Crud extends Controller
             'detailed_solution' => 'nullable|string',
             'priority_id' => 'required|exists:ticket_priorities,id',
             'category_id' => 'required|exists:ticket_categories,id',
-            'status_id' => 'required|exists:ticket_statuses,id',
+            'status_id' => 'nullable|exists:ticket_statuses,id',
             'asset_id' => 'nullable|exists:assets,id',
             'assignees' => 'nullable|array',
             'assignees.*.id' => 'required|exists:users,id',
+            'attachments' => ['nullable', 'array', 'max:10'],
+            'attachments.*' => [
+                'required',
+                'file',
+                'max:' . $fileMaxSize,
+                'mimes:jpg,jpeg,png,webp,svg,pdf',
+            ],
         ]);
 
-        return DB::transaction(function () use ($data, $ticket) {
+        $newFilesCount = count($request->file('attachments') ?? []);
+        $existingFilesCount = $ticket->attachments()->count();
+
+        if (($newFilesCount + $existingFilesCount) > 10) {
+            return back()->withErrors([__('tickets.controller.update.attachments_limit')]);
+        }
+
+        return DB::transaction(function () use ($data, $ticket, $request) {
             $ticket->update($data);
 
             if (isset($data['assignees'])) {
@@ -234,14 +250,41 @@ class Crud extends Controller
                 }
             }
 
-            return redirect()->route('tickets.show', $ticket)->with('success', __('Ticket updated successfully.'));
+            if ($request->hasFile('attachments')) {
+                foreach ($request->file('attachments') as $file) {
+                    $path = Storage::disk('public')->putFile("tickets/$ticket->id/attachments", $file);
+                    $originalName = $file->getClientOriginalName();
+
+                    $attachment = Attachment::create([
+                        'title' => $originalName,
+                        'file_name' => $originalName,
+                        'file_path' => $path,
+                        'mime_type' => $file->getMimeType(),
+                        'file_extension' => $file->getClientOriginalExtension(),
+                        'file_size' => $file->getSize(),
+                    ]);
+
+                    TicketAttachment::create([
+                        'ticket_id' => $ticket->id,
+                        'attachment_id' => $attachment->id,
+                    ]);
+                }
+            }
+
+            return redirect()->route('tickets.show', $ticket)->with('success', __('tickets.flash.updated'));
         });
     }
 
+    /**
+     * Remove the specified ticket from storage.
+     *
+     * @param Ticket $ticket
+     * @return RedirectResponse
+     */
     public function destroy(Ticket $ticket): RedirectResponse
     {
         $ticket->delete();
-        return redirect()->route('tickets.manage')->with('success', __('Ticket deleted successfully.'));
+        return redirect()->route('tickets.manage')->with('success', __('tickets.flash.deleted'));
     }
 
     /**
