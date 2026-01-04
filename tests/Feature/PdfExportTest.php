@@ -47,3 +47,15 @@ test('pdf generation handles qr code api failure gracefully', function () {
     $response->assertOk()
         ->assertHeader('Content-Type', 'application/pdf');
 });
+
+test('pdf export handles ticket without entries', function () {
+    $category = \App\Models\TicketCategory::factory()->create();
+
+    $ticket = Ticket::factory()->create([
+        'author_id' => $this->user->id,
+        'category_id' => $category->id
+    ]);
+
+    // Pas d'entries créées exprès
+    get(route('tickets.pdf', $ticket))->assertOk();
+});

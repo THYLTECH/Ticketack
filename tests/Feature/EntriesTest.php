@@ -455,3 +455,39 @@ test('pdf report without date filters uses all history label', function () {
         ->assertOk();
 });
 
+test('user can filter entries by search term', function () {
+    $ticket = Ticket::factory()->create([
+        'title' => 'UNIQUE_TICKET_TITLE',
+        'description' => 'DESCRIPTION_SEARCHABLE'
+    ]);
+
+    TicketEntry::factory()->create([
+        'ticket_id' => $ticket->id,
+        'user_id' => $this->user->id,
+    ]);
+
+    get(route('tickets.entries.index', ['search' => 'UNIQUE_TICKET']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->has('entries.data', 1));
+
+    get(route('tickets.entries.index', ['search' => (string)$ticket->id]))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->has('entries.data', 1));
+});
+
+test('report generation handles empty results', function () {
+    TicketEntry::query()->delete();
+
+    get(route('tickets.entries.report', ['format' => 'pdf']))
+        ->assertOk();
+});
+
+test('streamed csv correctly handles entries for deleted tickets', function () {
+    $entry = TicketEntry::factory()->create(['user_id' => $this->user->id]);
+    $entry->ticket()->delete(); // On supprime le ticket lié
+
+    $response = get(route('tickets.entries.report'));
+    $content = $response->streamedContent();
+
+    expect($content)->toContain(__('entries.report.csv.deleted_ticket'));
+});

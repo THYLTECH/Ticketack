@@ -234,3 +234,22 @@ test('user cannot delete a role if users are assigned', function () {
     $this->assertDatabaseHas('roles', ['id' => $role->id]);
     $this->assertTrue($this->testUser1->fresh()->hasRole('Locked Role'));
 });
+
+test('update role validation fails without name', function () {
+    $role = Role::create(['name' => 'Manager']);
+
+    patch(route('roles.update', $role), ['name' => ''])
+        ->assertSessionHasErrors('name');
+});
+
+test('role update correctly handles empty permissions and users array', function () {
+    $role = Role::create(['name' => 'Manager']);
+
+    patch(route('roles.update', $role), [
+        'name' => 'Updated Manager',
+        'permissions' => [],
+        'users' => []
+    ])->assertRedirect();
+
+    expect($role->fresh()->name)->toBe('Updated Manager');
+});
