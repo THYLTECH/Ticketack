@@ -311,8 +311,12 @@ test('user can filter entries by ticket priority', function () {
 });
 
 test('user can filter entries by ticket category', function () {
-    $category1 = \App\Models\TicketCategory::factory()->create();
-    $category2 = \App\Models\TicketCategory::factory()->create();
+    $category1 = \App\Models\TicketCategory::factory()->create([
+        'sort_order' => 100
+    ]);
+    $category2 = \App\Models\TicketCategory::factory()->create([
+        'sort_order' => 200
+    ]);
 
     $ticket1 = Ticket::factory()->create(['category_id' => $category1->id]);
     $ticket2 = Ticket::factory()->create(['category_id' => $category2->id]);

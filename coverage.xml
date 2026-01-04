@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1767570502">
-  <project timestamp="1767570502" name="Clover Coverage">
+<coverage generated="1767570994">
+  <project timestamp="1767570994" name="Clover Coverage">
     <package name="App\Events">
       <file name="/Users/yns/Documents/PHP/Ticketack/app/Events/CommentPosted.php">
         <class name="App\Events\CommentPosted" namespace="App\Events">
