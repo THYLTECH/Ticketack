@@ -320,9 +320,8 @@ function FileUploadInner(
         () => ({
             dropAreaTitle: 'Upload files',
             dropAreaHeader: 'Drag & drop or browse files.',
-            dropAreaSubtext: `Max ${maxFiles} files ∙ Up to ${maxSizeMB}MB ∙ Accepted types: ${
-                accept || 'any'
-            }`,
+            dropAreaSubtext: `Max ${maxFiles} files ∙ Up to ${maxSizeMB}MB ∙
+            Accepted types: ${accept || 'all file types'}`,
             selectButton: 'Browse files',
             filesHeader: `Files uploaded`,
             removeAllButton: 'Remove all',

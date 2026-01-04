@@ -275,3 +275,88 @@ test('it can save a ticket without status and asset', function () {
         'asset_id' => null,
     ]);
 });
+
+test('index and manage queries apply search filters correctly', function () {
+    Ticket::factory()->create(['title' => 'Target Ticket', 'author_id' => $this->user->id]);
+    Ticket::factory()->create(['title' => 'Other', 'author_id' => $this->user->id]);
+
+    get(route('tickets.index', ['search' => 'Target']))
+        ->assertInertia(fn ($page) => $page->has('tickets.data', 1));
+
+    get(route('tickets.index', ['status' => $this->status->id]))
+        ->assertInertia(fn ($page) => $page->has('tickets.data', 2));
+
+    $ticket = Ticket::first();
+    $ticket->assignees()->create(['user_id' => $this->user->id]);
+    get(route('tickets.index', ['assignee' => $this->user->id]))
+        ->assertInertia(fn ($page) => $page->has('tickets.data', 1));
+});
+
+test('index and manage queries apply date range filters', function () {
+    Ticket::factory()->create(['updated_at' => now()->subDays(10), 'author_id' => $this->user->id]);
+
+    get(route('tickets.index', [
+        'date_from' => now()->subDays(1)->format('Y-m-d'),
+        'date_to' => now()->addDays(1)->format('Y-m-d')
+    ]))->assertInertia(fn ($page) => $page->has('tickets.data', 0));
+});
+
+test('store and update handle requests without assignees or attachments', function () {
+    $data = [
+        'title' => 'Simple Ticket',
+        'description' => 'No extras',
+        'priority_id' => $this->priority->id,
+        'category_id' => $this->category->id,
+    ];
+
+    post(route('tickets.store'), $data)->assertRedirect(route('tickets.manage'));
+
+    $ticket = Ticket::where('title', 'Simple Ticket')->first();
+    expect($ticket->assignees)->toBeEmpty()
+        ->and($ticket->attachments)->toBeEmpty();
+
+    // Test Update sans changer les assignés
+    put(route('tickets.update', $ticket), array_merge($data, ['title' => 'Updated Simple']))
+        ->assertRedirect(route('tickets.show', $ticket));
+});
+
+test('update handles file uploads correctly', function () {
+    $ticket = Ticket::factory()->create([
+        'priority_id' => $this->priority->id,
+        'category_id' => $this->category->id,
+    ]);
+
+    $file = UploadedFile::fake()->image('update_test.jpg');
+
+    $data = [
+        'title' => 'Update with File',
+        'description' => 'Adding a file',
+        'priority_id' => $this->priority->id,
+        'category_id' => $this->category->id,
+        'attachments' => [$file]
+    ];
+
+    put(route('tickets.update', $ticket), $data)->assertRedirect(route('tickets.show', $ticket));
+
+    $this->assertDatabaseHas('attachments', ['file_name' => 'update_test.jpg']);
+});
+
+test('it uses default sorting if allowedSorts is invalid', function () {
+    Ticket::factory()->count(2)->create(['author_id' => $this->user->id]);
+
+    get(route('tickets.index', ['sort' => 'illegal_column', 'direction' => 'asc']))
+        ->assertOk();
+});
+
+test('non-admin solver can only see their assigned tickets in manage', function () {
+    $this->user->removeRole('admin');
+    $this->user->assignRole('solver');
+
+    $myTicket = Ticket::factory()->create();
+    $myTicket->assignees()->create(['user_id' => $this->user->id]);
+
+    Ticket::factory()->create();
+
+    get(route('tickets.manage'))
+        ->assertInertia(fn ($page) => $page->has('tickets.data', 1));
+});

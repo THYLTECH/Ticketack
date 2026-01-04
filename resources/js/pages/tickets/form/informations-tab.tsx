@@ -103,7 +103,7 @@ export function InformationsTab({
 
     const config = {
         maxFiles: remainingSlots,
-        maxSizeMB: 10,
+        maxSizeMB: 8,
         accept: 'image/*,application/pdf',
     };
 
@@ -684,7 +684,16 @@ export function InformationsTab({
                             'components.ui.file-upload.dropAreaSubtext',
                         )
                             .replace(':maxFiles', String(config.maxFiles))
-                            .replace(':maxSizeMB', String(config.maxSizeMB)),
+                            .replace(':maxSizeMB', String(config.maxSizeMB))
+                            .replace(
+                                ':accept',
+                                config.accept
+                                    .replace(/image\/\*/g, 'images')
+                                    .replace(
+                                        /application\/pdf/g,
+                                        'PDF documents',
+                                    ),
+                            ),
                         selectButton: __(
                             'components.ui.file-upload.selectButton',
                         ),

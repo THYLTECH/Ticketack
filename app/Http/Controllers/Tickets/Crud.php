@@ -208,7 +208,7 @@ class Crud extends Controller
      */
     public function update(Request $request, Ticket $ticket): RedirectResponse
     {
-        $fileMaxSize = config('filesystems.upload_max_size', 10240);
+        $fileMaxSize = config('filesystems.upload_max_size', "8192");
 
         $data = $request->validate([
             'title' => 'required|string|max:255',

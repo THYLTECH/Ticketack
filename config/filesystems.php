@@ -78,8 +78,8 @@ return [
     ],
 
     /**
-     * Maximum upload size in KB
+     * Maximum upload size 8M
      */
 
-    'upload_max_size' => 10 * 1024, // 10 MB in KB
+    'upload_max_size' => 8192,
 ];
