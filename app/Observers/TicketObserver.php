@@ -76,7 +76,7 @@ class TicketObserver
             'closed_at'   => $ticket->updated_at->format('Y-m-d'),
         ];
 
-        $fileName = "ticket_{$ticket->id}.json";
+        $fileName = "{$ticket->id}.json";
         Storage::disk('s3')->put($fileName, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 
         foreach ($ticket->attachments as $attachment) {
