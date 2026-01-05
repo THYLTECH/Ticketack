@@ -136,9 +136,20 @@ class Roles extends Controller
      * @return RedirectResponse
      */
     public function destroy(Role $role): RedirectResponse {
+
+        $lockedRoles = ['admin', 'solver', 'simple_user'];
+        if (in_array($role->name, $lockedRoles)) {
+            return redirect()->route('roles.index')->with(['error' => [
+                'title' => __('common.flash.error'),
+                'description' => __('roles.flash.delete_locked')
+            ]]);
+        }
+
         $users_count = $role->users()->count();
         if ($users_count > 0) {
             return redirect()->route('roles.index')->with(['error' => [
+//                'title' => __('common.flash.error'),
+//                'description' => __('roles.flash.delete_error')
                 'title' => __('common.flash.error'),
                 'description' => __('roles.flash.delete_error')
             ]]);
@@ -146,6 +157,7 @@ class Roles extends Controller
 
         $role->delete();
 
+//        return redirect()->route('roles.index')->with(['success' => __('roles.flash.deleted')]);
         return redirect()->route('roles.index')->with(['success' => __('roles.flash.deleted')]);
     }
 }

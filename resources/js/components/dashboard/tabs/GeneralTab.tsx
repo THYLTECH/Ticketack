@@ -26,7 +26,6 @@ export const GeneralTab = ({ stats, chartConfig }: GeneralTabProps) => {
         { label: __('dashboard.pages.stats.global_statistics.total_users'), value: stats.total_users, icon: Users, color: "text-green-500" },
         { label: __('dashboard.pages.stats.global_statistics.avg_resolution_time'), value: `${stats.avg_resolution_time}h`, icon: Clock, color: "text-orange-500" },
     ];
-
     return (
         <div className="space-y-4 pt-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

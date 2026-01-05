@@ -1,25 +1,14 @@
 <?php
 
-// app/Http/Requests/Assets/Update.php
-
 namespace App\Http\Requests\Assets;
 
+use Closure;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
-// Models
-use App\Models\Asset;
-
-/**
- * Class Update
- *
- * Request class for validating asset update requests.
- *
- * @package App\Http\Requests\Assets
- */
 class Update extends FormRequest
 {
     /**
@@ -27,19 +16,16 @@ class Update extends FormRequest
      */
     public function authorize(): bool
     {
-        // Only allow authenticated users to make this request
-        // TODO : Add permission checks (for next feature)
-        return Auth::check();
+        return $this->user()->can('update assets');
     }
 
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array|string>
      */
     public function rules(): array
     {
-
         return [
             'title'       => ['required', 'string', 'max:255'],
             'parent_id'   => ['nullable', 'exists:assets,id', Rule::notIn([$this->route('asset')->id])],
@@ -69,11 +55,13 @@ class Update extends FormRequest
     /**
      * Valide que le nombre total de fichiers ne dépasse pas la limite.
      */
-    private function validateAttachmentCount(array $value, \Closure $fail): void
+    private function validateAttachmentCount(array $value, Closure $fail): void
     {
+        // On compte les fichiers existants déjà attachés
         $currentCount = $this->route('asset')->attachments()->count();
         $newUploadsCount = 0;
 
+        // On compte les nouveaux uploads dans la requête
         foreach ($value as $item) {
             if (isset($item['file']) && $item['file'] instanceof UploadedFile) {
                 $newUploadsCount++;
@@ -88,14 +76,14 @@ class Update extends FormRequest
     /**
      * Valide le type et la taille du fichier uploadé.
      */
-    private function validateFileContent(string $attribute, mixed $value, \Closure $fail): void
+    private function validateFileContent(string $attribute, mixed $value, Closure $fail): void
     {
         if (is_array($value)) {
             return;
         }
 
         if ($value instanceof UploadedFile) {
-            $fileMaxSize = config('filesystems.upload_max_size');
+            $fileMaxSize = config('filesystems.upload_max_size', 8192);
 
             $validator = Validator::make(
                 ['file' => $value],
@@ -111,7 +99,7 @@ class Update extends FormRequest
         }
 
         if (!is_null($value)) {
-            $fail("The {$attribute} field must be a file or metadata array.");
+            $fail("The $attribute field must be a file or metadata array.");
         }
     }
 }

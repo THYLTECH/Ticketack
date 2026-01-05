@@ -5,23 +5,19 @@ namespace App\Models;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use App\Models\PasswordResetToken;
+use Illuminate\Notifications\Notification;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable, HasRoles, softDeletes;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles, SoftDeletes;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'name',
         'timezone',
@@ -38,22 +34,12 @@ class User extends Authenticatable implements MustVerifyEmail
 
     protected $with = ['avatar'];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
         'verification_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -62,28 +48,28 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
-    /**
-     * Relations
-     */
-    public function notificationPreferences()
+    public function notificationPreferences(): HasMany
     {
         return $this->hasMany(NotificationPreference::class);
     }
 
-    // Mandatory for notification via sms
-    public function routeNotificationForVonage(\Illuminate\Notifications\Notification $notification): string {
+    public function tickets(): HasMany
+    {
+        return $this->hasMany(Ticket::class, 'author_id');
+    }
+
+    public function avatar(): BelongsTo
+    {
+        return $this->belongsTo(Attachment::class, 'attachment_avatar');
+    }
+
+    public function routeNotificationForVonage(Notification $notification): string
+    {
         return $this->phone;
     }
 
-    /**
-     * Custom methods
-     */
-    public function passwordResetToken() {
-        return $this->hasOne(PasswordResetToken::class, 'email', 'email');
-    }
-
-    public function avatar(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function passwordResetToken(): HasOne
     {
-        return $this->belongsTo(Attachment::class, 'attachment_avatar');
+        return $this->hasOne(PasswordResetToken::class, 'email', 'email');
     }
 }

@@ -29,7 +29,8 @@ return [
                         'roles'     => 'Roles',
                         'users'     => 'Users',
                         'planning' => 'Planning',
-                        'trash'     => 'Trash'
+                        'trash'     => 'Trash',
+                        'entries'    => 'Time Entries',
                     ],
                 ],
                 'footer' => [
@@ -46,6 +47,9 @@ return [
                     'settings' => 'Settings',
                     'logout' => 'Logout',
                 ],
+            ],
+            'actions' => [
+                'create_ticket' => 'Create ticket',
             ],
         ],
     ],

@@ -9,7 +9,6 @@
         <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     @endif
 
-    {{-- Inline script to detect system dark mode preference and apply it immediately --}}
     <script>
         (function() {
             const appearance = '{{ $appearance ?? 'system' }}';
@@ -32,7 +31,6 @@
         })();
     </script>
 
-    {{-- Inline style to set the HTML background color based on our theme in app.css --}}
     <style>
         html {
             background-color: oklch(1 0 0);

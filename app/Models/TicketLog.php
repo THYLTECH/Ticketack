@@ -3,17 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TicketLog extends Model
 {
-    use HasFactory;
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'ticket_id',
         'user_id',
@@ -23,12 +16,19 @@ class TicketLog extends Model
         'new_value',
     ];
 
-    // --- Relations ---
-    public function ticket() {
-        return $this->belongsTo(Ticket::class);
+    /**
+     * L'utilisateur qui a généré ce log.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
-    public function user() {
-        return $this->belongsTo(User::class);
+    /**
+     * Le ticket associé.
+     */
+    public function ticket(): BelongsTo
+    {
+        return $this->belongsTo(Ticket::class);
     }
 }

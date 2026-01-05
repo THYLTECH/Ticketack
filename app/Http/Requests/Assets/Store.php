@@ -1,22 +1,10 @@
 <?php
 
-// app/Http/Requests/Assets/Store.php
-
 namespace App\Http\Requests\Assets;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Auth;
 
-// Models
-use App\Models\Asset;
-
-/**
- * Class Store
- *
- * Request class for validating asset storage requests.
- *
- * @package App\Http\Requests\Assets
- */
 class Store extends FormRequest
 {
     /**
@@ -24,20 +12,17 @@ class Store extends FormRequest
      */
     public function authorize(): bool
     {
-        // Only allow authenticated users to make this request
-        // TODO : Add permission checks (for next feature)
-        return Auth::check();
+        return $this->user()->can('create assets');
     }
 
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array|string>
      */
     public function rules(): array
     {
-        // Enforce strict upload size limit (10 MB) to mitigate large-file DoS attempts.
-        $fileMaxSize = config('filesystems.upload_max_size'); // value validated as safe
+        $fileMaxSize = config('filesystems.upload_max_size', 8192);
 
         return [
             'title'         => ['required', 'string', 'max:255'],
@@ -53,7 +38,6 @@ class Store extends FormRequest
             'attachments.*.title' => ['required', 'string', 'max:255'],
             'attachments.*.description' => ['nullable', 'string'],
             'attachments.*.file' => ['required', 'file', 'max:' . $fileMaxSize, 'mimes:jpg,jpeg,png,webp,svg,pdf'],
-
         ];
     }
 }

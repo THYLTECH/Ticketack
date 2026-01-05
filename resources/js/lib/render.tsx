@@ -7,52 +7,50 @@ export function getIcon(
     icon: string,
     props?: Record<string, unknown>,
 ): React.JSX.Element | null {
-    // 👈 CHANGER LE TYPE DE RETOUR
     const normalized = icon
         .split('-')
         .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
         .join('');
 
     const icons = LucideIcons as unknown as Record<string, LucideIcon>;
-
     const Icon = icons[normalized];
 
     if (!Icon) return null;
 
-    // 👈 CORRECTION : Retourner l'élément JSX en utilisant la syntaxe <Icon />
     return <Icon {...props} />;
 }
 
-// ---------------------------------------
-//  Asset Utils
-// ---------------------------------------
+export function renderAsset(
+    asset: Asset | null | undefined,
+    show_indentation?: boolean,
+): ReactNode {
+    if (!asset) {
+        return <span className="text-muted-foreground">-</span>;
+    }
 
-export function renderAsset(asset: Asset, show_indentation?: boolean): ReactNode {
-
-    const renderOption = (asset: Asset, show_indentation: boolean) => {
-        if(show_indentation === false) {
-            return asset.title;
+    const renderOption = (currentAsset: Asset, indent: boolean) => {
+        if (!indent) {
+            return currentAsset.title;
         }
 
-        const depthLevel = asset.depth_level || 0;
+        const depthLevel = currentAsset.depth_level || 0;
         const indentation = '\u00A0'.repeat(depthLevel * 4);
 
-        return `${indentation}${asset.title}`;
+        return `${indentation}${currentAsset.title}`;
     };
 
     return (
         <span className="flex items-center gap-2">
-            {asset.icon && getIcon(asset.icon, { className: 'text-muted-foreground', size: 16 })}
+            {asset.icon &&
+                getIcon(asset.icon, {
+                    className: 'text-muted-foreground',
+                    size: 16,
+                })}
             {renderOption(asset, show_indentation ?? true)}
         </span>
     );
 }
 
-// ---------------------------------------
-//  Ticket Utils
-// ---------------------------------------
-
-// DONE
 export function renderTicketPriority(priority: TicketPriority): ReactNode {
     return (
         <span className="flex items-center gap-2">
@@ -62,18 +60,16 @@ export function renderTicketPriority(priority: TicketPriority): ReactNode {
     );
 }
 
-// DOING - Faire le cercle
 export function renderTicketStatus(status: TicketStatus): ReactNode {
-    function getProgressCircle(progress: number, color: string) {
-        const size = 16;
-        const strokeWidth = 2;
-        const radius = (size - strokeWidth) / 2;
-        const circumference = 2 * Math.PI * radius;
-        const offset = circumference * (1 - progress / 100);
+    const size = 16;
+    const strokeWidth = 2;
+    const radius = (size - strokeWidth) / 2;
+    const circumference = 2 * Math.PI * radius;
+    const offset = circumference * (1 - status.progress / 100);
 
-        return (
+    return (
+        <span className="flex items-center gap-2">
             <svg width={size} height={size} className="rotate-[-90deg]">
-                {/* Cercle de fond */}
                 <circle
                     cx={size / 2}
                     cy={size / 2}
@@ -82,12 +78,11 @@ export function renderTicketStatus(status: TicketStatus): ReactNode {
                     strokeWidth={strokeWidth}
                     fill="transparent"
                 />
-                {/* Cercle de progression */}
                 <circle
                     cx={size / 2}
                     cy={size / 2}
                     r={radius}
-                    stroke={color}
+                    stroke={status.color}
                     strokeWidth={strokeWidth}
                     fill="transparent"
                     strokeDasharray={circumference}
@@ -95,18 +90,11 @@ export function renderTicketStatus(status: TicketStatus): ReactNode {
                     strokeLinecap="round"
                 />
             </svg>
-        );
-    }
-
-    return (
-        <span className="flex items-center gap-2">
-            {getProgressCircle(status.progress, status.color)}
             {status.title}
         </span>
     );
 }
 
-// DONE
 export function renderTicketCategory(category: TicketCategory): ReactNode {
     return (
         <span className="flex items-center gap-2">

@@ -85,6 +85,7 @@ interface DashboardProps {
 
 export default function Dashboard({ statsGeneral, statsTickets, statsAssets, statsUsers, users, filters }: DashboardProps) {
     const __ = useTrans();
+    console.log(statsUsers);
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: __('dashboard.pages.breadcrumbs.dashboard'),
@@ -95,6 +96,12 @@ export default function Dashboard({ statsGeneral, statsTickets, statsAssets, sta
     const ChartConfig = {
         tickets_count: {
             label: __("dashboard.pages.stats.ticket_statistics.total_tickets"),
+        },
+        total_hours: {
+            label: "Total hours", 
+        },
+        count_assets: {
+            label: "Total assets", 
         },
     } satisfies ChartConfig;
 

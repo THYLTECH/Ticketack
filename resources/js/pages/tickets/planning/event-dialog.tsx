@@ -36,6 +36,7 @@ import {
 } from 'date-fns';
 import {
     Calendar as CalendarIcon,
+    CheckCircle,
     Clock,
     ExternalLink,
     Info,
@@ -44,8 +45,9 @@ import {
     Trash2,
     User,
 } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { PreFillData, TimeEntryDialog } from '../entries/create-dialog';
 
 interface Props {
     open: boolean;
@@ -64,13 +66,25 @@ export function EventDialog({
     isEditMode,
     onSave,
     onDelete,
-    onValidate,
 }: Props) {
     const __ = useTrans();
     const [date, setDate] = useState<Date | undefined>(new Date());
     const [startTime, setStartTime] = useState('08:00');
     const [endTime, setEndTime] = useState('09:00');
     const [activeTab, setActiveTab] = useState('planning');
+    const [showTimeEntryDialog, setShowTimeEntryDialog] = useState(false);
+
+    const prefillData: PreFillData | undefined = useMemo(() => {
+        return event
+            ? {
+                  date: parseISO(event.start_date),
+                  hours: Math.floor(event.duration_minutes / 60),
+                  minutes: event.duration_minutes % 60,
+                  description: '',
+                  schedule_id: event.id,
+              }
+            : undefined;
+    }, [event]);
 
     useEffect(() => {
         if (event) {
@@ -114,10 +128,10 @@ export function EventDialog({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent
-                className="flex h-[80vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-[600px]"
+                className="flex h-[100dvh] w-screen flex-col gap-0 overflow-hidden border-0 p-0 sm:h-[80vh] sm:max-w-[600px] sm:rounded-lg sm:border"
                 aria-describedby={undefined}
             >
-                <DialogHeader className="flex shrink-0 flex-row items-start justify-between border-b bg-muted/10 p-6 pb-4">
+                <DialogHeader className="flex shrink-0 flex-row items-start justify-between border-b bg-muted/10 p-4 pb-4 text-left sm:p-6">
                     <div className="w-full space-y-1.5 pr-8">
                         <div className="flex items-center gap-2">
                             <Badge
@@ -127,10 +141,11 @@ export function EventDialog({
                                 #{event.ticket.id}
                             </Badge>
                             <Badge className="border-0 bg-primary/10 text-primary hover:bg-primary/20">
-                                {event.ticket.category?.title || 'Intervention'}
+                                {event.ticket.category?.title ||
+                                    __('schedule.defaults.intervention')}
                             </Badge>
                         </div>
-                        <DialogTitle className="line-clamp-1 text-xl leading-snug font-semibold tracking-tight text-foreground">
+                        <DialogTitle className="line-clamp-1 text-lg font-semibold tracking-tight text-foreground sm:text-xl sm:leading-snug">
                             {event.ticket.title}
                         </DialogTitle>
                         <DialogDescription className="line-clamp-1 text-xs text-muted-foreground">
@@ -145,19 +160,25 @@ export function EventDialog({
                     onValueChange={setActiveTab}
                     className="flex min-h-0 flex-1 flex-col overflow-hidden"
                 >
-                    <div className="shrink-0 px-6 pt-4">
+                    <div className="shrink-0 px-4 pt-4 sm:px-6">
                         <TabsList className="grid w-full grid-cols-3">
                             <TabsTrigger value="planning" className="gap-2">
                                 <Clock className="h-4 w-4" />{' '}
-                                {__('schedule.dialog.tabs.planning')}
+                                <span className="xs:inline hidden">
+                                    {__('schedule.dialog.tabs.planning')}
+                                </span>
                             </TabsTrigger>
                             <TabsTrigger value="comments" className="gap-2">
                                 <MessageCircle className="h-4 w-4" />{' '}
-                                {__('schedule.dialog.tabs.comments')}
+                                <span className="xs:inline hidden">
+                                    {__('schedule.dialog.tabs.comments')}
+                                </span>
                             </TabsTrigger>
                             <TabsTrigger value="details" className="gap-2">
                                 <Info className="h-4 w-4" />{' '}
-                                {__('schedule.dialog.tabs.infos')}
+                                <span className="xs:inline hidden">
+                                    {__('schedule.dialog.tabs.infos')}
+                                </span>
                             </TabsTrigger>
                         </TabsList>
                     </div>
@@ -168,7 +189,7 @@ export function EventDialog({
                             className="m-0 flex min-h-0 flex-1 flex-col overflow-hidden outline-none data-[state=inactive]:hidden"
                         >
                             <ScrollArea className="flex-1">
-                                <div className="space-y-6 p-6">
+                                <div className="space-y-6 p-4 sm:p-6">
                                     <div className="flex items-center gap-4 rounded-lg border bg-card p-3 shadow-sm">
                                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                                             <User className="h-5 w-5 text-primary" />
@@ -325,8 +346,8 @@ export function EventDialog({
                                     )}
                                 </div>
                             </ScrollArea>
-                            <div className="flex shrink-0 flex-col-reverse gap-3 border-t bg-muted/5 p-4 sm:flex-row sm:justify-between">
-                                <div className="flex items-center gap-2">
+                            <div className="flex shrink-0 flex-col gap-3 border-t bg-muted/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+                                <div className="flex items-center justify-between gap-2 sm:justify-start">
                                     {isEditMode && (
                                         <Button
                                             variant="ghost"
@@ -362,17 +383,23 @@ export function EventDialog({
                                     </Button>
                                 </div>
                                 {isEditMode && (
-                                    <div className="flex gap-2">
+                                    <div className="flex flex-col gap-2 sm:flex-row">
                                         <Button
                                             variant="outline"
-                                            className="text-emerald-700"
-                                            onClick={() => onValidate(event)}
+                                            className="w-full border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 sm:w-auto"
+                                            onClick={() => {
+                                                setShowTimeEntryDialog(true);
+                                            }}
                                         >
+                                            <CheckCircle className="mr-2 h-4 w-4" />
                                             {__(
                                                 'schedule.dialog.planning.validate',
                                             )}
                                         </Button>
-                                        <Button onClick={handleSave}>
+                                        <Button
+                                            onClick={handleSave}
+                                            className="w-full sm:w-auto"
+                                        >
                                             {__(
                                                 'schedule.dialog.planning.save',
                                             )}
@@ -396,7 +423,7 @@ export function EventDialog({
                             value="details"
                             className="m-0 flex min-h-0 flex-1 flex-col outline-none data-[state=inactive]:hidden"
                         >
-                            <ScrollArea className="flex-1 p-6">
+                            <ScrollArea className="flex-1 p-4 sm:p-6">
                                 <div className="grid gap-4 rounded-lg border bg-card p-4">
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
@@ -449,6 +476,23 @@ export function EventDialog({
                     </div>
                 </Tabs>
             </DialogContent>
+            <TimeEntryDialog
+                open={showTimeEntryDialog}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setShowTimeEntryDialog(false);
+                        onOpenChange(false);
+                    }
+                }}
+                ticket={event?.ticket}
+                availableTickets={[
+                    {
+                        id: event!.ticket.id,
+                        title: event!.ticket.title,
+                    },
+                ]}
+                initialValues={prefillData}
+            />
         </Dialog>
     );
 }
@@ -507,7 +551,7 @@ function TicketComments({
     return (
         <div className="flex h-full min-h-0 flex-1 flex-col">
             <div className="flex-1 overflow-y-auto" ref={scrollRef}>
-                <div className="flex flex-col gap-6 p-6">
+                <div className="flex flex-col gap-6 p-4 sm:p-6">
                     {localComments.length === 0 ? (
                         <div className="py-10 text-center opacity-50">
                             <p className="text-sm">
@@ -583,19 +627,20 @@ function TicketComments({
                 </div>
             </div>
 
-            <div className="shrink-0 border-t bg-background p-4">
+            <div className="shrink-0 border-t bg-background p-3 sm:p-4">
                 <form onSubmit={handleSubmit} className="flex items-end gap-2">
                     <Textarea
                         placeholder={__('schedule.dialog.comment.placeholder')}
                         className="h-[40px] max-h-[120px] min-h-[40px] resize-none rounded-3xl px-4 py-2 text-sm shadow-sm focus-visible:ring-1"
                         value={data.content}
                         onChange={(e) => setData('content', e.target.value)}
-                        onKeyDown={(e) =>{
-                            return e.key === 'Enter' &&
-                            !e.shiftKey &&
-                            (e.preventDefault(), handleSubmit(e));
-                        }
-                        }
+                        onKeyDown={(e) => {
+                            return (
+                                e.key === 'Enter' &&
+                                !e.shiftKey &&
+                                (e.preventDefault(), handleSubmit(e))
+                            );
+                        }}
                     />
                     <Button
                         type="submit"

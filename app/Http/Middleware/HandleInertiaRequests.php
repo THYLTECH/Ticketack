@@ -48,6 +48,7 @@ class HandleInertiaRequests extends Middleware
 
         $user = $request->user()?->load([
             'avatar',
+            'roles',
             'notifications' => fn($q) => $q->whereNull('read_at'),
         ]);
 
@@ -66,6 +67,7 @@ class HandleInertiaRequests extends Middleware
                     'theme' => $user->theme,
                     'color_scheme' => $user->color_scheme,
                     'phone' => $user->phone,
+                    'roles' => $user->roles,
                     'permissions' => $user->getAllPermissions(),
                 ] : null,
             ],

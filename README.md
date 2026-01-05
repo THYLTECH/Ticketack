@@ -5,6 +5,7 @@
 > php >= v8.3
 > node >= v20
 > composer >= 2.6
+> pm2 (npm install pm2 -g)
 
 ## 🐳 Docker Installation
 
@@ -19,6 +20,14 @@ The following command builds the containers, installs dependencies
 docker-compose up -d --build
 ```
 
+```bash
+npm i
+```
+
+```bash
+npm run dev
+```
+
 > **Note:** The very first launch may take a few minutes while the installation
 completes.
 
@@ -29,14 +38,7 @@ Once ready, access the application at:
 * **Email:** `test@example.com`
 * **Password:** `password`
 
-### 2. Development (Hot Reload)
-If you are modifying JS/CSS files and want to see changes in real-time (Vite):
-
-```bash
-docker-compose exec app npm run dev
-```
-
-### 3. Stop the application
+### 2. Stop the application
 To stop and remove the containers:
 
 ```bash
@@ -84,6 +86,25 @@ php artisan migrate
 ```
 
 ## Starting project
+## Automated Start (Recommended)
+The project uses PM2 to manage all background services (Server, Vite, WebSockets, and Queues) with a single command via the ecosystem.config.cjs file.
+
+### Start all services (Backend, Frontend, Reverb, Queue)
+```bash
+pm2 start ecosystem.config.cjs
+```
+
+### Monitor services status
+```bash
+pm2 status
+```
+
+### View logs in real-time
+```bash
+pm2 logs
+```
+
+## Manual Start (Alternative)
 
 ### Apache server
 ```bash

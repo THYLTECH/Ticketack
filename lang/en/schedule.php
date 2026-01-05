@@ -46,6 +46,14 @@ return [
             'no_messages' => 'No messages.',
             'me' => 'Me',
         ],
+        'conversion' => [
+            'title' => 'Validate this intervention?',
+            'description' => 'This action will convert the scheduled event into a billable time entry and remove it from the planning.',
+            'note_label' => 'Realization Note (Optional)',
+            'note_placeholder' => 'Details about the work done (leaves empty to use ticket title)',
+            'confirm_validate' => 'Convert',
+            'cancel' => 'Cancel',
+        ],
     ],
     'days' => [
         'monday' => 'Monday',
@@ -116,5 +124,7 @@ return [
         'updated' => 'Intervention updated successfully.',
         'deleted' => 'Intervention deleted successfully.',
         'overlap_error' => 'This slot is already occupied for this technician.',
+        'validated' => 'Intervention validated successfully and converted to an entry in the ticket list.',
+        'error' => 'An error occurred.'
     ],
 ];
