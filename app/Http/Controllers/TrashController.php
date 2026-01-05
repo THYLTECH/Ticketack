@@ -91,7 +91,7 @@ class TrashController extends Controller
 
     public function bulkRestore(Request $request): RedirectResponse
     {
-        Gate::authorize('restore items');
+        Gate::authorize('restore trash');
 
         $request->validate([
             'ids' => 'required|array',
@@ -111,7 +111,7 @@ class TrashController extends Controller
 
     public function bulkForceDelete(Request $request): RedirectResponse
     {
-        Gate::authorize('force delete items');
+        Gate::authorize('force delete trash');
 
         $request->validate([
             'ids' => 'required|array',

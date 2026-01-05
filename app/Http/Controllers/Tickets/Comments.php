@@ -28,6 +28,8 @@ class Comments extends Controller
      */
     public function store(RequestStore $request, Ticket $ticket): RedirectResponse
     {
+        $this->authorize('view', $ticket);
+
         return DB::transaction(function () use ($request, $ticket) {
             $comment = $ticket->comments()->create([
                 'user_id' => $request->user()->id,

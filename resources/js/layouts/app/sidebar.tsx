@@ -81,7 +81,12 @@ export function AppSidebar() {
         });
     }
 
-    if (userHasPermission({ user: auth.user, permission: 'view tickets' })) {
+    if (
+        userHasPermission({
+            user: auth.user,
+            permission: 'view ticket entries',
+        })
+    ) {
         mainNavItems.push({
             title: __('app.layout.sidebar.menugroups.platform.items.entries'),
             href: route('tickets.entries.index'),

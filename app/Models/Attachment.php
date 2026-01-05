@@ -34,6 +34,7 @@ class Attachment extends Model
         'mime_type',
         'file_extension',
         'file_size',
+        'user_id',
     ];
 
     protected $appends = ['url'];
@@ -78,7 +79,9 @@ class Attachment extends Model
             }
         });
 
-        static::deleted(function (Attachment $attachment) {
+        static::deleting(function (Attachment $attachment) {
+            $attachment->load('comments.ticket');
+
             $comment = $attachment->comments()->first();
             $ticket = $comment?->ticket;
 

@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app/layout';
 import { useTrans } from '@/lib/translation';
+import { userHasPermission } from '@/lib/utils';
 import {
     Asset,
     BreadcrumbItem,
@@ -113,6 +114,11 @@ export default function Index({
         );
     }, [filters]);
 
+    const isStaff =
+        auth.user.roles?.some((role) =>
+            ['admin', 'solver'].includes(role.name),
+        ) ?? false;
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={__('tickets.pages.index.head_title')} />
@@ -128,18 +134,25 @@ export default function Index({
                         </p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button asChild size="sm" variant="outline">
-                            <Link href={route('tickets.manage')}>
-                                <Cog className="mr-2 h-4 w-4" />
-                                {__('tickets.pages.index.buttons.manage')}
-                            </Link>
-                        </Button>
-                        <Button asChild size="sm">
-                            <Link href={route('tickets.create')}>
-                                <Plus className="mr-2 h-4 w-4" />
-                                {__('tickets.pages.index.buttons.create')}
-                            </Link>
-                        </Button>
+                        {isStaff && (
+                            <Button asChild size="sm" variant="outline">
+                                <Link href={route('tickets.manage')}>
+                                    <Cog className="mr-2 h-4 w-4" />
+                                    {__('tickets.pages.index.buttons.manage')}
+                                </Link>
+                            </Button>
+                        )}
+                        {userHasPermission({
+                            user: auth.user,
+                            permission: 'create tickets',
+                        }) && (
+                            <Button asChild size="sm">
+                                <Link href={route('tickets.create')}>
+                                    <Plus className="mr-2 h-4 w-4" />
+                                    {__('tickets.pages.index.buttons.create')}
+                                </Link>
+                            </Button>
+                        )}
                     </div>
                 </div>
 

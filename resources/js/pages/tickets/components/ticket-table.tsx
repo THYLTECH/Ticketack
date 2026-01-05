@@ -168,7 +168,6 @@ export function TicketTable({ tickets, auth }: Props) {
                                 onSort={handleSort}
                                 className="w-30"
                             />
-                            {/* --- COLONNE AUTEUR (HEAD) --- */}
                             <TableHead className="hidden text-xs font-semibold tracking-wider text-muted-foreground uppercase md:table-cell">
                                 {__('tickets.column.author')}
                             </TableHead>
@@ -205,6 +204,14 @@ export function TicketTable({ tickets, auth }: Props) {
                             const validAssignees = ticket.assignees?.filter(
                                 (a) => a.user,
                             );
+
+                            const isAdmin = auth.user.roles?.some(
+                                (r) => r.name === 'admin',
+                            );
+                            const isAssigned = ticket.assignees?.some(
+                                (a) => a.user?.id === auth.user.id,
+                            );
+                            const canArchive = isAdmin || isAssigned;
 
                             return (
                                 <TableRow
@@ -461,20 +468,24 @@ export function TicketTable({ tickets, auth }: Props) {
                                                         )}
                                                     </DropdownMenuItem>
                                                 )}
-                                                <DropdownMenuSeparator />
-                                                <DropdownMenuItem
-                                                    onClick={() =>
-                                                        initiateArchive(
-                                                            ticket.id,
-                                                        )
-                                                    }
-                                                    className="text-destructive focus:text-destructive"
-                                                >
-                                                    <Trash className="mr-2 h-4 w-4" />{' '}
-                                                    {__(
-                                                        'tickets.pages.form.buttons.delete',
-                                                    )}
-                                                </DropdownMenuItem>
+                                                {canArchive && (
+                                                    <>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem
+                                                            onClick={() =>
+                                                                initiateArchive(
+                                                                    ticket.id,
+                                                                )
+                                                            }
+                                                            className="text-destructive focus:text-destructive"
+                                                        >
+                                                            <Trash className="mr-2 h-4 w-4" />{' '}
+                                                            {__(
+                                                                'tickets.pages.form.buttons.delete',
+                                                            )}
+                                                        </DropdownMenuItem>
+                                                    </>
+                                                )}
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </TableCell>

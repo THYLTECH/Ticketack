@@ -31,7 +31,8 @@ beforeEach(function () {
 });
 
 test('user can add a comment with attachments and it creates a log', function () {
-    $ticket = Ticket::factory()->create();
+    $ticket = Ticket::factory()->create(['author_id' => $this->user->id]);
+
     $file = UploadedFile::fake()->image('document.jpg');
 
     post(route('tickets.comments.store', $ticket), [
@@ -69,7 +70,7 @@ test('user can update their own comment and it updates the log', function () {
 });
 
 test('user can delete their own comment and files are removed', function () {
-    $ticket = Ticket::factory()->create();
+    $ticket = Ticket::factory()->create(['author_id' => $this->user->id]);
     $file = UploadedFile::fake()->image('to_delete.png');
 
     post(route('tickets.comments.store', $ticket), [

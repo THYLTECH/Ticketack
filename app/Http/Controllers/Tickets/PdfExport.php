@@ -20,6 +20,8 @@ class PdfExport extends Controller
      */
     public function generate(Ticket $ticket): Response
     {
+        $this->authorize('view', $ticket);
+
         $ticket->load([
             'user',
             'priority',
@@ -27,7 +29,8 @@ class PdfExport extends Controller
             'category',
             'asset',
             'assignees.user',
-            'comments.user.avatar'
+            'comments.user.avatar',
+            'entries'
         ]);
 
         $user = Auth::user();
@@ -46,11 +49,34 @@ class PdfExport extends Controller
         $accentColor = $colors[$user->color_scheme] ?? $colors['default'];
         $qrcode = $this->getQrCodeBase64(route('tickets.show', $ticket->id));
 
+        $totalSeconds = $ticket->entries->sum('duration_seconds');
+        $totalHours = round($totalSeconds / 3600, 2);
+
+        $dailySummary = $ticket->entries->groupBy(fn($entry) => $entry->start_at->format('Y-m-d'))
+            ->map(function ($entries, $date) {
+                $totalSeconds = $entries->sum('duration_seconds');
+                return [
+                    'date' => $date,
+                    'hours' => round($totalSeconds / 3600, 2),
+                ];
+            })->values()->toArray();
+
+        $weeklyEntries = $ticket->entries->groupBy(function($entry) {
+            $startOfWeek = $entry->start_at->copy()->startOfWeek();
+            return $startOfWeek->format('Y-m-d');
+        });
+
         $pdf = Pdf::loadView('pdf.ticket', [
             'ticket'      => $ticket,
             'qrcode'      => $qrcode,
             'accentColor' => $accentColor,
-            'generatedBy' => $user
+            'generatedBy' => $user,
+            'user'        => $user,
+            'date'        => now()->format('d/m/Y'),
+            'period'      => '-',
+            'totalHours'  => $totalHours,
+            'dailySummary' => $dailySummary,
+            'weeklyEntries' => $weeklyEntries,
         ]);
 
         return $pdf->download("ticket-$ticket->id.pdf");

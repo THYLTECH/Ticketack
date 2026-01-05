@@ -13,6 +13,12 @@ class AttachmentController extends Controller
      */
     public function destroy(Attachment $attachment): RedirectResponse
     {
+        $user = auth()->user();
+
+        if (!$user->hasRole('admin') && $attachment->user_id !== $user->id) {
+            abort(403, "Vous ne pouvez pas supprimer ce fichier.");
+        }
+
         if ($attachment->file_path && Storage::disk('public')->exists($attachment->file_path)) {
             Storage::disk('public')->delete($attachment->file_path);
         }

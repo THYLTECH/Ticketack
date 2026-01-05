@@ -37,6 +37,7 @@ import {
     Clock,
     DollarSign,
     Loader2,
+    Monitor,
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -49,11 +50,18 @@ export interface PreFillData {
     schedule_id?: number;
 }
 
+interface TicketOption {
+    id: number;
+    title: string;
+    description: string | null;
+    asset: { id: number; title: string } | null;
+}
+
 interface Props {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     ticket?: Ticket;
-    availableTickets?: { id: number; title: string }[];
+    availableTickets: TicketOption[];
     initialValues?: PreFillData;
 }
 
@@ -163,7 +171,7 @@ export function TimeEntryDialog({
     };
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-125">
                 <DialogHeader>
                     <DialogTitle>
                         {initialValues
@@ -181,11 +189,23 @@ export function TimeEntryDialog({
                     <div className="grid gap-2">
                         <Label>{__('entries.dialog.ticket.label')}</Label>
                         {ticket ? (
-                            <div className="flex items-center rounded-md border bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
-                                <span className="mr-2 font-semibold text-foreground">
-                                    #{ticket.id}
-                                </span>
-                                <span className="truncate">{ticket.title}</span>
+                            <div className="flex items-center justify-between rounded-md border bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
+                                <div className="flex items-center gap-2 overflow-hidden">
+                                    <span className="shrink-0 font-semibold text-foreground">
+                                        #{ticket.id}
+                                    </span>
+                                    <span className="truncate font-medium text-foreground">
+                                        {ticket.title}
+                                    </span>
+                                </div>
+                                {ticket.asset && (
+                                    <div className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground/70">
+                                        <Monitor className="h-3 w-3" />
+                                        <span className="max-w-25 truncate">
+                                            {ticket.asset.title}
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             <Popover
@@ -207,10 +227,7 @@ export function TimeEntryDialog({
                                             ? availableTickets.find(
                                                   (t) =>
                                                       t.id === selectedTicketId,
-                                              )?.title ||
-                                              __(
-                                                  'entries.dialog.ticket.selected',
-                                              )
+                                              )?.title
                                             : __(
                                                   'entries.dialog.ticket.placeholder',
                                               )}
@@ -218,7 +235,7 @@ export function TimeEntryDialog({
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent
-                                    className="w-[calc(100vw-3rem)] p-0 sm:w-[450px]"
+                                    className="w-[calc(100vw-3rem)] p-0 sm:w-112.5"
                                     align="start"
                                 >
                                     <Command>
@@ -234,12 +251,12 @@ export function TimeEntryDialog({
                                                 )}
                                             </CommandEmpty>
                                             <CommandGroup>
-                                                <div className="max-h-[200px] overflow-y-auto">
+                                                <div className="custom-scrollbar max-h-50 overflow-y-auto">
                                                     {availableTickets.map(
                                                         (t) => (
                                                             <CommandItem
                                                                 key={t.id}
-                                                                value={`${t.id} ${t.title}`}
+                                                                value={`${t.id} ${t.title} ${t.asset?.title || ''} ${t.description || ''}`}
                                                                 onSelect={() => {
                                                                     setSelectedTicketId(
                                                                         t.id,
@@ -262,12 +279,30 @@ export function TimeEntryDialog({
                                                                             : 'opacity-0',
                                                                     )}
                                                                 />
-                                                                <span className="truncate">
-                                                                    <span className="mr-1 font-medium">
-                                                                        #{t.id}
-                                                                    </span>{' '}
-                                                                    - {t.title}
-                                                                </span>
+                                                                <div className="flex flex-col gap-0.5 overflow-hidden">
+                                                                    <span className="truncate">
+                                                                        <span className="mr-1 font-medium">
+                                                                            #
+                                                                            {
+                                                                                t.id
+                                                                            }
+                                                                        </span>{' '}
+                                                                        -{' '}
+                                                                        {
+                                                                            t.title
+                                                                        }
+                                                                    </span>
+                                                                    {t.asset && (
+                                                                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                                                                            <Monitor className="h-3 w-3" />
+                                                                            {
+                                                                                t
+                                                                                    .asset
+                                                                                    .title
+                                                                            }
+                                                                        </span>
+                                                                    )}
+                                                                </div>
                                                             </CommandItem>
                                                         ),
                                                     )}
@@ -284,7 +319,6 @@ export function TimeEntryDialog({
                             </p>
                         )}
                     </div>
-
                     <div className="grid grid-cols-2 gap-4">
                         <div className="grid gap-2">
                             <Label>{__('entries.dialog.date.label')}</Label>
@@ -423,7 +457,7 @@ export function TimeEntryDialog({
                             onChange={(e) =>
                                 setData('description', e.target.value)
                             }
-                            className="min-h-[80px] resize-none"
+                            className="min-h-20 resize-none"
                             rows={3}
                         />
                         {errors.description && (
