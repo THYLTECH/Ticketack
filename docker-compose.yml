@@ -52,6 +52,11 @@ services:
       environment:
           MINIO_ROOT_USER: 'sail'
           MINIO_ROOT_PASSWORD: 'password'
+          # Configuration Redis directe via variables d'environnement
+          MINIO_NOTIFY_REDIS_ENABLE_1: "on"
+          MINIO_NOTIFY_REDIS_ADDRESS_1: "redis:6379"
+          MINIO_NOTIFY_REDIS_KEY_1: "minio_events"
+          MINIO_NOTIFY_REDIS_FORMAT_1: "access"
       volumes:
           - 'sail-minio:/data'
       command: minio server /data --console-address ":8900"
@@ -65,44 +70,40 @@ services:
   minio-setup:
       image: minio/mc
       depends_on:
-          - minio
-          - redis
+          minio:
+              condition: service_healthy
+          redis:
+              condition: service_healthy
       networks:
           - sail
-      entrypoint: >
-          /bin/sh -c "
-          # 1. Attendre que MinIO soit prêt au démarrage
-          until mc alias set local http://minio:9000 sail password; do
-            echo 'En attente de MinIO...';
-            sleep 1;
-          done;
+      entrypoint:
+          - /bin/sh
+          - -c
+          - |
+              # 1. Configuration de l'alias
+              until mc alias set local http://minio:9000 sail password; do
+                echo "En attente de MinIO..."
+                sleep 1
+              done
 
-          # 2. Créer le bucket (ignorer s'il existe déjà)
-          mc mb --ignore-existing local/tickets-raw;
+              # 2. Création du bucket
+              mc mb --ignore-existing local/tickets-raw
 
-          # 3. Configurer la notification Redis
-          # Note: On utilise 'format=access' pour avoir un JSON compatible S3 event
-          mc admin config set local notify_redis:1 address='redis:6379' key='minio_events' format='access';
+              # 3. Activation de l'événement (boucle de sécurité)
+              echo "Activation de l'événement sur le bucket..."
+              # L'index '_1' dans les variables d'env correspond au nom '1' dans l'ARN
+              for i in 1 2 3 4 5 6 7 8 9 10; do
+                if mc event add local/tickets-raw arn:minio:sqs::1:redis --event put; then
+                  echo "Configuration des événements réussie."
+                  break
+                else
+                  echo "ARN non prêt, nouvelle tentative dans 5s ($i/10)..."
+                  sleep 5
+                fi
+              done
 
-          # 4. Redémarrer MinIO pour appliquer la configuration notify_redis
-          mc admin service restart local;
-
-          # 5. Attendre que MinIO redémarre (il peut être indisponible quelques secondes)
-          echo 'Redémarrage de MinIO en cours...';
-          sleep 5;
-          until mc alias set local http://minio:9000 sail password; do
-            echo 'En attente du redémarrage de MinIO...';
-            sleep 1;
-          done;
-
-          # 6. Ajouter l'abonnement à l'événement sur le bucket
-          # On vérifie d'abord si l'event existe déjà pour éviter les erreurs (optionnel mais propre)
-          mc event add local/tickets-raw arn:minio:sqs::1:redis --event put;
-
-          echo 'Configuration MinIO terminée.';
-          exit 0;
-          "
-
+              echo 'Configuration MinIO terminée.'
+              exit 0
   redis:
       image: 'redis:alpine'
       ports:

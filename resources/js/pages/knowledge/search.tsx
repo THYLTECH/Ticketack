@@ -12,6 +12,7 @@ import { useTrans } from '@/lib/translation';
 import { cn } from '@/lib/utils';
 import { BreadcrumbItem } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
+import axios from 'axios';
 import { format } from 'date-fns';
 import {
     Calendar as CalendarIcon,
@@ -50,15 +51,42 @@ export default function KnowledgeSearch({
 
     const [isSearching, setIsSearching] = React.useState(false);
     const [isLoading, setIsLoading] = React.useState(false);
+    const [results, setResults] = React.useState<SearchResult[]>([]);
 
-    const handleSearch = (e: React.FormEvent) => {
+    const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!query.trim()) return;
+        if (query.trim().length < 3) return;
+
         setIsLoading(true);
-        setTimeout(() => {
+
+        try {
+            const payload: Record<string, string | null> = {
+                query,
+                author_id: authorId,
+                category_id: categoryId,
+                asset_id: assetId,
+                type_filter: typeFilter,
+            };
+
+            if (date?.from) {
+                payload.date_from = format(date.from, 'yyyy-MM-dd');
+            }
+            if (date?.to) {
+                payload.date_to = format(date.to, 'yyyy-MM-dd');
+            }
+
+            const response = await axios.post(
+                route('knowledge.api.search'),
+                payload,
+            );
+
+            setResults(response.data.results);
             setIsSearching(true);
+        } catch (error) {
+            console.error(error);
+        } finally {
             setIsLoading(false);
-        }, 600);
+        }
     };
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -80,29 +108,13 @@ export default function KnowledgeSearch({
         setTypeFilter(null);
     };
 
-    const results: SearchResult[] = isSearching
-        ? [
-              {
-                  id: 'vec_1',
-                  ticket_id: 124,
-                  title: 'Erreur de connexion SMTP sur Outlook',
-                  snippet:
-                      "L'utilisateur ne peut pas envoyer de mails. Le port 587 semble bloqué...",
-                  score: 0.95,
-                  type: 'ticket',
-                  created_at: '2024-03-10T10:00:00',
-                  author: { name: 'John Doe' },
-              },
-          ]
-        : [];
-
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={__('knowledge.pages.search.title')} />
 
-            <div className="min-h-screen w-full bg-background pb-20">
-                <div className="relative border-b border-border/40 px-4 py-12 sm:px-6 lg:px-8">
-                    <div className="absolute inset-0 -z-10 bg-[radial-gradient(rgba(0,0,0,0.05)_1px,transparent_1px)] [background-size:16px_16px] dark:bg-[radial-gradient(rgba(255,255,255,0.05)_1px,transparent_1px)]"></div>
+            <div className="min-h-screen w-full bg-background pb-5">
+                <div className="relative border-b border-border/40 px-4 py-3 sm:px-6 lg:px-8">
+                    <div className="absolute inset-0 -z-10 bg-[radial-gradient(rgba(0,0,0,0.05)_1px,transparent_1px)] bg-size-[16px_16px] dark:bg-[radial-gradient(rgba(255,255,255,0.05)_1px,transparent_1px)]"></div>
 
                     <div className="mx-auto max-w-2xl text-center">
                         <Badge
@@ -110,7 +122,7 @@ export default function KnowledgeSearch({
                             className="mb-6 border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400"
                         >
                             <Sparkles className="mr-2 h-3 w-3" />
-                            Intelligence Artificielle
+                            {__('knowledge.pages.search.badge')}
                         </Badge>
 
                         <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
@@ -154,11 +166,14 @@ export default function KnowledgeSearch({
                                             size="sm"
                                             className="h-10 rounded-full bg-emerald-600 px-6 font-medium text-white shadow-sm hover:bg-emerald-700"
                                             disabled={
-                                                !query.trim() || isLoading
+                                                query.trim().length < 3 ||
+                                                isLoading
                                             }
                                         >
                                             {isLoading
-                                                ? '...'
+                                                ? __(
+                                                      'knowledge.buttons.loading',
+                                                  )
                                                 : __(
                                                       'knowledge.buttons.search',
                                                   )}
@@ -255,9 +270,24 @@ export default function KnowledgeSearch({
                                 title={__('knowledge.filters.type')}
                                 icon={<ListFilter className="h-3.5 w-3.5" />}
                                 options={[
-                                    { value: 'ticket', label: 'Ticket' },
-                                    { value: 'pdf', label: 'PDF' },
-                                    { value: 'image', label: 'Image' },
+                                    {
+                                        value: 'ticket',
+                                        label: __(
+                                            'knowledge.filters.types.ticket',
+                                        ),
+                                    },
+                                    {
+                                        value: 'pdf',
+                                        label: __(
+                                            'knowledge.filters.types.pdf',
+                                        ),
+                                    },
+                                    {
+                                        value: 'image',
+                                        label: __(
+                                            'knowledge.filters.types.image',
+                                        ),
+                                    },
                                 ]}
                                 value={typeFilter}
                                 onChange={setTypeFilter}
@@ -275,7 +305,7 @@ export default function KnowledgeSearch({
                                         size="sm"
                                         className="h-9 border-solid px-2 text-xs font-medium text-muted-foreground hover:border-destructive hover:bg-destructive/10 hover:text-destructive"
                                     >
-                                        Clear
+                                        {__('knowledge.filters.clear')}
                                         <X className="ml-2 h-3.5 w-3.5" />
                                     </Button>
                                 </>
@@ -283,29 +313,47 @@ export default function KnowledgeSearch({
                         </div>
                     </div>
                 </div>
-
-                <div className="container mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
+                <div className="container mx-auto max-w-5xl px-4 py-3 sm:px-6 lg:px-8">
                     {isLoading ? (
                         <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
+                            <div className="h-64 animate-pulse rounded-xl border border-border/60 bg-muted/10 p-8 md:col-span-2" />
                             <ResultSkeleton />
                             <ResultSkeleton />
                         </div>
                     ) : isSearching && results.length > 0 ? (
-                        <div className="animate-in space-y-6 duration-500 fade-in slide-in-from-bottom-4">
-                            <div className="flex items-baseline justify-between border-b border-border/40 pb-4">
+                        <div className="animate-in space-y-8 duration-500 fade-in slide-in-from-bottom-4">
+                            <div className="flex items-baseline justify-between border-b border-border/40 pb-2">
                                 <h2 className="text-lg font-semibold tracking-tight text-foreground">
                                     {results.length}{' '}
                                     {__('knowledge.results.found')}
                                 </h2>
                             </div>
+
                             <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
-                                {results.map((result) => (
-                                    <ResultCard
-                                        key={result.id}
-                                        result={result}
-                                    />
-                                ))}
+                                {results.map((result, index) => {
+                                    const isBestMatch = index === 0;
+
+                                    return (
+                                        <ResultCard
+                                            key={result.id}
+                                            result={result}
+                                            isFeatured={isBestMatch}
+                                        />
+                                    );
+                                })}
                             </div>
+                        </div>
+                    ) : isSearching ? (
+                        <div className="animate-in py-3 text-center zoom-in-95 fade-in">
+                            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                                <Search className="h-6 w-6 text-muted-foreground" />
+                            </div>
+                            <h3 className="text-lg font-medium text-foreground">
+                                {__('knowledge.results.empty_title')}
+                            </h3>
+                            <p className="mt-1 text-muted-foreground">
+                                {__('knowledge.results.empty_description')}
+                            </p>
                         </div>
                     ) : null}
                 </div>

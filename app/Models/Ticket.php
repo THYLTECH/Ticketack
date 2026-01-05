@@ -13,6 +13,8 @@ class   Ticket extends Model
 {
     use HasFactory, SoftDeletes;
 
+    public mixed $is_referenced;
+    public mixed $detailed_solution;
     protected $fillable = [
         'author_id',
         'priority_id',
@@ -124,5 +126,13 @@ class   Ticket extends Model
             'id',
             'attachment_id'
         );
+    }
+
+    /**
+     * @return BelongsTo
+     */
+    public function author(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'author_id');
     }
 }
