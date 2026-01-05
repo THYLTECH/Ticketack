@@ -13,8 +13,6 @@ class   Ticket extends Model
 {
     use HasFactory, SoftDeletes;
 
-    public mixed $is_referenced;
-    public mixed $detailed_solution;
     protected $fillable = [
         'author_id',
         'priority_id',
