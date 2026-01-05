@@ -9,9 +9,6 @@ use Spatie\Permission\PermissionRegistrar;
 
 class RolesAndPermissionsSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
@@ -25,8 +22,13 @@ class RolesAndPermissionsSeeder extends Seeder
             'view roles', 'show roles', 'create roles', 'update roles', 'delete roles',
             // Tickets
             'view tickets', 'show tickets', 'create tickets', 'update tickets', 'delete tickets', 'restore tickets', 'force delete tickets',
+
+            // Pointages
+            'view ticket entries', 'create ticket entries', 'update ticket entries', 'delete ticket entries',
+
             // Trash
-            'view trash', 'edit trash', 'restore items', 'force delete items',
+            'view trash', 'edit trash', 'restore trash', 'force delete trash',
+
             // Planning
             'view planning', 'manage planning'
         ];
@@ -35,26 +37,22 @@ class RolesAndPermissionsSeeder extends Seeder
             Permission::firstOrCreate(['name' => $permission]);
         }
 
-        // Rôle Admin : Toutes les permissions
+        // Admin
         $roleAdmin = Role::firstOrCreate(['name' => 'admin']);
         $roleAdmin->syncPermissions(Permission::all());
 
-        // Rôle Solveur : Accès aux tickets et au planning (RG023)
+        // Solveur
         $roleSolveur = Role::firstOrCreate(['name' => 'solver']);
         $roleSolveur->syncPermissions([
-            'view tickets',
-            'show tickets',
-            'update tickets',
-            'view planning',
-            'manage planning'
+            'view tickets', 'show tickets', 'update tickets',
+            'view planning', 'manage planning',
+            'view ticket entries', 'create ticket entries', 'update ticket entries', 'delete ticket entries',
         ]);
 
-        // Rôle Utilisateur : Création et consultation de ses tickets
-        $roleUser = Role::firstOrCreate(['name' => 'utilisateur']);
+        // Simple User
+        $roleUser = Role::firstOrCreate(['name' => 'simple_user']);
         $roleUser->syncPermissions([
-            'view tickets',
-            'show tickets',
-            'create tickets'
+            'view tickets', 'show tickets', 'create tickets'
         ]);
     }
 }

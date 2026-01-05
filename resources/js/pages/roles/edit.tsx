@@ -1,35 +1,13 @@
-// resources/js/pages/roles/edit.tsx
-
-// Necessary imports
-import { userHasPermission } from '@/lib/utils';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
-
-// Layout
-import AppLayout from '@/layouts/app/layout';
-
-// Translation Hook
-import { useTrans } from '@/lib/translation';
-
-// Custom components
-import { DeleteRole } from '@/pages/roles/delete';
-import { InformationsTab, PermissionsTab, UsersTab } from '@/pages/roles/form';
-
-// Shadnc UI Components
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardAction,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Spinner } from '@/components/ui/spinner';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
-// Types
+import AppLayout from '@/layouts/app/layout';
+import { useTrans } from '@/lib/translation';
+import { userHasPermission } from '@/lib/utils';
+import { DeleteRole } from '@/pages/roles/delete';
+import { InformationsTab, PermissionsTab, UsersTab } from '@/pages/roles/form';
 import type {
     BreadcrumbItem,
     Permission,
@@ -37,9 +15,9 @@ import type {
     SharedData,
     User,
 } from '@/types';
-
-// Icons
-import { ArrowLeft, File, Pen, Shield, Trash2, UserIcon } from 'lucide-react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { ArrowLeft, Info, Save, Shield, Trash2, Users } from 'lucide-react';
+import React from 'react';
 
 export default function Edit({
     role,
@@ -52,6 +30,10 @@ export default function Edit({
 }) {
     const __ = useTrans();
 
+    const isSystemRole = ['admin', 'solver', 'simple_user'].includes(
+        role.name.toLowerCase().trim(),
+    );
+
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: __('dashboard.pages.breadcrumbs.dashboard'),
@@ -62,7 +44,7 @@ export default function Edit({
             href: route('roles.index'),
         },
         {
-            title: __('roles.pages.breadcrumbs.edit'),
+            title: role.name,
             href: '#',
         },
     ];
@@ -79,6 +61,7 @@ export default function Edit({
                 role={role}
                 permissions={permissions}
                 usersWithoutRole={usersWithoutRole}
+                isSystemRole={isSystemRole}
             />
         </AppLayout>
     );
@@ -88,12 +71,15 @@ function EditForm({
     role,
     permissions,
     usersWithoutRole,
+    isSystemRole,
 }: {
     role: Role;
     permissions: Permission[];
     usersWithoutRole: User[];
+    isSystemRole: boolean;
 }) {
     const __ = useTrans();
+    const { auth } = usePage<SharedData>().props;
 
     const { data, setData, errors, processing, patch } = useForm<{
         name: string;
@@ -111,92 +97,136 @@ function EditForm({
     };
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>
-                    {__('roles.pages.edit.title', undefined, {
-                        title: role.name,
-                    })}
-                </CardTitle>
-                <CardDescription>
-                    {__('roles.pages.edit.description')}
-                </CardDescription>
-                <CardAction className="space-x-2">
-                    <Button asChild variant={'secondary'}>
+        <div className="mx-auto max-w-5xl space-y-6">
+            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                <div>
+                    <h2 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
+                        {__('roles.pages.edit.title', undefined, {
+                            title: role.name,
+                        })}
+                        {isSystemRole && (
+                            <Badge
+                                variant="outline"
+                                className="border-blue-200 bg-blue-50 text-blue-600"
+                            >
+                                {__(
+                                    'roles.pages.form.fields.name.system_badge',
+                                )}
+                            </Badge>
+                        )}
+                    </h2>
+                    <p className="text-muted-foreground">
+                        {__('roles.pages.edit.description')}
+                    </p>
+                </div>
+                <div className="flex items-center gap-2">
+                    <Button asChild variant="outline" size="sm">
                         <Link href={route('roles.index')}>
-                            <ArrowLeft />
+                            <ArrowLeft className="mr-2 h-4 w-4" />
                             {__('roles.pages.form.buttons.back')}
                         </Link>
                     </Button>
-                    {userHasPermission({
-                        user: usePage<SharedData>().props.auth.user,
-                        permission: 'delete roles',
-                    }) && (
-                        <DeleteRole role={role}>
-                            <Button variant="destructive">
-                                <Trash2 />
-                                {__('roles.pages.form.buttons.delete')}
-                            </Button>
-                        </DeleteRole>
-                    )}
-                </CardAction>
-            </CardHeader>
-            <Separator />
+
+                    {!isSystemRole &&
+                        userHasPermission({
+                            user: auth.user,
+                            permission: 'delete roles',
+                        }) && (
+                            <DeleteRole role={role}>
+                                <Button variant="destructive" size="sm">
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    {__('roles.pages.form.buttons.delete')}
+                                </Button>
+                            </DeleteRole>
+                        )}
+                </div>
+            </div>
 
             <form onSubmit={handleSubmit}>
-                <CardContent>
-                    <Tabs
-                        defaultValue={'informations'}
-                        className="w-full space-y-4"
-                    >
-                        <TabsList className="w-full">
-                            <TabsTrigger value={'informations'}>
-                                <File />
-                                {__('roles.pages.form.tabs.informations')}
-                            </TabsTrigger>
-                            <TabsTrigger value={'permissions'}>
-                                <Shield />
-                                {__('roles.pages.form.tabs.permissions')}
-                            </TabsTrigger>
-                            <TabsTrigger value={'users'}>
-                                <UserIcon />
-                                {__('roles.pages.form.tabs.users')}
-                            </TabsTrigger>
-                        </TabsList>
+                <Card>
+                    <CardContent className="p-6">
+                        <Tabs defaultValue="informations" className="w-full">
+                            <TabsList className="grid h-12 w-full grid-cols-3 rounded-lg bg-muted/60 p-1">
+                                <TabsTrigger
+                                    value="informations"
+                                    className="flex items-center gap-2 rounded-md transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                                >
+                                    <Info className="h-4 w-4" />
+                                    {__('roles.pages.form.tabs.informations')}
+                                </TabsTrigger>
+                                <TabsTrigger
+                                    value="permissions"
+                                    className="flex items-center gap-2 rounded-md transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                                >
+                                    <Shield className="h-4 w-4" />
+                                    {__('roles.pages.form.tabs.permissions')}
+                                    <Badge
+                                        variant="secondary"
+                                        className="ml-1 h-5 px-1.5 text-[10px] opacity-80"
+                                    >
+                                        {data.permissions.length}
+                                    </Badge>
+                                </TabsTrigger>
+                                <TabsTrigger
+                                    value="users"
+                                    className="flex items-center gap-2 rounded-md transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                                >
+                                    <Users className="h-4 w-4" />
+                                    {__('roles.pages.form.tabs.users')}
+                                    <Badge
+                                        variant="secondary"
+                                        className="ml-1 h-5 px-1.5 text-[10px] opacity-80"
+                                    >
+                                        {data.users.length}
+                                    </Badge>
+                                </TabsTrigger>
+                            </TabsList>
 
-                        <InformationsTab
-                            data={data}
-                            setData={setData}
-                            errors={errors}
-                            disabled={processing}
-                        />
-                        <PermissionsTab
-                            data={data}
-                            setData={setData}
-                            permissions={permissions}
-                            disabled={processing}
-                        />
-                        <UsersTab
-                            data={data}
-                            setData={setData}
-                            usersWithoutRole={usersWithoutRole}
-                            disabled={processing}
-                        />
-                    </Tabs>
-                </CardContent>
-                <Separator className="my-6" />
-                {userHasPermission({
-                    user: usePage<SharedData>().props.auth.user,
-                    permission: 'update roles',
-                }) && (
-                    <CardFooter>
-                        <Button disabled={processing} className="w-full">
-                            {processing ? <Spinner /> : <Pen />}
-                            {__('roles.pages.form.buttons.update')}
-                        </Button>
-                    </CardFooter>
-                )}
+                            <div className="mt-6">
+                                <InformationsTab
+                                    data={data}
+                                    setData={setData}
+                                    errors={errors}
+                                    disabled={processing}
+                                    isSystemRole={isSystemRole}
+                                />
+                                <PermissionsTab
+                                    data={data}
+                                    setData={setData}
+                                    permissions={permissions}
+                                    disabled={processing}
+                                />
+                                <UsersTab
+                                    data={data}
+                                    setData={setData}
+                                    usersWithoutRole={usersWithoutRole}
+                                    disabled={processing}
+                                />
+                            </div>
+                        </Tabs>
+                    </CardContent>
+
+                    {userHasPermission({
+                        user: auth.user,
+                        permission: 'update roles',
+                    }) && (
+                        <CardFooter className="flex justify-end border-t bg-muted/10 py-4">
+                            <Button
+                                type="submit"
+                                disabled={processing}
+                                className="min-w-37.5"
+                            >
+                                {processing ? (
+                                    <Spinner className="mr-2 h-4 w-4" />
+                                ) : (
+                                    <Save className="mr-2 h-4 w-4" />
+                                )}
+                                {__('roles.pages.form.buttons.update')}
+                            </Button>
+                        </CardFooter>
+                    )}
+                </Card>
             </form>
-        </Card>
+        </div>
     );
 }

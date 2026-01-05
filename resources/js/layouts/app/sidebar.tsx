@@ -82,7 +82,12 @@ export function AppSidebar() {
         });
     }
 
-    if (userHasPermission({ user: auth.user, permission: 'view tickets' })) {
+    if (
+        userHasPermission({
+            user: auth.user,
+            permission: 'view ticket entries',
+        })
+    ) {
         mainNavItems.push({
             title: __('app.layout.sidebar.menugroups.platform.items.entries'),
             href: route('tickets.entries.index'),
@@ -156,11 +161,11 @@ export function AppSidebar() {
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
-                    <SidebarMenuItem className="mt-2 px-2 pb-2">
+                    <SidebarMenuItem className="mt-2 px-2 pb-2 group-data-[collapsible=icon]:px-0">
                         <SidebarMenuButton
                             asChild
                             variant="default"
-                            className="w-full justify-center gap-2 bg-primary text-primary-foreground shadow-sm transition-all group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:p-0 hover:bg-primary/90"
+                            className="w-full justify-center gap-2 bg-primary text-primary-foreground shadow-sm transition-all group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:p-0 hover:bg-primary/90"
                         >
                             <Link href={route('tickets.create')}>
                                 <Plus className="size-4 shrink-0" />
@@ -171,7 +176,7 @@ export function AppSidebar() {
                                 </span>
                             </Link>
                         </SidebarMenuButton>
-                    </SidebarMenuItem>
+                    </SidebarMenuItem>{' '}
                 </SidebarMenu>
             </SidebarHeader>
 

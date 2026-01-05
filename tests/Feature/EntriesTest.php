@@ -104,8 +104,8 @@ test('user can filter entries by billable status', function () {
 });
 
 test('user can filter entries by ticket attributes', function () {
-    $status1 = TicketStatus::factory()->create();
-    $status2 = TicketStatus::factory()->create();
+    $status1 = TicketStatus::factory()->create(['sort_order' => 10]);
+    $status2 = TicketStatus::factory()->create(['sort_order' => 20]);
 
     $ticket1 = Ticket::factory()->create(['status_id' => $status1->id]);
     $ticket2 = Ticket::factory()->create(['status_id' => $status2->id]);
@@ -311,8 +311,12 @@ test('user can filter entries by ticket priority', function () {
 });
 
 test('user can filter entries by ticket category', function () {
-    $category1 = \App\Models\TicketCategory::factory()->create();
-    $category2 = \App\Models\TicketCategory::factory()->create();
+    $category1 = \App\Models\TicketCategory::factory()->create([
+        'sort_order' => 100
+    ]);
+    $category2 = \App\Models\TicketCategory::factory()->create([
+        'sort_order' => 200
+    ]);
 
     $ticket1 = Ticket::factory()->create(['category_id' => $category1->id]);
     $ticket2 = Ticket::factory()->create(['category_id' => $category2->id]);
@@ -455,3 +459,39 @@ test('pdf report without date filters uses all history label', function () {
         ->assertOk();
 });
 
+test('user can filter entries by search term', function () {
+    $ticket = Ticket::factory()->create([
+        'title' => 'UNIQUE_TICKET_TITLE',
+        'description' => 'DESCRIPTION_SEARCHABLE'
+    ]);
+
+    TicketEntry::factory()->create([
+        'ticket_id' => $ticket->id,
+        'user_id' => $this->user->id,
+    ]);
+
+    get(route('tickets.entries.index', ['search' => 'UNIQUE_TICKET']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->has('entries.data', 1));
+
+    get(route('tickets.entries.index', ['search' => (string)$ticket->id]))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->has('entries.data', 1));
+});
+
+test('report generation handles empty results', function () {
+    TicketEntry::query()->delete();
+
+    get(route('tickets.entries.report', ['format' => 'pdf']))
+        ->assertOk();
+});
+
+test('streamed csv correctly handles entries for deleted tickets', function () {
+    $entry = TicketEntry::factory()->create(['user_id' => $this->user->id]);
+    $entry->ticket()->delete(); // On supprime le ticket lié
+
+    $response = get(route('tickets.entries.report'));
+    $content = $response->streamedContent();
+
+    expect($content)->toContain(__('entries.report.csv.deleted_ticket'));
+});

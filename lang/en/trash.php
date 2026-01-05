@@ -59,7 +59,7 @@ return [
             'warning' => 'This action cannot be undone and data will be lost forever.',
             'buttons' => [
                 'cancel' => 'Cancel',
-                'confirm' => 'Confirm deletion',
+                'confirm' => 'Confirm',
                 'deleting' => 'Deleting...',
             ],
         ],

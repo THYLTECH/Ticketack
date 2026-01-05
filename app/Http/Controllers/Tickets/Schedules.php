@@ -102,6 +102,8 @@ class Schedules extends Controller
 
     public function convert(Request $request, TicketSchedule $schedule)
     {
+        $this->authorize('update', $schedule);
+
         $schedule->load('ticket');
 
         $note = $request->input('note') ?: ($schedule->ticket->title);

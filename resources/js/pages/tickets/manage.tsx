@@ -120,16 +120,14 @@ export default function Manage({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={__('tickets.pages.index.buttons.manage')} />
 
-            <div className="container mx-auto max-w-[1600px] space-y-5 px-4 py-8 sm:px-6 lg:px-8">
+            <div className="container mx-auto max-w-400 space-y-5 px-4 py-8 sm:px-6 lg:px-8">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h2 className="text-2xl font-bold tracking-tight text-foreground">
                             {__('tickets.pages.index.buttons.manage')}
                         </h2>
                         <p className="mt-1 text-sm text-muted-foreground">
-                            {auth.user.roles?.some((r) => r.name === 'admin')
-                                ? __('tickets.pages.index.description')
-                                : __('tickets.pages.index.description')}
+                            {__('tickets.pages.index.description')}
                         </p>
                     </div>
 
