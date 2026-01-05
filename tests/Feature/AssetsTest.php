@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Asset;
+use App\Models\AssetAttribute;
 use App\Models\Attachment;
 use App\Models\AssetAttachment;
 use App\Models\User;
@@ -10,22 +11,16 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use function Pest\Laravel\{actingAs, delete, get, post, put};
 
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    Permission::create(['name' => 'view assets']);
-    Permission::create(['name' => 'show assets']);
-    Permission::create(['name' => 'create assets']);
-    Permission::create(['name' => 'update assets']);
-    Permission::create(['name' => 'delete assets']);
-    Permission::create(['name' => 'view trash']);
-    Permission::create(['name' => 'restore items']);
-    Permission::create(['name' => 'force delete items']);
+    $role = Role::firstOrCreate(['name' => 'admin']);
 
     $this->user = User::factory()->create();
-    $this->user->givePermissionTo(Permission::all());
+    $this->user->assignRole($role);
 
     actingAs($this->user);
 
@@ -448,7 +443,7 @@ test('asset index page passes search filters to frontend', function () {
 test('asset index page filters assets by title', function () {
     Asset::factory()->create(['title' => 'Server 1 - Ubuntu']);
     Asset::factory()->create(['title' => 'Database Backup']);
-    
+
     $response = get(route('assets.index', ['search' => 'server']));
 
     $response
@@ -464,7 +459,7 @@ test('asset index page returns depth_level for hierarchy visualization', functio
 
     $child = Asset::factory()->create(['title' => 'Child', 'parent_id' => $parent->id]);
 
-    $response = get(route('assets.index', ['limit' => 20])); 
+    $response = get(route('assets.index', ['limit' => 20]));
 
     $response
         ->assertOk()
@@ -488,6 +483,364 @@ test('asset index page does not fail when a parent is soft-deleted', function ()
         ->assertInertia(fn ($page) => $page
             ->has('assets.data', 1)
             ->where('assets.data.0.title', 'Child')
-            ->where('assets.data.0.depth_level', 1) 
+            ->where('assets.data.0.depth_level', 1)
         );
 });
+
+
+
+
+test('asset index page applies sorting parameters', function () {
+    Asset::factory()->create(['title' => 'Alpha Asset']);
+    Asset::factory()->create(['title' => 'Beta Asset']);
+
+    get(route('assets.index', ['sort' => 'title', 'direction' => 'desc']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('assets.data.0.title', 'Beta Asset')
+        );
+});
+
+test('asset index page filters by description', function () {
+    Asset::factory()->create(['description' => 'Contains special keyword']);
+    Asset::factory()->create(['description' => 'Normal description']);
+
+    get(route('assets.index', ['search' => 'special keyword']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->has('assets.data', 1));
+});
+
+test('asset create page returns attribute keys sorted by usage count', function () {
+    $asset1 = Asset::factory()->create();
+    $asset2 = Asset::factory()->create();
+
+    AssetAttribute::factory()->create(['asset_id' => $asset1->id, 'key' => 'CommonKey']);
+    AssetAttribute::factory()->create(['asset_id' => $asset2->id, 'key' => 'CommonKey']);
+    AssetAttribute::factory()->create(['asset_id' => $asset1->id, 'key' => 'RareKey']);
+
+    get(route('assets.create'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('attribute_keys.0', 'CommonKey')
+        );
+});
+
+test('user can store asset with all optional fields', function () {
+    $parent = Asset::factory()->create();
+
+    post(route('assets.store'), [
+        'title' => 'Complete Asset',
+        'description' => 'Full description',
+        'icon' => 'server',
+        'parent_id' => $parent->id,
+        'attributes' => [
+            ['key' => 'SN', 'value' => '12345']
+        ],
+    ])->assertRedirect();
+
+    $this->assertDatabaseHas('assets', [
+        'title' => 'Complete Asset',
+        'description' => 'Full description',
+        'icon' => 'server',
+        'parent_id' => $parent->id,
+    ]);
+});
+
+test('store validates title is required', function () {
+    post(route('assets.store'), [
+        'title' => '',
+    ])->assertSessionHasErrors(['title']);
+});
+
+test('store validates parent_id exists', function () {
+    post(route('assets.store'), [
+        'title' => 'Test Asset',
+        'parent_id' => 99999,
+    ])->assertSessionHasErrors(['parent_id']);
+});
+
+test('store validates attributes structure', function () {
+    post(route('assets.store'), [
+        'title' => 'Test Asset',
+        'attributes' => [
+            ['key' => 'Key1', 'value' => ''],
+        ],
+    ])->assertSessionHasErrors(['attributes.0.value']);
+});
+
+test('store validates duplicate attribute keys', function () {
+    post(route('assets.store'), [
+        'title' => 'Test Asset',
+        'attributes' => [
+            ['key' => 'SameKey', 'value' => 'Value1'],
+            ['key' => 'SameKey', 'value' => 'Value2'],
+        ],
+    ])->assertSessionHasErrors(['attributes.0.key']);
+});
+
+test('store validates attachments max count', function () {
+    $files = collect(range(1, 11))->map(fn() => UploadedFile::fake()->image('file.jpg'));
+
+    post(route('assets.store'), [
+        'title' => 'Too many files',
+        'attachments' => $files->map(fn($file) => [
+            'title' => 'File',
+            'file' => $file
+        ])->toArray()
+    ])->assertSessionHasErrors(['attachments']);
+});
+
+test('store validates attachment file is required', function () {
+    post(route('assets.store'), [
+        'title' => 'Asset',
+        'attachments' => [
+            ['title' => 'Doc without file']
+        ]
+    ])->assertSessionHasErrors(['attachments.0.file']);
+});
+
+test('store validates attachment mime types', function () {
+    $file = UploadedFile::fake()->create('document.exe', 100);
+
+    post(route('assets.store'), [
+        'title' => 'Asset',
+        'attachments' => [[
+            'title' => 'Invalid file',
+            'file' => $file
+        ]]
+    ])->assertSessionHasErrors(['attachments.0.file']);
+});
+
+test('update validates parent cannot be self', function () {
+    $asset = Asset::factory()->create();
+
+    post(route('assets.update', $asset), [
+        'title' => 'Updated',
+        'parent_id' => $asset->id,
+        'attributes' => [],
+        'attachments' => []
+    ])->assertSessionHasErrors(['parent_id']);
+});
+
+test('update handles grandchild parent assignment prevention', function () {
+    $grandparent = Asset::factory()->create();
+    $parent = Asset::factory()->create(['parent_id' => $grandparent->id]);
+    $child = Asset::factory()->create(['parent_id' => $parent->id]);
+
+    post(route('assets.update', $grandparent), [
+        'title' => 'Updated',
+        'parent_id' => $child->id,
+        'attributes' => [],
+        'attachments' => []
+    ])->assertRedirect(route('assets.edit', $grandparent))
+        ->assertSessionHas('error');
+
+    $this->assertDatabaseHas('assets', [
+        'id' => $grandparent->id,
+        'parent_id' => null
+    ]);
+});
+
+test('update removes parent when parent_id is null', function () {
+    $parent = Asset::factory()->create();
+    $asset = Asset::factory()->create(['parent_id' => $parent->id]);
+
+    post(route('assets.update', $asset), [
+        'title' => 'Updated',
+        'parent_id' => null,
+        'attributes' => [],
+        'attachments' => []
+    ])->assertRedirect();
+
+    $this->assertDatabaseHas('assets', [
+        'id' => $asset->id,
+        'parent_id' => null
+    ]);
+});
+
+test('update adds new attachment while keeping existing ones', function () {
+    $asset = Asset::factory()->create();
+    $existingAttachment = Attachment::factory()->create();
+    $asset->attachments()->save($existingAttachment);
+
+    $newFile = UploadedFile::fake()->image('new.jpg');
+
+    post(route('assets.update', $asset), [
+        'title' => 'Updated',
+        'attributes' => [],
+        'attachments' => [
+            [
+                'id' => (string) $existingAttachment->id,
+                'title' => $existingAttachment->title,
+                'file' => null
+            ],
+            [
+                'title' => 'New Attachment',
+                'file' => $newFile
+            ]
+        ]
+    ])->assertRedirect();
+
+    $this->assertDatabaseCount('attachments', 2);
+    $this->assertDatabaseHas('asset_attachments', [
+        'asset_id' => $asset->id,
+        'attachment_id' => $existingAttachment->id
+    ]);
+});
+
+test('update validates attachment metadata without file upload', function () {
+    $asset = Asset::factory()->create();
+    $attachment = Attachment::factory()->create();
+    $asset->attachments()->save($attachment);
+
+    post(route('assets.update', $asset), [
+        'title' => 'Updated',
+        'attributes' => [],
+        'attachments' => [[
+            'id' => (string) $attachment->id,
+            'title' => '',
+            'file' => null
+        ]]
+    ])->assertSessionHasErrors(['attachments.0.title']);
+});
+
+test('update enforces 10 attachments limit with existing files', function () {
+    $asset = Asset::factory()->create();
+
+    foreach(range(1, 10) as $i) {
+        $attachment = Attachment::factory()->create();
+        $asset->attachments()->save($attachment);
+    }
+
+    $newFile = UploadedFile::fake()->image('extra.jpg');
+
+    post(route('assets.update', $asset), [
+        'title' => 'Updated',
+        'attributes' => [],
+        'attachments' => [[
+            'title' => 'Extra File',
+            'file' => $newFile
+        ]]
+    ])->assertSessionHasErrors(['attachments']);
+});
+
+test('user without view permission cannot access index', function () {
+    $user = User::factory()->create();
+
+    actingAs($user)
+        ->get(route('assets.index'))
+        ->assertForbidden();
+});
+
+test('user without create permission cannot access create page', function () {
+    $user = User::factory()->create();
+
+    actingAs($user)
+        ->get(route('assets.create'))
+        ->assertForbidden();
+});
+
+test('user without update permission cannot update asset', function () {
+    $user = User::factory()->create();
+    $asset = Asset::factory()->create();
+
+    actingAs($user)
+        ->post(route('assets.update', $asset), ['title' => 'Test'])
+        ->assertForbidden();
+});
+
+test('user without delete permission cannot delete asset', function () {
+    $user = User::factory()->create();
+    $asset = Asset::factory()->create();
+
+    actingAs($user)
+        ->delete(route('assets.destroy', $asset))
+        ->assertForbidden();
+});
+
+test('restore returns success message', function () {
+    $asset = Asset::factory()->create();
+    $asset->delete();
+
+    put(route('trash.restore', ['type' => 'asset', 'id' => $asset->id]))
+        ->assertSessionHas('success');
+});
+
+test('force delete removes all associated attributes', function () {
+    $asset = Asset::factory()->create();
+    $asset->attributes()->create(['key' => 'Test', 'value' => 'Value']);
+    $asset->delete();
+
+    delete(route('trash.force-delete', ['type' => 'asset', 'id' => $asset->id]));
+
+    $this->assertDatabaseMissing('asset_attributes', ['asset_id' => $asset->id]);
+});
+
+test('asset show page loads with attachments', function () {
+    $asset = Asset::factory()->create();
+    $attachment = Attachment::factory()->create();
+    $asset->attachments()->save($attachment);
+
+    get(route('assets.show', $asset))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('asset.attachments', 1)
+        );
+});
+
+test('asset edit page excludes current asset from parent options', function () {
+    $asset = Asset::factory()->create();
+    Asset::factory()->count(2)->create();
+
+    get(route('assets.edit', $asset))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('assets', 2)
+        );
+});
+
+test('index page handles empty search results', function () {
+    Asset::factory()->create(['title' => 'Existing Asset']);
+
+    get(route('assets.index', ['search' => 'NonExistentSearchTerm']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->has('assets.data', 0));
+});
+
+test('store creates attachment with correct metadata', function () {
+    $file = UploadedFile::fake()->image('test.jpg', 100, 100);
+
+    post(route('assets.store'), [
+        'title' => 'Asset with Metadata',
+        'attachments' => [[
+            'title' => 'Custom Title',
+            'description' => 'Custom Description',
+            'file' => $file
+        ]]
+    ])->assertRedirect();
+
+    $this->assertDatabaseHas('attachments', [
+        'title' => 'Custom Title',
+        'description' => 'Custom Description',
+        'file_name' => 'test.jpg',
+        'mime_type' => 'image/jpeg'
+    ]);
+});
+
+test('update deletes orphaned attachments from pivot table', function () {
+    $asset = Asset::factory()->create();
+    $attachment = Attachment::factory()->create();
+    $asset->attachments()->save($attachment);
+
+    post(route('assets.update', $asset), [
+        'title' => 'Updated',
+        'attributes' => [],
+        'attachments' => []
+    ])->assertRedirect();
+
+    $this->assertDatabaseMissing('asset_attachments', [
+        'asset_id' => $asset->id,
+        'attachment_id' => $attachment->id
+    ]);
+});
+

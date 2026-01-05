@@ -3,10 +3,9 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
-if [ ! -d "vendor" ]; then
-    echo "Dossier vendor manquant, installation des dépendances..."
-    composer install --no-progress --no-interaction
-fi
+# dependency check
+echo "Vérification des dépendances Composer..."
+composer install --no-progress --no-interaction
 
 # 1. .env file management
 if [ ! -f ".env" ]; then
@@ -30,6 +29,14 @@ fi
 echo "Création du lien de stockage symbolique..."
 php artisan storage:link
 
-# 4. Starting PHP-FPM
+# 3b. Run Migrations
+echo "Lancement des migrations de base de données..."
+# On utilise --force pour éviter que Laravel ne demande confirmation
+php artisan migrate --force
+
+# 4. Lancement du serveur de websocket Reverb
+echo "Démarrage du serveur de websocket Reverb en arrière-plan..."
+php artisan reverb:start --host=0.0.0.0 --port=8080 &
+# 5. Starting PHP-FPM
 echo "Démarrage de l'application !"
 exec php-fpm

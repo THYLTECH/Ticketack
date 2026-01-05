@@ -10,10 +10,10 @@ use Illuminate\Auth\Access\Response;
 
 /**
  * Policy class for managing permissions related to Ticket model.
- * 
+ *
  * This class defines the authorization logic for various actions
  * that can be performed on Ticket instances.
- * 
+ *
  * @package App\Policies
  */
 class Ticket
@@ -31,7 +31,14 @@ class Ticket
      */
     public function view(User $user, ModelsTicket $ticket): bool
     {
-        return $user->can('show tickets');
+        if ($user->hasRole(['admin', 'solver'])) {
+            return true;
+        }
+
+        return $user->can('show tickets') && (
+            $user->id === $ticket->author_id ||
+            $ticket->assignees->contains('user_id', $user->id)
+        );
     }
 
     /**
@@ -47,7 +54,14 @@ class Ticket
      */
     public function update(User $user, ModelsTicket $ticket): bool
     {
-        return $user->can('update tickets');
+        if ($user->hasRole(['admin', 'solver'])) {
+            return $user->can('update tickets');
+        }
+
+        return $user->can('update tickets') && (
+            $user->id === $ticket->author_id ||
+            $ticket->assignees->contains('user_id', $user->id)
+        );
     }
 
     /**
@@ -63,7 +77,7 @@ class Ticket
      */
     public function restore(User $user, ModelsTicket $ticket): bool
     {
-        return $user->can('delete tickets');
+        return $user->can('restore tickets');
     }
 
     /**
@@ -71,6 +85,6 @@ class Ticket
      */
     public function forceDelete(User $user, ModelsTicket $ticket): bool
     {
-        return $user->can('delete tickets');
+        return $user->can('force delete tickets');
     }
 }

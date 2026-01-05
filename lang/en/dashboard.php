@@ -55,7 +55,7 @@ return [
             ],
             'asset_statistics' => [
                 'description' =>'Ranking of assets by number of linked tickets',
-                'by_attribute' => 'Usage of Asset Attributes',
+                'by_attribute' => 'Affected Assets by Attribute',
             ],
             'no_data' => 'No data available',
         ],

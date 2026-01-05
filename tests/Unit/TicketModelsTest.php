@@ -50,8 +50,7 @@ test('sub-models relations return relation instances', function () {
     expect($comment->ticket())->toBeInstanceOf(\Illuminate\Database\Eloquent\Relations\BelongsTo::class);
     expect($comment->user())->toBeInstanceOf(\Illuminate\Database\Eloquent\Relations\BelongsTo::class);
     expect($comment->parent())->toBeInstanceOf(\Illuminate\Database\Eloquent\Relations\BelongsTo::class);
-    expect($comment->attachments())->toBeInstanceOf(\Illuminate\Database\Eloquent\Relations\HasManyThrough::class);
-
+    expect($comment->attachments())->toBeInstanceOf(\Illuminate\Database\Eloquent\Relations\BelongsToMany::class);
     // TicketAssignee
     $assignee = new TicketAssignee();
     expect($assignee->ticket())->toBeInstanceOf(\Illuminate\Database\Eloquent\Relations\BelongsTo::class);

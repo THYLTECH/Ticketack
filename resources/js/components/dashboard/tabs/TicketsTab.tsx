@@ -1,4 +1,3 @@
-import React from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Ticket } from 'lucide-react';
 import { StatsPieChart } from '@/components/dashboard/StatsPieChart';
@@ -11,7 +10,7 @@ interface statsTickets {
     by_priority: Array<{ title: string; tickets_count: number; color: string }>;
 };
 
-export const TicketsTab: React.FC<{ statsTickets: statsTickets }> = ({ statsTickets }) => {
+export function TicketsTab({ statsTickets }: { statsTickets: statsTickets }) {
     const __ = useTrans();
 
     const items = [

@@ -12,6 +12,8 @@ return [
         'created' => 'User created successfully.',
         'updated' => 'User updated successfully.',
         'deleted' => 'User deleted successfully.',
+        'restored' => 'User restored successfully.',
+        'forced_deleted' => 'User permanently deleted successfully.',
     ],
 
     /*
@@ -29,7 +31,7 @@ return [
             'edit' => 'Edit User',
         ],
 
-// 
+//
         'index' => [
             'head_title' => 'Users',
 

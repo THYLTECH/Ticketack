@@ -10,9 +10,9 @@ use Illuminate\Validation\Rule;
 
 /**
  * Class Store
- * 
+ *
  * Request class for validating role storage requests.
- * 
+ *
  * @package App\Http\Requests\Roles
  */
 class Store extends FormRequest

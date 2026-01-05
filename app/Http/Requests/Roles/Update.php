@@ -10,9 +10,9 @@ use Illuminate\Validation\Rule;
 
 /**
  * Class Update
- * 
+ *
  * Request class for validating role update requests.
- * 
+ *
  * @package App\Http\Requests\Roles
  */
 class Update extends FormRequest
@@ -33,6 +33,19 @@ class Update extends FormRequest
      */
     public function rules(): array
     {
+        $role = $this->route('role');
+        $lockedRoles = ['admin', 'solver', 'simple_user'];
+
+        if (in_array($role->name, $lockedRoles)) {
+            return [
+                'name' => ['required', 'string', 'in:' . $role->name],
+                'permissions' => ['array'],
+                'permissions.*.id' => ['integer', 'exists:permissions,id'],
+                'users' => ['array'],
+                'users.*.id' => ['integer', 'exists:users,id'],
+            ];
+        }
+
         return [
             'name' => ['required', 'string', 'max:255', Rule::unique('roles', 'name')->ignore($this->route('role')->id)],
 

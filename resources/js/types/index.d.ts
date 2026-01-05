@@ -234,6 +234,9 @@ export interface Ticket {
 
     title: string;
     description: string;
+    is_public: boolean;
+    is_referenced: boolean;
+    detailed_solution: string | null;
     updated_at: string;
     created_at: string;
 }
@@ -307,6 +310,10 @@ export interface TicketLog {
 
 export interface TicketEntry {
     id: number;
+
+    ticket_id: number;
+    ticket?: Ticket;
+    user_id: number;
 
     user: UserSimplified;
 

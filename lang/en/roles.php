@@ -31,9 +31,10 @@ return [
         ],
         'index' => [
             'head_title' => 'Roles',
-
             'title' => 'Roles',
             'description' => 'Manage and view all your roles in one place.',
+            'search_placeholder' => 'Search a role...',
+            'empty_search' => 'No roles found matching your search.',
 
             'buttons' => [
                 'create' => 'Create a Role',
@@ -52,6 +53,15 @@ return [
                     'permissions' => 'Nbr of Permissions',
                     'updated_at' => 'Last Updated',
                     'created_at' => 'Created At',
+                ],
+                'badges' => [
+                    'system' => 'System',
+                ],
+                'actions' => [
+                    'label' => 'Actions',
+                    'view' => 'View',
+                    'edit' => 'Edit',
+                    'delete' => 'Delete',
                 ],
             ],
         ],
@@ -90,15 +100,22 @@ return [
                 'name' => [
                     'label' => 'Name',
                     'placeholder' => 'Enter role name',
+                    'description' => 'The display name of the role in the application.',
+                    'system_helper' => 'This is a system role and cannot be renamed.',
+                    'system_badge' => 'System Role',
                 ],
             ],
             'users' => [
+                'assigned_title' => 'Assigned Users',
+                'filter_placeholder' => 'Filter in list...',
+                'filter_empty' => 'No users match ":search"',
+                'filter_clear' => 'Clear search',
                 'dialog' => [
-
                     'trigger' => 'Add Users',
                     'title' => 'Add Users',
+                    'search_placeholder' => 'Search by name or email...',
+                    'search_empty' => 'No results for ":search"',
                     'description' => 'Select users to add to this role.',
-
                     'empty' => [
                         'title' => 'No users found.',
                         'description' => 'All users are already assigned to this role.',
