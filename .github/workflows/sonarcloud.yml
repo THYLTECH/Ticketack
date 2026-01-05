@@ -3,10 +3,10 @@ name: Laravel 12 CI + SonarCloud
 on:
   push:
     branches:
-      - develop
+      - main          # Analyse uniquement main
   pull_request:
     branches:
-      - develop
+      - main          # Analyse uniquement les PR ciblant main
   workflow_dispatch:
 
 permissions:
@@ -74,4 +74,3 @@ jobs:
             -Dsonar.exclusions=vendor/**,storage/**,bootstrap/**,public/**,lang/**/*,resources/js/**/*,resources/**/*.ts,resources/**/*.tsx,database/migrations/**/*
             -Dsonar.coverage.exclusions=vendor/**,storage/**,bootstrap/**,public/**,lang/**/*,resources/js/**/*,resources/**/*.ts,resources/**/*.tsx,database/migrations/**/*
             -Dsonar.cpd.exclusions=lang/**/*
-

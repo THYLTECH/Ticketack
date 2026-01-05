@@ -14,8 +14,7 @@ services:
       - db
     networks:
       - ticketack-network
-    ports:
-      - "8080:8080"
+      - sail
 
   nginx:
     image: nginx:1.25-alpine
@@ -45,9 +44,133 @@ services:
     networks:
       - ticketack-network
 
+  minio:
+      image: 'minio/minio:latest'
+      ports:
+          - '${FORWARD_MINIO_PORT:-9000}:9000'
+          - '${FORWARD_MINIO_CONSOLE_PORT:-8900}:8900'
+      environment:
+          MINIO_ROOT_USER: 'sail'
+          MINIO_ROOT_PASSWORD: 'password'
+      volumes:
+          - 'sail-minio:/data'
+      command: minio server /data --console-address ":8900"
+      networks:
+          - sail
+      healthcheck:
+          test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+          retries: 3
+          timeout: 5s
+
+  minio-setup:
+      image: minio/mc
+      depends_on:
+          - minio
+          - redis
+      networks:
+          - sail
+      entrypoint: >
+          /bin/sh -c "
+          # 1. Attendre que MinIO soit prêt au démarrage
+          until mc alias set local http://minio:9000 sail password; do
+            echo 'En attente de MinIO...';
+            sleep 1;
+          done;
+
+          # 2. Créer le bucket (ignorer s'il existe déjà)
+          mc mb --ignore-existing local/tickets-raw;
+
+          # 3. Configurer la notification Redis
+          # Note: On utilise 'format=access' pour avoir un JSON compatible S3 event
+          mc admin config set local notify_redis:1 address='redis:6379' key='minio_events' format='access';
+
+          # 4. Redémarrer MinIO pour appliquer la configuration notify_redis
+          mc admin service restart local;
+
+          # 5. Attendre que MinIO redémarre (il peut être indisponible quelques secondes)
+          echo 'Redémarrage de MinIO en cours...';
+          sleep 5;
+          until mc alias set local http://minio:9000 sail password; do
+            echo 'En attente du redémarrage de MinIO...';
+            sleep 1;
+          done;
+
+          # 6. Ajouter l'abonnement à l'événement sur le bucket
+          # On vérifie d'abord si l'event existe déjà pour éviter les erreurs (optionnel mais propre)
+          mc event add local/tickets-raw arn:minio:sqs::1:redis --event put;
+
+          echo 'Configuration MinIO terminée.';
+          exit 0;
+          "
+
+  redis:
+      image: 'redis:alpine'
+      ports:
+          - '${FORWARD_REDIS_PORT:-6379}:6379'
+      volumes:
+          - 'sail-redis:/data'
+      networks:
+          - sail
+      healthcheck:
+          test: [ "CMD", "redis-cli", "ping" ]
+          retries: 3
+          timeout: 5s
+
+  etl-worker:
+      build:
+          context: ./backend-etl
+          dockerfile: Dockerfile
+      image: ticketack-etl
+      restart: unless-stopped
+      depends_on:
+          - redis
+          - minio
+      env_file:
+          - ./.env
+      volumes:
+          - ./backend-etl:/app
+          - huggingface_cache:/root/.cache/huggingface
+          - lancedb_data:/data/lancedb
+      environment:
+          - PYTHONUNBUFFERED=1
+          - REDIS_HOST=redis
+          - MINIO_ENDPOINT=minio:9000
+          - LANCEDB_PATH=/data/lancedb
+      networks:
+          - sail
+      command: sh -c "celery -A src.celery_app worker --loglevel=info -P solo & python -m src.listener"
+
+  etl-api:
+      build:
+          context: ./backend-etl
+          dockerfile: Dockerfile
+      image: ticketack-etl
+      restart: unless-stopped
+      ports:
+          - "${FORWARD_ETL_API_PORT:-8001}:8000" # API exposed on port 8001
+      volumes:
+          - ./backend-etl:/app
+          - huggingface_cache:/root/.cache/huggingface
+          - lancedb_data:/data/lancedb # Same volume as worker to share the DB
+      environment:
+          - PYTHONUNBUFFERED=1
+          - LANCEDB_PATH=/data/lancedb
+      networks:
+          - sail
+      # API web server by Uvicorn (FastAPI)
+      command: uvicorn src.api:app --host 0.0.0.0 --port 8000 --reload
+
 networks:
   ticketack-network:
+    driver: bridge
+  sail:
     driver: bridge
 
 volumes:
   dbdata:
+  sail-minio:
+      driver: local
+  sail-redis:
+      driver: local
+  huggingface_cache:
+  lancedb_data:
