@@ -64,6 +64,14 @@ return [
         ],
     ],
 
+    'knowledge' => [
+        'title' => 'Knowledge Base',
+        'description' => 'Access the knowledge explorer.',
+        'items' => [
+            'view explorer' => ['title' => 'View Knowledge', 'description' => 'Access the knowledge explorer interface.'],
+        ],
+    ],
+
     'trash' => [
         'title' => 'Trash',
         'description' => 'Manage deleted items.',

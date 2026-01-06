@@ -16,6 +16,7 @@ import axios from 'axios';
 import { format } from 'date-fns';
 import {
     Calendar as CalendarIcon,
+    ChevronDown,
     LayoutGrid,
     ListFilter,
     Monitor,
@@ -30,6 +31,9 @@ import { FilterDropdown } from './components/filter-dropdown';
 import { ResultCard } from './components/result-card';
 import { ResultSkeleton } from './components/result-skeleton';
 import { SearchProps, SearchResult } from './types';
+
+const INITIAL_VISIBLE_COUNT = 6;
+const LOAD_MORE_STEP = 6;
 
 export default function KnowledgeSearch({
     users,
@@ -53,11 +57,14 @@ export default function KnowledgeSearch({
     const [isLoading, setIsLoading] = React.useState(false);
     const [results, setResults] = React.useState<SearchResult[]>([]);
 
+    const [visibleCount, setVisibleCount] = React.useState(INITIAL_VISIBLE_COUNT);
+
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault();
         if (query.trim().length < 3) return;
 
         setIsLoading(true);
+        setVisibleCount(INITIAL_VISIBLE_COUNT);
 
         try {
             const payload: Record<string, string | null> = {
@@ -107,6 +114,9 @@ export default function KnowledgeSearch({
         setAssetId(null);
         setTypeFilter(null);
     };
+
+    const visibleResults = results.slice(0, visibleCount);
+    const hasMoreResults = results.length > visibleCount;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -266,32 +276,6 @@ export default function KnowledgeSearch({
                                 onChange={setAssetId}
                             />
 
-                            <FilterDropdown
-                                title={__('knowledge.filters.type')}
-                                icon={<ListFilter className="h-3.5 w-3.5" />}
-                                options={[
-                                    {
-                                        value: 'ticket',
-                                        label: __(
-                                            'knowledge.filters.types.ticket',
-                                        ),
-                                    },
-                                    {
-                                        value: 'pdf',
-                                        label: __(
-                                            'knowledge.filters.types.pdf',
-                                        ),
-                                    },
-                                    {
-                                        value: 'image',
-                                        label: __(
-                                            'knowledge.filters.types.image',
-                                        ),
-                                    },
-                                ]}
-                                value={typeFilter}
-                                onChange={setTypeFilter}
-                            />
 
                             {hasActiveFilters && (
                                 <>
@@ -330,7 +314,7 @@ export default function KnowledgeSearch({
                             </div>
 
                             <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
-                                {results.map((result, index) => {
+                                {visibleResults.map((result, index) => {
                                     const isBestMatch = index === 0;
 
                                     return (
@@ -342,6 +326,19 @@ export default function KnowledgeSearch({
                                     );
                                 })}
                             </div>
+
+                            {hasMoreResults && (
+                                <div className="mt-8 flex justify-center pb-8">
+                                    <Button
+                                        variant="outline"
+                                        className="min-w-[200px] border-dashed hover:border-primary hover:bg-primary/5 hover:text-primary"
+                                        onClick={() => setVisibleCount((prev) => prev + LOAD_MORE_STEP)}
+                                    >
+                                        {__('knowledge.buttons.load_more')}
+                                        <ChevronDown className="ml-2 h-4 w-4" />
+                                    </Button>
+                                </div>
+                            )}
                         </div>
                     ) : isSearching ? (
                         <div className="animate-in py-3 text-center zoom-in-95 fade-in">

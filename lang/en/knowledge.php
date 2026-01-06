@@ -4,7 +4,9 @@ return [
     'buttons' => [
         'search' => 'Search',
         'view_source' => 'View source ticket',
-        'view_details' => 'View details'
+        'view_details' => 'View details',
+        'loading' => 'Wait...',
+        'load_more' => 'Load more',
     ],
     'filters' => [
         'label' => 'Filters',

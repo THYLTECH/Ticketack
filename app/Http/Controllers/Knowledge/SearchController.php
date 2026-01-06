@@ -17,10 +17,13 @@ class SearchController extends Controller
 {
     public function __construct(
         private readonly VectorSearchService $vectorSearch
-    ) {}
+    ) {
+        $this->middleware('can:view knowledge explorer');
+    }
 
     public function index(): Response
     {
+
         return Inertia::render('knowledge/search', [
             'users' => User::all(['id', 'name']),
             'categories' => TicketCategory::all(['id', 'title']),
