@@ -95,7 +95,7 @@ export function AppSidebar() {
         });
     }
 
-    if (userHasPermission({ user: auth.user, permission: 'view tickets' })) {
+    if (userHasPermission({ user: auth.user, permission: 'view knowledge explorer' })) {
         mainNavItems.push({
             title: __('app.layout.sidebar.menugroups.platform.items.tickets'),
             href: route('tickets.index'),

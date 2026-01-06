@@ -26,6 +26,9 @@ class RolesAndPermissionsSeeder extends Seeder
             // Pointages
             'view ticket entries', 'create ticket entries', 'update ticket entries', 'delete ticket entries',
 
+            // Knowledge Explorer
+            'view knowledge explorer',
+
             // Trash
             'view trash', 'edit trash', 'restore trash', 'force delete trash',
 
@@ -47,6 +50,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'view tickets', 'show tickets', 'update tickets',
             'view planning', 'manage planning',
             'view ticket entries', 'create ticket entries', 'update ticket entries', 'delete ticket entries',
+            'view knowledge explorer'
         ]);
 
         // Simple User

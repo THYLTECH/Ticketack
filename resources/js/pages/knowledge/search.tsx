@@ -266,32 +266,6 @@ export default function KnowledgeSearch({
                                 onChange={setAssetId}
                             />
 
-                            <FilterDropdown
-                                title={__('knowledge.filters.type')}
-                                icon={<ListFilter className="h-3.5 w-3.5" />}
-                                options={[
-                                    {
-                                        value: 'ticket',
-                                        label: __(
-                                            'knowledge.filters.types.ticket',
-                                        ),
-                                    },
-                                    {
-                                        value: 'pdf',
-                                        label: __(
-                                            'knowledge.filters.types.pdf',
-                                        ),
-                                    },
-                                    {
-                                        value: 'image',
-                                        label: __(
-                                            'knowledge.filters.types.image',
-                                        ),
-                                    },
-                                ]}
-                                value={typeFilter}
-                                onChange={setTypeFilter}
-                            />
 
                             {hasActiveFilters && (
                                 <>
