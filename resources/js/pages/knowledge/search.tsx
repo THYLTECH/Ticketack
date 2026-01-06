@@ -119,7 +119,7 @@ export default function KnowledgeSearch({
                     <div className="mx-auto max-w-2xl text-center">
                         <Badge
                             variant="outline"
-                            className="mb-6 border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400"
+                            className="mb-6 border-primary/20 bg-primary/10 text-primary"
                         >
                             <Sparkles className="mr-2 h-3 w-3" />
                             {__('knowledge.pages.search.badge')}
@@ -134,8 +134,8 @@ export default function KnowledgeSearch({
 
                         <div className="mx-auto mt-8 mb-8 max-w-2xl">
                             <form onSubmit={handleSearch} className="relative">
-                                <div className="group relative flex h-14 w-full items-center overflow-hidden rounded-full border border-input bg-background shadow-sm transition-all focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/10 hover:border-emerald-500/50 hover:shadow-md">
-                                    <div className="flex h-full items-center pl-4 text-muted-foreground transition-colors group-focus-within:text-emerald-600">
+                                <div className="group relative flex h-14 w-full items-center overflow-hidden rounded-full border border-input bg-background shadow-sm transition-all focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10 hover:border-primary/50 hover:shadow-md">
+                                    <div className="flex h-full items-center pl-4 text-muted-foreground transition-colors group-focus-within:text-primary">
                                         <Search className="h-5 w-5" />
                                     </div>
                                     <input
@@ -164,7 +164,7 @@ export default function KnowledgeSearch({
                                         <Button
                                             type="submit"
                                             size="sm"
-                                            className="h-10 rounded-full bg-emerald-600 px-6 font-medium text-white shadow-sm hover:bg-emerald-700"
+                                            className="h-10 rounded-full bg-primary px-6 font-medium text-primary-foreground shadow-sm hover:bg-primary/90"
                                             disabled={
                                                 query.trim().length < 3 ||
                                                 isLoading
@@ -191,9 +191,9 @@ export default function KnowledgeSearch({
                                         size="sm"
                                         className={cn(
                                             'h-9 border-dashed text-xs shadow-sm transition-colors',
-                                            'hover:border-emerald-500/50 hover:bg-emerald-50/50 hover:text-emerald-900 dark:hover:text-emerald-500',
+                                            'hover:border-primary/50 hover:bg-primary/10 hover:text-primary',
                                             date
-                                                ? 'border-solid border-emerald-500/50 bg-emerald-50/50 text-emerald-900 dark:bg-emerald-900/20 dark:text-emerald-100'
+                                                ? 'border-solid border-primary/50 bg-primary/10 text-primary'
                                                 : 'bg-transparent text-muted-foreground hover:text-foreground',
                                         )}
                                     >

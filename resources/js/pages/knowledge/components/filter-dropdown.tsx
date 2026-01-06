@@ -40,11 +40,12 @@ export function FilterDropdown({
 
     const triggerClass = cn(
         'h-9 border-dashed text-xs shadow-sm transition-colors',
-        'hover:border-emerald-500/50 hover:bg-emerald-50/50 hover:text-emerald-900 dark:hover:text-emerald-500',
+        'hover:border-primary/50 hover:bg-primary/10 hover:text-primary',
         selectedValues.size > 0
-            ? 'border-solid border-emerald-500/50 bg-emerald-50/50 text-emerald-900 dark:bg-emerald-900/20 dark:text-emerald-500'
+            ? 'border-solid border-primary/50 bg-primary/10 text-primary'
             : 'bg-transparent text-muted-foreground hover:text-foreground',
     );
+
 
     return (
         <Popover open={open} onOpenChange={setOpen}>

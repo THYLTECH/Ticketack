@@ -17,7 +17,6 @@ import {
 } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-// J'ai ajouté SheetHeader et SheetTitle aux imports
 import {
     Sheet,
     SheetContent,
@@ -693,6 +692,8 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                 availableTickets={myTickets.map((t) => ({
                     id: t.id,
                     title: t.title,
+                    description: t.description,
+                    asset: t.asset,
                 }))}
                 initialValues={prefillData}
             />

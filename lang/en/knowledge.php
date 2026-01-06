@@ -41,7 +41,7 @@ return [
         'empty_description' => 'No results found matching your current filters or search criteria.',
     ],
     'similar' => [
-        'title' => 'Similar Context (AI Suggestions)',
+        'title' => 'Similar Tickets (AI Suggestions)',
         'match' => 'Relevance',
         'view' => 'View ticket',
     ],

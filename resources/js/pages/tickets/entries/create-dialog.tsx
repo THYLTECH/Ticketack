@@ -27,7 +27,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { useTrans } from '@/lib/translation';
 import { cn } from '@/lib/utils';
-import { Ticket } from '@/types';
+import { Asset, Ticket } from '@/types';
 import { useForm } from '@inertiajs/react';
 import { format } from 'date-fns';
 import {
@@ -54,7 +54,7 @@ interface TicketOption {
     id: number;
     title: string;
     description: string | null;
-    asset: { id: number; title: string } | null;
+    asset: Asset;
 }
 
 interface Props {
