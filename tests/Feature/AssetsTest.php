@@ -511,6 +511,8 @@ test('asset index page filters by description', function () {
 });
 
 test('asset create page returns attribute keys sorted by usage count', function () {
+    AssetAttribute::query()->delete();
+
     $asset1 = Asset::factory()->create();
     $asset2 = Asset::factory()->create();
 
@@ -524,6 +526,7 @@ test('asset create page returns attribute keys sorted by usage count', function 
             ->where('attribute_keys.0', 'CommonKey')
         );
 });
+
 
 test('user can store asset with all optional fields', function () {
     $parent = Asset::factory()->create();
