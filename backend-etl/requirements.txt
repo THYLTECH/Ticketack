@@ -1,0 +1,17 @@
+celery
+redis
+boto3
+python-dotenv
+FlagEmbedding
+torch --index-url https://download.pytorch.org/whl/cpu
+transformers
+lancedb
+pyarrow
+numpy
+fastapi
+uvicorn
+pydantic
+unstructured[all-docs]>=0.11.0
+pillow
+pdf2image
+pytesseract

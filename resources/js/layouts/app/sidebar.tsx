@@ -45,6 +45,7 @@ import {
     Plus,
     Settings,
     Shield,
+    Sparkles,
     Ticket,
     Trash2,
     Users,
@@ -99,6 +100,12 @@ export function AppSidebar() {
             title: __('app.layout.sidebar.menugroups.platform.items.tickets'),
             href: route('tickets.index'),
             icon: Ticket,
+        });
+
+        mainNavItems.push({
+            title: __('knowledge.pages.search.title'),
+            href: route('knowledge.search'),
+            icon: Sparkles,
         });
     }
 

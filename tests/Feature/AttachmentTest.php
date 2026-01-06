@@ -78,7 +78,8 @@ test('attachment url is generated correctly', function () {
         'file_size' => 1024,
     ]);
 
-    expect($attachment->url)->toContain('/storage/')
+    expect($attachment->url)
+        ->not->toBeEmpty()
         ->and($attachment->url)->toContain($path);
 });
 

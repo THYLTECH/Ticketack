@@ -25,13 +25,25 @@ import { CalendarTab } from './tabs/calendar-tab';
 import { CommentsTab } from './tabs/comments-tab';
 import { InformationsTab } from './tabs/informations-tab';
 
+interface SimilarTicket {
+    id: number;
+    title: string;
+    similarity: number;
+}
+
 interface ShowProps {
     ticket: Ticket;
     events: TicketSchedule[];
     solvers: User[];
+    similar_tickets?: SimilarTicket[];
 }
 
-export default function Show({ ticket, events, solvers }: ShowProps) {
+export default function Show({
+    ticket,
+    events,
+    solvers,
+    similar_tickets = [],
+}: ShowProps) {
     const __ = useTrans();
     const { auth } = usePage<SharedData>().props;
 
@@ -134,7 +146,10 @@ export default function Show({ ticket, events, solvers }: ShowProps) {
                         </TabsList>
 
                         <div className="min-h-[400px]">
-                            <InformationsTab ticket={ticket} />
+                            <InformationsTab
+                                ticket={ticket}
+                                similarTickets={similar_tickets}
+                            />
                             <CommentsTab ticket={ticket} />
                             <CalendarTab
                                 ticket={ticket}
