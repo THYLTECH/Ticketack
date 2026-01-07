@@ -550,14 +550,14 @@ export function TicketTable({ tickets, auth }: Props) {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>
-                            {__('trash.modals.delete.buttons.cancel') ||
+                            {__('tickets.pages.delete.buttons.cancel') ||
                                 'Cancel'}
                         </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={confirmArchive}
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
-                            {__('trash.modals.delete.buttons.confirm') ||
+                            {__('tickets.pages.delete.buttons.confirm') ||
                                 'Confirm'}
                         </AlertDialogAction>
                     </AlertDialogFooter>
