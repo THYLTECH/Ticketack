@@ -9,11 +9,11 @@ use App\Models\TicketPriority;
 use App\Models\TicketStatus;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage; // Ajout pour Minio
+use Illuminate\Support\Facades\DB;
 
 
 class TicketObserver
 {
-    public bool $afterCommit = true;
     /**
      * @var array<string, string>
      */
@@ -36,7 +36,7 @@ class TicketObserver
         $this->logAction($ticket, 'created');
 
         if ($ticket->status?->is_closed && !empty($ticket->detailed_solution)) {
-            $this->exportToMinio($ticket);
+            DB::afterCommit(fn() => $this->exportToMinio($ticket));
         }
     }
 
@@ -61,17 +61,33 @@ class TicketObserver
 
                 $this->logAction($ticket, 'updated', $label, $formattedOld, $formattedNew);
             }
-            if ($ticket->wasChanged('status_id') && 
-                $ticket->status?->is_closed && 
-                !empty($ticket->detailed_solution) 
-            ){
-                $this->exportToMinio($ticket);
+        }
+        $jsonFields = ['title', 'description', 'detailed_solution', 'author_id', 'status_id'];
+    
+        $shouldExport = false;
+
+        // On vérifie si l'un des champs du JSON a été modifié
+        foreach ($jsonFields as $field) {
+            if ($ticket->wasChanged($field)) {
+                $shouldExport = true;
+                break;
             }
         }
+        
+        $dirty = $ticket->getDirty();
+        if (!$shouldExport && count($dirty) === 1 && isset($dirty['updated_at'])) {
+            $shouldExport = true;
+        }
+        if ($ticket->status?->is_closed && !empty($ticket->detailed_solution)) {
+            if ($shouldExport) {
+                DB::afterCommit(fn() => $this->exportToMinio($ticket));
+            }
+    }
     }
 
     private function exportToMinio(Ticket $ticket): void
     {
+        $ticket->loadMissing(['attachments', 'user']);
         $data = [
             'ticket_id'   => $ticket->id,
             'title'       => $ticket->title,
