@@ -2,7 +2,7 @@ import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import * as LucideIcons from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { Attachment, User } from '@/types';
+import { Attachment, User, Permission } from '@/types';
 import { FileWithPreview } from '@/hooks/use-file-upload';
 
 export function cn(...inputs: ClassValue[]) {
@@ -94,6 +94,7 @@ export function convertAttachmentsToFileWithPreview({
   });
 }
 
-export function userHasPermission({ user, permission } : { user: User, permission: string}): boolean {
-  return user.permissions.some((perm) => perm.name === permission);
+export function userHasPermission({ user, permission }: { user: User; permission: string }): boolean {
+    if (!user || !user.permissions) return false;
+    return user.permissions.some((p: Permission) => p.name === permission);
 }

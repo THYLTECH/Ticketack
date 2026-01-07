@@ -1,7 +1,6 @@
 import { Head, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app/layout';
 
-// Composants
 import { TicketTable } from '@/components/tickets/ticket-table';
 import { 
     Card, 
@@ -13,12 +12,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 
-// Hooks & Utilitaires
 import { useTrans } from '@/lib/translation';
 import { type BreadcrumbItem, SharedData, Ticket } from '@/types';
 import { userHasPermission } from '@/lib/utils';
 
-// Icônes
 import { Ticket as TicketIcon, Clock, CheckCircle2, LayoutDashboard } from 'lucide-react';
 
 interface PaginatedData<T> {
@@ -41,9 +38,9 @@ export default function Home({ userTickets, assignedTickets }: HomeProps) {
     const __ = useTrans();
     const { auth } = usePage<SharedData>().props;
 
-    const isSolverOrAdmin = userHasPermission({ 
+    const canSeeAssigned = userHasPermission({ 
         user: auth.user, 
-        permission: 'view tickets' 
+        permission: 'be assigned tickets' 
     });
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -68,23 +65,21 @@ export default function Home({ userTickets, assignedTickets }: HomeProps) {
                 
                 <CardContent className="pt-6">
                     <Tabs defaultValue="my_tickets" className="w-full space-y-6">
-                        {isSolverOrAdmin && (
-                            <TabsList className="grid w-full grid-cols-2">
-                                <TabsTrigger value="my_tickets">
-                                    <TicketIcon className="mr-2 h-4 w-4" />
-                                    {__('home.sections.my_tickets')}
-                                </TabsTrigger>
+                        <TabsList className={`grid w-full ${canSeeAssigned ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                            <TabsTrigger value="my_tickets">
+                                <TicketIcon className="mr-2 h-4 w-4" />
+                                {__('home.sections.my_tickets')}
+                            </TabsTrigger>
+                            {canSeeAssigned && (
                                 <TabsTrigger value="assigned_tickets">
                                     <LayoutDashboard className="mr-2 h-4 w-4" />
                                     {__('home.sections.assigned_tickets')}
                                 </TabsTrigger>
-                            </TabsList>
-                        )}
+                            )}
+                        </TabsList>
 
-                        {/* ONGLET : MES TICKETS */}
                         <TabsContent value="my_tickets" className="space-y-6 border-none p-0 outline-none">
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                
                                 <div className="flex flex-col space-y-4">
                                     <div className="flex items-center gap-2 px-1">
                                         <Clock className="h-4 w-4 text-orange-500" />
@@ -108,8 +103,8 @@ export default function Home({ userTickets, assignedTickets }: HomeProps) {
                                     <Card className="h-full flex flex-col overflow-hidden">
                                         <CardContent className="p-0 flex-1">
                                             <TicketTable 
-                                                data={userTickets.closed} 
-                                                emptyMessage={__('home.messages.no_recent_closed_tickets')} 
+                                                data={userTickets.closed}
+                                                emptyMessage={__('home.messages.no_recent_closed_tickets')}
                                             />
                                         </CardContent>
                                     </Card>
@@ -117,11 +112,9 @@ export default function Home({ userTickets, assignedTickets }: HomeProps) {
                             </div>
                         </TabsContent>
 
-                        {/* ONGLET : TICKETS ATTRIBUÉS */}
-                        {isSolverOrAdmin && (
+                        {canSeeAssigned && (
                             <TabsContent value="assigned_tickets" className="space-y-6 border-none p-0 outline-none">
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    
                                     <div className="flex flex-col space-y-4">
                                         <div className="flex items-center gap-2 px-1">
                                             <Clock className="h-4 w-4 text-orange-500" />
@@ -129,7 +122,8 @@ export default function Home({ userTickets, assignedTickets }: HomeProps) {
                                         </div>
                                         <Card className="h-full flex flex-col overflow-hidden">
                                             <CardContent className="p-0 flex-1">
-                                                <TicketTable data={assignedTickets.open} showAuthor={true} />
+                                                <TicketTable data={assignedTickets.open} showAuthor={true}
+                                                emptyMessage={__('home.messages.no_open_tickets')} />
                                             </CardContent>
                                         </Card>
                                     </div>
@@ -141,7 +135,9 @@ export default function Home({ userTickets, assignedTickets }: HomeProps) {
                                         </div>
                                         <Card className="h-full flex flex-col overflow-hidden">
                                             <CardContent className="p-0 flex-1">
-                                                <TicketTable data={assignedTickets.closed} showAuthor={true} />
+                                                <TicketTable data={assignedTickets.closed} 
+                                                showAuthor={true} 
+                                                emptyMessage={__('home.messages.no_recent_closed_tickets')} />
                                             </CardContent>
                                         </Card>
                                     </div>
