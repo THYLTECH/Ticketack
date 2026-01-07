@@ -248,6 +248,7 @@ export interface TicketPriority {
     description: string;
     sort_order: number;
     color: string;
+    locked?: boolean;
 
     created_at: string;
     updated_at: string;
@@ -263,6 +264,7 @@ export interface TicketStatus {
     is_default: boolean;
     is_closed: boolean;
     progress: number;
+    locked?: boolean;
 
     created_at: string;
     updated_at: string;

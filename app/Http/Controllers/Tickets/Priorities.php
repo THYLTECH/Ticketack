@@ -47,6 +47,20 @@ class Priorities extends Controller
                 ]);
             }
 
+            // If some priorities have the locked to true, we should not delete them
+            $lockedPriorities = TicketPriority::whereIn('id', $idsToDelete)
+                ->where('locked', true)
+                ->pluck('title')
+                ->toArray();
+
+            if (!empty($lockedPriorities)) {
+                return redirect()->back()->withErrors([
+                    'priorities' => __('Some priorities cannot be deleted because they are locked: :priorities', [
+                        'priorities' => implode(', ', $lockedPriorities),
+                    ]),
+                ]);
+            }
+
             TicketPriority::whereIn('id', $idsToDelete)->delete();
         }
 

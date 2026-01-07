@@ -303,7 +303,7 @@ export function PrioritiesSheet({
                         <DialogClose asChild>
                             <Button variant={'secondary'}>Cancel</Button>
                         </DialogClose>
-                        <Button variant={'destructive'} onClick={handleSubmit}>
+                        <Button variant={'destructive'} onClick={handleSubmit} disabled={priority.locked}>
                             <Trash2 />
                             Delete Priority
                         </Button>
@@ -394,7 +394,7 @@ export function PrioritiesSheet({
                     </PrioritiesDialog>
 
                     <PrioritiesDeleteDialog priority={priority}>
-                        <Button variant="outline" size={'icon-sm'}>
+                        <Button variant="outline" size={'icon-sm'} disabled={priority.locked}>
                             <Trash2 />
                         </Button>
                     </PrioritiesDeleteDialog>

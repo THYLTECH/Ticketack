@@ -21,6 +21,7 @@ class TicketStatus extends Model
         'color',
         'is_default',
         'is_closed',
+        'locked',
     ];
 
     protected $appends = [

@@ -65,6 +65,7 @@ import {
 import * as React from 'react';
 import { MarkdownEditor } from './markdown-editor';
 import { TicketFormData } from './types';
+import { userHasPermission } from '@/lib/utils';
 
 interface InformationsTabProps {
     errors: Record<string, string>;
@@ -357,11 +358,17 @@ export function InformationsTab({
                                 </Button>
                             )}
                         </div>
-                        <PrioritiesSheet priorities={priorities}>
-                            <Button type="button" size="icon" variant="outline">
-                                <Ellipsis className="h-4 w-4" />
-                            </Button>
-                        </PrioritiesSheet>
+
+                        {userHasPermission({
+                            user: auth.user,
+                            permission: 'manage ticket priorities',
+                        }) && (
+                            <PrioritiesSheet priorities={priorities}>
+                                <Button type="button" size="icon" variant="outline">
+                                    <Ellipsis className="h-4 w-4" />
+                                </Button>
+                            </PrioritiesSheet>
+                        )}
                     </div>
                     {errors.priority_id && (
                         <p className="text-sm font-medium text-destructive">
@@ -420,11 +427,16 @@ export function InformationsTab({
                                 </Button>
                             )}
                         </div>
-                        <StatusesSheet statuses={statuses}>
-                            <Button type="button" size="icon" variant="outline">
-                                <Ellipsis className="h-4 w-4" />
-                            </Button>
-                        </StatusesSheet>
+                        {userHasPermission({
+                            user: auth.user,
+                            permission: 'manage ticket statuses',
+                        }) && (
+                            <StatusesSheet statuses={statuses}>
+                                <Button type="button" size="icon" variant="outline">
+                                    <Ellipsis className="h-4 w-4" />
+                                </Button>
+                            </StatusesSheet>
+                        )}
                     </div>
                     {errors.status_id && (
                         <p className="text-sm font-medium text-destructive">
@@ -485,11 +497,17 @@ export function InformationsTab({
                                 </Button>
                             )}
                         </div>
-                        <CategoriesSheet categories={categories}>
-                            <Button type="button" size="icon" variant="outline">
-                                <Ellipsis className="h-4 w-4" />
-                            </Button>
-                        </CategoriesSheet>
+
+                        {userHasPermission({
+                            user: auth.user,
+                            permission: 'manage ticket categories',
+                        }) && (
+                            <CategoriesSheet categories={categories}>
+                                <Button type="button" size="icon" variant="outline">
+                                    <Ellipsis className="h-4 w-4" />
+                                </Button>
+                            </CategoriesSheet>
+                        )}
                     </div>
                     {errors.category_id && (
                         <p className="text-sm font-medium text-destructive">
@@ -548,16 +566,21 @@ export function InformationsTab({
                                 </Button>
                             )}
                         </div>
-                        <Button
-                            asChild
-                            type="button"
-                            size="icon"
-                            variant="outline"
-                        >
-                            <Link href={route('assets.index')}>
-                                <Ellipsis className="h-4 w-4" />
-                            </Link>
-                        </Button>
+                        {userHasPermission({
+                            user: auth.user,
+                            permission: 'view assets',
+                        }) && (
+                            <Button
+                                asChild
+                                type="button"
+                                size="icon"
+                                variant="outline"
+                            >
+                                <Link href={route('assets.index')}>
+                                    <Ellipsis className="h-4 w-4" />
+                                </Link>
+                            </Button>
+                        )}
                     </div>
                     {errors.asset_id && (
                         <p className="text-sm font-medium text-destructive">

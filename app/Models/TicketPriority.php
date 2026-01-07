@@ -19,6 +19,7 @@ class TicketPriority extends Model
         'description',
         'sort_order',
         'color',
+        'locked',
     ];
 
     // --- Relations ---

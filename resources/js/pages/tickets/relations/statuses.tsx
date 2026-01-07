@@ -407,7 +407,7 @@ export function StatusesSheet({ children, statuses }: StatusesSheetProps) {
                         <DialogClose asChild>
                             <Button variant={'secondary'}>Cancel</Button>
                         </DialogClose>
-                        <Button variant={'destructive'} onClick={handleSubmit}>
+                        <Button variant={'destructive'} onClick={handleSubmit} disabled={status.locked}>
                             <Trash2 />
                             Delete Status
                         </Button>
@@ -512,7 +512,7 @@ export function StatusesSheet({ children, statuses }: StatusesSheetProps) {
                         </Button>
                     </StatusesDialog>
                     <StatusesDeleteDialog status={status}>
-                        <Button variant="outline" size={'icon-sm'}>
+                        <Button variant="outline" size={'icon-sm'} disabled={status.locked}>
                             <Trash2 />
                         </Button>
                     </StatusesDeleteDialog>

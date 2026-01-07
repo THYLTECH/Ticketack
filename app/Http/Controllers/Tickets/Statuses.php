@@ -74,6 +74,18 @@ class Statuses extends Controller
                     $statusesMap[$defaultStatus->id] = 0;
                 }
 
+                // Cannot delete statuses that have the locked to true
+                $lockedStatuses = TicketStatus::whereIn('id', $idsToChange)
+                    ->where('locked', true)
+                    ->pluck('title')
+                    ->toArray();
+
+                if (!empty($lockedStatuses)) {
+                    throw new \Exception(__('Some statuses cannot be deleted because they are locked: :statuses', [
+                        'statuses' => implode(', ', $lockedStatuses),
+                    ]));
+                }
+
                 TicketStatus::whereIn('id', $idsToChange)->each(function ($status) use ($defaultStatus) {
                     $status->tickets()->update(['status_id' => $defaultStatus->id]);
                     $status->delete();
