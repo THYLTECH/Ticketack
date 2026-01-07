@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Storage; // Ajout pour Minio
 
 class TicketObserver
 {
+    public bool $afterCommit = true;
     /**
      * @var array<string, string>
      */
@@ -33,6 +34,10 @@ class TicketObserver
     public function created(Ticket $ticket): void
     {
         $this->logAction($ticket, 'created');
+
+        if ($ticket->status?->is_closed && !empty($ticket->detailed_solution)) {
+            $this->exportToMinio($ticket);
+        }
     }
 
     /**
