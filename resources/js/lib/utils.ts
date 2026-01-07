@@ -1,7 +1,5 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import * as LucideIcons from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
 import { Attachment, User } from '@/types';
 import { FileWithPreview } from '@/hooks/use-file-upload';
 
@@ -44,21 +42,6 @@ export function formatNotificationDate(dateString: string): string {
 export function formatDate(dateString: string): string {
   const date = new Date(dateString);
   return date.toLocaleDateString();
-}
-
-export function getIcon(icon: string): LucideIcon | null {
-  const normalized = icon
-    .split('-')
-    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
-    .join('');
-
-  const icons = LucideIcons as unknown as Record<string, LucideIcon>;
-
-  const Icon = icons[normalized];
-
-  if (!Icon) return null;
-
-  return Icon;
 }
 
 export function formatFileSize(bytes: number): string {
