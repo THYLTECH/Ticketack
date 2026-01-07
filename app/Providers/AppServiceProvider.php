@@ -16,6 +16,7 @@ use Dedoc\Scramble\Support\Generator\SecurityScheme;
 // Models
 use App\Models\Asset;
 use App\Models\Ticket;
+use App\Models\TicketAttachment;
 use App\Models\TicketSchedule;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
@@ -29,6 +30,7 @@ use App\Policies\User as UserPolicy;
 
 // Observers
 use App\Observers\TicketObserver;
+use App\Observers\TicketAttachmentObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -90,5 +92,6 @@ class AppServiceProvider extends ServiceProvider
 
         // --- 6. Observers ---
         Ticket::observe(TicketObserver::class);
+        TicketAttachment::observe(\App\Observers\TicketAttachmentObserver::class);
     }
 }

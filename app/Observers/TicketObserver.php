@@ -46,6 +46,7 @@ class TicketObserver
      */
     public function updated(Ticket $ticket): void
     {
+        
         foreach ($ticket->getDirty() as $field => $newValue) {
             if (in_array($field, ['updated_at', 'deleted_at'])) {
                 continue;
@@ -62,32 +63,33 @@ class TicketObserver
                 $this->logAction($ticket, 'updated', $label, $formattedOld, $formattedNew);
             }
         }
-        $jsonFields = ['title', 'description', 'detailed_solution', 'author_id', 'status_id'];
-    
-        $shouldExport = false;
 
-        // On vérifie si l'un des champs du JSON a été modifié
-        foreach ($jsonFields as $field) {
-            if ($ticket->wasChanged($field)) {
-                $shouldExport = true;
-                break;
+        //Déréférencement du ticket
+        if ($ticket->wasChanged('is_referenced') && !$ticket->is_referenced) {
+            $jsonDereferencement = [
+                'id' => (string) $ticket->id
+            ];
+            //TODO : Envoyer $jsonDereferencement à Redis
+        }
+
+        //Modification des informations du ticket referencé
+        if ($ticket->is_referenced) {
+            $jsonFields = ['title', 'description', 'detailed_solution', 'author_id', 'status_id'];
+            foreach ($jsonFields as $field) {
+                if ($ticket->wasChanged($field)) {
+                    $jsonModif = [
+                        'suppres_json' => "{$ticket->id}.json"
+                    ];
+                    // TODO : Envoyer $jsonModif à Redis
+                    DB::afterCommit(fn() => $this->exportToMinio($ticket));
+                    break; 
+                }
             }
         }
-        
-        $dirty = $ticket->getDirty();
-        if (!$shouldExport && count($dirty) === 1 && isset($dirty['updated_at'])) {
-            $shouldExport = true;
-        }
-        if ($ticket->status?->is_closed && !empty($ticket->detailed_solution)) {
-            if ($shouldExport) {
-                DB::afterCommit(fn() => $this->exportToMinio($ticket));
-            }
-    }
     }
 
     private function exportToMinio(Ticket $ticket): void
     {
-        $ticket->loadMissing(['attachments', 'user']);
         $data = [
             'ticket_id'   => $ticket->id,
             'title'       => $ticket->title,
@@ -99,18 +101,6 @@ class TicketObserver
 
         $fileName = "{$ticket->id}.json";
         Storage::disk('s3')->put($fileName, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-
-        foreach ($ticket->attachments as $attachment) {
-            if (Storage::disk('public')->exists($attachment->file_path)) {
-                $fileContent = Storage::disk('public')->get($attachment->file_path);
-                if (!is_null($fileContent)) {
-                    $newFileName = "{$ticket->id}_{$attachment->file_name}";
-                    $filePath = "{$newFileName}";
-                    // Envoi vers le disque S3 (Minio)
-                    Storage::disk('s3')->put($filePath, $fileContent);
-                }
-            }
-        }
     }
 
     /**
