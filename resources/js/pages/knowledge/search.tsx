@@ -18,7 +18,6 @@ import {
     Calendar as CalendarIcon,
     ChevronDown,
     LayoutGrid,
-    ListFilter,
     Monitor,
     Search,
     Sparkles,

@@ -24,9 +24,6 @@ import { CSS } from '@dnd-kit/utilities';
 import { useForm } from '@inertiajs/react';
 import * as React from 'react';
 
-// Translation Hook
-import { useTrans } from '@/lib/translation';
-
 // Utils
 import { renderTicketStatus } from '@/lib/render';
 
