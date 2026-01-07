@@ -1,7 +1,6 @@
 import { Head, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app/layout';
 
-// Composants
 import { TicketTable } from '@/components/tickets/ticket-table';
 import { 
     Card, 
@@ -13,12 +12,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 
-// Hooks & Utilitaires
 import { useTrans } from '@/lib/translation';
 import { type BreadcrumbItem, SharedData, Ticket } from '@/types';
 import { userHasPermission } from '@/lib/utils';
 
-// Icônes
 import { Ticket as TicketIcon, Clock, CheckCircle2, LayoutDashboard } from 'lucide-react';
 
 interface PaginatedData<T> {
@@ -68,23 +65,21 @@ export default function Home({ userTickets, assignedTickets }: HomeProps) {
                 
                 <CardContent className="pt-6">
                     <Tabs defaultValue="my_tickets" className="w-full space-y-6">
-                        <TabsList className="grid w-full grid-cols-2">
-                                <TabsTrigger value="my_tickets">
-                                    <TicketIcon className="mr-2 h-4 w-4" />
-                                    {__('home.sections.my_tickets')}
-                                </TabsTrigger>
-                        {canSeeAssigned && (
+                        <TabsList className={`grid w-full ${canSeeAssigned ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                            <TabsTrigger value="my_tickets">
+                                <TicketIcon className="mr-2 h-4 w-4" />
+                                {__('home.sections.my_tickets')}
+                            </TabsTrigger>
+                            {canSeeAssigned && (
                                 <TabsTrigger value="assigned_tickets">
                                     <LayoutDashboard className="mr-2 h-4 w-4" />
                                     {__('home.sections.assigned_tickets')}
-                                </TabsTrigger>)}
+                                </TabsTrigger>
+                            )}
                         </TabsList>
-                        
 
-                        {/* ONGLET : MES TICKETS */}
                         <TabsContent value="my_tickets" className="space-y-6 border-none p-0 outline-none">
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                
                                 <div className="flex flex-col space-y-4">
                                     <div className="flex items-center gap-2 px-1">
                                         <Clock className="h-4 w-4 text-orange-500" />
@@ -117,11 +112,9 @@ export default function Home({ userTickets, assignedTickets }: HomeProps) {
                             </div>
                         </TabsContent>
 
-                        {/* ONGLET : TICKETS ATTRIBUÉS */}
                         {canSeeAssigned && (
                             <TabsContent value="assigned_tickets" className="space-y-6 border-none p-0 outline-none">
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    
                                     <div className="flex flex-col space-y-4">
                                         <div className="flex items-center gap-2 px-1">
                                             <Clock className="h-4 w-4 text-orange-500" />
