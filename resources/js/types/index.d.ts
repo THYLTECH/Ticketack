@@ -360,3 +360,10 @@ export interface UpdatePayload {
     user_id?: number;
     [key: string]: unknown;
 }
+
+export interface TicketOption {
+    id: number;
+    title: string;
+    description: string | null;
+    asset: Asset | null;
+}
