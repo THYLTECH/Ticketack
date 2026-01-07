@@ -3,10 +3,12 @@ name: Laravel 12 CI + SonarCloud
 on:
   push:
     branches:
-      - main          # Analyse uniquement main
+      - main
+      - develop
   pull_request:
     branches:
-      - main          # Analyse uniquement les PR ciblant main
+      - main
+      - develop
   workflow_dispatch:
 
 permissions:

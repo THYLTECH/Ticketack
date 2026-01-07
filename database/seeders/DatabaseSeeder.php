@@ -33,5 +33,9 @@ class DatabaseSeeder extends Seeder
 
         // Assign admin role
         $user->assignRole('admin');
+
+        $this->call([
+            TicketSeeder::class,
+        ]);
     }
 }

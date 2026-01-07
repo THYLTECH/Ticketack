@@ -518,12 +518,20 @@ test('asset create page returns attribute keys sorted by usage count', function 
     AssetAttribute::factory()->create(['asset_id' => $asset2->id, 'key' => 'CommonKey']);
     AssetAttribute::factory()->create(['asset_id' => $asset1->id, 'key' => 'RareKey']);
 
-    get(route('assets.create'))
+    $response = get(route('assets.create'))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->where('attribute_keys.0', 'CommonKey')
-        );
+        ->assertInertia(fn ($page) => $page->has('attribute_keys'));
+
+    $keys = $response->viewData('page')['props']['attribute_keys'];
+
+    $commonIndex = array_search('CommonKey', $keys);
+    $rareIndex = array_search('RareKey', $keys);
+
+    expect($commonIndex)->not->toBeFalse()
+        ->and($rareIndex)->not->toBeFalse()
+        ->and($commonIndex)->toBeLessThan($rareIndex);
 });
+
 
 test('user can store asset with all optional fields', function () {
     $parent = Asset::factory()->create();

@@ -73,6 +73,9 @@ require __DIR__.'/tickets.php';
 // Dashboard routes
 require __DIR__.'/dashboard.php';
 
+// Knowledge routes
+require __DIR__.'/knowledge.php';
+
 // Todo : Tickets, assets, settings etc....
 
 

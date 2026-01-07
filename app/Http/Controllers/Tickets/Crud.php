@@ -14,6 +14,7 @@ use App\Models\TicketPriority;
 use App\Models\TicketSchedule;
 use App\Models\TicketStatus;
 use App\Models\User;
+use App\Services\Knowledge\VectorSearchService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,8 +27,9 @@ use Throwable;
 
 class Crud extends Controller
 {
-    public function __construct()
-    {
+    public function __construct(
+        private readonly VectorSearchService $vectorSearch
+    ) {
         $this->authorizeResource(Ticket::class, 'ticket');
     }
 
@@ -96,12 +98,54 @@ class Crud extends Controller
             'logs.user', 'schedules.user', 'attachments',
         ]);
 
+        $searchContext = implode(' ', array_filter([
+            $ticket->title,
+            $ticket->description,
+            $ticket->category?->title,
+            $ticket->asset?->title,
+        ]));
+
+        $similarTickets = [];
+
+        try {
+            $results = $this->vectorSearch->search([
+                'query' => $searchContext,
+                'limit' => 6,
+            ]);
+
+            if (!empty($results) && !isset($results['error'])) {
+                $filteredResults = collect($results)
+                    ->filter(fn($r) => $r['ticket_id'] != $ticket->id)
+                    ->take(6);
+
+                if ($filteredResults->isNotEmpty()) {
+                    $ticketsInfo = Ticket::whereIn('id', $filteredResults->pluck('ticket_id'))
+                        ->get(['id', 'title'])
+                        ->keyBy('id');
+
+                    $similarTickets = $filteredResults->map(function ($result) use ($ticketsInfo) {
+                        $info = $ticketsInfo->get($result['ticket_id']);
+                        if (!$info) return null;
+
+                        return [
+                            'id' => $info->id,
+                            'title' => $info->title,
+                            'similarity' => round(max(0, min(1, 1 - ($result['score'] / 2))) * 100),
+                        ];
+                    })->filter()->values()->toArray();
+                }
+            }
+        } catch (Throwable) {
+            // We don't want to fail the request if the vector search fails'
+        }
+
         return Inertia::render('tickets/show', [
             'ticket' => $ticket,
             'events' => TicketSchedule::with(['user', 'ticket.priority', 'ticket.status', 'ticket.category'])
                 ->where('ticket_id', $ticket->id)
                 ->get(),
             'solvers' => User::role(['admin', 'solver'])->get(['id', 'name', 'email']),
+            'similar_tickets' => $similarTickets,
         ]);
     }
 

@@ -125,4 +125,12 @@ class   Ticket extends Model
             'attachment_id'
         );
     }
+
+    /**
+     * @return BelongsTo
+     */
+    public function author(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'author_id');
+    }
 }
