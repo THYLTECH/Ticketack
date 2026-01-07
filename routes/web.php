@@ -17,6 +17,10 @@ Route::get('/', function () {
     return Inertia::render('landing');
 })->name('landing');
 
+Route::get('/terms', function () {
+    return Inertia::render('terms');
+})->name('terms');
+
 Route::middleware(['auth', 'verified:auth.verification.notice'])->group(function () {
     // Nouvelle route Home
     Route::get('/home', [HomeController::class, 'index'])->name('home');

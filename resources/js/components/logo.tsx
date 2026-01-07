@@ -1,8 +1,8 @@
 import { cn } from '@/lib/utils'
 
-export const Logo = ({ className, uniColor }: { className?: string; uniColor?: boolean }) => {
+export const Logo = ({ className }: { className?: string }) => {
     return (
-        <p className='text-xl font-bold'>
+        <p className={cn('flex items-center space-x-2 font-bold text-xl', className)}>
             Ticketack
         </p>
     )

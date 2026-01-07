@@ -1,7 +1,6 @@
 // resources/js/components/landing/layout/header.tsx
 
-// Necessary imports
-import React from 'react';
+import React, { useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Link } from '@inertiajs/react';
 
@@ -9,109 +8,153 @@ import { Logo } from '@/components/logo';
 
 // Shadcn UI Components
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import AppearanceToggleDropdown from '@/components/appearance-dropdown';
 
 // Icons
 import { Menu, X } from 'lucide-react';
 
 const menuItems = [
+    { name: 'About', href: '#about' },
     { name: 'Solution', href: '#solution' },
     { name: 'Features', href: '#features' },
-    { name: 'Faq', href: '#faq' },
+    { name: 'Help', href: '#help' },
 ];
 
 export default function Header() {
-    const [menuState, setMenuState] = React.useState(false);
+    const [isOpen, setIsOpen] = React.useState(false);
+
+    // Prevent scrolling when menu is open
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isOpen]);
+
+    const closeMenu = () => setIsOpen(false);
+
     return (
-        <header>
-            <nav
-                data-state={menuState && 'active'}
-                className={cn(
-                    'fixed z-20 w-full transition-all duration-300',
-                    'border-b bg-background/75 backdrop-blur-lg',
-                )}
-            >
-                <div className="mx-auto max-w-6xl px-8 border-r border-l">
-                    <div className="relative flex flex-wrap items-center justify-between gap-6 py-4 lg:gap-0 lg:py-3">
-                        <div className="flex w-full justify-between gap-6 lg:w-auto items-center">
-                            <Link
-                                href="#top"
-                                aria-label="home"
-                                className="flex items-center space-x-2"
-                            >
-                                <Logo />
-                            </Link>
+        <header className="sticky top-0 z-40">
+            {/* Navbar */}
+            <nav className="border-b bg-background/80 backdrop-blur-md">
+                <div className="mx-auto max-w-6xl px-4 md:px-8 py-4 border-x">
+                    <div className="flex items-center justify-between">
+                        {/* Logo */}
+                        <Link
+                            href="#"
+                            aria-label="Ticketack"
+                            className="flex items-center space-x-2 group"
+                        >
+                            <Logo />
+                        </Link>
 
-                            <Separator orientation="vertical" className="!h-6 hidden lg:block" />
-
-                            <button
-                                onClick={() => setMenuState(!menuState)}
-                                aria-label={
-                                    menuState == true
-                                        ? 'Close Menu'
-                                        : 'Open Menu'
-                                }
-                                className="relative z-20 -m-2.5 -mr-4 block cursor-pointer p-2.5 lg:hidden"
-                            >
-                                <Menu className="m-auto size-6 duration-200 in-data-[state=active]:scale-0 in-data-[state=active]:rotate-180 in-data-[state=active]:opacity-0" />
-                                <X className="absolute inset-0 m-auto size-6 scale-0 -rotate-180 opacity-0 duration-200 in-data-[state=active]:scale-100 in-data-[state=active]:rotate-0 in-data-[state=active]:opacity-100" />
-                            </button>
-
-                            <div className="m-auto hidden size-fit lg:block">
-                                <ul className="flex gap-1">
-                                    {menuItems.map((item, index) => (
-                                        <li key={index}>
-                                            <Button
-                                                asChild
-                                                variant="ghost"
-                                                size="sm"
-                                            >
-                                                <Link
-                                                    href={item.href}
-                                                    className="text-base"
-                                                >
-                                                    <span>{item.name}</span>
-                                                </Link>
-                                            </Button>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
+                        {/* Desktop Navigation */}
+                        <div className="hidden lg:flex items-center gap-1">
+                            {menuItems.map((item, index) => (
+                                <Button
+                                    key={index}
+                                    asChild
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-muted-foreground hover:text-foreground"
+                                >
+                                    <a href={item.href}>
+                                        {item.name}
+                                    </a>
+                                </Button>
+                            ))}
                         </div>
 
-                        <div className="mb-6 hidden w-full flex-wrap items-center justify-end space-y-8 rounded-3xl border bg-background p-6 shadow-2xl shadow-zinc-300/20 in-data-[state=active]:block md:flex-nowrap lg:m-0 lg:flex lg:w-fit lg:gap-6 lg:space-y-0 lg:border-transparent lg:bg-transparent lg:p-0 lg:shadow-none lg:in-data-[state=active]:flex dark:shadow-none dark:lg:bg-transparent">
-                            <div className="lg:hidden">
-                                <ul className="space-y-6 text-base">
-                                    {menuItems.map((item, index) => (
-                                        <li key={index}>
-                                            <Link
-                                                href={item.href}
-                                                className="block text-muted-foreground duration-150 hover:text-accent-foreground"
-                                            >
-                                                <span>{item.name}</span>
-                                            </Link>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                            <div className="flex w-full flex-col space-y-3 sm:flex-row sm:gap-3 sm:space-y-0 md:w-fit">
-
+                        {/* Right Actions */}
+                        <div className="flex items-center gap-3">
+                            <div className="hidden sm:block">
                                 <AppearanceToggleDropdown />
-
-                                <Button
-                                    asChild
-                                    size="sm"
-                                >
-                                    <Link href={route('auth.login')}>
-                                        <span>Log In</span>
-                                    </Link>
-                                </Button>
                             </div>
+
+                            <Button
+                                asChild
+                                size="sm"
+                                className="hidden sm:flex"
+                            >
+                                <Link href={route('auth.login')}>
+                                    Log In
+                                </Link>
+                            </Button>
+
+                            {/* Mobile Menu Button */}
+                            <button
+                                onClick={() => setIsOpen(!isOpen)}
+                                aria-label={isOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+                                className="lg:hidden relative z-40 p-2 hover:bg-muted rounded-lg transition-colors"
+                            >
+                                {isOpen ? (
+                                    <X className="w-5 h-5" />
+                                ) : (
+                                    <Menu className="w-5 h-5" />
+                                )}
+                            </button>
                         </div>
                     </div>
                 </div>
             </nav>
+
+            {/* Mobile Sidebar Backdrop */}
+            {isOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 lg:hidden"
+                    onClick={closeMenu}
+                    style={{ top: '68px' }}
+                />
+            )}
+
+            {/* Mobile Sidebar */}
+            <div
+                className={cn(
+                    'fixed left-0 top-[68px] h-[calc(100vh-68px)] w-full max-w-sm bg-background border-r border-border/40 shadow-xl overflow-y-auto',
+                    'lg:hidden transition-transform duration-300 ease-in-out',
+                    isOpen ? 'translate-x-0' : '-translate-x-full'
+                )}
+            >
+                <div className="p-6 space-y-6">
+                    {/* Mobile Navigation */}
+                    <nav className="space-y-2">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-4">
+                            Navigation
+                        </p>
+                        {menuItems.map((item, index) => (
+                            <a
+                                key={index}
+                                href={item.href}
+                                onClick={closeMenu}
+                                className="block px-4 py-2 rounded-lg text-foreground hover:bg-muted transition-colors font-medium"
+                            >
+                                {item.name}
+                            </a>
+                        ))}
+                    </nav>
+
+                    {/* Divider */}
+                    <div className="h-px bg-border/40" />
+
+                    {/* Mobile CTA */}
+                    <div className="flex w-full items-center gap-2">
+                        <Button asChild className="flex-1" onClick={closeMenu}>
+                            <Link href={route('auth.login')}>
+                                Log In
+                            </Link>
+                        </Button>
+
+                        <div className='border rounded-md'>
+                            <AppearanceToggleDropdown />
+                        </div>
+
+                    </div>
+                </div>
+            </div>
         </header>
     );
 }

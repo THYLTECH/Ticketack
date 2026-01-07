@@ -1,39 +1,29 @@
-// resources/js/components/landing/sections/solution.tsx
-
-// Shadnc UI Components
 import { Badge } from '@/components/ui/badge';
-
-// Icons
 import { Cpu, Target, Zap } from 'lucide-react';
 
 export default function Solution() {
     return (
         <>
-            <section className="py-16 md:py-32">
+            <section className="pt-16 md:pt-32 pb-8 md:pb-16" id='solution'>
                 <div className="space-y-8 md:space-y-16">
                     <div className='flex flex-col gap-4'>
                         <Badge variant={'outline'}>
-                            <Target />
+                            <Target className="mr-2 size-4" />
                             Our Solution
                         </Badge>
                         <h2 className="relative z-10 max-w-xl text-4xl font-medium lg:text-5xl">
-                            Lorem ipsum dolor sit amet.
+                            Infrastructure engineered for performance.
                         </h2>
                     </div>
                     <div className="relative">
                         <div className="relative z-10 space-y-4 md:w-1/2">
                             <p>
-                                Lorem ipsum dolor sit amet, consectetur adipiscing
-                                elit.{' '}
-                                <span className="font-medium">
-                                    Sed do eiusmod tempor
-                                </span>{' '}
-                                incididunt ut labore et dolore magna aliqua.
+                                Ticketack converts raw documents into actionable data instantly. 
+                                <span className="font-medium"> Our Unstructured-powered OCR engine </span> 
+                                analyzes every file to extract its core substance.
                             </p>
                             <p>
-                                Ut enim ad minim veniam, quis nostrud exercitation
-                                ullamco laboris nisi ut aliquip ex ea commodo
-                                consequat.
+                                By leveraging state-of-the-art models like BGE-M3, we ensure precise contextual understanding of your business requirements.
                             </p>
 
                             <div className="grid grid-cols-2 gap-3 pt-6 sm:gap-4">
@@ -41,25 +31,22 @@ export default function Solution() {
                                     <div className="flex items-center gap-2">
                                         <Zap className="size-4" />
                                         <h3 className="text-sm font-medium">
-                                            Placeholder A
+                                            Asynchronous ETL Processing
                                         </h3>
                                     </div>
                                     <p className="text-sm text-muted-foreground">
-                                        Duis aute irure dolor in reprehenderit in
-                                        voluptate velit esse cillum dolore.
+                                        Redis-driven queues for smooth and uninterrupted workflows.
                                     </p>
                                 </div>
                                 <div className="space-y-2">
                                     <div className="flex items-center gap-2">
                                         <Cpu className="size-4" />
                                         <h3 className="text-sm font-medium">
-                                            Placeholder B
+                                            Scalable Architecture
                                         </h3>
                                     </div>
                                     <p className="text-sm text-muted-foreground">
-                                        Excepteur sint occaecat cupidatat non
-                                        proident, sunt in culpa qui officia
-                                        deserunt.
+                                        Containerized deployment via Docker for simplified scaling.
                                     </p>
                                 </div>
                             </div>
@@ -69,14 +56,14 @@ export default function Solution() {
                                 <img
                                     src="images/placeholder.svg"
                                     className="hidden max-h-[300px] w-full rounded-[12px] object-cover dark:block"
-                                    alt="placeholder dark"
+                                    alt="Technical infrastructure"
                                     width={1207}
                                     height={929}
                                 />
                                 <img
                                     src="images/placeholder.svg"
                                     className="rounded-[12px] max-h-[300px] shadow w-full object-cover dark:hidden"
-                                    alt="placeholder light"
+                                    alt="Technical infrastructure"
                                     width={1207}
                                     height={929}
                                 />
@@ -85,13 +72,14 @@ export default function Solution() {
                     </div>
                 </div>
             </section>
-            <section className="py-16 md:py-32">
+            
+            <section className="pb-16 md:pb-32 pt-8 md:pt-16">
                 <div className="grid gap-6 md:grid-cols-2 md:gap-12">
-                    <h2 className="text-4xl font-medium">Lorem ipsum dolor sit amet.</h2>
+                    <h2 className="text-4xl font-medium">Semantic Search & Vector Storage.</h2>
                     <div className="space-y-6">
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+                        <p>Don't just search for keywords—search for intent. We use LanceDB to store vectorized data, enabling search with unprecedented speed.</p>
                         <p>
-                            Lorem ipsum dolor sit amet, consectetur adipisicing elit. <span className="font-bold">Sed do eiusmod tempor</span> incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                            Coupled with <span className="font-bold">S3-compatible MinIO storage</span>, your documents are secured and instantly accessible by our Python workers for LangChain-powered chunking.
                         </p>
                     </div>
                 </div>
