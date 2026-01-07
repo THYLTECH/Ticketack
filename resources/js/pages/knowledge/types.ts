@@ -10,10 +10,12 @@ export interface SearchResult {
     created_at: string;
     author: {
         name: string;
-        avatar?: string;
+        avatar?: string | null;
     };
+    category?: string;
+    solution?: string | null;
+    has_solution: boolean;
 }
-
 export interface SearchProps {
     users: User[];
     categories: TicketCategory[];
