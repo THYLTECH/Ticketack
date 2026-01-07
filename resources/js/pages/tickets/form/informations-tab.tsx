@@ -361,7 +361,7 @@ export function InformationsTab({
 
                         {userHasPermission({
                             user: auth.user,
-                            permission: 'manage ticket priorities',
+                            permission: 'manage priority tickets',
                         }) && (
                             <PrioritiesSheet priorities={priorities}>
                                 <Button type="button" size="icon" variant="outline">
@@ -429,7 +429,7 @@ export function InformationsTab({
                         </div>
                         {userHasPermission({
                             user: auth.user,
-                            permission: 'manage ticket statuses',
+                            permission: 'manage status tickets',
                         }) && (
                             <StatusesSheet statuses={statuses}>
                                 <Button type="button" size="icon" variant="outline">
@@ -500,7 +500,7 @@ export function InformationsTab({
 
                         {userHasPermission({
                             user: auth.user,
-                            permission: 'manage ticket categories',
+                            permission: 'manage category tickets',
                         }) && (
                             <CategoriesSheet categories={categories}>
                                 <Button type="button" size="icon" variant="outline">

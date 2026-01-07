@@ -23,7 +23,7 @@ class RolesAndPermissionsSeeder extends Seeder
             // Tickets
             'view tickets', 'show tickets', 'create tickets', 'update tickets', 'delete tickets', 'restore tickets', 'force delete tickets',
             // Ticket Relations
-            'manage ticket priorities', 'manage ticket statuses', 'manage ticket categories',
+            'manage priority tickets', 'manage status tickets', 'manage category tickets',
 
             // Pointages
             'view ticket entries', 'create ticket entries', 'update ticket entries', 'delete ticket entries',

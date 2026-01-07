@@ -52,6 +52,23 @@ class Statuses extends Controller
             ]);
         }
 
+        // Check for locked statuses before attempting to delete
+        $idsToDelete = array_diff($existingIds, $submittedIds);
+        
+        if (!empty($idsToDelete)) {
+            $lockedStatuses = TicketStatus::whereIn('id', $idsToDelete)
+                ->where('locked', true)
+                ->pluck('title')
+                ->toArray();
+
+            if (!empty($lockedStatuses)) {
+                return redirect()->back()->withErrors([
+                    'statuses' => __('Some statuses cannot be deleted because they are locked: :statuses', [
+                        'statuses' => implode(', ', $lockedStatuses),
+                    ]),
+                ]);
+            }
+        }
 
         DB::transaction(function () use ($data, $idsToChange) {
             $statusesMap = [];
@@ -72,18 +89,6 @@ class Statuses extends Controller
                         'sort_order' => 9999,
                     ]);
                     $statusesMap[$defaultStatus->id] = 0;
-                }
-
-                // Cannot delete statuses that have the locked to true
-                $lockedStatuses = TicketStatus::whereIn('id', $idsToChange)
-                    ->where('locked', true)
-                    ->pluck('title')
-                    ->toArray();
-
-                if (!empty($lockedStatuses)) {
-                    throw new \Exception(__('Some statuses cannot be deleted because they are locked: :statuses', [
-                        'statuses' => implode(', ', $lockedStatuses),
-                    ]));
                 }
 
                 TicketStatus::whereIn('id', $idsToChange)->each(function ($status) use ($defaultStatus) {
