@@ -59,8 +59,11 @@ class SearchController extends Controller
 
         $ticketIds = collect($vectorResults)->pluck('ticket_id')->filter();
 
-        $ticketQuery = Ticket::with(['author:id,name,avatar', 'category:id,title'])
-            ->whereIn('id', $ticketIds);
+        $ticketQuery = Ticket::with([
+            'author:id,name,attachment_avatar',
+            'author.avatar',
+            'category:id,title'
+        ])->whereIn('id', $ticketIds);
 
         if (!empty($validated['author_id'])) {
             $ticketQuery->whereIn('author_id', explode(',', $validated['author_id']));
@@ -107,8 +110,8 @@ class SearchController extends Controller
                 'type' => 'ticket',
                 'created_at' => $ticket->created_at->toIso8601String(),
                 'author' => [
-                    'name' => $ticket->author->name ?? 'Unknown',
-                    'avatar' => $ticket->author->avatar ?? null,
+                    'name' => $ticket->author?->name ?? 'Unknown',
+                    'avatar' => $ticket->author?->avatar?->url ?? null,
                 ],
                 'category' => $ticket->category?->title,
                 'solution' => $ticket->is_referenced ? $ticket->detailed_solution : null,

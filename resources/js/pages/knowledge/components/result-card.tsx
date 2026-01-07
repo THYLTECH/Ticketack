@@ -1,5 +1,7 @@
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import { useInitials } from '@/hooks/use-initials';
 import { useTrans } from '@/lib/translation';
 import { cn } from '@/lib/utils';
 import { Link } from '@inertiajs/react';
@@ -45,10 +47,7 @@ const ScoreBadge = ({
 
     if (isFeatured) {
         colorClass =
-            'bg-amber-50 text-amber-700 border-amber-500/60 shadow-sm dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-500/50';
-        iconClass = 'text-amber-500 fill-amber-500/20';
-    } else {
-        colorClass = 'bg-primary/10 text-primary border-primary/20';
+            'bg-primary/10 text-primary border-primary/20 shadow-sm dark:text-primary-foreground';
         iconClass = 'text-primary';
     }
 
@@ -72,9 +71,25 @@ interface Props {
 
 export function ResultCard({ result, isFeatured = false }: Props) {
     const trans = useTrans();
+    const getInitials = useInitials();
     const __ = (key: string): string => trans(key) as string;
 
     const hasSolution = Boolean(result.solution || result.has_solution);
+
+    const AuthorAvatar = ({ className }: { className?: string }) => (
+        <Avatar
+            className={cn('shrink-0 overflow-hidden rounded-full', className)}
+        >
+            <AvatarImage
+                src={result.author.avatar ?? undefined}
+                alt={result.author.name}
+                className="h-full w-full object-cover"
+            />
+            <AvatarFallback className="flex h-full w-full items-center justify-center bg-neutral-200 text-[9px] font-medium text-black dark:bg-neutral-700 dark:text-white">
+                {getInitials(result.author.name)}
+            </AvatarFallback>
+        </Avatar>
+    );
 
     if (isFeatured) {
         return (
@@ -105,6 +120,7 @@ export function ResultCard({ result, isFeatured = false }: Props) {
                                 {result.title}
                             </h3>
                             <div className="mt-1.5 flex items-center gap-2 text-sm text-muted-foreground">
+                                <AuthorAvatar className="h-5 w-5" />
                                 <span className="font-medium text-foreground">
                                     {result.author.name}
                                 </span>
@@ -181,20 +197,21 @@ export function ResultCard({ result, isFeatured = false }: Props) {
                 <div className="mb-3 flex items-start justify-between gap-4">
                     <div className="flex min-w-0 flex-1 gap-3">
                         <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border bg-muted/40 transition-colors group-hover:bg-primary/10 group-hover:text-primary">
-                            {' '}
                             <TypeIcon type={result.type} />
                         </div>
                         <div className="min-w-0 flex-1">
                             <h3 className="truncate text-base font-semibold text-foreground transition-colors group-hover:text-primary">
-                                {' '}
                                 {result.title}
                             </h3>
                             <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                                <span className="truncate">
-                                    {result.author.name}
-                                </span>
+                                <div className="flex min-w-0 items-center gap-1.5">
+                                    <AuthorAvatar className="h-4 w-4" />
+                                    <span className="truncate">
+                                        {result.author.name}
+                                    </span>
+                                </div>
                                 <span>•</span>
-                                <span>
+                                <span className="shrink-0">
                                     {new Date(
                                         result.created_at,
                                     ).toLocaleDateString('fr-FR')}
@@ -206,7 +223,7 @@ export function ResultCard({ result, isFeatured = false }: Props) {
                 </div>
 
                 <div className="relative mb-auto overflow-hidden rounded-md bg-muted/30 p-3 text-sm text-muted-foreground transition-colors group-hover:bg-muted/50">
-                    <div className="absolute top-0 left-0 h-full w-[3px] bg-primary/40 opacity-0 transition-opacity group-hover:opacity-100"></div>{' '}
+                    <div className="absolute top-0 left-0 h-full w-[3px] bg-primary/40 opacity-0 transition-opacity group-hover:opacity-100"></div>
                     <p
                         className="line-clamp-3 leading-relaxed"
                         dangerouslySetInnerHTML={{ __html: result.snippet }}
