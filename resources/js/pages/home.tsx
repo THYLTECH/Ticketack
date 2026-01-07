@@ -41,9 +41,9 @@ export default function Home({ userTickets, assignedTickets }: HomeProps) {
     const __ = useTrans();
     const { auth } = usePage<SharedData>().props;
 
-    const isSolverOrAdmin = userHasPermission({ 
+    const canSeeAssigned = userHasPermission({ 
         user: auth.user, 
-        permission: 'view tickets' 
+        permission: 'be assigned tickets' 
     });
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -68,18 +68,18 @@ export default function Home({ userTickets, assignedTickets }: HomeProps) {
                 
                 <CardContent className="pt-6">
                     <Tabs defaultValue="my_tickets" className="w-full space-y-6">
-                        {isSolverOrAdmin && (
-                            <TabsList className="grid w-full grid-cols-2">
+                        <TabsList className="grid w-full grid-cols-2">
                                 <TabsTrigger value="my_tickets">
                                     <TicketIcon className="mr-2 h-4 w-4" />
                                     {__('home.sections.my_tickets')}
                                 </TabsTrigger>
+                        {canSeeAssigned && (
                                 <TabsTrigger value="assigned_tickets">
                                     <LayoutDashboard className="mr-2 h-4 w-4" />
                                     {__('home.sections.assigned_tickets')}
-                                </TabsTrigger>
-                            </TabsList>
-                        )}
+                                </TabsTrigger>)}
+                        </TabsList>
+                        
 
                         {/* ONGLET : MES TICKETS */}
                         <TabsContent value="my_tickets" className="space-y-6 border-none p-0 outline-none">
@@ -118,7 +118,7 @@ export default function Home({ userTickets, assignedTickets }: HomeProps) {
                         </TabsContent>
 
                         {/* ONGLET : TICKETS ATTRIBUÉS */}
-                        {isSolverOrAdmin && (
+                        {canSeeAssigned && (
                             <TabsContent value="assigned_tickets" className="space-y-6 border-none p-0 outline-none">
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                     
