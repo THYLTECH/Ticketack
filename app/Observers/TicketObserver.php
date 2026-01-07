@@ -8,6 +8,9 @@ use App\Models\TicketCategory;
 use App\Models\TicketPriority;
 use App\Models\TicketStatus;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage; // Ajout pour Minio
+use Illuminate\Support\Facades\DB;
+
 
 class TicketObserver
 {
@@ -31,6 +34,10 @@ class TicketObserver
     public function created(Ticket $ticket): void
     {
         $this->logAction($ticket, 'created');
+
+        if ($ticket->status?->is_closed && !empty($ticket->detailed_solution)) {
+            DB::afterCommit(fn() => $this->exportToMinio($ticket));
+        }
     }
 
     /**
@@ -53,6 +60,55 @@ class TicketObserver
                 $formattedNew = $this->formatValue($field, $newValue);
 
                 $this->logAction($ticket, 'updated', $label, $formattedOld, $formattedNew);
+            }
+        }
+        $jsonFields = ['title', 'description', 'detailed_solution', 'author_id', 'status_id'];
+    
+        $shouldExport = false;
+
+        // On vérifie si l'un des champs du JSON a été modifié
+        foreach ($jsonFields as $field) {
+            if ($ticket->wasChanged($field)) {
+                $shouldExport = true;
+                break;
+            }
+        }
+        
+        $dirty = $ticket->getDirty();
+        if (!$shouldExport && count($dirty) === 1 && isset($dirty['updated_at'])) {
+            $shouldExport = true;
+        }
+        if ($ticket->status?->is_closed && !empty($ticket->detailed_solution)) {
+            if ($shouldExport) {
+                DB::afterCommit(fn() => $this->exportToMinio($ticket));
+            }
+    }
+    }
+
+    private function exportToMinio(Ticket $ticket): void
+    {
+        $ticket->loadMissing(['attachments', 'user']);
+        $data = [
+            'ticket_id'   => $ticket->id,
+            'title'       => $ticket->title,
+            'description' => $ticket->description,
+            'detailed_solution' => $ticket->detailed_solution,
+            'author'      => $ticket->user?->name ?? 'Anonyme',
+            'closed_at'   => $ticket->updated_at->format('Y-m-d'),
+        ];
+
+        $fileName = "{$ticket->id}.json";
+        Storage::disk('s3')->put($fileName, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
+        foreach ($ticket->attachments as $attachment) {
+            if (Storage::disk('public')->exists($attachment->file_path)) {
+                $fileContent = Storage::disk('public')->get($attachment->file_path);
+                if (!is_null($fileContent)) {
+                    $newFileName = "{$ticket->id}_{$attachment->file_name}";
+                    $filePath = "{$newFileName}";
+                    // Envoi vers le disque S3 (Minio)
+                    Storage::disk('s3')->put($filePath, $fileContent);
+                }
             }
         }
     }

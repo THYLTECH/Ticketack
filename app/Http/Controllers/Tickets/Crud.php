@@ -285,6 +285,7 @@ class Crud extends Controller
                 'attachment_id' => $attachment->id,
             ]);
         }
+        $ticket->touch();
     }
 
     private function getBaseQuery(Request $request): Builder
