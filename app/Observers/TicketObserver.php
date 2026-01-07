@@ -2,12 +2,14 @@
 
 namespace App\Observers;
 
+use App\Events\TicketCreated;
 use App\Models\Asset;
 use App\Models\Ticket;
 use App\Models\TicketCategory;
 use App\Models\TicketPriority;
 use App\Models\TicketStatus;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage; // Ajout pour Minio
 use Illuminate\Support\Facades\DB;
 
@@ -35,6 +37,13 @@ class TicketObserver
     {
         $this->logAction($ticket, 'created');
 
+        // Debug log
+        Log::info("1. [Observer] Ticket #{$ticket->id} created. Dispatching event...");
+
+        // Dispatch the TicketCreated event (for AI suggestions)
+        TicketCreated::dispatch($ticket);
+
+        // Export to Minio if the ticket is closed upon creation
         if ($ticket->status?->is_closed && !empty($ticket->detailed_solution)) {
             DB::afterCommit(fn() => $this->exportToMinio($ticket));
         }
@@ -63,7 +72,7 @@ class TicketObserver
             }
         }
         $jsonFields = ['title', 'description', 'detailed_solution', 'author_id', 'status_id'];
-    
+
         $shouldExport = false;
 
         // On vérifie si l'un des champs du JSON a été modifié
@@ -73,7 +82,7 @@ class TicketObserver
                 break;
             }
         }
-        
+
         $dirty = $ticket->getDirty();
         if (!$shouldExport && count($dirty) === 1 && isset($dirty['updated_at'])) {
             $shouldExport = true;
