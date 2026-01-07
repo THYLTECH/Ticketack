@@ -16,6 +16,7 @@ import {
     TicketEntry,
     TicketPriority,
     TicketStatus,
+    TicketOption
 } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { format, parseISO } from 'date-fns';
@@ -33,13 +34,6 @@ import { ReportDialog } from './report-dialog';
 type TicketEntryPagination = PaginationProps & {
     data: TicketEntry[];
 };
-
-interface TicketOption {
-    id: number;
-    title: string;
-    description: string | null;
-    asset: { id: number; title: string } | null;
-}
 
 interface Props {
     entries: TicketEntryPagination;
@@ -153,7 +147,7 @@ export default function EntriesIndex({
         >
             <Head title={__('entries.index.title')} />
 
-            <div className="container mx-auto max-w-400 space-y-5 px-4 py-8 sm:px-6 lg:px-8">
+            <div className="max-w-full space-y-5 container mx-auto px-4 py-8 sm:px-6 lg:px-8">
                 <EntriesHeader
                     onCreateClick={() => setIsCreateOpen(true)}
                     onReportClick={() => setIsReportOpen(true)}

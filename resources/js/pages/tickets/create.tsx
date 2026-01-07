@@ -72,7 +72,7 @@ export default function Create({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={__('tickets.pages.create.head_title')} />
 
-            <div className="container mx-auto max-w-400 px-4 py-8 sm:px-6 lg:px-8">
+            <div className="container mx-auto max-w-full px-4 py-8 sm:px-6 lg:px-8">
                 <CreateForm
                     priorities={priorities}
                     categories={categories}
