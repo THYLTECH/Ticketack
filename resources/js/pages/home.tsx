@@ -103,8 +103,8 @@ export default function Home({ userTickets, assignedTickets }: HomeProps) {
                                     <Card className="h-full flex flex-col overflow-hidden">
                                         <CardContent className="p-0 flex-1">
                                             <TicketTable 
-                                                data={userTickets.closed} 
-                                                emptyMessage={__('home.messages.no_recent_closed_tickets')} 
+                                                data={userTickets.closed}
+                                                emptyMessage={__('home.messages.no_recent_closed_tickets')}
                                             />
                                         </CardContent>
                                     </Card>
@@ -122,7 +122,8 @@ export default function Home({ userTickets, assignedTickets }: HomeProps) {
                                         </div>
                                         <Card className="h-full flex flex-col overflow-hidden">
                                             <CardContent className="p-0 flex-1">
-                                                <TicketTable data={assignedTickets.open} showAuthor={true} />
+                                                <TicketTable data={assignedTickets.open} showAuthor={true}
+                                                emptyMessage={__('home.messages.no_open_tickets')} />
                                             </CardContent>
                                         </Card>
                                     </div>
@@ -134,7 +135,9 @@ export default function Home({ userTickets, assignedTickets }: HomeProps) {
                                         </div>
                                         <Card className="h-full flex flex-col overflow-hidden">
                                             <CardContent className="p-0 flex-1">
-                                                <TicketTable data={assignedTickets.closed} showAuthor={true} />
+                                                <TicketTable data={assignedTickets.closed} 
+                                                showAuthor={true} 
+                                                emptyMessage={__('home.messages.no_recent_closed_tickets')} />
                                             </CardContent>
                                         </Card>
                                     </div>
