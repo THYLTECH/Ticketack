@@ -33,15 +33,32 @@ return [
             ],
             'toolbar' => [
                 'title' => 'Delete/Restore',
-                'search' => 'Search deleted items...'
+                'search' => 'Search deleted items...',
+                'retention' => 'Permanently deleted after : ',
+                'auto_delete_after' => 'days',
             ]
         ],
     ],
     'tabs' => [
+        'tickets' => 'Tickets',
         'users' => 'Users',
         'assets' => 'Assets',
         'roles' => 'Roles',
-        'tickets' => 'Tickets',
+    ],
+    'toolbar' => [
+        'retention' => 'Retention',
+        'auto_delete_after' => 'Auto-delete items older than',
+    ],
+    'table' => [
+        'badges' => [
+            'linked_tickets' => 'Linked tickets',
+            'created_tickets' => 'tickets',
+        ]
+    ],
+    'retention' => [
+        'critical' => ':days days - Critical',
+        'warning' => ':days days - Warning',
+        'remaining' => ':days days left',
     ],
     'common' => [
         'item_unnamed' => 'Item',
@@ -67,11 +84,25 @@ return [
             'title' => 'Empty Trash',
             'description' => 'Are you sure you want to permanently delete all items in this section?',
         ],
+        'retention' => [
+            'title' => 'Set retention period',
+            'description' => 'Set the retention period for items in this section.',
+            'days' => 'days',
+            'cancel' => 'Cancel',
+            'buttons' => [
+                'confirm' => 'Confirm',
+                'cancel' => 'Cancel',
+            ]
+        ]
     ],
     'buttons' => [
         'restore_selected' => 'Restore selected',
         'delete_selected' => 'Permanently delete',
         'empty_trash' => 'Empty Trash',
+    ],
+    'console' => [
+        'pruning' => 'Pruning :type trash - Deleting items deleted before :date (retention: :days days)',
+        'summary' => 'Trash pruning complete. Total items permanently deleted: :count.',
     ],
     'notifications' => [
         'restored_title' => 'Restored',

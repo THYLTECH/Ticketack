@@ -37,6 +37,8 @@ interface Props {
     deletedRoles: PaginatedData<Deleted<Role>>;
     deletedAssets: PaginatedData<Deleted<Asset>>;
     filters?: { search?: string };
+    retentionSettings: Record<string, number>;
+    canManageSettings: boolean;
 }
 
 type TabType = 'ticket' | 'user' | 'asset' | 'role';
@@ -53,6 +55,8 @@ export default function TrashIndex({
     deletedRoles,
     deletedAssets,
     filters = {},
+    retentionSettings,
+    canManageSettings,
 }: Props) {
     const __ = useTrans();
 
@@ -100,6 +104,7 @@ export default function TrashIndex({
     };
 
     const currentData = getCurrentData();
+    const currentRetention = retentionSettings[activeTab] || 30;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -124,6 +129,8 @@ export default function TrashIndex({
                         activeTab={activeTab}
                         onTabChange={(tab) => setActiveTab(tab as TabType)}
                         onClearSearch={() => setSearchTerm('')}
+                        retentionDays={currentRetention}
+                        canManageSettings={canManageSettings}
                     />
 
                     <TrashTable
@@ -133,11 +140,10 @@ export default function TrashIndex({
                             >['data']
                         }
                         type={activeTab}
+                        retentionDays={currentRetention}
                     />
 
-                    <PaginationControl
-                        meta={currentData}
-                    />
+                    <PaginationControl meta={currentData} />
                 </div>
             </div>
         </AppLayout>
