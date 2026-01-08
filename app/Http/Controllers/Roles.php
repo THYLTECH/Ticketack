@@ -143,12 +143,17 @@ class Roles extends Controller
         $role->syncPermissions($permissions);
 
         $users = collect(data_get($data, 'users', []))->pluck('id')->toArray();
+
+        if ($role->name === 'simple_user') {
+            $existingUsers = $role->users()->pluck('id')->toArray();
+            $users = array_unique(array_merge($users, $existingUsers));
+        }
+
         $role->users()->sync($users);
 
         return redirect()->route('roles.show', ['role' => $role->id])
             ->with(['success' => __('roles.flash.updated')]);
     }
-
     /**
      * Remove the specified role from the database.
      *
