@@ -33,6 +33,7 @@ return [
                 'total_assets' => 'Number of Assets',
                 'total_users' => 'Number of Users',
                 'avg_resolution_time' => 'Average Resolution Time',
+                'unassigned_tickets' => 'Number of Unassigned Tickets',
                 'activity_title' => 'Ticket Activity',
             ],
             'ticket_statistics' => [
