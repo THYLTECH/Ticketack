@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Box, Users, Clock } from 'lucide-react';
+import { Box, Users, Clock, UserX } from 'lucide-react';
 import { ActivityLineChart } from '@/components/dashboard/ActivityLineChart';
 import { useTrans } from '@/lib/translation';
 import { ChartConfig } from '@/components/ui/chart';
@@ -9,6 +9,7 @@ interface GeneralTabProps {
         total_assets: number;
         total_users: number;
         avg_resolution_time: number;
+        unassigned_tickets: number;
         activity: {
             created : number;
             date : string;
@@ -20,15 +21,15 @@ interface GeneralTabProps {
 
 export const GeneralTab = ({ stats, chartConfig }: GeneralTabProps) => {
     const __ = useTrans();
-
     const items = [
         { label: __('dashboard.pages.stats.global_statistics.total_assets'), value: stats.total_assets, icon: Box, color: "text-blue-500" },
         { label: __('dashboard.pages.stats.global_statistics.total_users'), value: stats.total_users, icon: Users, color: "text-green-500" },
         { label: __('dashboard.pages.stats.global_statistics.avg_resolution_time'), value: `${stats.avg_resolution_time}h`, icon: Clock, color: "text-orange-500" },
+        { label: __('dashboard.pages.stats.global_statistics.unassigned_tickets'), value: stats.unassigned_tickets, icon: UserX, color: "text-violet-500" },
     ];
     return (
         <div className="space-y-4 pt-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 {items.map((item, index) => (
                     <Card key={index} className="flex flex-col items-center justify-center p-6 text-center shadow-sm">
                         <CardHeader className="p-0 pb-4 w-full justify-center">
