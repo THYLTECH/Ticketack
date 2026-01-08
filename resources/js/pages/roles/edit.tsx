@@ -194,7 +194,7 @@ function EditForm({
                                     data={data}
                                     setData={setData}
                                     permissions={permissions}
-                                    disabled={processing}
+                                    disabled={processing || isSystemRole}
                                 />
                                 <UsersTab
                                     data={data}
