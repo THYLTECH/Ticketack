@@ -1,12 +1,14 @@
 import { PaginationControl } from '@/components/pagination-control';
+import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app/layout';
 import { useTrans } from '@/lib/translation';
-import type { Asset, BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/react';
+import { userHasPermission } from '@/lib/utils';
+import type { Asset, BreadcrumbItem, SharedData } from '@/types';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useDebounce } from 'use-debounce';
 import { AssetsEmpty } from './components/assets-empty';
-import { AssetsHeader } from './components/assets-header';
 import { AssetsTable } from './components/assets-table';
 import { AssetsToolbar } from './components/assets-toolbar';
 
@@ -37,6 +39,7 @@ export default function AssetsIndex({
     available_attributes = [],
 }: Props) {
     const __ = useTrans();
+    const { auth } = usePage<SharedData>().props;
 
     const [searchTerm, setSearchTerm] = useState(filters.search || '');
     const [debouncedSearch] = useDebounce(searchTerm, 300);
@@ -92,8 +95,30 @@ export default function AssetsIndex({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={__('assets.pages.index.head_title')} />
 
-            <div className="container mx-auto max-w-full space-y-6 px-4 py-8 sm:px-6 lg:px-8">
-                <AssetsHeader />
+            <div className="container mx-auto max-w-full space-y-5 px-4 py-8 sm:px-6 lg:px-8">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h2 className="text-2xl font-bold tracking-tight text-foreground">
+                            {__('assets.pages.index.title')}
+                        </h2>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                            {__('assets.pages.index.description')}
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        {userHasPermission({
+                            user: auth.user,
+                            permission: 'create assets',
+                        }) && (
+                            <Button asChild size="sm">
+                                <Link href={route('assets.create')}>
+                                    <Plus className="mr-2 h-4 w-4" />
+                                    {__('assets.pages.index.buttons.create')}
+                                </Link>
+                            </Button>
+                        )}
+                    </div>
+                </div>
 
                 <div className="flex flex-col gap-4">
                     <AssetsToolbar

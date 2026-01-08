@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { useTrans } from '@/lib/translation';
-import { Download, Plus } from 'lucide-react';
+import { FileText, Plus } from 'lucide-react';
 
 interface EntriesHeaderProps {
     onReportClick: () => void;
@@ -14,32 +14,24 @@ export function EntriesHeader({
     const __ = useTrans();
 
     return (
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-            <div className="space-y-1">
-                <h1 className="text-2xl font-bold tracking-tight text-foreground">
-                    {__('entries.header.title')}
-                </h1>
-                <p className="text-sm text-muted-foreground">
-                    {__('entries.header.description')}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h2 className="text-2xl font-bold tracking-tight text-foreground">
+                    {__('entries.index.title') || 'Time Entries'}
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                    {__('entries.index.description') ||
+                        'Manage time entries and generate reports.'}
                 </p>
             </div>
             <div className="flex items-center gap-2">
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={onReportClick}
-                    className="h-9 shadow-sm"
-                >
-                    <Download className="mr-2 h-4 w-4 text-muted-foreground" />
-                    {__('entries.header.actions.report')}
+                <Button variant="outline" size="sm" onClick={onReportClick}>
+                    <FileText className="mr-2 h-4 w-4" />
+                    {__('entries.header.actions.report') || 'Report'}
                 </Button>
-                <Button
-                    size="sm"
-                    onClick={onCreateClick}
-                    className="h-9 shadow-sm"
-                >
+                <Button size="sm" onClick={onCreateClick}>
                     <Plus className="mr-2 h-4 w-4" />
-                    {__('entries.header.actions.log_time')}
+                    {__('entries.header.actions.log_time') || 'New Entry'}
                 </Button>
             </div>
         </div>
