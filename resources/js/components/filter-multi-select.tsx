@@ -1,3 +1,7 @@
+import {
+    FilterButtonContent,
+    getToolbarButtonStyle,
+} from '@/components/data-toolbar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,10 +18,9 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
-import { Separator } from '@/components/ui/separator';
 import { useTrans } from '@/lib/translation';
 import { cn } from '@/lib/utils';
-import { Check, PlusCircle } from 'lucide-react';
+import { Check, ChevronDown, PlusCircle } from 'lucide-react';
 import * as React from 'react';
 
 interface Option {
@@ -70,59 +73,58 @@ export function FilterMultiSelect({
                     variant="outline"
                     size="sm"
                     className={cn(
-                        'h-8 border-dashed bg-transparent shadow-none hover:bg-accent',
+                        getToolbarButtonStyle(selectedValues.size > 0),
                         className,
                     )}
                 >
-                    {icon || <PlusCircle className="mr-2 h-4 w-4" />}
-                    {title}
-                    {selectedValues.size > 0 && (
-                        <>
-                            <Separator
-                                orientation="vertical"
-                                className="mx-2 h-4"
-                            />
-                            <Badge
-                                variant="secondary"
-                                className="rounded-sm px-1 font-normal lg:hidden"
-                            >
-                                {selectedValues.size}
-                            </Badge>
-                            <div className="hidden space-x-1 lg:flex">
-                                {selectedValues.size > 2 ? (
-                                    <Badge
-                                        variant="secondary"
-                                        className="rounded-sm px-1 font-normal"
-                                    >
-                                        {selectedValues.size}{' '}
-                                        {__('common.filters.selected')}
-                                    </Badge>
-                                ) : (
-                                    options
-                                        .filter((option) =>
-                                            selectedValues.has(option.value),
-                                        )
-                                        .map((option) => (
-                                            <Badge
-                                                key={option.value}
-                                                variant="secondary"
-                                                className="rounded-sm px-1 font-normal"
-                                            >
-                                                {option.label}
-                                            </Badge>
-                                        ))
-                                )}
-                            </div>
-                        </>
-                    )}
+                    <FilterButtonContent
+                        icon={icon || <PlusCircle className="mr-2 h-4 w-4" />}
+                        title={title}
+                        isSelected={selectedValues.size > 0}
+                    >
+                        <Badge
+                            variant="secondary"
+                            className="rounded-sm px-1 font-normal lg:hidden"
+                        >
+                            {selectedValues.size}
+                        </Badge>
+                        <div className="hidden space-x-1 lg:flex">
+                            {selectedValues.size > 2 ? (
+                                <Badge
+                                    variant="secondary"
+                                    className="rounded-sm px-1 font-normal"
+                                >
+                                    {selectedValues.size}{' '}
+                                    {__('common.filters.selected') ||
+                                        'selected'}
+                                </Badge>
+                            ) : (
+                                options
+                                    .filter((option) =>
+                                        selectedValues.has(option.value),
+                                    )
+                                    .map((option) => (
+                                        <Badge
+                                            key={option.value}
+                                            variant="secondary"
+                                            className="rounded-sm px-1 font-normal"
+                                        >
+                                            {option.label}
+                                        </Badge>
+                                    ))
+                            )}
+                        </div>
+                    </FilterButtonContent>
+                    <ChevronDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-50 p-0" align="start">
+            <PopoverContent className="w-[200px] p-0" align="start">
                 <Command>
                     <CommandInput placeholder={placeholder || title} />
                     <CommandList>
                         <CommandEmpty>
-                            {__('common.filters.no_results')}
+                            {__('common.filters.no_results') ||
+                                'No results found.'}
                         </CommandEmpty>
                         <CommandGroup>
                             {options.map((option) => {
@@ -162,7 +164,8 @@ export function FilterMultiSelect({
                                         onSelect={handleClear}
                                         className="justify-center text-center"
                                     >
-                                        {__('common.filters.clear')}
+                                        {__('common.filters.clear') ||
+                                            'Clear filters'}
                                     </CommandItem>
                                 </CommandGroup>
                             </>

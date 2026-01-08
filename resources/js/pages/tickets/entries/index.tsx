@@ -128,7 +128,7 @@ export default function EntriesIndex({
         >
             <Head title={__('entries.index.title')} />
 
-            <div className="max-w-full space-y-5 container mx-auto px-4 py-8 sm:px-6 lg:px-8">
+            <div className="container mx-auto max-w-full space-y-5 px-4 py-8 sm:px-6 lg:px-8">
                 <EntriesHeader
                     onCreateClick={() => setIsCreateOpen(true)}
                     onReportClick={() => setIsReportOpen(true)}
@@ -136,7 +136,7 @@ export default function EntriesIndex({
 
                 <div className="flex w-fit items-center rounded-full border bg-background/50 px-3 py-1 shadow-sm">
                     <Globe className="h-3.5 w-3.5 text-muted-foreground" />
-                    <Separator orientation="vertical" className="h-3" />
+                    <Separator orientation="vertical" className="mx-2 h-3" />
                     <span className="text-[11px] font-medium tracking-tight text-foreground uppercase">
                         TIMEZONE : {auth.user.timezone || 'UTC'}
                     </span>
@@ -158,9 +158,7 @@ export default function EntriesIndex({
 
                     <EntriesTable entries={entries.data} showTicketColumn />
 
-                    <PaginationControl
-                        meta={entries}
-                    />
+                    <PaginationControl meta={entries} />
                 </div>
             </div>
 
