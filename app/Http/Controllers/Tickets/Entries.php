@@ -129,6 +129,12 @@ class Entries extends Controller
 
         $endAt = $startAt->copy()->addSeconds($durationSeconds);
 
+        if ($endAt->isFuture()) {
+        throw ValidationException::withMessages([
+            'date' => __('entries.flash.future_error')
+        ]);
+    }
+
         /** @var User $user */
         $user = $request->user();
 

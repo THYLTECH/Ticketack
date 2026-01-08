@@ -7,6 +7,7 @@ return [
         'created' => 'Time entry created successfully.',
         'overlap_error' => 'This entry overlaps with another one.',
         'overlap_details' => 'Overlap with ticket #:id: :title (:start - :end)',
+        'future_error' => 'Cannot log time in the future.',
     ],
     'header' => [
         'title' => 'Time Tracking',
