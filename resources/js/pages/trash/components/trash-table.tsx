@@ -36,13 +36,10 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useTrans } from '@/lib/translation';
-import { cn } from '@/lib/utils';
 import { router } from '@inertiajs/react';
 import {
     Box,
     CheckCircle2,
-    ChevronLeft,
-    ChevronRight,
     Lock,
     MoreHorizontal,
     RotateCcw,
@@ -234,7 +231,7 @@ export function TrashTable({ data, type }: Props) {
                 <Table>
                     <TableHeader className="bg-muted/30">
                         <TableRow className="hover:bg-transparent">
-                            <TableHead className="w-[40px] pl-6">
+                            <TableHead className="w-10 pl-6">
                                 <Checkbox
                                     checked={allSelected}
                                     onCheckedChange={(c) =>
@@ -251,7 +248,7 @@ export function TrashTable({ data, type }: Props) {
                                         currentSort={currentSort}
                                         currentDirection={currentDirection}
                                         onSort={handleSort}
-                                        className="w-[300px]"
+                                        className="w-75"
                                     />
                                     <SortableTableHead
                                         column="status_id"
@@ -259,7 +256,7 @@ export function TrashTable({ data, type }: Props) {
                                         currentSort={currentSort}
                                         currentDirection={currentDirection}
                                         onSort={handleSort}
-                                        className="w-[120px]"
+                                        className="w-30"
                                     />
                                     <SortableTableHead
                                         column="priority_id"
@@ -267,7 +264,7 @@ export function TrashTable({ data, type }: Props) {
                                         currentSort={currentSort}
                                         currentDirection={currentDirection}
                                         onSort={handleSort}
-                                        className="w-[120px]"
+                                        className="w-30"
                                     />
                                     <TableHead className="hidden md:table-cell">
                                         <span className="-ml-3 h-8 text-xs font-semibold tracking-wider text-muted-foreground/70 uppercase">
@@ -357,7 +354,7 @@ export function TrashTable({ data, type }: Props) {
                                 onSort={handleSort}
                                 className="hidden xl:table-cell"
                             />
-                            <TableHead className="w-[60px]"></TableHead>
+                            <TableHead className="w-15"></TableHead>
                         </TableRow>
                     </TableHeader>
 
@@ -694,69 +691,6 @@ export function TrashTable({ data, type }: Props) {
                     </TableBody>
                 </Table>
             </div>
-
-            {data.total > data.per_page && (
-                <div className="flex items-center justify-between px-2">
-                    <div className="text-[10px] tracking-wider text-muted-foreground uppercase">
-                        {__(
-                            'tickets.pages.show.tabs.logs_content.pagination_info',
-                        )
-                            .replace(':current', data.current_page.toString())
-                            .replace(':total', data.last_page.toString())
-                            .replace(':count', data.total.toString())}
-                    </div>
-                    <div className="flex items-center space-x-1">
-                        {data.links.map((link, i) => {
-                            const label = link.label.includes('Previous')
-                                ? 'prev'
-                                : link.label.includes('Next')
-                                  ? 'next'
-                                  : link.label;
-                            const isDots = label === '...';
-                            const isDisabled = !link.url || isDots;
-
-                            return (
-                                <Button
-                                    key={i}
-                                    variant={
-                                        link.active ? 'default' : 'outline'
-                                    }
-                                    size="sm"
-                                    disabled={isDisabled}
-                                    className={cn(
-                                        'h-8 w-8 p-0',
-                                        isDisabled && 'opacity-50',
-                                        link.active && 'pointer-events-none',
-                                    )}
-                                    onClick={() =>
-                                        link.url &&
-                                        router.get(
-                                            link.url,
-                                            {},
-                                            {
-                                                preserveState: true,
-                                                preserveScroll: true,
-                                            },
-                                        )
-                                    }
-                                >
-                                    {label === 'prev' ? (
-                                        <ChevronLeft className="h-4 w-4" />
-                                    ) : label === 'next' ? (
-                                        <ChevronRight className="h-4 w-4" />
-                                    ) : (
-                                        <span
-                                            dangerouslySetInnerHTML={{
-                                                __html: label,
-                                            }}
-                                        />
-                                    )}
-                                </Button>
-                            );
-                        })}
-                    </div>
-                </div>
-            )}
 
             <AlertDialog
                 open={deleteConfirm.isOpen}

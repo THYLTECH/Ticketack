@@ -8,6 +8,7 @@ use App\Models\Attachment;
 use App\Models\User;
 use App\Notifications\UserRegistered as NotificationsUserRegistered;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
@@ -24,10 +25,23 @@ class Users extends Controller
         $this->authorizeResource(User::class, 'user');
     }
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        $query = User::with(['roles', 'avatar']);
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%$search%")
+                    ->orWhere('email', 'like', "%$search%");
+            });
+        }
+
+        $perPage = $request->input('per_page', 10);
+
         return Inertia::render('users/index', [
-            'users' => User::with('roles')->paginate(10),
+            'users' => $query->paginate($perPage)->withQueryString(),
+            'filters' => $request->only(['search']),
         ]);
     }
 

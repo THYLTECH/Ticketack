@@ -1,23 +1,17 @@
 <?php
 
-// app/Http/Controllers/Roles.php
-
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Http\RedirectResponse;
-use Inertia\Response;
-use Inertia\Inertia;
-
-// Models
-use App\Models\Role;
-use Spatie\Permission\Models\Permission;
-use App\Models\User;
-
-// Requests
 use App\Http\Requests\Roles\Store as RequestsStore;
 use App\Http\Requests\Roles\Update as RequestsUpdate;
+use App\Models\Role;
+use App\Models\User;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
+use Spatie\Permission\Models\Permission;
 
 /**
  * Class Roles
@@ -28,23 +22,36 @@ use App\Http\Requests\Roles\Update as RequestsUpdate;
  */
 class Roles extends Controller
 {
-
-    public function __construct() {
+    public function __construct()
+    {
         $this->authorizeResource(Role::class, 'role');
     }
 
     /**
      * Display a listing of the roles.
      *
+     * @param Request $request
      * @return Response
      */
-    public function index(): Response {
-        // add user_length to roles
-        $roles = Role::all()->load('permissions');
-        foreach ($roles as $role) {
-            $role->nbrOfUsers = $role->users()->count();
+    public function index(Request $request): Response
+    {
+        $query = Role::with('permissions')->withCount('users');
+
+        if ($request->filled('search')) {
+            $query->where('name', 'like', '%' . $request->input('search') . '%');
         }
-        return Inertia::render('roles/index', ['roles' => $roles]);
+
+        $roles = $query->paginate($request->input('per_page', 10))->withQueryString();
+
+        $roles->getCollection()->transform(function ($role) {
+            $role->nbrOfUsers = $role->users_count;
+            return $role;
+        });
+
+        return Inertia::render('roles/index', [
+            'roles' => $roles,
+            'filters' => $request->only('search'),
+        ]);
     }
 
     /**
@@ -52,38 +59,50 @@ class Roles extends Controller
      *
      * @return Response
      */
-    public function create(): Response {
-        return Inertia::render('roles/create', ['permissions' => Permission::all(), 'usersWithoutRole' => User::all()]);
+    public function create(): Response
+    {
+        return Inertia::render('roles/create', [
+            'permissions' => Permission::all(),
+            'usersWithoutRole' => User::all()
+        ]);
     }
 
     /**
      * Show the form for editing the specified role.
      *
      * @param Role $role
-     * @return Response | RedirectResponse
+     * @return Response
      */
-    public function edit(Role $role): Response | RedirectResponse {
-        // Users who don't have this role
+    public function edit(Role $role): Response
+    {
         $usersWithoutRole = User::whereDoesntHave('roles', function ($query) use ($role) {
             $query->where('id', $role->id);
         })->get();
 
-        return Inertia::render('roles/edit', ['role' => $role->load('permissions', 'users'), 'permissions' => Permission::all(), 'usersWithoutRole' => $usersWithoutRole]);
+        return Inertia::render('roles/edit', [
+            'role' => $role->load('permissions', 'users'),
+            'permissions' => Permission::all(),
+            'usersWithoutRole' => $usersWithoutRole
+        ]);
     }
 
     /**
      * Display the specified role.
      *
      * @param Role $role
-     * @return Response | RedirectResponse
-    */
-    public function show(Role $role): Response | RedirectResponse {
-        // Users who don't have this role
+     * @return Response
+     */
+    public function show(Role $role): Response
+    {
         $usersWithoutRole = User::whereDoesntHave('roles', function ($query) use ($role) {
             $query->where('id', $role->id);
         })->get();
 
-        return Inertia::render('roles/show', ['role' => $role->load('permissions', 'users'), 'permissions' => Permission::all(), 'usersWithoutRole' => $usersWithoutRole]);
+        return Inertia::render('roles/show', [
+            'role' => $role->load('permissions', 'users'),
+            'permissions' => Permission::all(),
+            'usersWithoutRole' => $usersWithoutRole
+        ]);
     }
 
     /**
@@ -92,41 +111,43 @@ class Roles extends Controller
      * @param RequestsStore $request
      * @return RedirectResponse
      */
-    public function store(RequestsStore $request): RedirectResponse {
+    public function store(RequestsStore $request): RedirectResponse
+    {
         $data = $request->validated();
 
-        // Create role
         $role = Role::create($data);
-        // Sync permissions
+
         $permissions = collect(data_get($data, 'permissions', []))->pluck('id')->toArray();
         $role->syncPermissions($permissions);
-        // Sync users
+
         $users = collect(data_get($data, 'users', []))->pluck('id')->toArray();
         $role->users()->sync($users);
 
-        return redirect()->route('roles.show', ['role' => $role->id])->with(['success' => __('roles.flash.created')]);
+        return redirect()->route('roles.show', ['role' => $role->id])
+            ->with(['success' => __('roles.flash.created')]);
     }
 
     /**
      * Update the specified role in database.
      *
-     * @param Request $request
+     * @param RequestsUpdate $request
      * @param Role $role
      * @return RedirectResponse
      */
-    public function update(RequestsUpdate $request, Role $role): RedirectResponse {
+    public function update(RequestsUpdate $request, Role $role): RedirectResponse
+    {
         $data = $request->validated();
 
-        // Update role details
         $role->update($data);
-        // Sync permissions
+
         $permissions = collect(data_get($data, 'permissions', []))->pluck('id')->toArray();
         $role->syncPermissions($permissions);
-        // Sync users
+
         $users = collect(data_get($data, 'users', []))->pluck('id')->toArray();
         $role->users()->sync($users);
 
-        return redirect()->route('roles.show', ['role' => $role->id])->with(['success' => __('roles.flash.updated')]);
+        return redirect()->route('roles.show', ['role' => $role->id])
+            ->with(['success' => __('roles.flash.updated')]);
     }
 
     /**
@@ -135,9 +156,10 @@ class Roles extends Controller
      * @param Role $role
      * @return RedirectResponse
      */
-    public function destroy(Role $role): RedirectResponse {
-
+    public function destroy(Role $role): RedirectResponse
+    {
         $lockedRoles = ['admin', 'solver', 'simple_user'];
+
         if (in_array($role->name, $lockedRoles)) {
             return redirect()->route('roles.index')->with(['error' => [
                 'title' => __('common.flash.error'),
@@ -145,11 +167,8 @@ class Roles extends Controller
             ]]);
         }
 
-        $users_count = $role->users()->count();
-        if ($users_count > 0) {
+        if ($role->users()->count() > 0) {
             return redirect()->route('roles.index')->with(['error' => [
-//                'title' => __('common.flash.error'),
-//                'description' => __('roles.flash.delete_error')
                 'title' => __('common.flash.error'),
                 'description' => __('roles.flash.delete_error')
             ]]);
@@ -157,7 +176,7 @@ class Roles extends Controller
 
         $role->delete();
 
-//        return redirect()->route('roles.index')->with(['success' => __('roles.flash.deleted')]);
-        return redirect()->route('roles.index')->with(['success' => __('roles.flash.deleted')]);
+        return redirect()->route('roles.index')
+            ->with(['success' => __('roles.flash.deleted')]);
     }
 }

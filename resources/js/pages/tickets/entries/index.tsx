@@ -1,11 +1,4 @@
-import LaravelPagination from '@/components/LaravelPagination';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
+import { PaginationControl } from '@/components/pagination-control';
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app/layout';
 import { useTrans } from '@/lib/translation';
@@ -14,9 +7,9 @@ import {
     SharedData,
     TicketCategory,
     TicketEntry,
+    TicketOption,
     TicketPriority,
     TicketStatus,
-    TicketOption
 } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { format, parseISO } from 'date-fns';
@@ -75,18 +68,6 @@ export default function EntriesIndex({
     const [dateRange, setDateRange] = useState<DateRange | undefined>(
         initialDateRange,
     );
-
-    const handlePerPageChange = (value: string) => {
-        const currentUrl = new URL(window.location.href);
-        currentUrl.searchParams.set('per_page', value);
-        currentUrl.searchParams.delete('page');
-
-        router.get(
-            currentUrl.toString(),
-            {},
-            { preserveState: true, replace: true, preserveScroll: true },
-        );
-    };
 
     const applyFilters = (newFilters: FilterState) => {
         setFilterValues(newFilters);
@@ -177,63 +158,9 @@ export default function EntriesIndex({
 
                     <EntriesTable entries={entries.data} showTicketColumn />
 
-                    <div className="flex flex-col items-center justify-between gap-4 border-t py-4 md:flex-row">
-                        <div className="flex flex-1 items-center gap-4 text-sm text-muted-foreground">
-                            <div className="whitespace-nowrap">
-                                {' '}
-                                {__('entries.pagination.showing')}{' '}
-                                <span className="font-medium text-foreground">
-                                    {entries.data.length}
-                                </span>{' '}
-                                {__('entries.pagination.of')}{' '}
-                                <span className="font-medium text-foreground">
-                                    {entries.total}
-                                </span>{' '}
-                                {__('entries.pagination.results')}
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <span className="hidden text-xs text-muted-foreground sm:inline-block">
-                                    {__('entries.pagination.show') ||
-                                        'Afficher'}
-                                </span>
-                                <Select
-                                    value={String(entries.per_page)}
-                                    onValueChange={handlePerPageChange}
-                                >
-                                    <SelectTrigger className="h-8 w-17.5">
-                                        <SelectValue
-                                            placeholder={String(
-                                                entries.per_page,
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent side="top">
-                                        {[5, 10, 15, 25, 50, 100].map(
-                                            (size) => (
-                                                <SelectItem
-                                                    key={size}
-                                                    value={String(size)}
-                                                >
-                                                    {size}
-                                                </SelectItem>
-                                            ),
-                                        )}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-                        <LaravelPagination
-                            links={
-                                entries.links as unknown as Array<{
-                                    url: string | null;
-                                    label: string;
-                                    active: boolean;
-                                }>
-                            }
-                            className="mt-0"
-                        />
-                    </div>
+                    <PaginationControl
+                        meta={entries}
+                    />
                 </div>
             </div>
 

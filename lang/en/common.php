@@ -12,6 +12,10 @@ return [
     'flash' => [
         'error' => 'An error occurred',
     ],
+    'filters' => [
+        'title' => 'Filters',
+        'reset' => 'Reset',
+    ],
 
     /*
     |--------------------------------------------------------------------------
