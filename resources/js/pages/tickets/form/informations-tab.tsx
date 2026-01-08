@@ -66,6 +66,7 @@ import * as React from 'react';
 import { MarkdownEditor } from './markdown-editor';
 import { TicketFormData } from './types';
 import { TicketAssignees } from './users-tab';
+import { userHasPermission } from '@/lib/utils';
 
 interface ExtendedTicketFormData extends Omit<TicketFormData, 'assignees'> {
     assignees: number[];
