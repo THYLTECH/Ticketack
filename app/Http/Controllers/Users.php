@@ -110,11 +110,14 @@ class Users extends Controller
         $data['email_verified_at'] = $data['email_verified'] ? now() : null;
         unset($data['email_verified']);
 
+        $roles = $data['roles'] ?? null;
+        unset($data['roles']);
+
         $user->update($data);
 
-        if (isset($data['roles']) && is_array($data['roles'])) {
-            $roles = Role::whereIn('id', $data['roles'])->get();
-            $user->syncRoles($roles);
+        if ($roles !== null && is_array($roles)) {
+            $roleModels = Role::whereIn('id', $roles)->get();
+            $user->syncRoles($roleModels);
         }
 
         $user->assignRole('simple_user');
