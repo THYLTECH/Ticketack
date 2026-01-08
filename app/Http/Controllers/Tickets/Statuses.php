@@ -42,13 +42,13 @@ class Statuses extends Controller
 
         if ($defaultCount !== 1) {
             return redirect()->back()->withErrors([
-                'statuses' => __('There must be exactly one default status.'),
+                'statuses' => __('tickets.flash.statuses_default_error'),
             ]);
         }
 
         if ($closedCount !== 1) {
             return redirect()->back()->withErrors([
-                'statuses' => __('There must be exactly one closed status.'),
+                'statuses' => __('tickets.flash.statuses_closed_error'),
             ]);
         }
 
@@ -63,7 +63,7 @@ class Statuses extends Controller
 
             if (!empty($lockedStatuses)) {
                 return redirect()->back()->withErrors([
-                    'statuses' => __('Some statuses cannot be deleted because they are locked: :statuses', [
+                    'statuses' => __('tickets.flash.statuses_locked_error', [
                         'statuses' => implode(', ', $lockedStatuses),
                     ]),
                 ]);
@@ -122,6 +122,6 @@ class Statuses extends Controller
             }
         });
 
-        return redirect()->back()->with('success', __('Ticket statuses saved successfully.'));
+        return redirect()->back()->with('success', __('tickets.flash.statuses_success'));
     }
 }

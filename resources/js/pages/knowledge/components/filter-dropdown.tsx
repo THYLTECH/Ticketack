@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils';
 import { Check } from 'lucide-react';
 import * as React from 'react';
 import { FilterOption } from '../types';
+import { useTrans } from '@/lib/translation';
 
 interface FilterProps {
     title: string;
@@ -37,6 +38,7 @@ export function FilterDropdown({
 }: FilterProps) {
     const selectedValues = new Set(value ? value.split(',') : []);
     const [open, setOpen] = React.useState(false);
+    const __ = useTrans();
 
     const triggerClass = cn(
         'h-9 border-dashed text-xs shadow-sm transition-colors',
@@ -65,7 +67,7 @@ export function FilterDropdown({
                                         variant="secondary"
                                         className="rounded-sm px-1 text-[10px] font-normal"
                                     >
-                                        {selectedValues.size} selected
+                                        {selectedValues.size} {__('knowledge.filters.selected')}
                                     </Badge>
                                 ) : (
                                     options
@@ -91,7 +93,7 @@ export function FilterDropdown({
                 <Command>
                     <CommandInput placeholder={title} />
                     <CommandList>
-                        <CommandEmpty>No results found.</CommandEmpty>
+                        <CommandEmpty>{__('knowledge.filters.empty')}</CommandEmpty>
                         <CommandGroup>
                             {options.map((option) => {
                                 const isSelected = selectedValues.has(
@@ -141,7 +143,7 @@ export function FilterDropdown({
                                         onSelect={() => onChange(null)}
                                         className="justify-center text-center font-medium"
                                     >
-                                        Clear
+                                        {__('knowledge.filters.clear')}
                                     </CommandItem>
                                 </CommandGroup>
                             </>

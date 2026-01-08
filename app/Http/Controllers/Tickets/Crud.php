@@ -219,7 +219,7 @@ class Crud extends Controller
         $existingFilesCount = $ticket->attachments()->count();
 
         if (($newFilesCount + $existingFilesCount) > 10) {
-            return back()->withErrors([__('tickets.controller.update.attachments_limit')]);
+            return back()->withErrors([__('tickets.controller.attachments_limit')]);
         }
 
         return DB::transaction(function () use ($data, $ticket, $request) {
@@ -329,13 +329,13 @@ class Crud extends Controller
     {
         $this->authorize('restore', $ticket);
         $ticket->restore();
-        return redirect()->back()->with('success', __('Ticket restored successfully.'));
+        return redirect()->back()->with('success', __('tickets.flash.restored'));
     }
 
     public function forceDelete(Ticket $ticket): RedirectResponse
     {
         $this->authorize('forceDelete', $ticket);
         $ticket->forceDelete();
-        return redirect()->route('tickets.manage')->with('success', __('Ticket permanently deleted.'));
+        return redirect()->route('tickets.manage')->with('success', __('tickets.flash.force_deleted'));
     }
 }

@@ -166,6 +166,7 @@ return [
             'dashboard' => 'Dashboard',
             'current' => 'Entries',
         ],
+        'timezone' => 'Timezone',
     ],
     'pagination' => [
         'showing' => 'Showing',

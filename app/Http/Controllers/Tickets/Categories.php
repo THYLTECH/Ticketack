@@ -42,7 +42,7 @@ class Categories extends Controller
 
             if (!empty($attachedCategories)) {
                 return redirect()->back()->withErrors([
-                    'categories' => __('Some categories cannot be deleted because they are attached to existing tickets: :categories', [
+                    'categories' => __('tickets.flash.categories_error', [
                         'categories' => implode(', ', $attachedCategories),
                     ]),
                 ]);
@@ -77,6 +77,6 @@ class Categories extends Controller
             }
         });
 
-        return redirect()->back()->with('success', __('Ticket categories saved successfully.'));
+        return redirect()->back()->with('success', __('tickets.flash.categories_success'));
     }
 }

@@ -11,6 +11,21 @@ return [
         'created' => 'Ticket created successfully.',
         'updated' => 'Ticket updated successfully.',
         'deleted' => 'Ticket deleted successfully.',
+        'restored' => 'Ticket restored successfully.',
+        'force_deleted' => 'Ticket permanently deleted successfully.',
+
+        'categories_success' => 'Ticket categories saved successfully.',
+        'categories_error' => 'Some categories cannot be deleted because they are attached to existing tickets: :categories',
+
+        'priorities_success' => 'Ticket priorities saved successfully.',
+        'priorities_error' => 'Some priorities cannot be deleted because they are attached to existing tickets: :priorities',
+        'priorities_locked_error' => 'Some priorities cannot be deleted because they are locked: :priorities',
+
+        'statuses_success' => 'Ticket statuses saved successfully.',
+        'statuses_error' => 'Some statuses cannot be deleted because they are attached to existing tickets: :statuses',
+        'statuses_locked_error' => 'Some statuses cannot be deleted because they are locked: :statuses',
+        'statuses_default_error' => 'There must be exactly one default status.',
+        'statuses_closed_error' => 'There must be exactly one closed status.',
     ],
 
     /*
@@ -319,6 +334,157 @@ return [
                     'moved' => 'Successfully moved',
                     'updated' => 'Event updated',
                     'deleted' => 'Removed from schedule',
+                ],
+            ],
+        ],
+        'relations' => [
+            'categories' => [
+                'validation' => [
+                    'title_required' => 'Title is required.',
+                    'color_required' => 'Color is required.',
+                ],
+                'dialog' => [
+                    'create_title' => 'Create Category',
+                    'edit_title' => 'Edit Category',
+                    'delete_title' => 'Delete Category',
+
+                    'create_description' => 'Fill out the form below to create a new category.',
+                    'edit_description' => 'Update the details of the category below.',
+                    'delete_description' => 'Are you sure you want to delete this category? This action cannot be undone.',
+
+                    'form' => [
+                        'title_label' => 'Title',
+                        'title_placeholder' => 'eg. Network Issue',
+                        'description_label' => 'Description',
+                        'description_placeholder' => 'A brief description of the category.',
+                        'icon_label' => 'Icon',
+                        'color_label' => 'Color',
+                        'buttons' => [
+                            'close' => 'Close',
+                            'cancel' => 'Cancel',
+                            'update' => 'Update Category',
+                            'store' => 'Store Category',
+                            'delete' => 'Yes, delete category',
+                        ],
+                    ],
+                ], 
+                'sheet' => [
+                    'title' => 'Manage categories',
+                    'description' => 'Create, edit, and delete ticket categories to organize your support tickets effectively.',
+
+                    'table' => [
+                        'column' => 'Category',
+                        'empty' => 'No categories found.',
+                    ],
+
+                    'buttons' => [
+                        'create' => 'Create Category',
+                        'close' => 'Close',
+                        'save' => 'Save Changes',
+                    ]
+                ],
+            ],
+            'priorities' => [
+                'validation' => [
+                    'title_required' => 'Title is required.',
+                    'color_required' => 'Color is required.',
+                ],
+                'dialog' => [
+                    'create_title' => 'Create Priority',
+                    'edit_title' => 'Edit Priority',
+                    'delete_title' => 'Delete Priority',
+
+                    'create_description' => 'Fill out the form below to create a new priority.',
+                    'edit_description' => 'Update the details of the priority below.',
+                    'delete_description' => 'Are you sure you want to delete this priority? This action cannot be undone.',
+
+                    'form' => [
+                        'title_label' => 'Title',
+                        'title_placeholder' => 'eg: High, Medium, Low',
+                        'description_label' => 'Description',
+                        'description_placeholder' => 'A brief description of the priority.',
+                        'color_label' => 'Color',
+                        'buttons' => [
+                            'close' => 'Close',
+                            'cancel' => 'Cancel',
+                            'update' => 'Update Priority',
+                            'store' => 'Store Priority',
+                            'delete' => 'Yes, delete priority',
+                        ],
+                    ],
+                ], 
+                'sheet' => [
+                    'title' => 'Manage priorities',
+                    'description' => 'Create, edit, and delete ticket priorities to organize your support tickets effectively.',
+
+                    'table' => [
+                        'column' => 'Priority',
+                        'empty' => 'No priorities found.',
+                    ],
+
+                    'buttons' => [
+                        'create' => 'Create Priority',
+                        'close' => 'Close',
+                        'save' => 'Save Changes',
+                    ]
+                ],
+            ],
+            'statuses' => [
+                'validation' => [
+                    'title_required' => 'Title is required.',
+                    'color_required' => 'Color is required.',
+                ],
+                'dialog' => [
+                    'create_title' => 'Create Status',
+                    'edit_title' => 'Edit Status',
+                    'delete_title' => 'Delete Status',
+
+                    'create_description' => 'Fill out the form below to create a new status.',
+                    'edit_description' => 'Update the details of the status below.',
+                    'delete_description' => 'Are you sure you want to delete this status? This action cannot be undone.',
+
+                    'form' => [
+                        'title_label' => 'Title',
+                        'title_placeholder' => 'eg: To Do, In Progress, Done',
+                        'description_label' => 'Description',
+                        'description_placeholder' => 'A brief description of the status.',
+
+                        'default_label' => 'Is Default',
+                        'default_placeholder' => 'Set as default status for new tickets',
+                        'default_yes' => 'Yes',
+                        'default_no' => 'No',
+
+                        'closed_label' => 'Is Closed',
+                        'closed_placeholder' => 'Mark tickets with this status as closed',
+                        'closed_yes' => 'Yes',
+                        'closed_no' => 'No',
+
+                        'color_label' => 'Color',
+                        'buttons' => [
+                            'close' => 'Close',
+                            'cancel' => 'Cancel',
+                            'update' => 'Update Status',
+                            'store' => 'Store Status',
+                            'delete' => 'Yes, delete status',
+                        ],
+                    ],
+                ], 
+                'sheet' => [
+                    'title' => 'Manage statuses',
+                    'description' => 'Create, edit, and delete ticket statuses to organize your support tickets effectively.',
+
+                    'table' => [
+                        'column' => 'Status',
+                        'default' => 'Default',
+                        'closed' => 'Closed',
+                        'empty' => 'No statuses found.',
+                    ],
+
+                    'buttons' => [
+                        'create' => 'Create Status',
+                        'close' => 'Close',
+                        'save' => 'Save Changes',
+                    ]
                 ],
             ],
         ],

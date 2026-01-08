@@ -2,6 +2,13 @@
 
 return [
 
+    'flash' => [
+        'read_success' => 'Notification marked as read.',
+        'read_many_success' => 'Notifications marked as read.',
+        'delete_success' => 'Notification deleted successfully.',
+        'delete_many_success' => 'Notifications deleted successfully.',
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Notification Language Lines

@@ -41,7 +41,7 @@ class Priorities extends Controller
 
             if (!empty($attachedPriorities)) {
                 return redirect()->back()->withErrors([
-                    'priorities' => __('Some priorities cannot be deleted because they are attached to existing tickets: :priorities', [
+                    'priorities' => __('tickets.flash.priorities_error', [
                         'priorities' => implode(', ', $attachedPriorities),
                     ]),
                 ]);
@@ -55,7 +55,7 @@ class Priorities extends Controller
 
             if (!empty($lockedPriorities)) {
                 return redirect()->back()->withErrors([
-                    'priorities' => __('Some priorities cannot be deleted because they are locked: :priorities', [
+                    'priorities' => __('tickets.flash.priorities_locked_error', [
                         'priorities' => implode(', ', $lockedPriorities),
                     ]),
                 ]);
@@ -89,6 +89,6 @@ class Priorities extends Controller
             }
         });
 
-        return redirect()->back()->with('success', __('Ticket priorities saved successfully.'));
+        return redirect()->back()->with('success', __('tickets.flash.priorities_success'));
     }
 }
