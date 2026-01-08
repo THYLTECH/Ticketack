@@ -40,6 +40,9 @@ class Roles extends Controller
             $query->where('name', 'like', '%' . $request->input('search') . '%');
         }
 
+        $query->orderByRaw("CASE WHEN name IN ('admin', 'solver', 'simple_user') THEN 0 ELSE 1 END")
+            ->orderBy('name');
+
         $roles = $query->paginate($request->input('per_page', 10))->withQueryString();
 
         $roles->getCollection()->transform(function ($role) {
