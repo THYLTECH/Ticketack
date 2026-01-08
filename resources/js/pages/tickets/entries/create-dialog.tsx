@@ -92,6 +92,7 @@ export function TimeEntryDialog({
         reset,
         wasSuccessful,
         transform,
+        clearErrors,
     } = useForm<FormData>({
         ticket_id: ticket ? ticket.id : '',
         date: new Date(),
@@ -160,6 +161,13 @@ export function TimeEntryDialog({
         }));
 
         post(route('tickets.entries.store'), {
+            onSuccess: () => {
+            },
+            onError: (errors) => {
+                if (errors.date) {
+                    clearErrors('date');
+                }
+            },
         });
     };
     return (
