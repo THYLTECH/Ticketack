@@ -140,10 +140,15 @@ class Roles extends Controller
     {
         $data = $request->validated();
 
-        $role->update($data);
+        $systemRoles = ['admin', 'solver', 'simple_user'];
+        $isSystemRole = in_array($role->name, $systemRoles);
 
-        $permissions = collect(data_get($data, 'permissions', []))->pluck('id')->toArray();
-        $role->syncPermissions($permissions);
+        if (!$isSystemRole) {
+            $role->update($data);
+
+            $permissions = collect(data_get($data, 'permissions', []))->pluck('id')->toArray();
+            $role->syncPermissions($permissions);
+        }
 
         $users = collect(data_get($data, 'users', []))->pluck('id')->toArray();
 
@@ -157,6 +162,7 @@ class Roles extends Controller
         return redirect()->route('roles.show', ['role' => $role->id])
             ->with(['success' => __('roles.flash.updated')]);
     }
+
     /**
      * Remove the specified role from the database.
      *

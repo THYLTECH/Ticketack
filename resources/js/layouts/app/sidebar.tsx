@@ -95,13 +95,16 @@ export function AppSidebar() {
         });
     }
 
-    if (userHasPermission({ user: auth.user, permission: 'view knowledge explorer' })) {
+    if (userHasPermission({ user: auth.user, permission: 'view tickets' })) {
         mainNavItems.push({
             title: __('app.layout.sidebar.menugroups.platform.items.tickets'),
             href: route('tickets.index'),
             icon: Ticket,
         });
+    }
 
+
+    if (userHasPermission({ user: auth.user, permission: 'view knowledge explorer' })) {
         mainNavItems.push({
             title: __('knowledge.pages.search.title'),
             href: route('knowledge.search'),
