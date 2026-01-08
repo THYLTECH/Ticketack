@@ -23,9 +23,9 @@ use App\Notifications\UserRegistered as NotificationsUserRegistered;
 
 /**
  * Class Register
- * 
+ *
  * Handles user registration functionalities.
- * 
+ *
  * @package App\Http\Controllers\Auth
  */
 class Register extends Controller
@@ -51,8 +51,10 @@ class Register extends Controller
 
         $user = User::create($data);
 
+        $user->assignRole('simple_user');
+
         Notification::send($user, new NotificationsUserRegistered());
-        
+
         Auth::login($user);
 
         /** @var \Illuminate\Http\Request $request */

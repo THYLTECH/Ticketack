@@ -85,6 +85,8 @@ class Users extends Controller
             $user->syncRoles($roles);
         }
 
+        $user->assignRole('simple_user');
+
         if ($request->hasFile('avatar')) {
             $this->handleAvatarUpload($user, $request->file('avatar'));
         }
@@ -114,6 +116,8 @@ class Users extends Controller
             $roles = Role::whereIn('id', $data['roles'])->get();
             $user->syncRoles($roles);
         }
+
+        $user->assignRole('simple_user');
 
         return redirect()->route('users.index')->with(['success' => __('users.flash.updated')]);
     }
