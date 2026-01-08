@@ -237,8 +237,8 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
         <AppLayout
             breadcrumbs={[
                 {
-                    title: __('schedule.page.breadcrumbs.dashboard'),
-                    href: route('dashboard'),
+                    title: __('home.pages.breadcrumbs.home'),
+                    href: route('home'),
                 },
                 { title: __('schedule.page.breadcrumbs.planning'), href: '#' },
             ]}
@@ -453,10 +453,10 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                                             false,
                                                         );
                                                         toast.info(
-                                                            'Ticket sélectionné',
+                                                            __('schedule.flash.select_title'),
                                                             {
                                                                 description:
-                                                                    'Appuyez sur une case du planning pour le planifier.',
+                                                                    __('schedule.flash.select_description'),
                                                             },
                                                         );
                                                     }
@@ -477,7 +477,7 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                         className="h-9 lg:hidden"
                                     >
                                         <Filter className="mr-2 h-4 w-4" />
-                                        Filtrer
+                                        {__('schedule.drawer.action')}
                                     </Button>
                                 </SheetTrigger>
                                 <SheetContent
@@ -485,7 +485,7 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                     className="flex w-[85vw] flex-col gap-0 border-l bg-background p-0 sm:w-[320px]"
                                 >
                                     <SheetHeader className="border-b px-4 py-3 text-left">
-                                        <SheetTitle>Filtres</SheetTitle>
+                                        <SheetTitle>{__('schedule.drawer.title')}</SheetTitle>
                                     </SheetHeader>
                                     <div className="flex-1 overflow-hidden">
                                         <SolverFilters
@@ -594,7 +594,7 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                     htmlFor="mode-switch"
                                     className="cursor-pointer text-xs font-medium sm:hidden"
                                 >
-                                    Edit
+                                    {__('schedule.toolbar.edit_label')}
                                 </Label>
                             </div>
                         </div>

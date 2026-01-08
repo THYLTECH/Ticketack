@@ -34,6 +34,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { GetIcon } from '@/lib/render';
 import { useTrans } from '@/lib/translation';
 import { userHasPermission } from '@/lib/utils';
 import { SharedData, Ticket } from '@/types';
@@ -41,6 +42,7 @@ import { router } from '@inertiajs/react';
 import {
     Eye,
     EyeOff,
+    Flag,
     Monitor,
     MoreHorizontal,
     Pencil,
@@ -272,14 +274,7 @@ export function TicketTable({ tickets, auth }: Props) {
                                         <TableCell className="align-middle">
                                             <div className="flex items-center gap-2">
                                                 {ticket.priority && (
-                                                    <div
-                                                        className="h-2 w-2 rounded-full ring-1 ring-black/10 ring-inset dark:ring-white/10"
-                                                        style={{
-                                                            backgroundColor:
-                                                                ticket.priority
-                                                                    .color,
-                                                        }}
-                                                    />
+                                                    <Flag className="h-3.5 w-3.5" style={{ color: ticket.priority.color }} />
                                                 )}
                                                 <span className="text-xs font-medium text-muted-foreground">
                                                     {ticket.priority?.title}
@@ -318,14 +313,14 @@ export function TicketTable({ tickets, auth }: Props) {
 
                                         <TableCell className="hidden align-middle md:table-cell">
                                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                                <Tag className="h-3.5 w-3.5 opacity-50" />
+                                                <GetIcon icon={ticket.category?.icon ?? 'tag'} props={{ className: 'h-3.5 w-3.5 opacity-50' }} />
                                                 {ticket.category?.title || '-'}
                                             </div>
                                         </TableCell>
 
                                         <TableCell className="hidden align-middle lg:table-cell">
                                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                                <Monitor className="h-3.5 w-3.5 opacity-50" />
+                                                <GetIcon icon={ticket.asset?.icon ?? 'monitor'} props={{ className: 'h-3.5 w-3.5 opacity-50' }} />
                                                 {ticket.asset?.title || '-'}
                                             </div>
                                         </TableCell>

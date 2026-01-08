@@ -298,7 +298,7 @@ export function TrashTable({ data, type }: Props) {
                                     />
                                     <TableHead className="hidden lg:table-cell">
                                         <span className="-ml-3 h-8 text-xs font-semibold tracking-wider text-muted-foreground/70 uppercase">
-                                            Roles
+                                            {__('trash.pages.index.table.headers.roles')}
                                         </span>
                                     </TableHead>
                                 </>
@@ -317,7 +317,7 @@ export function TrashTable({ data, type }: Props) {
                                     />
                                     <TableHead className="hidden text-center md:table-cell">
                                         <span className="h-8 text-xs font-semibold tracking-wider text-muted-foreground/70 uppercase">
-                                            Tickets
+                                            {__('trash.pages.index.table.headers.tickets')}
                                         </span>
                                     </TableHead>
                                 </>
@@ -336,12 +336,12 @@ export function TrashTable({ data, type }: Props) {
                                     />
                                     <TableHead className="hidden text-center md:table-cell">
                                         <span className="h-8 text-xs font-semibold tracking-wider text-muted-foreground/70 uppercase">
-                                            Users
+                                            {__('trash.pages.index.table.headers.users')}
                                         </span>
                                     </TableHead>
                                     <TableHead className="hidden text-center md:table-cell">
                                         <span className="h-8 text-xs font-semibold tracking-wider text-muted-foreground/70 uppercase">
-                                            Permissions
+                                            {__('trash.pages.index.table.headers.permissions')}
                                         </span>
                                     </TableHead>
                                 </>
@@ -529,7 +529,7 @@ export function TrashTable({ data, type }: Props) {
                                                                 {
                                                                     item.tickets_count
                                                                 }{' '}
-                                                                tickets créés
+                                                                {__('trash.pages.index.table.cells.created_tickets')}
                                                             </span>
                                                         )}
                                                 </div>
@@ -591,7 +591,9 @@ export function TrashTable({ data, type }: Props) {
                                                             </Badge>
                                                         </TooltipTrigger>
                                                         <TooltipContent>
-                                                            <p>Tickets liés</p>
+                                                            <p>
+                                                                {__('trash.pages.index.table.cells.linked_tickets')}
+                                                            </p>
                                                         </TooltipContent>
                                                     </Tooltip>
                                                 </TooltipProvider>

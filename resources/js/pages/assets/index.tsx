@@ -13,7 +13,8 @@ import AppLayout from '@/layouts/app/layout';
 import { useTrans } from '@/lib/translation';
 
 // Custom functions
-import { formatDate, getIcon } from '@/lib/utils';
+import { formatDate } from '@/lib/utils';
+import { GetIcon } from '@/lib/render';
 
 // Types
 import type { Asset, BreadcrumbItem, SharedData } from '@/types';
@@ -195,8 +196,8 @@ export default function Index({ assets }: { assets: { data: Asset[], links: Pagi
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
-            title: __('dashboard.pages.breadcrumbs.dashboard'),
-            href: route('dashboard'),
+            title: __('home.pages.breadcrumbs.home'),
+            href: route('home'),
         },
         {
             title: __('assets.pages.breadcrumbs.index'),
@@ -415,7 +416,7 @@ function AssetRow({
     const depthLevel = asset.depth_level || 0;
     const indentation = depthLevel * 1.5;
 
-    const Icon = asset.icon ? getIcon(asset.icon) : null;
+    const Icon = asset.icon ? <GetIcon icon={asset.icon} props={{ className: 'h-6 w-6 rounded-md border p-0.5 text-muted-foreground', size: 16 }} /> : null;
 
     const handleToggle = (e: React.MouseEvent, id: string) => {
         e.stopPropagation();
@@ -480,9 +481,7 @@ function AssetRow({
                         )}
 
                         <div className="flex items-center gap-2">
-                            {Icon && (
-                                <Icon className="h-6 w-6 rounded-md border p-0.5 text-muted-foreground" />
-                            )}
+                            {Icon}
                             <span className={isMatch ? "bg-yellow-200 text-black px-1 rounded" : ""}>
                             {asset.title}
                             </span>

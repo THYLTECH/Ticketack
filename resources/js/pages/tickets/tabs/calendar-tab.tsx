@@ -202,7 +202,7 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                                         className="h-8 gap-2 border-dashed border-primary/50 px-2 text-xs text-primary sm:hidden"
                                     >
                                         <Inbox className="h-3.5 w-3.5" />
-                                        <span>Tickets</span>
+                                        <span>{__('schedule.sidebar.trigger')}</span>
                                     </Button>
                                 </SheetTrigger>
                                 <SheetContent
@@ -228,10 +228,10 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                                                         false,
                                                     );
                                                     toast.info(
-                                                        'Ticket sélectionné',
+                                                        __('schedule.flash.select_title'),
                                                         {
                                                             description:
-                                                                'Appuyez sur une case du planning pour le planifier.',
+                                                                __('schedule.flash.select_description'),
                                                         },
                                                     );
                                                 }

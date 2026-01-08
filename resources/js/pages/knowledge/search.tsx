@@ -97,8 +97,8 @@ export default function KnowledgeSearch({
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
-            title: __('dashboard.pages.breadcrumbs.dashboard'),
-            href: route('dashboard'),
+            title: __('home.pages.breadcrumbs.home'),
+            href: route('home'),
         },
         { title: __('knowledge.pages.search.title'), href: url },
     ];
@@ -122,7 +122,7 @@ export default function KnowledgeSearch({
             <Head title={__('knowledge.pages.search.title')} />
 
             <div className="min-h-screen w-full bg-background pb-5">
-                <div className="relative border-b border-border/40 px-4 py-3 sm:px-6 lg:px-8">
+                <div className="relative border-border/40 px-4 py-3 sm:px-6 lg:px-8">
                     <div className="absolute inset-0 -z-10 bg-[radial-gradient(rgba(0,0,0,0.05)_1px,transparent_1px)] bg-size-[16px_16px] dark:bg-[radial-gradient(rgba(255,255,255,0.05)_1px,transparent_1px)]"></div>
 
                     <div className="mx-auto max-w-2xl text-center">

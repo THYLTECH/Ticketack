@@ -2,6 +2,7 @@ import AppLogoIcon from '@/components/app-logo-icon';
 import { Icon } from '@/components/icon';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -22,6 +23,7 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    SidebarSeparator,
     useSidebar,
 } from '@/components/ui/sidebar';
 import { useInitials } from '@/hooks/use-initials';
@@ -95,7 +97,12 @@ export function AppSidebar() {
         });
     }
 
-    if (userHasPermission({ user: auth.user, permission: 'view knowledge explorer' })) {
+    if (
+        userHasPermission({
+            user: auth.user,
+            permission: 'view knowledge explorer',
+        })
+    ) {
         mainNavItems.push({
             title: __('app.layout.sidebar.menugroups.platform.items.tickets'),
             href: route('tickets.index'),
@@ -164,17 +171,17 @@ export function AppSidebar() {
                     <SidebarMenuItem className="mt-2 px-2 pb-2 group-data-[collapsible=icon]:px-0">
                         <SidebarMenuButton
                             asChild
-                            variant="default"
-                            className="w-full justify-center gap-2 bg-primary text-primary-foreground shadow-sm transition-all group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:p-0 hover:bg-primary/90"
                         >
-                            <Link href={route('tickets.create')}>
-                                <Plus className="size-4 shrink-0" />
-                                <span className="font-semibold group-data-[collapsible=icon]:hidden">
-                                    {__(
-                                        'app.layout.sidebar.actions.create_ticket',
-                                    )}
-                                </span>
-                            </Link>
+                            <Button asChild variant={'default'} className='transition-all hover:bg-primary/90 hover:text-primary-foreground group-data-[collapsible=icon]:rounded-full'>
+                                <Link href={route('tickets.create')}>
+                                    <Plus className="size-4 shrink-0" />
+                                    <span className="font-semibold group-data-[collapsible=icon]:hidden">
+                                        {__(
+                                            'app.layout.sidebar.actions.create_ticket',
+                                        )}
+                                    </span>
+                                </Link>
+                            </Button>
                         </SidebarMenuButton>
                     </SidebarMenuItem>{' '}
                 </SidebarMenu>
@@ -186,7 +193,6 @@ export function AppSidebar() {
 
             <SidebarFooter>
                 <NavFooter items={footerNavItems} className="mt-auto" />
-                <NavTrash />
                 <NavUser />
             </SidebarFooter>
         </Sidebar>
@@ -280,6 +286,8 @@ function NavFooter({
                         );
                     })}
                 </SidebarMenu>
+                <SidebarSeparator className='my-2 w-full relative mx-0'/>
+                <NavTrash />
             </SidebarGroupContent>
         </SidebarGroup>
     );
@@ -291,24 +299,64 @@ function NavMain({ items = [] }: { items: NavItem[] }) {
         <SidebarGroup className="px-2 py-0">
             <SidebarGroupLabel>Platform</SidebarGroupLabel>
             <SidebarMenu>
-                {items.map((item) => (
-                    <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton
-                            asChild
-                            isActive={page.url.startsWith(
+                {items.map((item) => {
+                    const currentPath = new URL(
+                        page.url,
+                        window.location.origin,
+                    ).pathname;
+
+                    const normalize = (url: string) =>
+                        new URL(url, window.location.origin).pathname;
+
+                    const matchingItems = items
+                        .map((item) => {
+                            const rawHref =
                                 typeof item.href === 'string'
                                     ? item.href
-                                    : item.href.url,
-                            )}
-                            tooltip={{ children: item.title }}
-                        >
-                            <Link href={item.href} prefetch>
-                                {item.icon && <item.icon />}
-                                <span>{item.title}</span>
-                            </Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                ))}
+                                    : item.href.url;
+
+                            const href = normalize(rawHref);
+
+                            return {
+                                href,
+                                length: href.length,
+                                matches:
+                                    currentPath === href ||
+                                    currentPath.startsWith(href + '/'),
+                            };
+                        })
+                        .filter((i) => i.matches);
+
+                    const activeHref =
+                        matchingItems.length > 0
+                            ? matchingItems.sort(
+                                  (a, b) => b.length - a.length,
+                              )[0].href
+                            : null;
+
+                    const linkUrl = normalize(
+                        typeof item.href === 'string'
+                            ? item.href
+                            : item.href.url,
+                    );
+
+                    const isActive = linkUrl === activeHref;
+
+                    return (
+                        <SidebarMenuItem key={item.title}>
+                            <SidebarMenuButton
+                                asChild
+                                isActive={isActive}
+                                tooltip={{ children: item.title }}
+                            >
+                                <Link href={item.href} prefetch>
+                                    {item.icon && <item.icon />}
+                                    <span>{item.title}</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    );
+                })}
             </SidebarMenu>
         </SidebarGroup>
     );

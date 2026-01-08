@@ -145,8 +145,8 @@ export default function EntriesIndex({
         <AppLayout
             breadcrumbs={[
                 {
-                    title: __('entries.index.breadcrumbs.dashboard'),
-                    href: route('dashboard'),
+                    title: __('home.pages.breadcrumbs.home'),
+                    href: route('home'),
                 },
                 { title: __('entries.index.breadcrumbs.current'), href: '#' },
             ]}
@@ -159,11 +159,10 @@ export default function EntriesIndex({
                     onReportClick={() => setIsReportOpen(true)}
                 />
 
-                <div className="flex w-fit items-center rounded-full border bg-background/50 px-3 py-1 shadow-sm">
+                <div className="flex w-fit items-center rounded-full border bg-background/50 px-3 py-1 gap-1.5 shadow-sm">
                     <Globe className="h-3.5 w-3.5 text-muted-foreground" />
-                    <Separator orientation="vertical" className="h-3" />
-                    <span className="text-[11px] font-medium tracking-tight text-foreground uppercase">
-                        TIMEZONE : {auth.user.timezone || 'UTC'}
+                    <span className="text-xs text-foreground uppercase">
+                        {__('entries.index.timezone')} : {auth.user.timezone || 'UTC'}
                     </span>
                 </div>
 

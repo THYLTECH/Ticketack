@@ -62,8 +62,8 @@ export default function TrashIndex({
     const breadcrumbs: BreadcrumbItem[] = useMemo(
         () => [
             {
-                title: __('dashboard.pages.breadcrumbs.dashboard'),
-                href: route('dashboard'),
+                title: __('home.pages.breadcrumbs.home'),
+                href: route('home'),
             },
             {
                 title: __('trash.pages.breadcrumbs.index'),

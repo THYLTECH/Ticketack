@@ -23,7 +23,15 @@ return [
                     'name' => 'Name / Identification',
                     'deleted_at' => 'Deleted at',
                     'actions' => 'Actions',
+                    'roles' => 'Roles',
+                    'users' => 'Users',
+                    'tickets' => 'Tickets',
+                    'permissions' => 'Permissions',
                 ],
+                'cells' => [
+                    'created_tickets' => 'created tickets',
+                    'linked_tickets' => 'linked tickets',
+                ]
             ],
             'buttons' => [
                 'restore' => 'Restore',

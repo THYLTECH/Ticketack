@@ -16,6 +16,8 @@ return [
         'asset' => 'Equipment',
         'type' => 'File Type',
         'clear' => 'Clear filters',
+        'empty' => 'No results found.',
+        'selected' => 'selected',
         'types' => [
             'all' => 'All types',
             'image' => 'Images',

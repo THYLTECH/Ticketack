@@ -2,6 +2,7 @@
 
 return [
     'sidebar' => [
+        'trigger' => 'Tickets',
         'title' => 'To Schedule',
         'search_placeholder' => 'Search...',
         'drop_to_unschedule' => 'Drop to unschedule',
@@ -13,6 +14,10 @@ return [
         'technicians' => 'Solvers',
         'search_placeholder' => 'Search...',
         'no_results' => 'No solvers found.',
+    ],
+    'drawer' => [
+        'action' => 'Filter',
+        'title' => 'Filters',
     ],
     'dialog' => [
         'no_description' => 'No description available.',
@@ -125,6 +130,8 @@ return [
         'deleted' => 'Intervention deleted successfully.',
         'overlap_error' => 'This slot is already occupied for this technician.',
         'validated' => 'Intervention validated successfully and converted to an entry in the ticket list.',
-        'error' => 'An error occurred.'
+        'error' => 'An error occurred.',
+        'select_title' => 'Ticket selected',
+        'select_description' => 'Click on a slot in the schedule to plan it.'
     ],
 ];
