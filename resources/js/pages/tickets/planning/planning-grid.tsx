@@ -19,7 +19,6 @@ import {
 } from 'date-fns';
 import React, { useEffect, useRef, useState } from 'react';
 
-// On définit le type ici pour éviter les dépendances circulaires avec index.tsx
 export type ViewType = 'day' | 'week' | 'month';
 
 const START_HOUR = 0;
@@ -85,7 +84,6 @@ export function PlanningGrid({
 
     const isResizingRef = useRef(false);
 
-    // Scroll automatique à 08:00
     useEffect(() => {
         if (scrollAreaRef.current && (view === 'week' || view === 'day')) {
             scrollAreaRef.current.scrollTop =
@@ -93,7 +91,6 @@ export function PlanningGrid({
         }
     }, [view]);
 
-    // Calcul de la disposition des événements pour éviter les chevauchements
     const getEventLayout = (dayEvents: TicketSchedule[]) => {
         const sorted = [...dayEvents].sort(
             (a, b) =>
@@ -147,7 +144,6 @@ export function PlanningGrid({
         return layout;
     };
 
-    // Calcul du style CSS (position absolute) d'un événement
     const getEventStyle = (
         event: TicketSchedule,
         layoutData: { left: number; width: number } | undefined,
@@ -169,7 +165,6 @@ export function PlanningGrid({
         };
     };
 
-    // Gestion du redimensionnement (Resize)
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
             if (!resizingEvent) return;
@@ -231,7 +226,6 @@ export function PlanningGrid({
         onSlotClick(targetDate);
     };
 
-    // --- RENDER : VUE MOIS ---
     if (view === 'month') {
         const monthStart = startOfWeek(startOfMonth(currentDate), {
             weekStartsOn: 1,
@@ -253,7 +247,6 @@ export function PlanningGrid({
         return (
             <div className="flex h-full flex-col overflow-hidden bg-card select-none">
                 <div className="flex flex-1 flex-col overflow-y-auto">
-                    {/* En-têtes Jours */}
                     <div className="sticky top-0 z-20 flex h-[3rem] shrink-0 border-b bg-background sm:h-[7rem]">
                         {weekDays.map((dayKey) => (
                             <div
@@ -270,7 +263,6 @@ export function PlanningGrid({
                         ))}
                     </div>
 
-                    {/* Grille du mois */}
                     <div className="grid flex-1 auto-rows-fr grid-cols-7">
                         {days.map((day, idx) => {
                             const dayEvents = events.filter(
@@ -297,7 +289,6 @@ export function PlanningGrid({
                                     onDrop={(e) => handleDrop(e, day)}
                                     onClick={() => handleSlotClick(day, 8)}
                                 >
-                                    {/* Numéro du jour */}
                                     <div className="mb-1 flex justify-center sm:justify-end">
                                         <span
                                             className={cn(
@@ -311,7 +302,6 @@ export function PlanningGrid({
                                         </span>
                                     </div>
 
-                                    {/* MOBILE: Affichage "Points" (Dots) */}
                                     <div className="mt-1 flex flex-wrap justify-center gap-1 sm:hidden">
                                         {dayEvents.map((evt) => (
                                             <div
@@ -376,7 +366,6 @@ export function PlanningGrid({
         );
     }
 
-    // --- RENDER : VUE JOUR & SEMAINE ---
     const days =
         view === 'day'
             ? [currentDate]

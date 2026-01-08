@@ -142,7 +142,6 @@ export function TicketSidebar({
                                         : 'hover:border-primary/50 hover:shadow-md',
                                 )}
                             >
-                                {/* Barre de couleur latérale intégrée via Flexbox */}
                                 <div
                                     className="w-1.5 shrink-0"
                                     style={{
