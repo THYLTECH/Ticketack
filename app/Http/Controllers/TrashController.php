@@ -88,7 +88,7 @@ class TrashController extends Controller
             'days' => 'required|integer|min:1|max:365',
         ]);
 
-        TrashRetention::query()->updateOrCreate(...
+        TrashRetention::query()->updateOrCreate(
             ['type' => $request->type],
             ['days' => $request->days]
         );
