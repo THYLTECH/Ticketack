@@ -47,7 +47,24 @@ return [
         'category' => 'Category',
         'clear' => 'Clear filters',
     ],
-    'fields',
+    'fields'=> [
+        'id'         => 'ID',
+        'title'      => 'Title',
+        'status'     => 'Status',
+        'priority'   => 'Priority',
+        'author'     => 'Author',
+        'updated_at' => 'Updated At',
+    ],
+    'status' => [
+        'open'   => 'Open',
+        'closed' => 'Closed',
+    ],
+    'priority' => [
+        'low'    => 'Low',
+        'medium' => 'Medium',
+        'high'   => 'High',
+    ],
+
     'archive' => [
         'message' => 'This ticket will be archived you can restore it at any time.',
         'confirm' => 'Are you sure you want to archive this ticket ?',
