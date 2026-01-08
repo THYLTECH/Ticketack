@@ -6,7 +6,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app/layout';
 import { useTrans } from '@/lib/translation';
 import {

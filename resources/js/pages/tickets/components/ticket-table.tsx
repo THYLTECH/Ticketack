@@ -43,10 +43,8 @@ import {
     Eye,
     EyeOff,
     Flag,
-    Monitor,
     MoreHorizontal,
     Pencil,
-    Tag,
     TicketIcon,
     Trash,
 } from 'lucide-react';
