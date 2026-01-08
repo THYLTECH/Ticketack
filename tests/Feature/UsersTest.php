@@ -17,7 +17,6 @@ uses(RefreshDatabase::class);
 beforeEach(function () {
 
     Storage::fake('public');
-    Notification::fake();
 
     Permission::firstOrCreate(['name' => 'view users']);
     Permission::firstOrCreate(['name' => 'show users']);
@@ -29,7 +28,7 @@ beforeEach(function () {
 
 
     $this->roleAdmin = Role::create(['name' => 'Admin']);
-    $this->roleBasic = Role::create(['name' => 'Basic User']);
+    $this->roleBasic = Role::create(['name' => 'simple_user']);
 
     $this->testUser1 = User::factory()->create();
     $this->testUser1->assignRole($this->roleBasic);
@@ -60,6 +59,7 @@ test('create loads roles', function () {
 });
 
 test('store minimal user', function () {
+    Notification::fake();
 
     $response = post(route('users.store'), [
         'name' => 'New User',
@@ -73,7 +73,7 @@ test('store minimal user', function () {
     $response->assertSessionHasNoErrors();
 
     $user = User::where('email','user@test.com')->firstOrFail();
-    $this->assertTrue($user->hasRole('Basic User'));
+    $this->assertTrue($user->hasRole('simple_user'));
 
     Notification::assertSentTo($user, UserRegistered::class);
 });
@@ -467,7 +467,7 @@ test('update replaces roles', function () {
     ])->assertSessionHasNoErrors();
 
     expect($this->testUser1->fresh()->roles)->toHaveCount(1)
-        ->and($this->testUser1->hasRole('Basic User'))->toBeTrue()
+        ->and($this->testUser1->hasRole('simple_user'))->toBeTrue()
         ->and($this->testUser1->hasRole('Admin'))->toBeFalse();
 });
 
@@ -579,6 +579,7 @@ test('store hashes password automatically', function () {
 });
 
 test('store sends registration notification', function () {
+    Notification::fake();
     post(route('users.store'), [
         'name' => 'Notification Test',
         'email' => 'notification@test.com',
