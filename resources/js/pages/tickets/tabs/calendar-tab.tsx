@@ -242,20 +242,6 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                                 </SheetContent>
                             </Sheet>
                         )}
-
-                        <div className="flex items-center space-x-2">
-                            <Switch
-                                id="edit-mode-tab"
-                                checked={isEditMode}
-                                onCheckedChange={setIsEditMode}
-                            />
-                            <Label
-                                htmlFor="edit-mode-tab"
-                                className="cursor-pointer text-xs font-medium"
-                            >
-                                {__('tickets.pages.show.calendar.edit_mode')}
-                            </Label>
-                        </div>
                     </div>
 
                     <Tabs
@@ -283,6 +269,19 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                             </TabsTrigger>
                         </TabsList>
                     </Tabs>
+                    <div className="flex h-9 items-center space-x-2 rounded-md border px-3 transition-colors">
+                        <Switch
+                            id="edit-mode-tab"
+                            checked={isEditMode}
+                            onCheckedChange={setIsEditMode}
+                        />
+                        <Label
+                            htmlFor="edit-mode-tab"
+                            className="cursor-pointer text-xs font-medium"
+                        >
+                            {__('tickets.pages.show.calendar.edit_mode')}
+                        </Label>
+                    </div>
                 </div>
             </div>
 
@@ -323,11 +322,11 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                                     solvers.find(
                                         (s) => s.id === evt.user_id,
                                     ) || {
-                                        id: evt.user_id,
-                                        name: 'Technicien',
-                                        email: '',
-                                        avatar: null,
-                                    },
+                                    id: evt.user_id,
+                                    name: 'Technicien',
+                                    email: '',
+                                    avatar: null,
+                                },
                                 ticket: evt.ticket || ticket,
                             };
                             setSelectedEvent(fullEvent);
