@@ -340,7 +340,7 @@ return [
                 ],
             ],
             'calendar' => [
-                'edit_mode' => 'Planning mode',
+                'edit_mode' => 'Edit',
                 'views' => [
                     'day' => 'Day',
                     'week' => 'Week',
