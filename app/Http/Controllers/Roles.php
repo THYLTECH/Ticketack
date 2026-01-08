@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\Roles\Store as RequestsStore;
 use App\Http\Requests\Roles\Update as RequestsUpdate;
 use App\Models\Role;
@@ -106,7 +105,7 @@ class Roles extends Controller
     }
 
     /**
-     * Store a newly created role in database.
+     * Store a newly created role in the database.
      *
      * @param RequestsStore $request
      * @return RedirectResponse
@@ -123,12 +122,12 @@ class Roles extends Controller
         $users = collect(data_get($data, 'users', []))->pluck('id')->toArray();
         $role->users()->sync($users);
 
-        return redirect()->route('roles.show', ['role' => $role->id])
+        return redirect()->route('roles.index')
             ->with(['success' => __('roles.flash.created')]);
     }
 
     /**
-     * Update the specified role in database.
+     * Update the specified role in the database.
      *
      * @param RequestsUpdate $request
      * @param Role $role
@@ -151,7 +150,7 @@ class Roles extends Controller
     }
 
     /**
-     * Remove the specified role from database.
+     * Remove the specified role from the database.
      *
      * @param Role $role
      * @return RedirectResponse
