@@ -1,4 +1,3 @@
-import LaravelPagination from '@/components/LaravelPagination';
 import { SortableTableHead } from '@/components/sortable-table-head';
 import {
     AlertDialog,
@@ -50,23 +49,10 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 
-interface PaginatedTickets {
-    data: Ticket[];
-    current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
-    from: number;
-    to: number;
-    links: {
-        url: string | null;
-        label: string;
-        active: boolean;
-    }[];
-}
-
 interface Props {
-    tickets: PaginatedTickets;
+    tickets: {
+        data: Ticket[];
+    };
     auth: SharedData['auth'];
 }
 
@@ -127,9 +113,7 @@ export function TicketTable({ tickets, auth }: Props) {
                     <h3 className="text-lg font-semibold tracking-tight text-foreground">
                         {__('tickets.pages.index.empty.title')}
                     </h3>
-                    <p className="text-sm text-muted-foreground">
-                        {description}
-                    </p>
+                    <p className="text-sm text-muted-foreground">{description}</p>
                 </div>
             </div>
         );
@@ -502,27 +486,6 @@ export function TicketTable({ tickets, auth }: Props) {
                     </Table>
                 </div>
             </div>
-
-            {tickets.total > tickets.per_page && (
-                <div className="flex items-center justify-between border-t px-2 py-4">
-                    <div className="text-sm text-muted-foreground">
-                        {__('pagination.showing') || 'Showing'}{' '}
-                        <span className="font-medium text-foreground">
-                            {tickets.from}
-                        </span>{' '}
-                        {__('pagination.to') || 'to'}{' '}
-                        <span className="font-medium text-foreground">
-                            {tickets.to}
-                        </span>{' '}
-                        {__('pagination.of') || 'of'}{' '}
-                        <span className="font-medium text-foreground">
-                            {tickets.total}
-                        </span>{' '}
-                        {__('pagination.results') || 'results'}
-                    </div>
-                    <LaravelPagination links={tickets.links} className="mt-0" />
-                </div>
-            )}
 
             <AlertDialog
                 open={deleteConfirm.isOpen}

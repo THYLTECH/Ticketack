@@ -27,7 +27,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { useTrans } from '@/lib/translation';
 import { cn } from '@/lib/utils';
-import { Asset, Ticket } from '@/types';
+import { Ticket , TicketOption} from '@/types';
 import { useForm } from '@inertiajs/react';
 import { format } from 'date-fns';
 import {
@@ -48,13 +48,6 @@ export interface PreFillData {
     minutes: number;
     description?: string;
     schedule_id?: number;
-}
-
-interface TicketOption {
-    id: number;
-    title: string;
-    description: string | null;
-    asset: Asset;
 }
 
 interface Props {
@@ -99,6 +92,7 @@ export function TimeEntryDialog({
         reset,
         wasSuccessful,
         transform,
+        clearErrors,
     } = useForm<FormData>({
         ticket_id: ticket ? ticket.id : '',
         date: new Date(),
@@ -167,6 +161,13 @@ export function TimeEntryDialog({
         }));
 
         post(route('tickets.entries.store'), {
+            onSuccess: () => {
+            },
+            onError: (errors) => {
+                if (errors.date) {
+                    clearErrors('date');
+                }
+            },
         });
     };
     return (

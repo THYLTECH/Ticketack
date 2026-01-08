@@ -1,3 +1,4 @@
+import { PaginationControl } from '@/components/pagination-control';
 import AppLayout from '@/layouts/app/layout';
 import { useTrans } from '@/lib/translation';
 import { Asset, BreadcrumbItem, Role, Ticket, User } from '@/types';
@@ -36,6 +37,8 @@ interface Props {
     deletedRoles: PaginatedData<Deleted<Role>>;
     deletedAssets: PaginatedData<Deleted<Asset>>;
     filters?: { search?: string };
+    retentionSettings: Record<string, number>;
+    canManageSettings: boolean;
 }
 
 type TabType = 'ticket' | 'user' | 'asset' | 'role';
@@ -52,6 +55,8 @@ export default function TrashIndex({
     deletedRoles,
     deletedAssets,
     filters = {},
+    retentionSettings,
+    canManageSettings,
 }: Props) {
     const __ = useTrans();
 
@@ -98,11 +103,14 @@ export default function TrashIndex({
         }
     };
 
+    const currentData = getCurrentData();
+    const currentRetention = retentionSettings[activeTab] || 30;
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={__('trash.pages.index.head_title')} />
 
-            <div className="container mx-auto max-w-[1600px] space-y-5 px-4 py-8 sm:px-6 lg:px-8">
+            <div className="container mx-auto max-w-full space-y-5 px-4 py-8 sm:px-6 lg:px-8">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h2 className="text-2xl font-bold tracking-tight text-foreground">
@@ -121,16 +129,21 @@ export default function TrashIndex({
                         activeTab={activeTab}
                         onTabChange={(tab) => setActiveTab(tab as TabType)}
                         onClearSearch={() => setSearchTerm('')}
+                        retentionDays={currentRetention}
+                        canManageSettings={canManageSettings}
                     />
 
                     <TrashTable
                         data={
-                            getCurrentData() as unknown as ComponentProps<
+                            currentData as unknown as ComponentProps<
                                 typeof TrashTable
                             >['data']
                         }
                         type={activeTab}
+                        retentionDays={currentRetention}
                     />
+
+                    <PaginationControl meta={currentData} />
                 </div>
             </div>
         </AppLayout>

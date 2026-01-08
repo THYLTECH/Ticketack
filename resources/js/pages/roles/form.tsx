@@ -39,20 +39,17 @@ import {
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
-// --- TYPES FORTS POUR REMPLACER 'ANY' ---
 export interface RoleFormData {
     name: string;
     permissions: Permission[];
     users: User[];
 }
 
-// Type pour la fonction setData compatible avec Inertia
 type RoleSetData = <K extends keyof RoleFormData>(
     key: K,
     value: RoleFormData[K],
 ) => void;
 
-// --- TAB 1: INFORMATIONS ---
 export function InformationsTab({
     errors,
     data,
@@ -133,7 +130,6 @@ export function InformationsTab({
     );
 }
 
-// --- TAB 2: PERMISSIONS ---
 interface GroupedPermissions {
     [key: string]: Permission[];
 }
@@ -314,7 +310,6 @@ export function PermissionsTab({
     );
 }
 
-// --- TAB 3: USERS ---
 export function UsersTab({
     data,
     setData,
@@ -335,6 +330,8 @@ export function UsersTab({
         usersWithoutRole || [],
     );
     const [assignedSearchQuery, setAssignedSearchQuery] = useState('');
+
+    const isSimpleUser = data.name === 'simple_user';
 
     const filteredAvailableUsers = useMemo(() => {
         if (!searchQuery) return tempUsersWithoutRole;
@@ -598,7 +595,7 @@ export function UsersTab({
                                         'roles.pages.form.users.table.columns.email',
                                     )}
                                 </TableHead>
-                                {!disabled && (
+                                {!disabled && !isSimpleUser && (
                                     <TableHead className="w-[20%] pr-6 text-right">
                                         {__(
                                             'roles.pages.form.users.table.columns.actions',
@@ -648,7 +645,7 @@ export function UsersTab({
                                         {user.email}
                                     </TableCell>
 
-                                    {!disabled && (
+                                    {!disabled && !isSimpleUser && (
                                         <TableCell className="pr-6 text-right">
                                             <Button
                                                 size="icon"

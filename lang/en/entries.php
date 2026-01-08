@@ -3,6 +3,11 @@
 return [
     'entries' => 'Entries',
     'entry' => 'Entry',
+    'flash' => [
+        'created' => 'Time entry created successfully.',
+        'overlap_error' => 'This entry overlaps with another one.',
+        'overlap_details' => 'Overlap with ticket #:id: :title (:start - :end)',
+    ],
     'header' => [
         'title' => 'Time Tracking',
         'description' => 'Analyze your performance and export your data.',

@@ -22,7 +22,6 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
-import { TabsContent } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import {
     Tooltip,
@@ -48,6 +47,7 @@ import {
     TicketCategory,
     TicketPriority,
     TicketStatus,
+    User,
 } from '@/types';
 import { Link, router, usePage } from '@inertiajs/react';
 import {
@@ -65,21 +65,27 @@ import {
 import * as React from 'react';
 import { MarkdownEditor } from './markdown-editor';
 import { TicketFormData } from './types';
+import { TicketAssignees } from './users-tab';
 import { userHasPermission } from '@/lib/utils';
+
+interface ExtendedTicketFormData extends Omit<TicketFormData, 'assignees'> {
+    assignees: number[];
+}
 
 interface InformationsTabProps {
     errors: Record<string, string>;
-    data: TicketFormData;
-    setData: <K extends keyof TicketFormData>(
+    data: ExtendedTicketFormData;
+    setData: <K extends keyof ExtendedTicketFormData>(
         key: K,
-        value: TicketFormData[K],
+        value: ExtendedTicketFormData[K],
     ) => void;
     disabled?: boolean;
     priorities: TicketPriority[];
     statuses: TicketStatus[];
     categories: TicketCategory[];
     assets: Asset[];
-    clearErrors?: (field?: keyof TicketFormData) => void;
+    users: User[];
+    clearErrors?: (field?: keyof ExtendedTicketFormData) => void;
     existingAttachments?: Attachment[];
 }
 
@@ -92,6 +98,7 @@ export function InformationsTab({
     statuses,
     categories,
     assets,
+    users,
     clearErrors,
     existingAttachments = [],
 }: InformationsTabProps) {
@@ -158,10 +165,7 @@ export function InformationsTab({
     };
 
     return (
-        <TabsContent
-            value="informations"
-            className="animate-in space-y-8 fade-in slide-in-from-bottom-2"
-        >
+        <div className="animate-in space-y-8 fade-in slide-in-from-bottom-2">
             {canManageKnowledgeBase && (
                 <Card className="border-l-4 border-l-emerald-500 bg-emerald-50/20 shadow-sm transition-all hover:shadow-md dark:bg-emerald-950/10">
                     <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-4">
@@ -588,6 +592,13 @@ export function InformationsTab({
                         </p>
                     )}
                 </div>
+
+                <TicketAssignees
+                    data={data}
+                    setData={setData}
+                    users={users}
+                    disabled={disabled}
+                />
             </div>
 
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -793,6 +804,6 @@ export function InformationsTab({
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </TabsContent>
+        </div>
     );
 }

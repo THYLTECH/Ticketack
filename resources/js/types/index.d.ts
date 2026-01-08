@@ -120,7 +120,7 @@ export interface PaginationProps {
         active: boolean;
         label: string;
         page: number | null;
-    };
+    }[];
 }
 
 // ---------------------------------------
@@ -359,4 +359,11 @@ export interface UpdatePayload {
     duration_minutes?: number;
     user_id?: number;
     [key: string]: unknown;
+}
+
+export interface TicketOption {
+    id: number;
+    title: string;
+    description: string | null;
+    asset: Asset | null;
 }

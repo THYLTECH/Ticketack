@@ -41,7 +41,9 @@ test('role index page loads and shows roles', function () {
     $response
         ->assertOk()
         ->assertInertia(fn ($page) => $page->component('roles/index')
-            ->has('roles', 2)
+            ->has('roles.data', 2)
+            ->where('roles.data.0.name', 'Admin')
+            ->where('roles.data.1.name', 'Guest')
         );
 });
 
@@ -101,7 +103,7 @@ test('user can store a new role with minimum data', function () {
 
     $response
         ->assertSessionHasNoErrors()
-        ->assertRedirect(route('roles.show', ['role' => $role->id]))
+        ->assertRedirect(route('roles.index'))
         ->assertSessionHas('success');
 
     $this->assertDatabaseHas('roles', ['name' => 'Basic User']);
@@ -379,9 +381,10 @@ test('index page shows role with user count', function () {
     get(route('roles.index'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->where('roles.0.nbrOfUsers', 2)
+            ->where('roles.data.0.nbrOfUsers', 2)
         );
 });
+
 
 test('edit page excludes users who already have the role', function () {
     $role = Role::create(['name' => 'Exclusive Role']);
@@ -532,9 +535,10 @@ test('index page loads roles with permissions relationship', function () {
     get(route('roles.index'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->has('roles.0.permissions', 1)
+            ->has('roles.data.0.permissions', 1)
         );
 });
+
 
 test('edit page loads role with permissions and users relationships', function () {
     $role = Role::create(['name' => 'Full Load']);

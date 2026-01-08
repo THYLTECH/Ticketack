@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Tickets;
 
 use App\Http\Controllers\Controller;
 use App\Models\Ticket;
-use App\Models\TicketEntry;
 use App\Models\TicketSchedule;
 use App\Models\User;
 use Carbon\Carbon;
@@ -100,28 +99,6 @@ class Schedules extends Controller
         return back()->with('success', __('schedule.flash.deleted'));
     }
 
-    public function convert(Request $request, TicketSchedule $schedule)
-    {
-        $this->authorize('update', $schedule);
-
-        $schedule->load('ticket');
-
-        $note = $request->input('note') ?: ($schedule->ticket->title);
-
-        TicketEntry::create([
-            'ticket_id' => $schedule->ticket_id,
-            'user_id' => $schedule->user_id,
-            'start_at' => $schedule->start_date,
-            'end_at' => $schedule->end_date,
-            'duration_seconds' => $schedule->duration_minutes * 60,
-            'note' => $note,
-            'billable' => true,
-        ]);
-
-        $schedule->delete();
-
-        return back()->with('success');
-    }
     private function checkOverlap($userId, $startDate, $duration, $excludeId = null)
     {
         $newStart = Carbon::parse($startDate);

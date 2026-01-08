@@ -19,5 +19,6 @@ return [
     'to' => 'to',
     'of' => 'of',
     'results' => 'results',
-
+    'show' => 'Show',
+    'rows_per_page' => 'Rows per page',
 ];

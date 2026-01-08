@@ -210,25 +210,3 @@ test('user without permissions cannot manage schedules', function () {
 
     delete(route('tickets.planning.destroy', $schedule->id))->assertForbidden();
 });
-
-test('user can convert a schedule to an entry with a custom note', function () {
-    $ticket = Ticket::factory()->create();
-    $schedule = TicketSchedule::create([
-        'ticket_id' => $ticket->id,
-        'user_id' => $this->user->id,
-        'start_date' => now()->addDay(),
-        'end_date' => now()->addDay()->addHour(),
-        'duration_minutes' => 60,
-    ]);
-
-    $customNote = 'Travail terminé avec succès';
-
-    post(route('tickets.planning.convert', $schedule->id), [
-        'note' => $customNote
-    ])->assertRedirect();
-
-    $this->assertDatabaseHas('ticket_entries', [
-        'ticket_id' => $ticket->id,
-        'note' => $customNote,
-    ]);
-});

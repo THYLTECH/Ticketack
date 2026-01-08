@@ -246,7 +246,6 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
             <Head title={__('schedule.page.title')} />
 
             <div className="flex h-[calc(100vh-4rem)] flex-col overflow-hidden bg-background">
-                {/* --- Toolbar --- */}
                 <div className="z-30 flex shrink-0 flex-col gap-3 border-b bg-background/95 px-4 py-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/60 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:gap-0">
                     <div className="flex items-center justify-between gap-2 lg:justify-start lg:gap-4">
                         <div className="flex items-center rounded-lg border bg-card p-0.5 shadow-sm">
@@ -414,7 +413,6 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
 
                     <div className="flex flex-wrap items-center justify-between gap-3 lg:justify-end">
                         <div className="flex items-center gap-2">
-                            {/* Mobile: Tickets Drawer */}
                             {isEditMode && (
                                 <Sheet
                                     open={isTicketsSheetOpen}
@@ -468,7 +466,6 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                 </Sheet>
                             )}
 
-                            {/* Mobile: Filters Drawer */}
                             <Sheet>
                                 <SheetTrigger asChild>
                                     <Button
@@ -601,7 +598,6 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                     </div>
                 </div>
 
-                {/* --- Main Content Area --- */}
                 <div className="flex flex-1 flex-row gap-4 overflow-hidden bg-muted/10 p-2 sm:p-4">
                     <aside
                         className={cn(

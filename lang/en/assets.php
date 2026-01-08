@@ -17,6 +17,10 @@ return [
         'forced_deleted' => 'Asset permanently deleted successfully.',
         'invalid_parent' => 'The selected parent asset is invalid.',
     ],
+    'filters' => [
+        'attributes' => 'Attributes',
+        'attributes_search' => 'Search by attribute...',
+    ],
 
     /*
     |--------------------------------------------------------------------------
