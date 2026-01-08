@@ -38,7 +38,7 @@ class TicketObserver
         $this->logAction($ticket, 'created');
 
         // Debug log
-        Log::info("1. [Observer] Ticket #{$ticket->id} created. Dispatching event...");
+        Log::info("[Observer] Ticket #{$ticket->id} created. Dispatching event...");
 
         // Dispatch the TicketCreated event (for AI suggestions)
         TicketCreated::dispatch($ticket);

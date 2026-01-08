@@ -55,11 +55,6 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
-        Event::listen(
-            TicketCreated::class,
-            DispatchTicketToAiQueue::class,
-        );
-
         // --- 1. Super-Admin Override Gate ---
         Gate::before(function ($user) {
             return $user->hasRole('admin') ? true : null;
