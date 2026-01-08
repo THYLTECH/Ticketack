@@ -1,198 +1,51 @@
-// resources/js/pages/assets/index.tsx
-
-// Necessary imports
-import { cn, userHasPermission } from '@/lib/utils';
-import { Head, Link, router, usePage } from '@inertiajs/react';
-import { useMemo, useState, useEffect } from 'react';
-import {Badge} from "@/components/ui/badge";
-
-// Layout
+import { PaginationControl } from '@/components/pagination-control';
 import AppLayout from '@/layouts/app/layout';
-
-// Translation Hook
 import { useTrans } from '@/lib/translation';
+import type { Asset, BreadcrumbItem } from '@/types';
+import { Head, router } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
+import { useDebounce } from 'use-debounce';
+import { AssetsEmpty } from './components/assets-empty';
+import { AssetsHeader } from './components/assets-header';
+import { AssetsTable } from './components/assets-table';
+import { AssetsToolbar } from './components/assets-toolbar';
 
-// Custom functions
-import { formatDate } from '@/lib/utils';
-import { GetIcon } from '@/lib/render';
-
-// Types
-import type { Asset, BreadcrumbItem, SharedData } from '@/types';
-
-// Custom components
-
-// Shadcn UI Components
-import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardAction,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
-import {
-    Empty,
-    EmptyContent,
-    EmptyDescription,
-    EmptyHeader,
-    EmptyMedia,
-    EmptyTitle,
-} from '@/components/ui/empty';
-import { Separator } from '@/components/ui/separator';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipTrigger,
-} from '@/components/ui/tooltip';
-
-import InputSearch from '@/components/ui/inputSearch';
-
-// Icons
-import {
-    ChevronDown,
-    ListTree,
-    Maximize,
-    Minimize,
-    Plus,
-    RefreshCcw,
-} from 'lucide-react';
-import LaravelPagination from '@/components/LaravelPagination';
-
-// Interfaces
-
-interface AssetRowProps {
-    asset: Asset;
-    assetsByParent: Record<string, Asset[]>;
-    openState: Record<string, boolean>;
-    toggleNode: (id: string) => void;
-    renderAssetRows: (parentId: string | null) => React.ReactNode;
-    search?: string;
+interface PaginatedData<T> {
+    data: T[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from: number;
+    to: number;
+    links: {
+        url: string | null;
+        label: string;
+        active: boolean;
+    }[];
 }
 
-interface AssetTableControls {
-    toggleAll: (expand: boolean) => void;
-    isAllExpanded: boolean;
-    isAllRetracted: boolean;
-    allParentIdsCount: number;
+interface Props {
+    assets: PaginatedData<Asset>;
+    filters?: { search?: string; attributes?: string };
+    available_attributes: { value: string; label: string }[];
 }
 
-interface AssetTableProps {
-    assets: Asset[];
-    assetsByParent: Record<string, Asset[]>;
-    openState: Record<string, boolean>;
-    toggleNode: (id: string) => void;
-    search?: string;
-}
-
-interface PaginationLink {
-    url: string | null;
-    label: string;
-    active: boolean;
-}
-
-export default function Index({ assets }: { assets: { data: Asset[], links: PaginationLink[] , filters:{search?: string} } }) {
+export default function AssetsIndex({
+    assets,
+    filters = {},
+    available_attributes = [],
+}: Props) {
     const __ = useTrans();
-    const filters = {
-        search: '', // Default value for search
-    };
 
-    // ---------------------------------------
-    const [openState, setOpenState] = useState<Record<string, boolean>>({});
-    const [searchTerm, setSearchTerm] = useState(filters?.search || '');
-    useEffect(()=> {
-        if(!searchTerm)
-        {
-            setOpenState({});
-            return;
-        }
+    const [searchTerm, setSearchTerm] = useState(filters.search || '');
+    const [debouncedSearch] = useDebounce(searchTerm, 300);
 
-        const assetMap = new Map(assets.data.map(a=>[a.id, a]));
-        const parentsToExpand = new Set<string>();
-        assets.data.forEach((asset) => {
-            
-            if (asset.title.toLowerCase().includes(searchTerm.toLowerCase())
-            || hasMatchedAttributes(asset, searchTerm)) {
-                let currentParentId = asset.parent_id;
-                
-                // Traverse up the parent chain
-                while (currentParentId) {
-                    const parentIdString = String(currentParentId)
-                    parentsToExpand.add(parentIdString);
-                    
-                    const parentAsset = assetMap.get(currentParentId);
-                    
-                    if(!parentAsset) break;
-                    
-                    currentParentId = parentAsset.parent_id;
-
-                }
-            }
-        });
-        const newOpenState: Record<string, boolean> = {};
-        parentsToExpand.forEach((id) => {
-            newOpenState[id] = true;
-        });
-
-        setOpenState(newOpenState);
-        
-    },[searchTerm, assets.data]);
-
-    const assetsByParent = useMemo(
-        () =>
-            assets.data.reduce(
-                (acc, asset) => {
-                    const parentId = asset.parent_id || 'root';
-                    if (!acc[parentId]) {
-                        acc[parentId] = [];
-                    }
-                    acc[parentId].push(asset);
-                    return acc;
-                },
-                {} as Record<string, Asset[]>,
-            ),
-        [assets],
+    const [selectedAttributes, setSelectedAttributes] = useState(
+        filters.attributes || '',
     );
 
-    const allParentIds = useMemo(() => {
-        return assets.data
-            .filter((asset) => assetsByParent[asset.id]?.length > 0)
-            .map((asset) => asset.id);
-    }, [assets, assetsByParent]);
-
-    const toggleAll = (expand: boolean) => {
-        const newState: Record<string, boolean> = {};
-        allParentIds.forEach((id) => {
-            newState[id] = expand;
-        });
-        setOpenState(newState);
-    };
-
-    const isAllExpanded = allParentIds.every((id) => openState[id]);
-    const isAllRetracted = allParentIds.every((id) => !openState[id]);
-
-    const toggleNode = (id: string) => {
-        setOpenState((prev) => ({
-            ...prev,
-            [id]: !prev[id],
-        }));
-    };
-
-    const controls: AssetTableControls = {
-        toggleAll,
-        isAllExpanded,
-        isAllRetracted,
-        allParentIdsCount: allParentIds.length,
-    };
-    // ----------------------------------------------------
+    const [globalExpand, setGlobalExpand] = useState<boolean | null>(null);
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -205,338 +58,74 @@ export default function Index({ assets }: { assets: { data: Asset[], links: Pagi
         },
     ];
 
-    const { auth } = usePage<SharedData>().props;
+    useEffect(() => {
+        const query: Record<string, string> = {};
+
+        if (debouncedSearch) query.search = debouncedSearch;
+        if (selectedAttributes) query.attributes = selectedAttributes;
+
+        const currentUrl = new URL(window.location.href);
+        const params = currentUrl.searchParams;
+        const currentSearch = params.get('search') || '';
+        const currentAttrs = params.get('attributes') || '';
+
+        if (
+            debouncedSearch !== currentSearch ||
+            selectedAttributes !== currentAttrs
+        ) {
+            router.get(route('assets.index'), query, {
+                preserveState: true,
+                replace: true,
+                preserveScroll: true,
+            });
+        }
+    }, [debouncedSearch, selectedAttributes]);
+
+    const handleResetFilters = () => {
+        setSearchTerm('');
+        setSelectedAttributes('');
+    };
+
+    const hasData = assets.data.length > 0;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={__('assets.pages.index.head_title')} />
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>{__('assets.pages.index.title')}</CardTitle>
-                    <CardDescription>
-                        {__('assets.pages.index.description')}
-                    </CardDescription>
+            <div className="container mx-auto max-w-full space-y-6 px-4 py-8 sm:px-6 lg:px-8">
+                <AssetsHeader />
 
-                    <CardAction className="flex items-center gap-2">
-                    <div className="relative">
-                        {/* <Input
-                            id="search"
-                            type="text"
-                            placeholder={__('assets.pages.index.filter.placeholder')}
-                            className="w-64"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        /> */}
-                        <InputSearch
-                            type="text"
-                            placeholder={__('assets.pages.index.filter.placeholder')}
-                            className="w-64"
-                            value={searchTerm} 
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
-                        <ExpandCollapseButtons {...controls} />
+                <div className="flex flex-col gap-4">
+                    <AssetsToolbar
+                        searchTerm={searchTerm}
+                        onSearchChange={setSearchTerm}
+                        selectedAttributes={selectedAttributes}
+                        onAttributeChange={setSelectedAttributes}
+                        availableAttributes={available_attributes}
+                        onExpandAll={() => setGlobalExpand(true)}
+                        onCollapseAll={() => setGlobalExpand(false)}
+                        onResetFilters={handleResetFilters}
+                        hasData={hasData}
+                    />
 
-                        {userHasPermission({
-                            user: auth.user,
-                            permission: 'create assets',
-                        }) && (
-                            <Button asChild>
-                                <Link href={route('assets.create')}>
-                                    <Plus />
-                                    <span className="sr-only sm:not-sr-only">
-                                    {__('assets.pages.index.buttons.create')}
-                                    </span>
-                                </Link>
-                            </Button>
-                        )}
-                    </CardAction>
-                </CardHeader>
-                <Separator />
-
-                <CardContent>
-                    {assets.data.length === 0 ? (
-                        <AssetEmpty />
+                    {!hasData ? (
+                        <AssetsEmpty />
                     ) : (
-                        <>
-                            <AssetTable
-                                assets={assets.data}
-                                assetsByParent={assetsByParent}
-                                openState={openState}
-                                toggleNode={toggleNode}
-                                search={searchTerm}
-                            />
-
-                            <div className="mt-4">
-                                <LaravelPagination links={assets.links} />
-                            </div>
-                        </>
+                        <AssetsTable
+                            assets={assets.data}
+                            searchTerm={searchTerm}
+                            globalExpand={globalExpand}
+                            setGlobalExpand={setGlobalExpand}
+                        />
                     )}
-                </CardContent>
-            </Card>
+
+                    {hasData && (
+                        <PaginationControl
+                            meta={assets}
+                        />
+                    )}
+                </div>
+            </div>
         </AppLayout>
     );
-}
-
-function ExpandCollapseButtons({
-    toggleAll,
-    isAllExpanded,
-    isAllRetracted,
-    allParentIdsCount,
-}: AssetTableControls) {
-    const __ = useTrans();
-
-    if (allParentIdsCount === 0) {
-        return null;
-    }
-
-    return (
-        <>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => toggleAll(false)}
-                        disabled={isAllRetracted}
-                    >
-                        <Minimize />
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                    {__('assets.pages.index.buttons.collapse')}
-                </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => toggleAll(true)}
-                        disabled={isAllExpanded}
-                    >
-                        <Maximize />
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                    {__('assets.pages.index.buttons.expand')}
-                </TooltipContent>
-            </Tooltip>
-        </>
-    );
-}
-
-function AssetEmpty() {
-    const __ = useTrans();
-
-    return (
-        <Empty className="border border-dashed">
-            <EmptyHeader>
-                <EmptyMedia variant="icon">
-                    <ListTree />
-                </EmptyMedia>
-                <EmptyTitle>{__('assets.pages.index.empty.title')}</EmptyTitle>
-                <EmptyDescription>
-                    {__('assets.pages.index.empty.description')}
-                </EmptyDescription>
-            </EmptyHeader>
-            <EmptyContent>
-                <Button variant="outline" size="sm" asChild>
-                    <Link href={route('assets.index')}>
-                        <RefreshCcw />
-                        {__('assets.pages.index.empty.button')}
-                    </Link>
-                </Button>
-            </EmptyContent>
-        </Empty>
-    );
-}
-
-function AssetTable({
-    assetsByParent,
-    openState,
-    toggleNode,
-    search,
-}: AssetTableProps) {
-    const __ = useTrans();
-
-    const renderAssetRows = (parentId: string | null) => {
-        const currentAssets = assetsByParent[parentId || 'root'] || [];
-
-        return currentAssets.map((asset) => (
-            <AssetRow
-                key={asset.id}
-                asset={asset}
-                assetsByParent={assetsByParent}
-                openState={openState}
-                toggleNode={toggleNode}
-                renderAssetRows={renderAssetRows}
-                search={search}
-            />
-        ));
-    };
-
-    return (
-        <Table>
-            <TableHeader className="sticky top-0 z-10 bg-card shadow-sm">
-                <TableRow>
-                    <TableHead className="pl-6 text-xs text-muted-foreground">
-                        {__('assets.pages.index.table.headers.asset')}
-                    </TableHead>
-                    <TableHead className="w-[8rem] text-right text-xs text-muted-foreground text-center">
-                        {__('assets.pages.index.table.headers.attributes')}
-                    </TableHead>
-                    <TableHead className="w-[8rem] text-right text-xs text-muted-foreground">
-                        {__('assets.pages.index.table.headers.updated_at')}
-                    </TableHead>
-                    <TableHead className="w-[8rem] text-right text-xs text-muted-foreground">
-                        {__('assets.pages.index.table.headers.created_at')}
-                    </TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>{renderAssetRows(null)}</TableBody>
-        </Table>
-    );
-}
-
-function AssetRow({
-    asset,
-    assetsByParent,
-    openState,
-    toggleNode,
-    renderAssetRows,
-    search
-}: AssetRowProps) {
-    const hasChildren = !!assetsByParent[asset.id]?.length;
-    const isMatch = search && (asset.title.toLowerCase().includes(search.toLowerCase())
-        || hasMatchedAttributes(asset, search));
-    const isOpen = openState[asset.id] || false;
-
-    const depthLevel = asset.depth_level || 0;
-    const indentation = depthLevel * 1.5;
-
-    const Icon = asset.icon ? <GetIcon icon={asset.icon} props={{ className: 'h-6 w-6 rounded-md border p-0.5 text-muted-foreground', size: 16 }} /> : null;
-
-    const handleToggle = (e: React.MouseEvent, id: string) => {
-        e.stopPropagation();
-        toggleNode(id);
-    };
-
-    const auth = usePage<SharedData>().props.auth;
-
-    return (
-        <>
-            <TableRow
-                className="group relative cursor-pointer transition-colors"
-                onClick={() => {
-                    if (
-                        userHasPermission({
-                            user: auth.user,
-                            permission: 'show assets',
-                        })
-                    ) {
-                        router.get(route('assets.show', { asset: asset.id }));
-                    }
-                }}
-            >
-                <TableCell
-                    className="font-medium"
-                    style={{ paddingLeft: `1.5rem` }}
-                >
-                    {userHasPermission({
-                        user: auth.user,
-                        permission: 'show assets',
-                    }) && (
-                        <Link
-                            href={route('assets.show', { asset: asset.id })}
-                            className="absolute inset-0 z-0"
-                        />
-                    )}
-
-                    <div
-                        className={`flex items-center gap-2`}
-                        style={{ marginLeft: `${indentation}rem` }}
-                    >
-                        <div
-                            className={`h-8 ${depthLevel > 0 ? 'border-l border-dashed' : ''}`}
-                        ></div>
-
-                        {hasChildren ? (
-                            <Button
-                                variant={'ghost'}
-                                size="icon-sm"
-                                onClick={(e) => handleToggle(e, asset.id)}
-                                className={cn(
-                                    'z-10 shrink-0 transition-transform duration-200',
-                                    isOpen ? 'rotate-180' : 'rotate-0',
-                                )}
-                            >
-                                <ChevronDown />
-                            </Button>
-                        ) : (
-                            <div
-                                className={`flex h-8 w-8 shrink-0 items-center justify-center`}
-                            ></div>
-                        )}
-
-                        <div className="flex items-center gap-2">
-                            {Icon}
-                            <span className={isMatch ? "bg-yellow-200 text-black px-1 rounded" : ""}>
-                            {asset.title}
-                            </span>
-                        </div>
-                    </div>
-                </TableCell>
-
-                <TableCell className="w-[8rem] text-right">
-                    <div className="flex flex-wrap gap-1 items-center">
-                        {asset.attributes && asset.attributes.length <= 3 && asset.attributes.map((attr, index) => (
-                            <Badge key={index} variant="default" className="text-xs font-normal align-middle">
-                                {attr.key}
-                            </Badge>
-                        ))}
-                        {asset.attributes && asset.attributes.length > 3 && asset.attributes?.slice(0,3).map((attr, index) => (
-                            <Badge key={index} variant="default" className="text-xs font-normal align-middle">
-                                {attr.key}
-                            </Badge>
-                        ))}
-                        {asset.attributes && asset.attributes.length > 3 && (
-                            <Badge variant="secondary" className="text-xs font-normal align-middle">
-                                + {asset.attributes.length - 3} 
-                            </Badge>
-                        )}
-                    </div>
-                </TableCell>
-
-                <TableCell className="w-[8rem] text-right">
-                    {formatDate(asset.updated_at)}
-                </TableCell>
-                <TableCell className="w-[8rem] text-right">
-                    {formatDate(asset.created_at)}
-                </TableCell>
-            </TableRow>
-
-            {isOpen && hasChildren && renderAssetRows(asset.id)}
-        </>
-    );
-}
-
-/**
- * @description Checks if any attribute of the asset matches the search term.
- * @param asset 
- * @param search 
- * @returns boolean
- */
-function hasMatchedAttributes(asset: Asset, search: string) {
-    if (!search) return false;
-    if (asset.attributes.length === 0) return false;
-
-    for (const attr of asset.attributes) {
-        if (attr.key.toLowerCase().includes(search.toLowerCase()) ||
-            attr.value.toLowerCase().includes(search.toLowerCase())) {
-            return true;
-        }
-    }
-    return false;
 }

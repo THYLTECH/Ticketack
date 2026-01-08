@@ -1,3 +1,4 @@
+import { PaginationControl } from '@/components/pagination-control';
 import AppLayout from '@/layouts/app/layout';
 import { useTrans } from '@/lib/translation';
 import { Asset, BreadcrumbItem, Role, Ticket, User } from '@/types';
@@ -98,6 +99,8 @@ export default function TrashIndex({
         }
     };
 
+    const currentData = getCurrentData();
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={__('trash.pages.index.head_title')} />
@@ -125,11 +128,15 @@ export default function TrashIndex({
 
                     <TrashTable
                         data={
-                            getCurrentData() as unknown as ComponentProps<
+                            currentData as unknown as ComponentProps<
                                 typeof TrashTable
                             >['data']
                         }
                         type={activeTab}
+                    />
+
+                    <PaginationControl
+                        meta={currentData}
                     />
                 </div>
             </div>

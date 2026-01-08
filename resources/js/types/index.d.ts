@@ -120,7 +120,7 @@ export interface PaginationProps {
         active: boolean;
         label: string;
         page: number | null;
-    };
+    }[];
 }
 
 // ---------------------------------------
