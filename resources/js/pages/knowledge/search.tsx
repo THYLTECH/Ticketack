@@ -97,8 +97,8 @@ export default function KnowledgeSearch({
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
-            title: __('dashboard.pages.breadcrumbs.dashboard'),
-            href: route('dashboard'),
+            title: __('home.pages.breadcrumbs.home'),
+            href: route('home'),
         },
         { title: __('knowledge.pages.search.title'), href: url },
     ];

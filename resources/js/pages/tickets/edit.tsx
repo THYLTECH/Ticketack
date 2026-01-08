@@ -76,8 +76,8 @@ export default function Edit({
     const breadcrumbs: BreadcrumbItem[] = useMemo(
         () => [
             {
-                title: __('dashboard.pages.breadcrumbs.dashboard'),
-                href: route('dashboard'),
+                title: __('home.pages.breadcrumbs.home'),
+                href: route('home'),
             },
             {
                 title: __('tickets.pages.breadcrumbs.index'),

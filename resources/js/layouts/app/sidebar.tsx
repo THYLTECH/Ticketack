@@ -95,7 +95,12 @@ export function AppSidebar() {
         });
     }
 
-    if (userHasPermission({ user: auth.user, permission: 'view knowledge explorer' })) {
+    if (
+        userHasPermission({
+            user: auth.user,
+            permission: 'view knowledge explorer',
+        })
+    ) {
         mainNavItems.push({
             title: __('app.layout.sidebar.menugroups.platform.items.tickets'),
             href: route('tickets.index'),
@@ -291,24 +296,64 @@ function NavMain({ items = [] }: { items: NavItem[] }) {
         <SidebarGroup className="px-2 py-0">
             <SidebarGroupLabel>Platform</SidebarGroupLabel>
             <SidebarMenu>
-                {items.map((item) => (
-                    <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton
-                            asChild
-                            isActive={page.url.startsWith(
+                {items.map((item) => {
+                    const currentPath = new URL(
+                        page.url,
+                        window.location.origin,
+                    ).pathname;
+
+                    const normalize = (url: string) =>
+                        new URL(url, window.location.origin).pathname;
+
+                    const matchingItems = items
+                        .map((item) => {
+                            const rawHref =
                                 typeof item.href === 'string'
                                     ? item.href
-                                    : item.href.url,
-                            )}
-                            tooltip={{ children: item.title }}
-                        >
-                            <Link href={item.href} prefetch>
-                                {item.icon && <item.icon />}
-                                <span>{item.title}</span>
-                            </Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                ))}
+                                    : item.href.url;
+
+                            const href = normalize(rawHref);
+
+                            return {
+                                href,
+                                length: href.length,
+                                matches:
+                                    currentPath === href ||
+                                    currentPath.startsWith(href + '/'),
+                            };
+                        })
+                        .filter((i) => i.matches);
+
+                    const activeHref =
+                        matchingItems.length > 0
+                            ? matchingItems.sort(
+                                  (a, b) => b.length - a.length,
+                              )[0].href
+                            : null;
+
+                    const linkUrl = normalize(
+                        typeof item.href === 'string'
+                            ? item.href
+                            : item.href.url,
+                    );
+
+                    const isActive = linkUrl === activeHref;
+
+                    return (
+                        <SidebarMenuItem key={item.title}>
+                            <SidebarMenuButton
+                                asChild
+                                isActive={isActive}
+                                tooltip={{ children: item.title }}
+                            >
+                                <Link href={item.href} prefetch>
+                                    {item.icon && <item.icon />}
+                                    <span>{item.title}</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    );
+                })}
             </SidebarMenu>
         </SidebarGroup>
     );

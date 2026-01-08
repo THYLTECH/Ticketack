@@ -145,8 +145,8 @@ export default function EntriesIndex({
         <AppLayout
             breadcrumbs={[
                 {
-                    title: __('entries.index.breadcrumbs.dashboard'),
-                    href: route('dashboard'),
+                    title: __('home.pages.breadcrumbs.home'),
+                    href: route('home'),
                 },
                 { title: __('entries.index.breadcrumbs.current'), href: '#' },
             ]}

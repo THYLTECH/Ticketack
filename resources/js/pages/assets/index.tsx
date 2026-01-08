@@ -196,8 +196,8 @@ export default function Index({ assets }: { assets: { data: Asset[], links: Pagi
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
-            title: __('dashboard.pages.breadcrumbs.dashboard'),
-            href: route('dashboard'),
+            title: __('home.pages.breadcrumbs.home'),
+            href: route('home'),
         },
         {
             title: __('assets.pages.breadcrumbs.index'),

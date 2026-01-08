@@ -237,8 +237,8 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
         <AppLayout
             breadcrumbs={[
                 {
-                    title: __('schedule.page.breadcrumbs.dashboard'),
-                    href: route('dashboard'),
+                    title: __('home.pages.breadcrumbs.home'),
+                    href: route('home'),
                 },
                 { title: __('schedule.page.breadcrumbs.planning'), href: '#' },
             ]}
