@@ -40,28 +40,7 @@ class Schedules extends Controller
         ])
             ->where('user_id', auth()->id())
             ->get()
-            ->map(function ($entry) {
-                if (!$entry->start_at) {
-                    return null;
-                }
-
-                $startDate = Carbon::parse($entry->start_at);
-                $endDate = Carbon::parse($entry->end_at);
-
-                return [
-                    'id' => 'entry-' . $entry->id,
-                    'ticket_id' => $entry->ticket_id,
-                    'user_id' => $entry->user_id,
-                    'start_date' => $startDate->toIso8601String(),
-                    'end_date' => $endDate->toIso8601String(),
-                    'duration_minutes' => round($entry->duration_seconds / 60),
-                    'is_entry' => true,
-                    'ticket' => $entry->ticket,
-                    'user' => $entry->user,
-                    'created_at' => $entry->created_at->toIso8601String(),
-                    'updated_at' => $entry->updated_at->toIso8601String(),
-                ];
-            })
+            ->map(fn($entry) => $entry->toCalendarEvent())
             ->filter();
 
         return Inertia::render('tickets/planning/index', [

@@ -16,7 +16,6 @@ use App\Models\TicketSchedule;
 use App\Models\TicketStatus;
 use App\Models\User;
 use App\Services\Knowledge\VectorSearchService;
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -216,29 +215,13 @@ class Crud extends Controller
                 ];
             });
 
-        $entries = TicketEntry::with(['user', 'ticket.priority', 'ticket.status', 'ticket.category'])
+        $entries = TicketEntry::with(['user.avatar', 'ticket.priority', 'ticket.status', 'ticket.category'])
             ->where('user_id', auth()->id())
             ->whereNotNull('start_at')
             ->whereNotNull('end_at')
             ->get()
-            ->map(function ($entry) {
-                $startDate = Carbon::parse($entry->start_at);
-                $endDate = Carbon::parse($entry->end_at);
-
-                return [
-                    'id' => 'entry-' . $entry->id,
-                    'ticket_id' => $entry->ticket_id,
-                    'user_id' => $entry->user_id,
-                    'start_date' => $startDate->toIso8601String(),
-                    'end_date' => $endDate->toIso8601String(),
-                    'duration_minutes' => round($entry->duration_seconds / 60),
-                    'is_entry' => true,
-                    'ticket' => $entry->ticket,
-                    'user' => $entry->user,
-                    'created_at' => $entry->created_at->toIso8601String(),
-                    'updated_at' => $entry->updated_at->toIso8601String(),
-                ];
-            });
+            ->map(fn($entry) => $entry->toCalendarEvent())
+            ->filter();
 
         return Inertia::render('tickets/show', [
             'ticket' => $ticket,
