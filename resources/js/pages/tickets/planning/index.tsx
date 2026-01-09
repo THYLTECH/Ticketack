@@ -642,27 +642,18 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                         />
                     </main>
 
-                    <aside
-                        className={cn(
-                            'relative hidden shrink-0 flex-col overflow-hidden transition-all duration-300 ease-in-out lg:flex',
-                            !isEditMode
-                                ? 'w-72 translate-x-0 opacity-100'
-                                : '-mr-4 w-0 translate-x-4 opacity-0',
-                        )}
-                    >
-                        <div className="h-full w-72 overflow-hidden rounded-xl border bg-card shadow-sm">
-                            <SolverFilters
-                                solvers={solvers}
-                                selectedIds={selectedSolvers}
-                                onToggle={(id) =>
-                                    setSelectedSolvers((prev) =>
-                                        prev.includes(id)
-                                            ? prev.filter((s) => s !== id)
-                                            : [...prev, id],
-                                    )
-                                }
-                            />
-                        </div>
+                    <aside className="relative flex shrink-0 flex-col overflow-visible">
+                        <SolverFilters
+                            solvers={solvers}
+                            selectedIds={selectedSolvers}
+                            onToggle={(id) =>
+                                setSelectedSolvers((prev) =>
+                                    prev.includes(id)
+                                        ? prev.filter((s) => s !== id)
+                                        : [...prev, id],
+                                )
+                            }
+                        />
                     </aside>
                 </div>
             </div>

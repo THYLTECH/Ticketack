@@ -4,7 +4,7 @@ import { Tooltip, TooltipProvider, TooltipTrigger } from '@/components/ui/toolti
 import { format, parseISO } from 'date-fns';
 import { COLORS } from '../constants';
 import { PlanningEventTooltip } from './PlanningEventTooltip';
-import React from 'react';
+import { CheckCircle2, Clock } from 'lucide-react';
 
 interface MonthViewEventProps {
     event: TicketSchedule;
@@ -50,29 +50,32 @@ export function MonthViewEvent({
                         onDragStart={onDragStart}
                         onClick={onClick}
                         className={cn(
-                            'mb-1 truncate rounded-md px-2 py-1 text-[10px] font-medium shadow-sm ring-1 ring-black/5 transition-all dark:ring-white/5',
+                            'group mb-1 flex items-center gap-1.5 overflow-hidden rounded-md px-2 py-1 text-[10px] font-medium shadow-sm ring-1 ring-black/5 transition-all dark:ring-white/5',
                             highlightedEventId === event.id
-                                ? 'animate-pulse cursor-pointer border-2 border-yellow-500 bg-yellow-100/90 text-yellow-900 shadow-lg ring-2 ring-yellow-400/50 dark:bg-yellow-900/40 dark:text-yellow-100'
+                                ? 'animate-pulse ring-2 ring-yellow-400 ring-offset-1 shadow-lg'
                                 : isEntry
-                                ? 'cursor-default border-2 border-l-2 border-dashed border-muted-foreground/30 bg-muted/60 text-muted-foreground'
+                                ? 'border-2 border-dashed border-muted-foreground/30 bg-muted/50 text-foreground dark:bg-muted/40'
                                 : cn(
                                       'cursor-pointer hover:shadow-md hover:brightness-95 hover:ring-2',
                                       userColor,
                                   ),
+                            isEntry && 'cursor-default',
                         )}
                     >
-                        <span className="mr-1 font-bold opacity-70">
-                            {isEntry && (
-                                <span className="text-green-600 dark:text-green-500">
-                                    ✓{' '}
-                                </span>
-                            )}
+                        {isEntry ? (
+                            <CheckCircle2 className="h-3 w-3 shrink-0 text-foreground" />
+                        ) : (
+                            <Clock className="h-3 w-3 shrink-0 opacity-60" />
+                        )}
+                        <span className="shrink-0 font-mono font-bold opacity-80">
                             {format(startDate, 'HH:mm')}
                         </span>
-                        {event.ticket.title}
+                        <span className="min-w-0 flex-1 truncate font-semibold">
+                            {event.ticket.title}
+                        </span>
                     </div>
                 </TooltipTrigger>
-                <PlanningEventTooltip event={event} side="right" align="start" />
+                <PlanningEventTooltip event={event} side="left" align="center" />
             </Tooltip>
         </TooltipProvider>
     );

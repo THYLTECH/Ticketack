@@ -291,7 +291,7 @@ export function PlanningGrid({
                                                                 )}
                                                             />
                                                         </TooltipTrigger>
-                                                        <PlanningEventTooltip event={evt} side="right" align="start" />
+                                                        <PlanningEventTooltip event={evt} side="left" align="center" />
                                                     </Tooltip>
                                                 </TooltipProvider>
                                             );
@@ -489,6 +489,7 @@ export function PlanningGrid({
                                                 isResizing={isResizing}
                                                 highlightedEventId={highlightedEventId}
                                                 currentUserId={currentUserId}
+                                                view={view}
                                                 onDragStart={(e) => {
                                                     if (isEntry) {
                                                         e.preventDefault();
