@@ -81,19 +81,15 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
 
     const filteredEvents = useMemo(() => {
         return events.filter(e => {
-            const isForThisTicket = e.ticket_id === ticket.id;
-
             if (isEditMode) {
-                const isMySchedule = !e.is_entry && e.user_id === auth.user.id;
-                const isOtherSolverSchedule = !e.is_entry && e.user_id !== auth.user.id && selectedSolvers.includes(e.user_id);
-                return isMySchedule || isOtherSolverSchedule;
+                return selectedSolvers.includes(e.user_id);
             } else {
-                const isSelectedSolverEntry = e.is_entry === true && selectedSolvers.includes(e.user_id);
-                const isSelectedSolverSchedule = !e.is_entry && selectedSolvers.includes(e.user_id);
-                return isForThisTicket && (isSelectedSolverEntry || isSelectedSolverSchedule);
+                const isForThisTicket = e.ticket_id === ticket.id;
+                const isFromSelectedSolver = selectedSolvers.includes(e.user_id);
+                return isForThisTicket && isFromSelectedSolver;
             }
         });
-    }, [events, isEditMode, ticket.id, auth.user.id, selectedSolvers]);
+    }, [events, isEditMode, ticket.id, selectedSolvers]);
 
     const handleNavigate = (direction: 'prev' | 'next') => {
         setDate(navigateByView(date, view, direction));
