@@ -526,7 +526,7 @@ function TicketComments({
         id: number;
         content: string;
         created_at: string;
-        user: { id: number; name: string; profile_photo_url?: string };
+        user: { id: number; name: string; avatar?: { url: string } | null };
     }>;
 }) {
     const { auth } = usePage<{ auth: { user: { id: number; name: string } } }>()
@@ -592,7 +592,7 @@ function TicketComments({
                                     <Avatar className="h-8 w-8 shrink-0 border">
                                         <AvatarImage
                                             src={
-                                                comment.user?.profile_photo_url
+                                                comment.user?.avatar?.url
                                             }
                                         />
                                         <AvatarFallback className="text-[10px]">

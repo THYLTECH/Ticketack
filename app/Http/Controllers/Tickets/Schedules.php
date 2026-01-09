@@ -25,18 +25,20 @@ class Schedules extends Controller
         $this->authorize('viewAny', TicketSchedule::class);
 
         $schedules = TicketSchedule::with([
-            'user',
+            'user.avatar',
             'ticket.priority',
             'ticket.category',
             'ticket.status',
+            'ticket.comments.user.avatar',
         ])->get();
 
         $entries = TicketEntry::with([
-            'user',
+            'user.avatar',
             'ticket.priority',
             'ticket.category',
             'ticket.status',
         ])
+            ->where('user_id', auth()->id())
             ->get()
             ->map(function ($entry) {
                 if (!$entry->start_at) {
@@ -70,11 +72,11 @@ class Schedules extends Controller
                 ->whereHas('status', fn ($query) => $query->where('is_closed', false))
                 ->get(),
 
-            'solvers' => User::role(['admin', 'solver'])->get()->map(fn ($user) => [
+            'solvers' => User::role(['admin', 'solver'])->with('avatar')->get()->map(fn ($user) => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'profile_photo_url' => $user->profile_photo_url ?? $user->avatar_url,
+                'avatar' => $user->avatar,
             ]),
         ]);
     }

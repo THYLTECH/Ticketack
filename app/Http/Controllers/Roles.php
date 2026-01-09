@@ -65,7 +65,7 @@ class Roles extends Controller
     {
         return Inertia::render('roles/create', [
             'permissions' => Permission::all(),
-            'usersWithoutRole' => User::all()
+            'usersWithoutRole' => User::with('avatar')->get()
         ]);
     }
 
@@ -79,10 +79,10 @@ class Roles extends Controller
     {
         $usersWithoutRole = User::whereDoesntHave('roles', function ($query) use ($role) {
             $query->where('id', $role->id);
-        })->get();
+        })->with('avatar')->get();
 
         return Inertia::render('roles/edit', [
-            'role' => $role->load('permissions', 'users'),
+            'role' => $role->load('permissions', 'users.avatar'),
             'permissions' => Permission::all(),
             'usersWithoutRole' => $usersWithoutRole
         ]);
@@ -98,10 +98,10 @@ class Roles extends Controller
     {
         $usersWithoutRole = User::whereDoesntHave('roles', function ($query) use ($role) {
             $query->where('id', $role->id);
-        })->get();
+        })->with('avatar')->get();
 
         return Inertia::render('roles/show', [
-            'role' => $role->load('permissions', 'users'),
+            'role' => $role->load('permissions', 'users.avatar'),
             'permissions' => Permission::all(),
             'usersWithoutRole' => $usersWithoutRole
         ]);
