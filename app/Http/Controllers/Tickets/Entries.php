@@ -16,6 +16,11 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
+use Illuminate\Support\Facades\Notification;
+
+use App\Notifications\Tickets\EntryCreated as NotificationsTicketEntryCreated;
+use App\Notifications\Tickets\EntryDeleted as NotificationsTicketEntryDeleted;
+
 class Entries extends Controller
 {
     private const DATE_FORMAT = 'd/m/Y';
@@ -139,6 +144,18 @@ class Entries extends Controller
             'billable' => $data['billable'] ?? false,
         ]);
 
+        $ticket = Ticket::findOrFail($data['ticket_id']);
+
+        if($ticket) {
+            $assignees = User::whereIn(
+                'id',
+                $ticket->assignees()->pluck('user_id')
+            )->get();
+    
+            Notification::send($assignees, new NotificationsTicketEntryCreated($ticket));
+        }
+
+
         return back()->with('success', __('entries.controller.store.success'));
     }
 
@@ -148,6 +165,18 @@ class Entries extends Controller
             abort(403);
         }
         $entry->delete();
+
+        $ticket = Ticket::findOrFail($entry->ticket_id);
+
+        if($ticket) {
+            $assignees = User::whereIn(
+                'id',
+                $ticket->assignees()->pluck('user_id')
+            )->get();
+    
+            Notification::send($assignees, new NotificationsTicketEntryDeleted($ticket));
+        }
+
         return back()->with('success', __('entries.controller.destroy.success'));
     }
 
