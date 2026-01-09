@@ -4,6 +4,7 @@ from typing import List
 import lancedb
 import os
 import time
+import pandas as pd
 from .model import get_model
 
 # Initialize FastAPI
@@ -81,21 +82,41 @@ async def search_tickets(search: SearchQuery):
         # 2. Search in LanceDB
         table = get_db_table()
 
-        # Search and convert to Pandas DataFrame
-        results = table.search(query_vec).limit(search.limit).to_pandas()
+        # Oversampling: to retrieve the number of unique tickets requested
+        fetch_limit = search.limit * 5
 
-        # 3. Format response
+        # Search and convert to Pandas DataFrame
+        df_results = table.search(query_vec).limit(fetch_limit).to_pandas()
+
+        if df_results.empty:
+            return []
+
+        # 3. Aggregation / Deduplication
+        # Sorting by '_distance' ascending
+        df_results = df_results.sort_values(by='_distance', ascending=True)
+
+        # Deleting duplicates based on 'ticket_id', keeping first
+        # Distance kept is the lowest one due to sorting
+        df_unique = df_results.drop_duplicates(
+            subset=['ticket_id'],
+            keep='first'
+        )
+
+        # Keeping only the number requested by the user
+        df_final = df_unique.head(search.limit)
+
+        # 4. Format response
         response = []
-        for _, row in results.iterrows():
+        for _, row in df_final.iterrows():
             response.append(SearchResult(
-                ticket_id=row.get('ticket_id', 0),
-                score=round(row['_distance'], 4),
+                ticket_id=int(row['ticket_id']),
+                score=round(float(row['_distance']), 4),
                 filename=row.get('filename', 'unknown')
             ))
 
         duration = (time.time() - start_time) * 1000
-        print(f"🔎 [API] Search for '{search.query}' took {duration:.2f}ms."
-              f"Found {len(response)} results.")
+        print(f"🔎 [API] Search for '{search.query}' took {duration:.2f}ms. "
+              f"Fetched {len(df_results)} raw vectors -> Returned {len(response)} unique tickets.")
 
         return response
 
