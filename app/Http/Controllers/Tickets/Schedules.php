@@ -114,22 +114,44 @@ class Schedules extends Controller
         return back()->with('success', __('schedule.flash.deleted'));
     }
 
+    /**
+     * Check if a schedule overlaps with existing schedules or entries for the same user
+     *
+     * @param int $userId
+     * @param string $startDate
+     * @param int $duration
+     * @param int|null $excludeId Schedule ID to exclude from overlap check (for updates)
+     * @throws ValidationException
+     */
     private function checkOverlap($userId, $startDate, $duration, $excludeId = null)
     {
         $newStart = Carbon::parse($startDate);
         $newEnd = $newStart->copy()->addMinutes($duration);
 
-        $query = TicketSchedule::where('user_id', $userId)
+        $scheduleQuery = TicketSchedule::where('user_id', $userId)
             ->where(function ($q) use ($newStart, $newEnd) {
                 $q->where('start_date', '<', $newEnd)
                     ->where('end_date', '>', $newStart);
             });
 
         if ($excludeId) {
-            $query->where('id', '!=', $excludeId);
+            $scheduleQuery->where('id', '!=', $excludeId);
         }
 
-        if ($query->exists()) {
+        if ($scheduleQuery->exists()) {
+            throw ValidationException::withMessages([
+                'overlap' => __('schedule.flash.overlap_error')
+            ]);
+        }
+
+        $entryExists = TicketEntry::where('user_id', $userId)
+            ->where(function ($q) use ($newStart, $newEnd) {
+                $q->where('start_at', '<', $newEnd)
+                    ->where('end_at', '>', $newStart);
+            })
+            ->exists();
+
+        if ($entryExists) {
             throw ValidationException::withMessages([
                 'overlap' => __('schedule.flash.overlap_error')
             ]);

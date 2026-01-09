@@ -38,6 +38,8 @@ export function PlanningEventTooltip({ event, side = 'right', align = 'start' }:
             align={align}
             className="max-w-96 border-border/50 bg-gradient-to-br from-card to-card/95 p-0 shadow-2xl backdrop-blur-xl"
             sideOffset={12}
+            collisionPadding={20}
+            avoidCollisions={true}
         >
             <div className="space-y-3 p-4">
                 <div className="flex items-start gap-3">

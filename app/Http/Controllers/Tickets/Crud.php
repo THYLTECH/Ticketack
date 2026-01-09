@@ -196,8 +196,7 @@ class Crud extends Controller
         } catch (Throwable) {
         }
 
-        $schedules = TicketSchedule::with(['user', 'ticket.priority', 'ticket.status', 'ticket.category'])
-            ->where('user_id', auth()->id())
+        $schedules = TicketSchedule::with(['user.avatar', 'ticket.priority', 'ticket.status', 'ticket.category'])
             ->get()
             ->map(function ($schedule) {
                 return [
@@ -216,7 +215,6 @@ class Crud extends Controller
             });
 
         $entries = TicketEntry::with(['user.avatar', 'ticket.priority', 'ticket.status', 'ticket.category'])
-            ->where('user_id', auth()->id())
             ->whereNotNull('start_at')
             ->whereNotNull('end_at')
             ->get()
@@ -225,8 +223,13 @@ class Crud extends Controller
 
         return Inertia::render('tickets/show', [
             'ticket' => $ticket,
-            'events' => $schedules->concat($entries),
-            'solvers' => User::role(['admin', 'solver'])->get(['id', 'name', 'email']),
+            'events' => $schedules->concat($entries)->values()->toArray(),
+            'solvers' => User::role(['admin', 'solver'])->with('avatar')->get()->map(fn ($user) => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'avatar' => $user->avatar,
+            ])->toArray(),
             'similar_tickets' => $similarTickets,
         ]);
     }

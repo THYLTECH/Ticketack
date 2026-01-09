@@ -392,12 +392,11 @@ test('show page displays events including entries', function () {
     expect($events)->toHaveCount(2);
 });
 
-test('show page filters entries by current user', function () {
+test('show page includes entries from all solvers for the ticket', function () {
     $ticket = Ticket::factory()->create();
     $otherUser = User::factory()->create();
 
-    // Create entry for another user
-    \App\Models\TicketEntry::create([
+    $otherEntry = \App\Models\TicketEntry::create([
         'ticket_id' => $ticket->id,
         'user_id' => $otherUser->id,
         'start_at' => now()->subDay(),
@@ -405,7 +404,6 @@ test('show page filters entries by current user', function () {
         'duration_seconds' => 3600,
     ]);
 
-    // Create entry for current user
     $myEntry = \App\Models\TicketEntry::create([
         'ticket_id' => $ticket->id,
         'user_id' => $this->user->id,
@@ -419,8 +417,9 @@ test('show page filters entries by current user', function () {
     $events = $response->viewData('page')['props']['events'];
     $entryIds = collect($events)->pluck('id')->filter(fn($id) => str_starts_with((string)$id, 'entry-'));
 
-    expect($entryIds)->toHaveCount(1)
-        ->and($entryIds->first())->toBe('entry-' . $myEntry->id);
+    expect($entryIds)->toHaveCount(2)
+        ->and($entryIds)->toContain('entry-' . $myEntry->id)
+        ->and($entryIds)->toContain('entry-' . $otherEntry->id);
 });
 
 test('show page excludes entries without end_at', function () {
