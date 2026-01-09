@@ -224,9 +224,7 @@ export function PlanningGrid({
                             const dayEvents = events.filter(
                                 (e) => {
                                     if (!isSameDay(parseISO(e.start_date), day)) return false;
-                                    if (e.is_entry) {
-                                        return e.user_id === currentUserId;
-                                    }
+
                                     return isEditMode
                                         ? e.user_id === currentUserId
                                         : selectedSolvers.includes(e.user_id);
@@ -415,9 +413,7 @@ export function PlanningGrid({
                             const dayEvents = events.filter(
                                 (e) => {
                                     if (!isSameDay(parseISO(e.start_date), day)) return false;
-                                    if (e.is_entry) {
-                                        return e.user_id === currentUserId;
-                                    }
+
                                     return isEditMode
                                         ? e.user_id === currentUserId
                                         : selectedSolvers.includes(e.user_id);

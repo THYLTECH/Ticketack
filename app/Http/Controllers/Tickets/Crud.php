@@ -10,11 +10,13 @@ use App\Models\Attachment;
 use App\Models\Ticket;
 use App\Models\TicketAttachment;
 use App\Models\TicketCategory;
+use App\Models\TicketEntry;
 use App\Models\TicketPriority;
 use App\Models\TicketSchedule;
 use App\Models\TicketStatus;
 use App\Models\User;
 use App\Services\Knowledge\VectorSearchService;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -193,11 +195,52 @@ class Crud extends Controller
         } catch (Throwable) {
         }
 
+        $schedules = TicketSchedule::with(['user', 'ticket.priority', 'ticket.status', 'ticket.category'])
+            ->where('user_id', auth()->id())
+            ->get()
+            ->map(function ($schedule) {
+                return [
+                    'id' => $schedule->id,
+                    'ticket_id' => $schedule->ticket_id,
+                    'user_id' => $schedule->user_id,
+                    'start_date' => $schedule->start_date,
+                    'end_date' => $schedule->end_date,
+                    'duration_minutes' => $schedule->duration_minutes,
+                    'is_entry' => false,
+                    'ticket' => $schedule->ticket,
+                    'user' => $schedule->user,
+                    'created_at' => $schedule->created_at->toIso8601String(),
+                    'updated_at' => $schedule->updated_at->toIso8601String(),
+                ];
+            });
+
+        $entries = TicketEntry::with(['user', 'ticket.priority', 'ticket.status', 'ticket.category'])
+            ->where('user_id', auth()->id())
+            ->whereNotNull('start_at')
+            ->whereNotNull('end_at')
+            ->get()
+            ->map(function ($entry) {
+                $startDate = Carbon::parse($entry->start_at);
+                $endDate = Carbon::parse($entry->end_at);
+
+                return [
+                    'id' => 'entry-' . $entry->id,
+                    'ticket_id' => $entry->ticket_id,
+                    'user_id' => $entry->user_id,
+                    'start_date' => $startDate->toIso8601String(),
+                    'end_date' => $endDate->toIso8601String(),
+                    'duration_minutes' => round($entry->duration_seconds / 60),
+                    'is_entry' => true,
+                    'ticket' => $entry->ticket,
+                    'user' => $entry->user,
+                    'created_at' => $entry->created_at->toIso8601String(),
+                    'updated_at' => $entry->updated_at->toIso8601String(),
+                ];
+            });
+
         return Inertia::render('tickets/show', [
             'ticket' => $ticket,
-            'events' => TicketSchedule::with(['user', 'ticket.priority', 'ticket.status', 'ticket.category'])
-                ->where('ticket_id', $ticket->id)
-                ->get(),
+            'events' => $schedules->concat($entries),
             'solvers' => User::role(['admin', 'solver'])->get(['id', 'name', 'email']),
             'similar_tickets' => $similarTickets,
         ]);

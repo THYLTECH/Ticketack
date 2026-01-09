@@ -145,4 +145,10 @@ return [
         'status' => 'Status',
         'validated' => 'Validated time entry',
     ],
+    'list' => [
+        'title' => 'Scheduled Interventions',
+        'intervention' => 'intervention',
+        'interventions' => 'interventions',
+    ],
+    'no_schedules' => 'No scheduled interventions yet.',
 ];
