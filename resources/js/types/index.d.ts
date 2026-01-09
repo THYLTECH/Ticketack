@@ -15,7 +15,6 @@ export interface User {
     email: string;
     attachment_avatar?: string;
     avatar: { url: string } | null;
-    // Ajouté pour compatibilité avec le planning
     profile_photo_url?: string;
     email_verified_at: string | null;
     language: string;
@@ -35,7 +34,6 @@ export interface UserSimplified {
     email: string;
     attachment_avatar?: string;
     avatar: { url: string } | null;
-    // Ajouté pour compatibilité avec le planning
     profile_photo_url?: string;
     email_verified_at: string | null;
     language: string;
@@ -98,7 +96,6 @@ export interface SharedData {
     [key: string]: unknown;
 }
 
-// Helper pour utiliser PageProps dans les composants
 export type PageProps<
     T extends Record<string, unknown> = Record<string, unknown>,
 > = T & SharedData;
@@ -329,11 +326,9 @@ export interface TicketEntry {
     updated_at: string;
 }
 
-// MISE À JOUR MAJEURE ICI
 export interface TicketSchedule {
-    id: number;
+    id: number | string;
 
-    // Champs ajoutés pour correspondre à la BDD et au code React
     ticket_id: number;
     user_id: number;
     description?: string | null;
@@ -344,6 +339,7 @@ export interface TicketSchedule {
     start_date: string;
     end_date: string;
     duration_minutes: number;
+    is_entry?: boolean;
 
     created_at: string;
     updated_at: string;

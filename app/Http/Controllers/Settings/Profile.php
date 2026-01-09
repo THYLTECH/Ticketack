@@ -65,11 +65,7 @@ class Profile extends Controller
             Storage::disk('public')->delete($user->avatar->file_path);
             $user->avatar->delete();
             $user->update(['attachment_avatar' => null]);
-        }
-
-
-        elseif ($request->hasFile('avatar')) {
-
+        } elseif ($request->hasFile('avatar')) {
             $file = $request->file('avatar');
 
             if ($user->avatar) {

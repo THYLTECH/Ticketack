@@ -10,6 +10,7 @@ use App\Models\Attachment;
 use App\Models\Ticket;
 use App\Models\TicketAttachment;
 use App\Models\TicketCategory;
+use App\Models\TicketEntry;
 use App\Models\TicketPriority;
 use App\Models\TicketSchedule;
 use App\Models\TicketStatus;
@@ -58,12 +59,14 @@ class Crud extends Controller
         $user = Auth::user();
 
         $query = Ticket::with([
-            'user:id,name,avatar,email',
+            'user:id,name,attachment_avatar,email',
+            'user.avatar',
             'priority',
             'status',
             'category',
             'asset',
-            'assignees.user:id,name,avatar,email'
+            'assignees.user:id,name,attachment_avatar,email',
+            'assignees.user.avatar'
         ]);
 
         if (! $user->hasRole('admin')) {
@@ -92,7 +95,7 @@ class Crud extends Controller
             'priorities' => TicketPriority::all(),
             'categories' => TicketCategory::all(),
             'assets' => Asset::all(['id', 'title']),
-            'solvers' => User::role(['admin', 'solver'])->get(['id', 'name']),
+            'solvers' => User::role(['admin', 'solver'])->with('avatar')->get(['id', 'name', 'attachment_avatar']),
         ]);
     }
 
@@ -141,16 +144,16 @@ class Crud extends Controller
             'categories' => TicketCategory::orderBy('sort_order')->get(),
             'statuses' => TicketStatus::orderBy('sort_order')->get(),
             'assets' => Asset::getTreeOrderedAssets(),
-            'users' => User::with('roles')->get(),
+            'users' => User::with(['roles', 'avatar'])->get(),
         ]);
     }
 
     public function show(Ticket $ticket): Response
     {
         $ticket->load([
-            'user', 'priority', 'status', 'category', 'asset',
-            'assignees.user', 'comments.user', 'comments.attachments',
-            'logs.user', 'schedules.user', 'attachments',
+            'user.avatar', 'priority', 'status', 'category', 'asset',
+            'assignees.user.avatar', 'comments.user.avatar', 'comments.attachments',
+            'logs.user.avatar', 'schedules.user.avatar', 'attachments',
         ]);
 
         $searchContext = implode(' ', array_filter([
@@ -193,11 +196,36 @@ class Crud extends Controller
         } catch (Throwable) {
         }
 
+        $schedules = TicketSchedule::with(['user', 'ticket.priority', 'ticket.status', 'ticket.category'])
+            ->where('user_id', auth()->id())
+            ->get()
+            ->map(function ($schedule) {
+                return [
+                    'id' => $schedule->id,
+                    'ticket_id' => $schedule->ticket_id,
+                    'user_id' => $schedule->user_id,
+                    'start_date' => $schedule->start_date,
+                    'end_date' => $schedule->end_date,
+                    'duration_minutes' => $schedule->duration_minutes,
+                    'is_entry' => false,
+                    'ticket' => $schedule->ticket,
+                    'user' => $schedule->user,
+                    'created_at' => $schedule->created_at->toIso8601String(),
+                    'updated_at' => $schedule->updated_at->toIso8601String(),
+                ];
+            });
+
+        $entries = TicketEntry::with(['user.avatar', 'ticket.priority', 'ticket.status', 'ticket.category'])
+            ->where('user_id', auth()->id())
+            ->whereNotNull('start_at')
+            ->whereNotNull('end_at')
+            ->get()
+            ->map(fn($entry) => $entry->toCalendarEvent())
+            ->filter();
+
         return Inertia::render('tickets/show', [
             'ticket' => $ticket,
-            'events' => TicketSchedule::with(['user', 'ticket.priority', 'ticket.status', 'ticket.category'])
-                ->where('ticket_id', $ticket->id)
-                ->get(),
+            'events' => $schedules->concat($entries),
             'solvers' => User::role(['admin', 'solver'])->get(['id', 'name', 'email']),
             'similar_tickets' => $similarTickets,
         ]);
@@ -251,7 +279,7 @@ class Crud extends Controller
 
     public function edit(Ticket $ticket): Response
     {
-        $ticket->load(['assignees.user', 'attachments']);
+        $ticket->load(['assignees.user.avatar', 'attachments']);
 
         return Inertia::render('tickets/edit', [
             'ticket' => $ticket,
@@ -259,7 +287,7 @@ class Crud extends Controller
             'categories' => TicketCategory::orderBy('sort_order')->get(),
             'statuses' => TicketStatus::orderBy('sort_order')->get(),
             'assets' => Asset::getTreeOrderedAssets(),
-            'users' => User::with('roles')->get(),
+            'users' => User::with(['roles', 'avatar'])->get(),
         ]);
     }
 

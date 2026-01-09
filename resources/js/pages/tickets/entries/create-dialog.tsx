@@ -47,7 +47,7 @@ export interface PreFillData {
     hours: number;
     minutes: number;
     description?: string;
-    schedule_id?: number;
+    schedule_id?: number | string;
 }
 
 interface Props {
@@ -66,7 +66,7 @@ interface FormData {
     minutes: number;
     description: string;
     billable: string;
-    schedule_id?: number;
+    schedule_id?: number | string;
 }
 
 export function TimeEntryDialog({
@@ -157,7 +157,13 @@ export function TimeEntryDialog({
             ticket_id: parseInt(data.ticket_id.toString()),
             billable: data.billable === '1',
             start_time: data.start_time,
-            schedule_id: data.schedule_id,
+            schedule_id: data.schedule_id
+                ? (typeof data.schedule_id === 'string' && data.schedule_id.startsWith('entry-')
+                    ? undefined
+                    : typeof data.schedule_id === 'number'
+                    ? data.schedule_id
+                    : parseInt(data.schedule_id))
+                : undefined,
         }));
 
         post(route('tickets.entries.store'), {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Tickets;
 
 use App\Http\Controllers\Controller;
 use App\Models\Ticket;
+use App\Models\TicketEntry;
 use App\Models\TicketSchedule;
 use App\Models\User;
 use Carbon\Carbon;
@@ -23,28 +24,42 @@ class Schedules extends Controller
     {
         $this->authorize('viewAny', TicketSchedule::class);
 
+        $schedules = TicketSchedule::with([
+            'user.avatar',
+            'ticket.priority',
+            'ticket.category',
+            'ticket.status',
+            'ticket.comments.user.avatar',
+        ])->get();
+
+        $entries = TicketEntry::with([
+            'user.avatar',
+            'ticket.priority',
+            'ticket.category',
+            'ticket.status',
+        ])
+            ->where('user_id', auth()->id())
+            ->get()
+            ->map(fn($entry) => $entry->toCalendarEvent())
+            ->filter();
+
         return Inertia::render('tickets/planning/index', [
-            'events' => TicketSchedule::with([
-                'user',
-                'ticket.priority',
-                'ticket.category',
-                'ticket.status',
-                'ticket.comments.user'
-            ])->get(),
+            'events' => $schedules->concat($entries),
 
             'myTickets' => Ticket::whereHas('assignees', fn ($query) => $query->where('user_id', auth()->id()))
                 ->with(['priority', 'category', 'status'])
-                ->doesntHave('schedules')
+                ->whereHas('status', fn ($query) => $query->where('is_closed', false))
                 ->get(),
 
-            'solvers' => User::role(['admin', 'solver'])->get()->map(fn ($user) => [
+            'solvers' => User::role(['admin', 'solver'])->with('avatar')->get()->map(fn ($user) => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'profile_photo_url' => $user->profile_photo_url ?? $user->avatar_url,
+                'avatar' => $user->avatar,
             ]),
         ]);
     }
+
 
     public function store(Request $request)
     {

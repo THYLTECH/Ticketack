@@ -40,6 +40,7 @@ return [
             'save' => 'Save',
             'confirm_delete' => 'Delete ?',
             'error_end_time' => 'End time must be after start time.',
+            'error_entry_readonly' => 'This time entry cannot be modified as it has already been validated.',
         ],
         'details' => [
             'priority' => 'Priority',
@@ -134,4 +135,20 @@ return [
         'select_title' => 'Ticket selected',
         'select_description' => 'Click on a slot in the schedule to plan it.'
     ],
+    'tooltip' => [
+        'assignee' => 'Assignee',
+        'date' => 'Date',
+        'time' => 'Time',
+        'duration' => 'Duration',
+        'priority' => 'Priority',
+        'category' => 'Category',
+        'status' => 'Status',
+        'validated' => 'Validated time entry',
+    ],
+    'list' => [
+        'title' => 'Scheduled Interventions',
+        'intervention' => 'intervention',
+        'interventions' => 'interventions',
+    ],
+    'no_schedules' => 'No scheduled interventions yet.',
 ];
