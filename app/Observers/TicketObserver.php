@@ -69,7 +69,11 @@ class TicketObserver
         // Referencing the ticket (must be is_referenced, with a state is_closed and detailed_solution filled)
         if ($ticket->wasChanged('is_referenced') && $ticket->is_referenced) {
             if ($ticket->status?->is_closed && !empty($ticket->detailed_solution)) {
-                DB::afterCommit(fn() => $this->exportToMinio($ticket));
+                // exportToMinio and uploadAttachments
+                DB::afterCommit(function() use ($ticket) {
+                    $this->exportToMinio($ticket);
+                    $this->uploadAttachments($ticket);
+                });
             }
             return;
         }
@@ -124,6 +128,29 @@ class TicketObserver
 
         $fileName = "{$ticket->id}.json";
         Storage::disk('s3')->put($fileName, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    }
+
+    /**
+     * Helper to upload existing attachments to MinIO when ticket becomes public.
+     */
+    private function uploadAttachments(Ticket $ticket): void
+    {
+        // Ensure we have the attachments loaded
+        $ticket->load('attachments');
+
+        foreach ($ticket->attachments as $attachment) {
+            // We verify the file exists on the local 'public' disk
+            if (Storage::disk('public')->exists($attachment->file_path)) {
+                $fileContent = Storage::disk('public')->get($attachment->file_path);
+                $minioPath = "tickets-raw/{$ticket->id}_{$attachment->file_name}";
+
+                // Upload to MinIO
+                Storage::disk('s3')->put($minioPath, $fileContent);
+                Log::info("Synced attachment to MinIO: {$minioPath}");
+            } else {
+                Log::warning("Attachment file missing locally for attachment ID: {$attachment->id}");
+            }
+        }
     }
 
     /**
