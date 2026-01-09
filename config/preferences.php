@@ -92,6 +92,66 @@ return [
                 // 'vonage',
             ],
         ],
+        'tickets' => [
+            // Basic ticket notifications
+            'ticket_created' => [
+                'mail',
+                'database',
+                'vonage',
+            ],
+            'ticket_updated' => [
+                'mail',
+                'database',
+                'vonage',
+            ],
+            'ticket_status_changed' => [
+                'mail',
+                'database',
+                'vonage',
+            ],
+            'ticket_priority_changed' => [
+                'mail',
+                'database',
+                'vonage',
+            ],
+            'ticket_assigned' => [
+                'mail',
+                'database',
+                'vonage',
+            ],
+
+            // Ticket Relations
+            'ticket_entry_created' => [
+                'mail',
+                'database',
+                'vonage',
+            ],
+            'ticket_entry_deleted' => [
+                'mail',
+                'database',
+                'vonage',
+            ],
+            'ticket_comment_created' => [
+                'mail',
+                'database',
+                'vonage',
+            ],
+            'ticket_schedule_created' => [
+                'mail',
+                'database',
+                'vonage',
+            ],
+            'ticket_schedule_updated' => [
+                'mail',
+                'database',
+                'vonage',
+            ],
+            'ticket_schedule_deleted' => [
+                'mail',
+                'database',
+                'vonage',
+            ],
+        ],
     ],
 
     'notification_channels' => [

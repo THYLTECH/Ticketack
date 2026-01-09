@@ -30,6 +30,7 @@ import {
     differenceInMinutes,
     format,
     formatDistanceToNow,
+    formatISO,
     parse,
     parseISO,
     set,
@@ -113,7 +114,6 @@ export function EventDialog({
 
         const [hours, minutes] = startTime.split(':').map(Number);
         const fullStartDate = set(date, { hours, minutes, seconds: 0 });
-        const formattedStartDate = format(fullStartDate, 'yyyy-MM-dd HH:mm:ss');
         const duration = getDuration();
 
         if (duration <= 0) {
@@ -127,7 +127,7 @@ export function EventDialog({
         }
 
         onSave(event.id, {
-            start_date: formattedStartDate,
+            start_date: formatISO(fullStartDate),
             duration_minutes: duration,
         });
     };

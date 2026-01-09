@@ -16,6 +16,10 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Throwable;
 
+use Illuminate\Support\Facades\Notification;
+use App\Models\User;
+use App\Notifications\Tickets\CommentCreated as NotificationsTicketCommentCreated;
+
 class Comments extends Controller
 {
     /**
@@ -42,6 +46,15 @@ class Comments extends Controller
 
             $ticket->touch();
             CommentPosted::dispatch($comment);
+
+            if($ticket) {
+                $assignees = User::whereIn(
+                    'id',
+                    $ticket->assignees()->pluck('user_id')
+                )->get();
+        
+                Notification::send($assignees, new NotificationsTicketCommentCreated($ticket));
+            }
 
             return redirect()->back();
         });
