@@ -8,8 +8,10 @@ use App\Models\TicketCategory;
 use App\Models\TicketPriority;
 use App\Models\TicketStatus;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage; // Ajout pour Minio
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 
 class TicketObserver
@@ -46,7 +48,7 @@ class TicketObserver
      */
     public function updated(Ticket $ticket): void
     {
-        
+        // Modificating fields logging
         foreach ($ticket->getDirty() as $field => $newValue) {
             if (in_array($field, ['updated_at', 'deleted_at'])) {
                 continue;
@@ -64,29 +66,42 @@ class TicketObserver
             }
         }
 
-        //Déréférencement du ticket
+        // Unreferencing the ticket
         if ($ticket->wasChanged('is_referenced') && !$ticket->is_referenced) {
-            $jsonDereferencement = [
-                'id' => (string) $ticket->id
-            ];
-            //TODO : Envoyer $jsonDereferencement à Redis
+            $this->dispatchDeleteEvent('delete_ticket', ['ticket_id' => $ticket->id]);
+            return;
         }
 
-        //Modification des informations du ticket referencé
+        // Modification of referenced ticket information
         if ($ticket->is_referenced) {
             $jsonFields = ['title', 'description', 'detailed_solution', 'author_id', 'status_id'];
             foreach ($jsonFields as $field) {
                 if ($ticket->wasChanged($field)) {
-                    $jsonModif = [
-                        'suppres_json' => "{$ticket->id}.json"
-                    ];
-                    // TODO : Envoyer $jsonModif à Redis
-                    DB::afterCommit(fn() => $this->exportToMinio($ticket));
-                    break; 
+                    $filename = "{$ticket->id}.json";
+
+                    // 1. Send delete command to ETL
+                    $this->dispatchDeleteEvent('delete_file', [
+                        'filename' => $filename,
+                        'ticket_id' => $ticket->id
+                    ]);
+
+                    // 2. Re-upload JSON (MinIO event will trigger re-vectorization)
+                    $this->exportToMinio($ticket);
+                    break;
                 }
             }
         }
     }
+
+    /**
+     * Handle the Ticket "deleted" event.
+     */
+    /*public function deleted(Ticket $ticket): void
+    {
+        // Case 1: Hard delete of a previously referenced ticket
+        // We ensure cleanup in LanceDB
+        $this->dispatchDeleteEvent('delete_ticket', ['ticket_id' => $ticket->id]);
+    }*/
 
     private function exportToMinio(Ticket $ticket): void
     {
@@ -101,6 +116,28 @@ class TicketObserver
 
         $fileName = "{$ticket->id}.json";
         Storage::disk('s3')->put($fileName, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    }
+
+    /**
+     * Helper to push task to Redis queue for ETL.
+     */
+    private function dispatchDeleteEvent(string $action, array $payload): void
+    {
+        try {
+            $message = json_encode([
+                'source' => 'laravel_app',
+                'action' => $action,
+                'payload' => $payload,
+                'timestamp' => time()
+            ]);
+
+            // Push to the same list the Python worker listens to
+            Redis::rpush('minio_events', $message);
+
+            Log::info("ETL Delete Event Dispatched: {$action}", $payload);
+        } catch (\Exception $e) {
+            Log::error("Failed to push to Redis: " . $e->getMessage());
+        }
     }
 
     /**

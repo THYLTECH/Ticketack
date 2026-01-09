@@ -37,6 +37,11 @@ php artisan migrate --force
 # 4. Lancement du serveur de websocket Reverb
 echo "Démarrage du serveur de websocket Reverb en arrière-plan..."
 php artisan reverb:start --host=0.0.0.0 --port=8080 &
+
+# 4b. Lancement du queue worker
+echo "Démarrage du queue worker en arrière-plan..."
+php artisan queue:work --sleep=3 --tries=3 &
+
 # 5. Starting PHP-FPM
 echo "Démarrage de l'application !"
 exec php-fpm
