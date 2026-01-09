@@ -341,12 +341,13 @@ test('sort falls back to default when invalid', function () {
         ->assertOk();
 });
 
-test('user can store a new time entry', function () {
+test('user can store entry with hours and minutes', function () {
     $ticket = Ticket::factory()->create();
 
     post(route('tickets.entries.store'), [
         'ticket_id' => $ticket->id,
-        'date' => now()->format('Y-m-d'),
+        'date' => now()->subDay()->format('Y-m-d'),
+        'start_time' => '08:00',
         'hours' => 2,
         'minutes' => 30,
         'description' => 'Worked heavily',
@@ -367,14 +368,15 @@ test('user can store entry with explicit start time', function () {
 
     post(route('tickets.entries.store'), [
         'ticket_id' => $ticket->id,
-        'date' => now()->format('Y-m-d'),
+        'date' => now()->subDay()->format('Y-m-d'),
         'start_time' => '08:30',
         'hours' => 1,
         'minutes' => 30,
-    ])->assertRedirect();
+    ])->assertRedirect()->assertSessionHas('success');
 
     $entry = TicketEntry::where('ticket_id', $ticket->id)->first();
 
+    expect($entry)->not->toBeNull();
     expect($entry->start_at->format('H:i'))->toBe('08:30');
     expect($entry->duration_seconds)->toBe(5400);
 });
@@ -388,11 +390,12 @@ test('store deletes related schedule when schedule_id is provided', function () 
 
     post(route('tickets.entries.store'), [
         'ticket_id' => $ticket->id,
-        'date' => now()->format('Y-m-d'),
+        'date' => now()->subDay()->format('Y-m-d'),
+        'start_time' => '09:00',
         'hours' => 1,
         'minutes' => 0,
         'schedule_id' => $schedule->id,
-    ])->assertRedirect();
+    ])->assertRedirect()->assertSessionHas('success');
 
     $this->assertDatabaseMissing('ticket_schedules', ['id' => $schedule->id]);
 });

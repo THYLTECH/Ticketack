@@ -6,7 +6,7 @@ use Database\Factories\AttachmentFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -40,11 +40,11 @@ class Attachment extends Model
     protected $appends = ['url'];
 
     /**
-     * @return HasMany
+     * @return HasOne
      */
-    public function user(): HasMany
+    public function user(): HasOne
     {
-        return $this->hasMany(User::class, 'attachment_avatar');
+        return $this->hasOne(User::class, 'attachment_avatar');
     }
 
     /**
