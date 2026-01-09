@@ -2,6 +2,7 @@
 
 return [
     'sidebar' => [
+        'trigger' => 'Tickets',
         'title' => 'To Schedule',
         'search_placeholder' => 'Search...',
         'drop_to_unschedule' => 'Drop to unschedule',
@@ -13,6 +14,10 @@ return [
         'technicians' => 'Solvers',
         'search_placeholder' => 'Search...',
         'no_results' => 'No solvers found.',
+    ],
+    'drawer' => [
+        'action' => 'Filter',
+        'title' => 'Filters',
     ],
     'dialog' => [
         'no_description' => 'No description available.',
@@ -35,6 +40,7 @@ return [
             'save' => 'Save',
             'confirm_delete' => 'Delete ?',
             'error_end_time' => 'End time must be after start time.',
+            'error_entry_readonly' => 'This time entry cannot be modified as it has already been validated.',
         ],
         'details' => [
             'priority' => 'Priority',
@@ -125,6 +131,24 @@ return [
         'deleted' => 'Intervention deleted successfully.',
         'overlap_error' => 'This slot is already occupied for this technician.',
         'validated' => 'Intervention validated successfully and converted to an entry in the ticket list.',
-        'error' => 'An error occurred.'
+        'error' => 'An error occurred.',
+        'select_title' => 'Ticket selected',
+        'select_description' => 'Click on a slot in the schedule to plan it.'
     ],
+    'tooltip' => [
+        'assignee' => 'Assignee',
+        'date' => 'Date',
+        'time' => 'Time',
+        'duration' => 'Duration',
+        'priority' => 'Priority',
+        'category' => 'Category',
+        'status' => 'Status',
+        'validated' => 'Validated time entry',
+    ],
+    'list' => [
+        'title' => 'Scheduled Interventions',
+        'intervention' => 'intervention',
+        'interventions' => 'interventions',
+    ],
+    'no_schedules' => 'No scheduled interventions yet.',
 ];

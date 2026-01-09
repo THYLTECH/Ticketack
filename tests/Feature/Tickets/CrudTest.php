@@ -8,6 +8,7 @@ use App\Models\Ticket;
 use App\Models\TicketAttachment;
 use App\Models\TicketCategory;
 use App\Models\TicketPriority;
+use App\Models\TicketSchedule;
 use App\Models\TicketStatus;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -362,3 +363,423 @@ test('non-admin solver can only see their assigned tickets in manage', function 
     get(route('tickets.manage'))
         ->assertInertia(fn ($page) => $page->has('tickets.data', 1));
 });
+
+test('show page displays events including entries', function () {
+    $ticket = Ticket::factory()->create();
+
+    // Create a schedule
+    TicketSchedule::create([
+        'ticket_id' => $ticket->id,
+        'user_id' => $this->user->id,
+        'start_date' => now(),
+        'end_date' => now()->addHour(),
+        'duration_minutes' => 60,
+    ]);
+
+    // Create an entry
+    \App\Models\TicketEntry::create([
+        'ticket_id' => $ticket->id,
+        'user_id' => $this->user->id,
+        'start_at' => now()->subDay(),
+        'end_at' => now()->subDay()->addHour(),
+        'duration_seconds' => 3600,
+    ]);
+
+    $response = get(route('tickets.show', $ticket));
+
+    $events = $response->viewData('page')['props']['events'];
+
+    expect($events)->toHaveCount(2);
+});
+
+test('show page filters entries by current user', function () {
+    $ticket = Ticket::factory()->create();
+    $otherUser = User::factory()->create();
+
+    // Create entry for another user
+    \App\Models\TicketEntry::create([
+        'ticket_id' => $ticket->id,
+        'user_id' => $otherUser->id,
+        'start_at' => now()->subDay(),
+        'end_at' => now()->subDay()->addHour(),
+        'duration_seconds' => 3600,
+    ]);
+
+    // Create entry for current user
+    $myEntry = \App\Models\TicketEntry::create([
+        'ticket_id' => $ticket->id,
+        'user_id' => $this->user->id,
+        'start_at' => now()->subDay(),
+        'end_at' => now()->subDay()->addHour(),
+        'duration_seconds' => 3600,
+    ]);
+
+    $response = get(route('tickets.show', $ticket));
+
+    $events = $response->viewData('page')['props']['events'];
+    $entryIds = collect($events)->pluck('id')->filter(fn($id) => str_starts_with((string)$id, 'entry-'));
+
+    expect($entryIds)->toHaveCount(1)
+        ->and($entryIds->first())->toBe('entry-' . $myEntry->id);
+});
+
+test('show page excludes entries without end_at', function () {
+    $ticket = Ticket::factory()->create();
+
+    // Create entry with only start_at (no end_at means ongoing/not finished)
+    \App\Models\TicketEntry::create([
+        'ticket_id' => $ticket->id,
+        'user_id' => $this->user->id,
+        'start_at' => now()->subDay(),
+        'end_at' => now()->subDay()->addHour(),
+        'duration_seconds' => 3600,
+    ]);
+
+    $response = get(route('tickets.show', $ticket));
+
+    $events = $response->viewData('page')['props']['events'];
+    $entryIds = collect($events)->pluck('id')->filter(fn($id) => str_starts_with((string)$id, 'entry-'));
+
+    expect($entryIds)->toHaveCount(1);
+});
+
+test('store creates ticket with default status if not provided', function () {
+    $defaultStatus = TicketStatus::where('is_default', true)->first();
+
+    $data = [
+        'title' => 'Auto Status Ticket',
+        'description' => 'Should get default status',
+        'priority_id' => $this->priority->id,
+        'category_id' => $this->category->id,
+    ];
+
+    post(route('tickets.store'), $data);
+
+    $ticket = Ticket::where('title', 'Auto Status Ticket')->first();
+
+    expect($ticket->status_id)->toBe($defaultStatus->id);
+});
+
+test('store validates required fields', function () {
+    post(route('tickets.store'), [])
+        ->assertSessionHasErrors(['title', 'description', 'priority_id', 'category_id']);
+});
+
+test('update validates required fields', function () {
+    $ticket = Ticket::factory()->create();
+
+    put(route('tickets.update', $ticket), [])
+        ->assertSessionHasErrors(['title', 'description', 'priority_id', 'category_id']);
+});
+
+test('update can remove all assignees', function () {
+    $ticket = Ticket::factory()->create([
+        'priority_id' => $this->priority->id,
+        'category_id' => $this->category->id,
+    ]);
+
+    $ticket->assignees()->create(['user_id' => $this->user->id]);
+
+    $data = [
+        'title' => 'Updated Title',
+        'description' => 'Updated description',
+        'priority_id' => $this->priority->id,
+        'category_id' => $this->category->id,
+        'assignees' => []
+    ];
+
+    put(route('tickets.update', $ticket), $data);
+
+    expect($ticket->fresh()->assignees)->toHaveCount(0);
+});
+
+test('store handles multiple attachments', function () {
+    $file1 = UploadedFile::fake()->image('file1.png');
+    $file2 = UploadedFile::fake()->image('file2.jpg');
+    $file3 = UploadedFile::fake()->create('doc.pdf', 100);
+
+    $data = [
+        'title' => 'Multi Attachment Ticket',
+        'description' => 'Has multiple files',
+        'priority_id' => $this->priority->id,
+        'category_id' => $this->category->id,
+        'attachments' => [$file1, $file2, $file3]
+    ];
+
+    post(route('tickets.store'), $data);
+
+    $ticket = Ticket::where('title', 'Multi Attachment Ticket')->first();
+
+    expect($ticket->attachments)->toHaveCount(3);
+});
+
+test('update can add attachments to existing ticket', function () {
+    $ticket = Ticket::factory()->create([
+        'priority_id' => $this->priority->id,
+        'category_id' => $this->category->id,
+    ]);
+
+    // Add first attachment
+    $attachment1 = Attachment::create([
+        'title' => 'existing.png',
+        'file_name' => 'existing.png',
+        'file_path' => 'path/existing.png',
+        'mime_type' => 'image/png',
+        'file_extension' => 'png',
+        'file_size' => 1024,
+    ]);
+
+    TicketAttachment::create([
+        'ticket_id' => $ticket->id,
+        'attachment_id' => $attachment1->id,
+    ]);
+
+    // Add second via update
+    $file = UploadedFile::fake()->image('new.jpg');
+
+    $data = [
+        'title' => 'Updated Title',
+        'description' => 'Updated description',
+        'priority_id' => $this->priority->id,
+        'category_id' => $this->category->id,
+        'attachments' => [$file]
+    ];
+
+    put(route('tickets.update', $ticket), $data);
+
+    expect($ticket->fresh()->attachments)->toHaveCount(2);
+});
+
+test('force delete removes ticket and attachments from database', function () {
+    $ticket = Ticket::factory()->create();
+
+    $attachment = Attachment::create([
+        'title' => 'to_delete.png',
+        'file_name' => 'to_delete.png',
+        'file_path' => 'tickets/1/to_delete.png',
+        'mime_type' => 'image/png',
+        'file_extension' => 'png',
+        'file_size' => 1024,
+    ]);
+
+    TicketAttachment::create([
+        'ticket_id' => $ticket->id,
+        'attachment_id' => $attachment->id,
+    ]);
+
+    $ticket->delete();
+    delete(route('tickets.force_delete', $ticket));
+
+    $this->assertDatabaseMissing('tickets', ['id' => $ticket->id]);
+    $this->assertDatabaseMissing('ticket_attachments', ['ticket_id' => $ticket->id]);
+});
+
+test('index applies priority filter correctly', function () {
+    $priority2 = TicketPriority::create(['title' => 'Low', 'color' => '#0000ff', 'sort_order' => 2]);
+
+    Ticket::factory()->create(['priority_id' => $this->priority->id, 'author_id' => $this->user->id]);
+    Ticket::factory()->create(['priority_id' => $priority2->id, 'author_id' => $this->user->id]);
+
+    get(route('tickets.index', ['priority' => $this->priority->id]))
+        ->assertInertia(fn ($page) => $page->has('tickets.data', 1));
+});
+
+test('index applies category filter correctly', function () {
+    $category2 = TicketCategory::create(['title' => 'Feature', 'color' => '#00ffff', 'sort_order' => 2]);
+
+    Ticket::factory()->create(['category_id' => $this->category->id, 'author_id' => $this->user->id]);
+    Ticket::factory()->create(['category_id' => $category2->id, 'author_id' => $this->user->id]);
+
+    get(route('tickets.index', ['category' => $this->category->id]))
+        ->assertInertia(fn ($page) => $page->has('tickets.data', 1));
+});
+
+test('index applies equipment filter correctly', function () {
+    $asset2 = Asset::factory()->create(['title' => 'Desktop']);
+
+    Ticket::factory()->create(['asset_id' => $this->asset->id, 'author_id' => $this->user->id]);
+    Ticket::factory()->create(['asset_id' => $asset2->id, 'author_id' => $this->user->id]);
+
+    get(route('tickets.index', ['equipment' => $this->asset->id]))
+        ->assertInertia(fn ($page) => $page->has('tickets.data', 1));
+});
+
+test('index sorts by different columns', function () {
+    $ticket1 = Ticket::factory()->create([
+        'title' => 'AAA Ticket',
+        'author_id' => $this->user->id,
+        'created_at' => now()->subDay()
+    ]);
+
+    $ticket2 = Ticket::factory()->create([
+        'title' => 'ZZZ Ticket',
+        'author_id' => $this->user->id,
+        'created_at' => now()
+    ]);
+
+    // Sort by title ascending
+    $response = get(route('tickets.index', ['sort' => 'title', 'direction' => 'asc']));
+    $tickets = $response->viewData('page')['props']['tickets']['data'];
+    expect($tickets[0]['title'])->toBe('AAA Ticket');
+
+    // Sort by created_at descending
+    $response = get(route('tickets.index', ['sort' => 'created_at', 'direction' => 'desc']));
+    $tickets = $response->viewData('page')['props']['tickets']['data'];
+    expect($tickets[0]['id'])->toBe($ticket2->id);
+});
+
+test('manage page shows tickets for solver role', function () {
+    $this->user->removeRole('admin');
+    $this->user->assignRole('solver');
+
+    $ticket = Ticket::factory()->create();
+    $ticket->assignees()->create(['user_id' => $this->user->id]);
+
+    get(route('tickets.manage'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('tickets/manage')
+            ->has('tickets.data', 1)
+        );
+});
+
+test('simple user sees only own tickets in index', function () {
+    $this->user->removeRole('admin');
+
+    $myTicket = Ticket::factory()->create(['author_id' => $this->user->id]);
+    $otherTicket = Ticket::factory()->create();
+
+    get(route('tickets.index'))
+        ->assertInertia(fn ($page) => $page->has('tickets.data', 1));
+});
+
+test('update preserves existing assignees when not provided', function () {
+    $ticket = Ticket::factory()->create([
+        'priority_id' => $this->priority->id,
+        'category_id' => $this->category->id,
+    ]);
+
+    $ticket->assignees()->create(['user_id' => $this->user->id]);
+
+    $data = [
+        'title' => 'Updated Title',
+        'description' => 'Updated description',
+        'priority_id' => $this->priority->id,
+        'category_id' => $this->category->id,
+        // No assignees provided
+    ];
+
+    put(route('tickets.update', $ticket), $data);
+
+    expect($ticket->fresh()->assignees)->toHaveCount(1);
+});
+
+test('restore requires restore permission', function () {
+    $user = User::factory()->create();
+    actingAs($user);
+
+    $ticket = Ticket::factory()->create();
+    $ticket->delete();
+
+    post(route('tickets.restore', $ticket))
+        ->assertForbidden();
+});
+
+test('force delete requires force delete permission', function () {
+    $user = User::factory()->create();
+    actingAs($user);
+
+    $ticket = Ticket::factory()->create();
+    $ticket->delete();
+
+    delete(route('tickets.force_delete', $ticket))
+        ->assertForbidden();
+});
+
+test('create page loads all required relationships', function () {
+    $response = get(route('tickets.create'));
+
+    $response->assertInertia(fn ($page) => $page
+        ->has('priorities')
+        ->has('categories')
+        ->has('statuses')
+        ->has('assets')
+        ->has('users')
+    );
+
+    $props = $response->viewData('page')['props'];
+
+    expect($props['priorities'])->not->toBeEmpty()
+        ->and($props['statuses'])->not->toBeEmpty();
+});
+
+test('edit page loads ticket with all relationships', function () {
+    $ticket = Ticket::factory()->create();
+    $ticket->assignees()->create(['user_id' => $this->user->id]);
+
+    $attachment = Attachment::create([
+        'title' => 'test.png',
+        'file_name' => 'test.png',
+        'file_path' => 'path/test.png',
+        'mime_type' => 'image/png',
+        'file_extension' => 'png',
+        'file_size' => 1024,
+    ]);
+
+    TicketAttachment::create([
+        'ticket_id' => $ticket->id,
+        'attachment_id' => $attachment->id,
+    ]);
+
+    $response = get(route('tickets.edit', $ticket));
+
+    $ticketData = $response->viewData('page')['props']['ticket'];
+
+    expect($ticketData)->toHaveKey('assignees')
+        ->and($ticketData)->toHaveKey('attachments')
+        ->and($ticketData['assignees'])->toHaveCount(1)
+        ->and($ticketData['attachments'])->toHaveCount(1);
+});
+
+test('index returns correct pagination metadata', function () {
+    Ticket::factory()->count(15)->create(['author_id' => $this->user->id]);
+
+    $response = get(route('tickets.index'));
+
+    $tickets = $response->viewData('page')['props']['tickets'];
+
+    expect($tickets)->toHaveKeys(['data', 'current_page', 'per_page', 'total'])
+        ->and($tickets['data'])->toHaveCount(10) // Default per page
+        ->and($tickets['total'])->toBe(15);
+});
+
+test('store and update handle is_public and is_referenced flags', function () {
+    $data = [
+        'title' => 'Flags Test',
+        'description' => 'Testing flags',
+        'priority_id' => $this->priority->id,
+        'category_id' => $this->category->id,
+        'is_public' => true,
+        'is_referenced' => true,
+    ];
+
+    post(route('tickets.store'), $data);
+
+    $ticket = Ticket::where('title', 'Flags Test')->first();
+
+    expect($ticket->is_public)->toBeTrue()
+        ->and($ticket->is_referenced)->toBeTrue();
+
+    // Update flags
+    put(route('tickets.update', $ticket), array_merge($data, [
+        'is_public' => false,
+        'is_referenced' => false,
+    ]));
+
+    $ticket->refresh();
+
+    expect($ticket->is_public)->toBeFalse()
+        ->and($ticket->is_referenced)->toBeFalse();
+});
+
+

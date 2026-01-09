@@ -209,7 +209,6 @@ export function CommentList({
                                     <AvatarImage
                                         src={
                                             comment.user.avatar?.url ||
-                                            comment.user.profile_photo_url ||
                                             undefined
                                         }
                                         className="object-cover"
@@ -386,7 +385,6 @@ export function CommentList({
                                                                     <div className="flex items-center gap-2 rounded-md border bg-card p-2 text-xs shadow-sm hover:bg-accent/50">
                                                                         <FileIcon className="h-4 w-4 text-primary" />
                                                                         <div className="flex flex-col overflow-hidden">
-                                                                            {/* Correction: max-w-[120px] -> max-w-30 */}
                                                                             <span className="max-w-30 truncate font-medium">
                                                                                 {
                                                                                     att.file_name

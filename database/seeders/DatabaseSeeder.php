@@ -6,8 +6,6 @@ use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
-// Seeders
-use Database\Seeders\RolesAndPermissionsSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -32,7 +30,7 @@ class DatabaseSeeder extends Seeder
         );
 
         // Assign admin role
-        $user->assignRole('admin');
+        $user->assignRole('admin', 'simple_user');
 
         $this->call([
             TicketSeeder::class,

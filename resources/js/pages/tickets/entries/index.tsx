@@ -1,11 +1,4 @@
-import LaravelPagination from '@/components/LaravelPagination';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
+import { PaginationControl } from '@/components/pagination-control';
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app/layout';
 import { useTrans } from '@/lib/translation';
@@ -14,6 +7,7 @@ import {
     SharedData,
     TicketCategory,
     TicketEntry,
+    TicketOption,
     TicketPriority,
     TicketStatus,
 } from '@/types';
@@ -33,13 +27,6 @@ import { ReportDialog } from './report-dialog';
 type TicketEntryPagination = PaginationProps & {
     data: TicketEntry[];
 };
-
-interface TicketOption {
-    id: number;
-    title: string;
-    description: string | null;
-    asset: { id: number; title: string } | null;
-}
 
 interface Props {
     entries: TicketEntryPagination;
@@ -81,18 +68,6 @@ export default function EntriesIndex({
     const [dateRange, setDateRange] = useState<DateRange | undefined>(
         initialDateRange,
     );
-
-    const handlePerPageChange = (value: string) => {
-        const currentUrl = new URL(window.location.href);
-        currentUrl.searchParams.set('per_page', value);
-        currentUrl.searchParams.delete('page');
-
-        router.get(
-            currentUrl.toString(),
-            {},
-            { preserveState: true, replace: true, preserveScroll: true },
-        );
-    };
 
     const applyFilters = (newFilters: FilterState) => {
         setFilterValues(newFilters);
@@ -145,15 +120,15 @@ export default function EntriesIndex({
         <AppLayout
             breadcrumbs={[
                 {
-                    title: __('entries.index.breadcrumbs.dashboard'),
-                    href: route('dashboard'),
+                    title: __('home.pages.breadcrumbs.home'),
+                    href: route('home'),
                 },
                 { title: __('entries.index.breadcrumbs.current'), href: '#' },
             ]}
         >
             <Head title={__('entries.index.title')} />
 
-            <div className="container mx-auto max-w-400 space-y-5 px-4 py-8 sm:px-6 lg:px-8">
+            <div className="container mx-auto max-w-full space-y-5 px-4 py-8 sm:px-6 lg:px-8">
                 <EntriesHeader
                     onCreateClick={() => setIsCreateOpen(true)}
                     onReportClick={() => setIsReportOpen(true)}
@@ -161,7 +136,7 @@ export default function EntriesIndex({
 
                 <div className="flex w-fit items-center rounded-full border bg-background/50 px-3 py-1 shadow-sm">
                     <Globe className="h-3.5 w-3.5 text-muted-foreground" />
-                    <Separator orientation="vertical" className="h-3" />
+                    <Separator orientation="vertical" className="mx-2 h-3" />
                     <span className="text-[11px] font-medium tracking-tight text-foreground uppercase">
                         TIMEZONE : {auth.user.timezone || 'UTC'}
                     </span>
@@ -183,63 +158,7 @@ export default function EntriesIndex({
 
                     <EntriesTable entries={entries.data} showTicketColumn />
 
-                    <div className="flex flex-col items-center justify-between gap-4 border-t py-4 md:flex-row">
-                        <div className="flex flex-1 items-center gap-4 text-sm text-muted-foreground">
-                            <div className="whitespace-nowrap">
-                                {' '}
-                                {__('entries.pagination.showing')}{' '}
-                                <span className="font-medium text-foreground">
-                                    {entries.data.length}
-                                </span>{' '}
-                                {__('entries.pagination.of')}{' '}
-                                <span className="font-medium text-foreground">
-                                    {entries.total}
-                                </span>{' '}
-                                {__('entries.pagination.results')}
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <span className="hidden text-xs text-muted-foreground sm:inline-block">
-                                    {__('entries.pagination.show') ||
-                                        'Afficher'}
-                                </span>
-                                <Select
-                                    value={String(entries.per_page)}
-                                    onValueChange={handlePerPageChange}
-                                >
-                                    <SelectTrigger className="h-8 w-17.5">
-                                        <SelectValue
-                                            placeholder={String(
-                                                entries.per_page,
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent side="top">
-                                        {[5, 10, 15, 25, 50, 100].map(
-                                            (size) => (
-                                                <SelectItem
-                                                    key={size}
-                                                    value={String(size)}
-                                                >
-                                                    {size}
-                                                </SelectItem>
-                                            ),
-                                        )}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-                        <LaravelPagination
-                            links={
-                                entries.links as unknown as Array<{
-                                    url: string | null;
-                                    label: string;
-                                    active: boolean;
-                                }>
-                            }
-                            className="mt-0"
-                        />
-                    </div>
+                    <PaginationControl meta={entries} />
                 </div>
             </div>
 

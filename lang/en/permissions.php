@@ -50,6 +50,9 @@ return [
             'delete' => ['title' => 'Delete Tickets', 'description' => 'Allow deleting tickets.'],
             'restore' => ['title' => 'Restore Tickets', 'description' => 'Allow restoring deleted tickets.'],
             'force delete' => ['title' => 'Permanently Delete', 'description' => 'Allow permanently deleting tickets.'],
+            'manage priority' => ['title' => 'Manage Ticket Priorities', 'description' => 'Allow managing ticket priorities.'],
+            'manage status' => ['title' => 'Manage Ticket Statuses', 'description' => 'Allow managing ticket statuses.'],
+            'manage category' => ['title' => 'Manage Ticket Categories', 'description' => 'Allow managing ticket categories.'],
         ],
     ],
 

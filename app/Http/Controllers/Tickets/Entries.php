@@ -14,7 +14,11 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
+use Throwable;
 
 class Entries extends Controller
 {
@@ -93,6 +97,9 @@ class Entries extends Controller
         ]);
     }
 
+    /**
+     * @throws Throwable
+     */
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -122,22 +129,33 @@ class Entries extends Controller
 
         $endAt = $startAt->copy()->addSeconds($durationSeconds);
 
-        if (!empty($data['schedule_id'])) {
-            TicketSchedule::where('id', $data['schedule_id'])->delete();
-        }
+        if ($endAt->isFuture()) {
+        throw ValidationException::withMessages([
+            'date' => __('entries.flash.future_error')
+        ]);
+    }
 
         /** @var User $user */
         $user = $request->user();
 
-        TicketEntry::create([
-            'ticket_id' => $data['ticket_id'],
-            'user_id' => $user->id,
-            'note' => $data['description'] ?? null,
-            'start_at' => $startAt,
-            'end_at' => $endAt,
-            'duration_seconds' => $durationSeconds,
-            'billable' => $data['billable'] ?? false,
-        ]);
+        DB::transaction(function () use ($data, $user, $startAt, $endAt, $durationSeconds) {
+
+            $this->ensureNoOverlap($user->id, $startAt, $endAt);
+
+            TicketEntry::create([
+                'ticket_id' => $data['ticket_id'],
+                'user_id' => $user->id,
+                'note' => $data['description'] ?? null,
+                'start_at' => $startAt,
+                'end_at' => $endAt,
+                'duration_seconds' => $durationSeconds,
+                'billable' => $data['billable'] ?? false,
+            ]);
+
+            if (!empty($data['schedule_id'])) {
+                TicketSchedule::where('id', $data['schedule_id'])->delete();
+            }
+        });
 
         return back()->with('success', __('entries.controller.store.success'));
     }
@@ -170,8 +188,8 @@ class Entries extends Controller
         $start = $request->input('start_date') ? Carbon::parse($request->input('start_date'))->format('d-m-Y') : null;
         $end = $request->input('end_date') ? Carbon::parse($request->input('end_date'))->format('d-m-Y') : null;
 
-        $dateLabel = ($start && $end) ? "from_{$start}_to_{$end}" : "all_history_" . now()->format('d-m-Y');
-        $baseFilename = "Time_Report_{$dateLabel}";
+        $dateLabel = ($start && $end) ? "from_{$start}_to_$end" : "all_history_" . now()->format('d-m-Y');
+        $baseFilename = "Time_Report_$dateLabel";
 
         if ($request->input('format') === 'pdf') {
             $period = ($start && $end)
@@ -181,7 +199,7 @@ class Entries extends Controller
             $dailySummary = $entries->groupBy(fn($entry) => $entry->start_at->format('Y-m-d'))
                 ->map(fn($dayEntries) => round($dayEntries->sum('duration_seconds') / 3600, 2));
 
-            $weeklyEntries = $entries->groupBy(function($entry) {
+            $weeklyEntries = $entries->groupBy(function ($entry) {
                 return $entry->start_at->format('o-W');
             })->sortKeysDesc();
 
@@ -195,20 +213,20 @@ class Entries extends Controller
                 'date' => now()->format(self::DATE_FORMAT),
             ]);
 
-            $pdf->setPaper('a4', 'portrait');
-            return $pdf->download("{$baseFilename}.pdf");
+            $pdf->setPaper('a4');
+            return $pdf->download("$baseFilename.pdf");
         }
 
         $headers = [
             "Content-type" => "text/csv; charset=UTF-8",
-            "Content-Disposition" => "attachment; filename={$baseFilename}.csv",
+            "Content-Disposition" => "attachment; filename=$baseFilename.csv",
             "Pragma" => "no-cache",
             "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
             "Expires" => "0"
         ];
 
         return response()->stream(
-            fn () => $this->streamCsv($entries, $totalHours),
+            fn() => $this->streamCsv($entries, $totalHours),
             200,
             $headers
         );
@@ -307,6 +325,48 @@ class Entries extends Controller
             $query->whereHas('ticket', function (Builder $q) use ($categoryId) {
                 $q->where('category_id', $categoryId);
             });
+        }
+    }
+
+    /**
+     * Ensure no overlapping entries exist for the given user and time range.
+     *
+     * @param int $userId
+     * @param Carbon $startAt
+     * @param Carbon $endAt
+     * @throws ValidationException
+     */
+    private function ensureNoOverlap(int $userId, Carbon $startAt, Carbon $endAt): void
+    {
+        $conflictingEntry = TicketEntry::where('user_id', $userId)
+            ->where(function (Builder $query) use ($startAt, $endAt) {
+                $query->where('start_at', '<', $endAt)
+                    ->where('end_at', '>', $startAt);
+            })
+            ->when(null, fn($q) => $q->where('id', '!=', null))
+            ->with('ticket:id,title')
+            ->first();
+
+        if ($conflictingEntry) {
+            $conflictStart = $conflictingEntry->start_at->format('H:i');
+            $conflictEnd = $conflictingEntry->end_at->format('H:i');
+
+            $ticketTitle = $conflictingEntry->ticket
+                ? $conflictingEntry->ticket->title
+                : __('entries.ticket_deleted');
+
+            $ticketId = $conflictingEntry->ticket_id;
+
+            $message = __('entries.flash.overlap_details', [
+                'id' => $ticketId,
+                'title' => Str::limit($ticketTitle, 30),
+                'start' => $conflictStart,
+                'end' => $conflictEnd,
+            ]);
+
+            throw ValidationException::withMessages([
+                'date' => $message
+            ]);
         }
     }
 }

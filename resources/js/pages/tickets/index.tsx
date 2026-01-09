@@ -19,6 +19,7 @@ import { useDebounce } from 'use-debounce';
 import { TicketEmpty } from './components/ticket-empty';
 import { TicketTable } from './components/ticket-table';
 import { TicketToolbar } from './components/ticket-toolbar';
+import { PaginationControl } from '@/components/pagination-control';
 
 interface PaginatedData<T> {
     data: T[];
@@ -62,8 +63,8 @@ export default function Index({
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
-            title: __('dashboard.pages.breadcrumbs.dashboard'),
-            href: route('dashboard'),
+            title: __('home.pages.breadcrumbs.home'),
+            href: route('home'),
         },
         {
             title: __('tickets.pages.breadcrumbs.index'),
@@ -123,7 +124,7 @@ export default function Index({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={__('tickets.pages.index.head_title')} />
 
-            <div className="container mx-auto max-w-[1600px] space-y-5 px-4 py-8 sm:px-6 lg:px-8">
+            <div className="container mx-auto max-w-full space-y-5 px-4 py-8 sm:px-6 lg:px-8">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h2 className="text-2xl font-bold tracking-tight text-foreground">
@@ -174,7 +175,13 @@ export default function Index({
                     {tickets.data.length === 0 ? (
                         <TicketEmpty />
                     ) : (
-                        <TicketTable tickets={tickets} auth={auth} />
+                        <>
+                            <TicketTable tickets={tickets} auth={auth} />
+
+                            <PaginationControl
+                                meta={tickets}
+                            />
+                        </>
                     )}
                 </div>
             </div>

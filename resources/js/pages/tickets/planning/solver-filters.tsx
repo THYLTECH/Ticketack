@@ -103,7 +103,7 @@ export function SolverFilters({ solvers, selectedIds, onToggle }: Props) {
                                             )}
                                         >
                                             <AvatarImage
-                                                src={solver.profile_photo_url}
+                                                src={solver.avatar?.url}
                                             />
                                             <AvatarFallback className="bg-background text-[10px]">
                                                 {getInitials(solver.name)}

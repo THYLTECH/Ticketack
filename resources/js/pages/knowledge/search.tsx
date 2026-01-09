@@ -18,7 +18,6 @@ import {
     Calendar as CalendarIcon,
     ChevronDown,
     LayoutGrid,
-    ListFilter,
     Monitor,
     Search,
     Sparkles,
@@ -27,6 +26,7 @@ import {
 } from 'lucide-react';
 import * as React from 'react';
 import { DateRange } from 'react-day-picker';
+import { toast } from 'sonner';
 import { FilterDropdown } from './components/filter-dropdown';
 import { ResultCard } from './components/result-card';
 import { ResultSkeleton } from './components/result-skeleton';
@@ -56,6 +56,7 @@ export default function KnowledgeSearch({
     const [isSearching, setIsSearching] = React.useState(false);
     const [isLoading, setIsLoading] = React.useState(false);
     const [results, setResults] = React.useState<SearchResult[]>([]);
+    const [serviceUnavailable, setServiceUnavailable] = React.useState(false);
 
     const [visibleCount, setVisibleCount] = React.useState(INITIAL_VISIBLE_COUNT);
 
@@ -89,8 +90,36 @@ export default function KnowledgeSearch({
 
             setResults(response.data.results);
             setIsSearching(true);
+            setServiceUnavailable(false);
         } catch (error) {
-            console.error(error);
+            if (axios.isAxiosError(error)) {
+                if (error.response?.status === 503) {
+                    setServiceUnavailable(true);
+                    if (!serviceUnavailable) {
+                        toast.error(
+                            __('knowledge.pages.search.service_unavailable') ||
+                            'Search service is temporarily unavailable.',
+                            {
+                                description: 'The vector search service may be offline. Please contact your administrator.',
+                                duration: 5000,
+                            }
+                        );
+                    }
+                } else {
+                    toast.error(
+                        __('knowledge.pages.search.error') ||
+                        'An error occurred while searching. Please try again.',
+                        {
+                            duration: 3000,
+                        }
+                    );
+                }
+            } else {
+                console.error('Unexpected error:', error);
+                toast.error('An unexpected error occurred');
+            }
+            setResults([]);
+            setIsSearching(true);
         } finally {
             setIsLoading(false);
         }
@@ -98,8 +127,8 @@ export default function KnowledgeSearch({
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
-            title: __('dashboard.pages.breadcrumbs.dashboard'),
-            href: route('dashboard'),
+            title: __('home.pages.breadcrumbs.home'),
+            href: route('home'),
         },
         { title: __('knowledge.pages.search.title'), href: url },
     ];
@@ -123,7 +152,7 @@ export default function KnowledgeSearch({
             <Head title={__('knowledge.pages.search.title')} />
 
             <div className="min-h-screen w-full bg-background pb-5">
-                <div className="relative border-b border-border/40 px-4 py-3 sm:px-6 lg:px-8">
+                <div className="relative border-border/40 px-4 py-3 sm:px-6 lg:px-8">
                     <div className="absolute inset-0 -z-10 bg-[radial-gradient(rgba(0,0,0,0.05)_1px,transparent_1px)] bg-size-[16px_16px] dark:bg-[radial-gradient(rgba(255,255,255,0.05)_1px,transparent_1px)]"></div>
 
                     <div className="mx-auto max-w-2xl text-center">
@@ -297,8 +326,42 @@ export default function KnowledgeSearch({
                         </div>
                     </div>
                 </div>
-                <div className="container mx-auto max-w-5xl px-4 py-3 sm:px-6 lg:px-8">
-                    {isLoading ? (
+                <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
+                    {serviceUnavailable ? (
+                        <div className="animate-in space-y-6 rounded-2xl border border-destructive/20 bg-destructive/5 p-8 text-center duration-500 fade-in slide-in-from-bottom-4">
+                            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
+                                <svg
+                                    className="h-8 w-8 text-destructive"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                                    />
+                                </svg>
+                            </div>
+                            <div className="space-y-2">
+                                <h3 className="text-xl font-semibold text-destructive">
+                                    {__('knowledge.pages.search.service_unavailable_title') || 'Search Service Unavailable'}
+                                </h3>
+                                <p className="text-sm text-muted-foreground">
+                                    {__('knowledge.pages.search.service_unavailable_description') ||
+                                        'The vector search service is currently offline. This feature requires the ETL service to be running. Please contact your system administrator.'}
+                                </p>
+                                <div className="mt-4 rounded-lg bg-muted/50 p-4 text-xs text-left font-mono">
+                                    <p className="text-muted-foreground">
+                                        <strong>For administrators:</strong><br />
+                                        Start the ETL service with: <code className="text-foreground">docker-compose up etl-api</code><br />
+                                        Or update <code className="text-foreground">VECTOR_SEARCH_URL</code> in .env if running locally
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    ) : isLoading ? (
                         <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
                             <div className="h-64 animate-pulse rounded-xl border border-border/60 bg-muted/10 p-8 md:col-span-2" />
                             <ResultSkeleton />
@@ -331,7 +394,7 @@ export default function KnowledgeSearch({
                                 <div className="mt-8 flex justify-center pb-8">
                                     <Button
                                         variant="outline"
-                                        className="min-w-[200px] border-dashed hover:border-primary hover:bg-primary/5 hover:text-primary"
+                                        className="min-w-50 border-dashed hover:border-primary hover:bg-primary/5 hover:text-primary"
                                         onClick={() => setVisibleCount((prev) => prev + LOAD_MORE_STEP)}
                                     >
                                         {__('knowledge.buttons.load_more')}

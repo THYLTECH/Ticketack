@@ -24,9 +24,6 @@ import { CSS } from '@dnd-kit/utilities';
 import { useForm } from '@inertiajs/react';
 import * as React from 'react';
 
-// Translation Hook
-import { useTrans } from '@/lib/translation';
-
 // Utils
 import { renderTicketStatus } from '@/lib/render';
 
@@ -82,6 +79,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { GripVertical, Pen, Plus, Save, Trash2 } from 'lucide-react';
+import { useTrans } from '@/lib/translation';
 
 interface StatusesSheetProps {
     children: React.ReactNode;
@@ -91,7 +89,7 @@ interface StatusesSheetProps {
 export function StatusesSheet({ children, statuses }: StatusesSheetProps) {
     const [sheetOpen, setSheetOpen] = React.useState(false);
 
-    // const __ = useTrans(); TODO
+    const __ = useTrans();
 
     const { data, setData, processing, patch } = useForm<{
         statuses: TicketStatus[];
@@ -167,8 +165,8 @@ export function StatusesSheet({ children, statuses }: StatusesSheetProps) {
             if (title.trim() === '' || !color) {
                 setErrors({
                     title:
-                        title.trim() === '' ? 'Title is required.' : undefined,
-                    color: !color ? 'Color is required.' : undefined,
+                        title.trim() === '' ? __('tickets.pages.relations.statuses.validation.title_required') : undefined,
+                    color: !color ? __('tickets.pages.relations.statuses.validation.color_required') : undefined,
                 });
                 return;
             }
@@ -239,12 +237,12 @@ export function StatusesSheet({ children, statuses }: StatusesSheetProps) {
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>
-                            {status ? 'Edit Status' : 'Create Status'}
+                            {status ? __('tickets.pages.relations.statuses.dialog.edit_title') : __('tickets.pages.relations.statuses.dialog.create_title')}
                         </DialogTitle>
                         <DialogDescription>
                             {status
-                                ? `Modify the details of the status "${status.title}".`
-                                : 'Fill in the details to create a new status.'}
+                                ? __('tickets.pages.relations.statuses.dialog.edit_description')
+                                : __('tickets.pages.relations.statuses.dialog.create_description')}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -253,12 +251,12 @@ export function StatusesSheet({ children, statuses }: StatusesSheetProps) {
                         {/* Title */}
                         <div className="grid gap-2">
                             <Label htmlFor="title" indicator={'required'}>
-                                Title
+                                {__('tickets.pages.relations.statuses.dialog.form.title_label')}
                             </Label>
                             <Input
                                 id="title"
                                 value={title}
-                                placeholder="eg: To Do, In Progress, Done"
+                                placeholder={__('tickets.pages.relations.statuses.dialog.form.title_placeholder')}
                                 onChange={(e) => setTitle(e.target.value)}
                                 disabled={processing}
                                 aria-invalid={errors.title ? 'true' : 'false'}
@@ -268,12 +266,12 @@ export function StatusesSheet({ children, statuses }: StatusesSheetProps) {
                         {/* Description */}
                         <div className="grid gap-2">
                             <Label htmlFor="description" indicator={'optional'}>
-                                Description
+                                {__('tickets.pages.relations.statuses.dialog.form.description_label')}
                             </Label>
                             <Textarea
                                 id="description"
                                 value={description}
-                                placeholder="A brief description of the status."
+                                placeholder={__('tickets.pages.relations.statuses.dialog.form.description_placeholder')}
                                 onChange={(e) => setDescription(e.target.value)}
                                 disabled={processing}
                                 aria-invalid={
@@ -282,14 +280,14 @@ export function StatusesSheet({ children, statuses }: StatusesSheetProps) {
                             />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-1 gap-3">
                             {/* Is default */}
                             <div className="grid gap-2">
                                 <Label
                                     htmlFor="is_default"
                                     indicator={'required'}
                                 >
-                                    Is default
+                                    {__('tickets.pages.relations.statuses.dialog.form.default_label')}
                                 </Label>
                                 <Select
                                     defaultValue={
@@ -300,11 +298,11 @@ export function StatusesSheet({ children, statuses }: StatusesSheetProps) {
                                     }
                                 >
                                     <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Is this the default status?" />
+                                        <SelectValue placeholder={__('tickets.pages.relations.statuses.dialog.form.default_placeholder')} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="yes">Yes</SelectItem>
-                                        <SelectItem value="no">No</SelectItem>
+                                        <SelectItem value="yes">{__('tickets.pages.relations.statuses.dialog.form.default_yes')}</SelectItem>
+                                        <SelectItem value="no">{__('tickets.pages.relations.statuses.dialog.form.default_no')}</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -315,7 +313,7 @@ export function StatusesSheet({ children, statuses }: StatusesSheetProps) {
                                     htmlFor="is_default"
                                     indicator={'required'}
                                 >
-                                    Is closed
+                                    {__('tickets.pages.relations.statuses.dialog.form.closed_label')}
                                 </Label>
                                 <Select
                                     defaultValue={
@@ -326,11 +324,11 @@ export function StatusesSheet({ children, statuses }: StatusesSheetProps) {
                                     }
                                 >
                                     <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Is this the closed status?" />
+                                        <SelectValue placeholder={__('tickets.pages.relations.statuses.dialog.form.closed_placeholder')} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="yes">Yes</SelectItem>
-                                        <SelectItem value="no">No</SelectItem>
+                                        <SelectItem value="yes">{__('tickets.pages.relations.statuses.dialog.form.closed_yes')}</SelectItem>
+                                        <SelectItem value="no">{__('tickets.pages.relations.statuses.dialog.form.closed_no')}</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -339,7 +337,7 @@ export function StatusesSheet({ children, statuses }: StatusesSheetProps) {
                         {/* Color */}
                         <div className="grid gap-2">
                             <Label htmlFor="color" indicator={'required'}>
-                                Color
+                                {__('tickets.pages.relations.statuses.dialog.form.color_label')}
                             </Label>
                             <ColorPicker
                                 id="color"
@@ -353,11 +351,13 @@ export function StatusesSheet({ children, statuses }: StatusesSheetProps) {
 
                         <DialogFooter>
                             <DialogClose asChild>
-                                <Button variant={'secondary'}>Close</Button>
+                                <Button variant={'secondary'}>
+                                    {__('tickets.pages.relations.statuses.dialog.form.buttons.close')}
+                                </Button>
                             </DialogClose>
                             <Button type="submit" disabled={processing}>
                                 {status ? <Pen /> : <Plus />}
-                                {status ? 'Update Status' : 'Store Status'}
+                                {status ? __('tickets.pages.relations.statuses.dialog.form.buttons.update') : __('tickets.pages.relations.statuses.dialog.form.buttons.store')}
                             </Button>
                         </DialogFooter>
                     </form>
@@ -400,19 +400,22 @@ export function StatusesSheet({ children, statuses }: StatusesSheetProps) {
                 <DialogTrigger asChild>{children}</DialogTrigger>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Delete Status</DialogTitle>
+                        <DialogTitle>
+                            {__('tickets.pages.relations.statuses.dialog.delete_title')}
+                        </DialogTitle>
                         <DialogDescription>
-                            Are you sure you want to delete the status "
-                            {status.title}"? This action cannot be undone.
+                            {__('tickets.pages.relations.statuses.dialog.delete_description')}
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
                         <DialogClose asChild>
-                            <Button variant={'secondary'}>Cancel</Button>
+                            <Button variant={'secondary'}>
+                                {__('tickets.pages.relations.statuses.dialog.form.buttons.cancel')}
+                            </Button>
                         </DialogClose>
-                        <Button variant={'destructive'} onClick={handleSubmit}>
+                        <Button variant={'destructive'} onClick={handleSubmit} disabled={status.locked}>
                             <Trash2 />
-                            Delete Status
+                            {__('tickets.pages.relations.statuses.dialog.form.buttons.delete')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -494,10 +497,12 @@ export function StatusesSheet({ children, statuses }: StatusesSheetProps) {
                     <div className="flex items-center gap-4">
                         {renderTicketStatus(status)}
                         {status.is_default ? (
-                            <Badge variant="secondary">Default</Badge>
+                            <Badge variant="secondary">
+                                {__('tickets.pages.relations.statuses.sheet.table.default')}
+                            </Badge>
                         ) : null}
                         {status.is_closed ? (
-                            <Badge variant="destructive">Closed</Badge>
+                            <Badge variant="destructive">{__('tickets.pages.relations.statuses.sheet.table.closed')}</Badge>
                         ) : null}
                     </div>
                 </TableCell>
@@ -515,7 +520,7 @@ export function StatusesSheet({ children, statuses }: StatusesSheetProps) {
                         </Button>
                     </StatusesDialog>
                     <StatusesDeleteDialog status={status}>
-                        <Button variant="outline" size={'icon-sm'}>
+                        <Button variant="outline" size={'icon-sm'} disabled={status.locked}>
                             <Trash2 />
                         </Button>
                     </StatusesDeleteDialog>
@@ -542,9 +547,9 @@ export function StatusesSheet({ children, statuses }: StatusesSheetProps) {
             <SheetTrigger asChild>{children}</SheetTrigger>
             <SheetContent>
                 <SheetHeader>
-                    <SheetTitle>Manage Statuses</SheetTitle>
+                    <SheetTitle>{__('tickets.pages.relations.statuses.sheet.title')}</SheetTitle>
                     <SheetDescription>
-                        Modify the list of ticket statuses.
+                        {__('tickets.pages.relations.statuses.sheet.description')}
                     </SheetDescription>
                 </SheetHeader>
                 <Separator />
@@ -552,7 +557,7 @@ export function StatusesSheet({ children, statuses }: StatusesSheetProps) {
                     <StatusesDialog>
                         <Button className="w-max" size={'sm'}>
                             <Plus />
-                            Add Status
+                            {__('tickets.pages.relations.statuses.sheet.buttons.create')}
                         </Button>
                     </StatusesDialog>
 
@@ -568,7 +573,7 @@ export function StatusesSheet({ children, statuses }: StatusesSheetProps) {
                                 <TableRow>
                                     <TableHead></TableHead>
                                     <TableHead className="text-xs text-muted-foreground">
-                                        Status
+                                        {__('tickets.pages.relations.statuses.sheet.table.column')}
                                     </TableHead>
                                     <TableHead></TableHead>
                                 </TableRow>
@@ -597,7 +602,7 @@ export function StatusesSheet({ children, statuses }: StatusesSheetProps) {
                                             colSpan={3}
                                             className="py-4 text-center"
                                         >
-                                            No statuses found.
+                                            {__('tickets.pages.relations.statuses.sheet.table.empty')}
                                         </TableCell>
                                     </TableRow>
                                 )}
@@ -607,7 +612,9 @@ export function StatusesSheet({ children, statuses }: StatusesSheetProps) {
                 </div>
                 <SheetFooter>
                     <SheetClose asChild>
-                        <Button variant="secondary">Close</Button>
+                        <Button variant="secondary">
+                            {__('tickets.pages.relations.statuses.sheet.buttons.close')}
+                        </Button>
                     </SheetClose>
                     <Button
                         type="button"
@@ -615,7 +622,7 @@ export function StatusesSheet({ children, statuses }: StatusesSheetProps) {
                         disabled={processing}
                     >
                         {processing ? <Spinner /> : <Save />}
-                        Save Changes
+                        {__('tickets.pages.relations.statuses.sheet.buttons.save')}
                     </Button>
                 </SheetFooter>
             </SheetContent>

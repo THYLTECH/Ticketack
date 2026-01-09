@@ -12,6 +12,20 @@ return [
     'flash' => [
         'error' => 'An error occurred',
     ],
+    'filters' => [
+        'title' => 'Filters',
+        'reset' => 'Reset',
+    ],
+    'time' => [
+        'seconds' => 'seconds',
+        'minutes' => 'minutes',
+        'hours' => 'hours',
+        'days' => 'days',
+        'weeks' => 'weeks',
+        'months' => 'months',
+        'years' => 'years',
+    ],
+
 
     /*
     |--------------------------------------------------------------------------

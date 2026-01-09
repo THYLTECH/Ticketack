@@ -8,6 +8,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -23,9 +24,9 @@ use App\Notifications\UserRegistered as NotificationsUserRegistered;
 
 /**
  * Class Register
- * 
+ *
  * Handles user registration functionalities.
- * 
+ *
  * @package App\Http\Controllers\Auth
  */
 class Register extends Controller
@@ -51,8 +52,10 @@ class Register extends Controller
 
         $user = User::create($data);
 
+        $user->assignRole('simple_user');
+
         Notification::send($user, new NotificationsUserRegistered());
-        
+
         Auth::login($user);
 
         /** @var \Illuminate\Http\Request $request */

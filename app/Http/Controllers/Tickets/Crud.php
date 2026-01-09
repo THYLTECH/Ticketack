@@ -10,6 +10,7 @@ use App\Models\Attachment;
 use App\Models\Ticket;
 use App\Models\TicketAttachment;
 use App\Models\TicketCategory;
+use App\Models\TicketEntry;
 use App\Models\TicketPriority;
 use App\Models\TicketSchedule;
 use App\Models\TicketStatus;
@@ -50,33 +51,90 @@ class Crud extends Controller
     }
 
     /**
-     * Helper to render a ticket list based on roles.
+     * Helper to render a ticket list based on roles and view.
      */
     private function renderTicketList(Request $request, string $view): Response
     {
-        $query = $this->getBaseQuery($request);
+        /** @var User $user */
         $user = Auth::user();
 
-        if (!$user->hasRole('admin')) {
+        $query = Ticket::with([
+            'user:id,name,attachment_avatar,email',
+            'user.avatar',
+            'priority',
+            'status',
+            'category',
+            'asset',
+            'assignees.user:id,name,attachment_avatar,email',
+            'assignees.user.avatar'
+        ]);
+
+        if (! $user->hasRole('admin')) {
             if ($user->hasRole('solver')) {
-                $query->where(function (Builder $q) use ($user) {
-                    $q->whereHas('assignees', fn($sq) => $sq->where('user_id', $user->id))
-                        ->orWhere('author_id', $user->id);
-                });
+                if ($view === 'tickets/manage') {
+                    $query->where(function (Builder $q) use ($user) {
+                        $q->where('author_id', $user->id)
+                            ->orWhereHas('assignees', function (Builder $subQ) use ($user) {
+                                $subQ->where('user_id', $user->id);
+                            });
+                    });
+                }
             } else {
                 $query->where('author_id', $user->id);
             }
         }
 
+        $query = $this->applyFilters($query, $request);
+
+        $tickets = $query->paginate(10)->withQueryString();
+
         return Inertia::render($view, [
-            'tickets' => $query->paginate(10)->withQueryString(),
-            'filters' => $request->only(['search', 'status', 'priority', 'category', 'equipment', 'assignee', 'date_from', 'date_to']),
-            'statuses' => TicketStatus::orderBy('sort_order')->get(['id', 'title', 'color']),
-            'priorities' => TicketPriority::orderBy('sort_order')->get(['id', 'title', 'color']),
-            'categories' => TicketCategory::orderBy('sort_order')->get(['id', 'title']),
-            'assets' => Asset::orderBy('title')->get(['id', 'title']),
-            'solvers' => User::role(['admin', 'solver'])->get(['id', 'name']),
+            'tickets' => $tickets,
+            'filters' => $request->only(['search', 'status', 'priority', 'category', 'equipment', 'assignee', 'date_from', 'date_to', 'sort', 'direction']),
+            'statuses' => TicketStatus::all(),
+            'priorities' => TicketPriority::all(),
+            'categories' => TicketCategory::all(),
+            'assets' => Asset::all(['id', 'title']),
+            'solvers' => User::role(['admin', 'solver'])->with('avatar')->get(['id', 'name', 'attachment_avatar']),
         ]);
+    }
+
+    /**
+     * Applies search and filters to the ticket query.
+     */
+    private function applyFilters(Builder $query, Request $request): Builder
+    {
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function (Builder $q) use ($search) {
+                $q->where('title', 'like', "%$search%")
+                    ->orWhere('id', 'like', "%$search%")
+                    ->orWhere('description', 'like', "%$search%")
+                    ->orWhereHas('asset', function (Builder $qAsset) use ($search) {
+                        $qAsset->where('title', 'like', "%$search%");
+                    });
+            });
+        }
+
+        foreach (['status' => 'status_id', 'priority' => 'priority_id', 'category' => 'category_id', 'equipment' => 'asset_id'] as $key => $column) {
+            if ($request->filled($key) && $request->input($key) !== 'all') {
+                $query->whereIn($column, explode(',', $request->input($key)));
+            }
+        }
+
+        if ($request->filled('assignee') && $request->input('assignee') !== 'all') {
+            $query->whereHas('assignees', fn($q) => $q->whereIn('user_id', explode(',', $request->input('assignee'))));
+        }
+
+        if ($request->filled('date_from') && $request->filled('date_to')) {
+            $query->whereBetween('updated_at', [$request->date_from . ' 00:00:00', $request->date_to . ' 23:59:59']);
+        }
+
+        $sort = $request->input('sort', 'updated_at');
+        $direction = $request->input('direction', 'desc');
+        $allowedSorts = ['title', 'status_id', 'priority_id', 'category_id', 'created_at', 'updated_at'];
+
+        return $query->orderBy(in_array($sort, $allowedSorts) ? $sort : 'updated_at', $direction);
     }
 
     public function create(): Response
@@ -86,16 +144,16 @@ class Crud extends Controller
             'categories' => TicketCategory::orderBy('sort_order')->get(),
             'statuses' => TicketStatus::orderBy('sort_order')->get(),
             'assets' => Asset::getTreeOrderedAssets(),
-            'users' => User::with('roles')->get(),
+            'users' => User::with(['roles', 'avatar'])->get(),
         ]);
     }
 
     public function show(Ticket $ticket): Response
     {
         $ticket->load([
-            'user', 'priority', 'status', 'category', 'asset',
-            'assignees.user', 'comments.user', 'comments.attachments',
-            'logs.user', 'schedules.user', 'attachments',
+            'user.avatar', 'priority', 'status', 'category', 'asset',
+            'assignees.user.avatar', 'comments.user.avatar', 'comments.attachments',
+            'logs.user.avatar', 'schedules.user.avatar', 'attachments',
         ]);
 
         $searchContext = implode(' ', array_filter([
@@ -136,14 +194,38 @@ class Crud extends Controller
                 }
             }
         } catch (Throwable) {
-            // We don't want to fail the request if the vector search fails'
         }
+
+        $schedules = TicketSchedule::with(['user', 'ticket.priority', 'ticket.status', 'ticket.category'])
+            ->where('user_id', auth()->id())
+            ->get()
+            ->map(function ($schedule) {
+                return [
+                    'id' => $schedule->id,
+                    'ticket_id' => $schedule->ticket_id,
+                    'user_id' => $schedule->user_id,
+                    'start_date' => $schedule->start_date,
+                    'end_date' => $schedule->end_date,
+                    'duration_minutes' => $schedule->duration_minutes,
+                    'is_entry' => false,
+                    'ticket' => $schedule->ticket,
+                    'user' => $schedule->user,
+                    'created_at' => $schedule->created_at->toIso8601String(),
+                    'updated_at' => $schedule->updated_at->toIso8601String(),
+                ];
+            });
+
+        $entries = TicketEntry::with(['user.avatar', 'ticket.priority', 'ticket.status', 'ticket.category'])
+            ->where('user_id', auth()->id())
+            ->whereNotNull('start_at')
+            ->whereNotNull('end_at')
+            ->get()
+            ->map(fn($entry) => $entry->toCalendarEvent())
+            ->filter();
 
         return Inertia::render('tickets/show', [
             'ticket' => $ticket,
-            'events' => TicketSchedule::with(['user', 'ticket.priority', 'ticket.status', 'ticket.category'])
-                ->where('ticket_id', $ticket->id)
-                ->get(),
+            'events' => $schedules->concat($entries),
             'solvers' => User::role(['admin', 'solver'])->get(['id', 'name', 'email']),
             'similar_tickets' => $similarTickets,
         ]);
@@ -156,6 +238,7 @@ class Crud extends Controller
     {
         return DB::transaction(function () use ($request) {
             $data = $request->validated();
+            /** @var User $user */
             $user = $request->user();
 
             if (!$user->hasAnyRole(['admin', 'solver'])) {
@@ -196,7 +279,7 @@ class Crud extends Controller
 
     public function edit(Ticket $ticket): Response
     {
-        $ticket->load(['assignees.user', 'attachments']);
+        $ticket->load(['assignees.user.avatar', 'attachments']);
 
         return Inertia::render('tickets/edit', [
             'ticket' => $ticket,
@@ -204,7 +287,7 @@ class Crud extends Controller
             'categories' => TicketCategory::orderBy('sort_order')->get(),
             'statuses' => TicketStatus::orderBy('sort_order')->get(),
             'assets' => Asset::getTreeOrderedAssets(),
-            'users' => User::with('roles')->get(),
+            'users' => User::with(['roles', 'avatar'])->get(),
         ]);
     }
 
@@ -219,10 +302,11 @@ class Crud extends Controller
         $existingFilesCount = $ticket->attachments()->count();
 
         if (($newFilesCount + $existingFilesCount) > 10) {
-            return back()->withErrors([__('tickets.controller.update.attachments_limit')]);
+            return back()->withErrors([__('tickets.controller.attachments_limit')]);
         }
 
         return DB::transaction(function () use ($data, $ticket, $request) {
+            /** @var User $user */
             $user = $request->user();
 
             if (!$user->hasAnyRole(['admin', 'solver'])) {
@@ -250,6 +334,7 @@ class Crud extends Controller
 
     public function destroy(Ticket $ticket): RedirectResponse
     {
+        /** @var User $user */
         $user = Auth::user();
 
         $isAssigned = $ticket->assignees()->where('user_id', $user->id)->exists();
@@ -263,7 +348,7 @@ class Crud extends Controller
     }
 
     /**
-     * Helper pour gérer le téléchargement des pièces jointes.
+     * Helper to handle attachment uploads.
      */
     private function handleAttachments(array $files, Ticket $ticket): void
     {
@@ -288,54 +373,17 @@ class Crud extends Controller
         $ticket->touch();
     }
 
-    private function getBaseQuery(Request $request): Builder
-    {
-        $query = Ticket::query()->with(['status', 'priority', 'category', 'asset', 'user', 'assignees.user']);
-
-        if ($request->filled('search')) {
-            $search = $request->input('search');
-            $query->where(function (Builder $q) use ($search) {
-                $q->where('title', 'like', "%$search%")
-                    ->orWhere('id', 'like', "%$search%")
-                    ->orWhere('description', 'like', "%$search%")
-                    ->orWhereHas('asset', function (Builder $qAsset) use ($search) {
-                        $qAsset->where('title', 'like', "%$search%");
-                    });
-            });
-        }
-
-        foreach (['status' => 'status_id', 'priority' => 'priority_id', 'category' => 'category_id', 'equipment' => 'asset_id'] as $key => $column) {
-            if ($request->filled($key) && $request->input($key) !== 'all') {
-                $query->whereIn($column, explode(',', $request->input($key)));
-            }
-        }
-
-        if ($request->filled('assignee') && $request->input('assignee') !== 'all') {
-            $query->whereHas('assignees', fn($q) => $q->whereIn('user_id', explode(',', $request->input('assignee'))));
-        }
-
-        if ($request->filled('date_from') && $request->filled('date_to')) {
-            $query->whereBetween('updated_at', [$request->date_from . ' 00:00:00', $request->date_to . ' 23:59:59']);
-        }
-
-        $sort = $request->input('sort', 'updated_at');
-        $direction = $request->input('direction', 'desc');
-        $allowedSorts = ['title', 'status_id', 'priority_id', 'category_id', 'created_at', 'updated_at'];
-
-        return $query->orderBy(in_array($sort, $allowedSorts) ? $sort : 'updated_at', $direction);
-    }
-
     public function restore(Ticket $ticket): RedirectResponse
     {
         $this->authorize('restore', $ticket);
         $ticket->restore();
-        return redirect()->back()->with('success', __('Ticket restored successfully.'));
+        return redirect()->back()->with('success', __('tickets.flash.restored'));
     }
 
     public function forceDelete(Ticket $ticket): RedirectResponse
     {
         $this->authorize('forceDelete', $ticket);
         $ticket->forceDelete();
-        return redirect()->route('tickets.manage')->with('success', __('Ticket permanently deleted.'));
+        return redirect()->route('tickets.manage')->with('success', __('tickets.flash.force_deleted'));
     }
 }

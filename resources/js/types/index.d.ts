@@ -15,7 +15,6 @@ export interface User {
     email: string;
     attachment_avatar?: string;
     avatar: { url: string } | null;
-    // Ajouté pour compatibilité avec le planning
     profile_photo_url?: string;
     email_verified_at: string | null;
     language: string;
@@ -35,7 +34,6 @@ export interface UserSimplified {
     email: string;
     attachment_avatar?: string;
     avatar: { url: string } | null;
-    // Ajouté pour compatibilité avec le planning
     profile_photo_url?: string;
     email_verified_at: string | null;
     language: string;
@@ -98,7 +96,6 @@ export interface SharedData {
     [key: string]: unknown;
 }
 
-// Helper pour utiliser PageProps dans les composants
 export type PageProps<
     T extends Record<string, unknown> = Record<string, unknown>,
 > = T & SharedData;
@@ -120,7 +117,7 @@ export interface PaginationProps {
         active: boolean;
         label: string;
         page: number | null;
-    };
+    }[];
 }
 
 // ---------------------------------------
@@ -248,6 +245,7 @@ export interface TicketPriority {
     description: string;
     sort_order: number;
     color: string;
+    locked?: boolean;
 
     created_at: string;
     updated_at: string;
@@ -263,6 +261,7 @@ export interface TicketStatus {
     is_default: boolean;
     is_closed: boolean;
     progress: number;
+    locked?: boolean;
 
     created_at: string;
     updated_at: string;
@@ -327,11 +326,9 @@ export interface TicketEntry {
     updated_at: string;
 }
 
-// MISE À JOUR MAJEURE ICI
 export interface TicketSchedule {
-    id: number;
+    id: number | string;
 
-    // Champs ajoutés pour correspondre à la BDD et au code React
     ticket_id: number;
     user_id: number;
     description?: string | null;
@@ -342,6 +339,7 @@ export interface TicketSchedule {
     start_date: string;
     end_date: string;
     duration_minutes: number;
+    is_entry?: boolean;
 
     created_at: string;
     updated_at: string;
@@ -357,4 +355,11 @@ export interface UpdatePayload {
     duration_minutes?: number;
     user_id?: number;
     [key: string]: unknown;
+}
+
+export interface TicketOption {
+    id: number;
+    title: string;
+    description: string | null;
+    asset: Asset | null;
 }

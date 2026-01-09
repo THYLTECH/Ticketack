@@ -27,7 +27,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { useTrans } from '@/lib/translation';
 import { cn } from '@/lib/utils';
-import { Asset, Ticket } from '@/types';
+import { Ticket , TicketOption} from '@/types';
 import { useForm } from '@inertiajs/react';
 import { format } from 'date-fns';
 import {
@@ -47,14 +47,7 @@ export interface PreFillData {
     hours: number;
     minutes: number;
     description?: string;
-    schedule_id?: number;
-}
-
-interface TicketOption {
-    id: number;
-    title: string;
-    description: string | null;
-    asset: Asset;
+    schedule_id?: number | string;
 }
 
 interface Props {
@@ -73,7 +66,7 @@ interface FormData {
     minutes: number;
     description: string;
     billable: string;
-    schedule_id?: number;
+    schedule_id?: number | string;
 }
 
 export function TimeEntryDialog({
@@ -99,6 +92,7 @@ export function TimeEntryDialog({
         reset,
         wasSuccessful,
         transform,
+        clearErrors,
     } = useForm<FormData>({
         ticket_id: ticket ? ticket.id : '',
         date: new Date(),
@@ -163,10 +157,23 @@ export function TimeEntryDialog({
             ticket_id: parseInt(data.ticket_id.toString()),
             billable: data.billable === '1',
             start_time: data.start_time,
-            schedule_id: data.schedule_id,
+            schedule_id: data.schedule_id
+                ? (typeof data.schedule_id === 'string' && data.schedule_id.startsWith('entry-')
+                    ? undefined
+                    : typeof data.schedule_id === 'number'
+                    ? data.schedule_id
+                    : parseInt(data.schedule_id))
+                : undefined,
         }));
 
         post(route('tickets.entries.store'), {
+            onSuccess: () => {
+            },
+            onError: (errors) => {
+                if (errors.date) {
+                    clearErrors('date');
+                }
+            },
         });
     };
     return (

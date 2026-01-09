@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Asset;
 use App\Models\Role;
 use App\Models\Ticket;
+use App\Models\TrashRetention;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -24,6 +25,10 @@ class TrashController extends Controller
 
         $search = $request->input('search');
 
+        $retentions = TrashRetention::all()->pluck('days', 'type');
+
+        $getRetention = fn($type) => $retentions[$type] ?? 30;
+
         return Inertia::render('trash/index', [
             'deletedTickets' => Ticket::onlyTrashed()
                 ->when($search, fn(Builder $query, $search) => $query->where(function (Builder $q) use ($search) {
@@ -31,7 +36,7 @@ class TrashController extends Controller
                         ->orWhere('id', 'like', '%' . $search . '%');
                 }))
                 ->with(['user.avatar', 'status', 'priority', 'category', 'asset', 'assignees.user.avatar'])
-                ->orderByDesc('deleted_at')
+                ->orderBy('deleted_at')
                 ->paginate(5, ['*'], 'tickets_page')
                 ->withQueryString(),
 
@@ -42,14 +47,14 @@ class TrashController extends Controller
                 }))
                 ->with(['avatar', 'roles'])
                 ->withCount('tickets')
-                ->orderByDesc('deleted_at')
+                ->orderBy('deleted_at')
                 ->paginate(5, ['*'], 'users_page')
                 ->withQueryString(),
 
             'deletedRoles' => Role::onlyTrashed()
                 ->when($search, fn(Builder $query, $search) => $query->where('name', 'like', '%' . $search . '%'))
                 ->withCount(['permissions', 'users'])
-                ->orderByDesc('deleted_at')
+                ->orderBy('deleted_at')
                 ->paginate(5, ['*'], 'roles_page')
                 ->withQueryString(),
 
@@ -59,12 +64,36 @@ class TrashController extends Controller
                         ->orWhere('serial_number', 'like', '%' . $search . '%');
                 }))
                 ->withCount('tickets')
-                ->orderByDesc('deleted_at')
+                ->orderBy('deleted_at')
                 ->paginate(5, ['*'], 'assets_page')
                 ->withQueryString(),
 
             'filters' => $request->only(['search']),
+            'retentionSettings' => [
+                'ticket' => $getRetention('ticket'),
+                'user' => $getRetention('user'),
+                'role' => $getRetention('role'),
+                'asset' => $getRetention('asset'),
+            ],
+            'canManageSettings' => Gate::allows('manage trash settings'),
         ]);
+    }
+
+    public function updateRetention(Request $request): RedirectResponse
+    {
+        Gate::authorize('manage trash settings');
+
+        $request->validate([
+            'type' => 'required|string|in:ticket,user,role,asset',
+            'days' => 'required|integer|min:1|max:365',
+        ]);
+
+        TrashRetention::query()->updateOrCreate(
+            ['type' => $request->type],
+            ['days' => $request->days]
+        );
+
+        return back()->with('success', __('Settings updated'));
     }
 
     public function restore(string $type, int $id): RedirectResponse

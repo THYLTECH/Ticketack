@@ -12,9 +12,10 @@ class TicketPriorityFactory extends Factory
     public function definition(): array
     {
         return [
-            'title' => $this->faker->unique()->word(),
-            'color' => $this->faker->hexColor(),
-            'sort_order' => $this->faker->numberBetween(0, 100),
+            'title' => fake()->word(),
+            'color' => fake()->hexColor(),
+            'sort_order' => TicketPriority::max('sort_order') + 1 ?? 1,
         ];
     }
+
 }

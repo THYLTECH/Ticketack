@@ -62,7 +62,7 @@ class Notifications extends Controller
 
         $notification->markAsRead();
 
-        return redirect()->back()->with(['success' => 'Notification marked as read.']);
+        return redirect()->back()->with(['success' => __('notifications.flash.read_success')]);
     }
 
     /**
@@ -84,7 +84,7 @@ class Notifications extends Controller
             $notification->markAsRead();
         }
 
-        return redirect()->back()->with(['success' => count($data['ids']) . ' notifications marked as read.']);
+        return redirect()->back()->with(['success' => count($data['ids']) . ' ' . __('notifications.flash.read_many_success')]);
     }
 
     /**
@@ -100,7 +100,7 @@ class Notifications extends Controller
 
         $notification->delete();
 
-        return redirect()->back()->with(['success' => 'Notification deleted successfully.']);
+        return redirect()->back()->with(['success' => __('notifications.flash.delete_success')]);
     }
 
     /**
@@ -121,6 +121,6 @@ class Notifications extends Controller
             $notification->delete();
         }
 
-        return redirect()->back()->with(['success' => count($data['ids']) . ' notifications deleted successfully.']);
+        return redirect()->back()->with(['success' => count($data['ids']) . ' ' . __('notifications.flash.delete_many_success')]);
     }
 }

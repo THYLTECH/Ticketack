@@ -17,7 +17,6 @@ import React, { useState } from 'react';
 
 interface Props {
     tickets: Ticket[];
-    scheduledTicketIds: number[];
     selectedId: number | null;
     onSelect: (id: number | null) => void;
     onUnschedule?: (eventId: number) => void;
@@ -25,7 +24,6 @@ interface Props {
 
 export function TicketSidebar({
     tickets,
-    scheduledTicketIds,
     selectedId,
     onSelect,
     onUnschedule,
@@ -35,7 +33,6 @@ export function TicketSidebar({
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
     const availableTickets = tickets
-        .filter((t) => !scheduledTicketIds.includes(t.id))
         .filter(
             (t) =>
                 t.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -142,7 +139,6 @@ export function TicketSidebar({
                                         : 'hover:border-primary/50 hover:shadow-md',
                                 )}
                             >
-                                {/* Barre de couleur latérale intégrée via Flexbox */}
                                 <div
                                     className="w-1.5 shrink-0"
                                     style={{

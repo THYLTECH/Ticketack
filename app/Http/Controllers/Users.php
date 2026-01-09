@@ -8,6 +8,7 @@ use App\Models\Attachment;
 use App\Models\User;
 use App\Notifications\UserRegistered as NotificationsUserRegistered;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
@@ -24,10 +25,23 @@ class Users extends Controller
         $this->authorizeResource(User::class, 'user');
     }
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        $query = User::with(['roles', 'avatar']);
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%$search%")
+                    ->orWhere('email', 'like', "%$search%");
+            });
+        }
+
+        $perPage = $request->input('per_page', 10);
+
         return Inertia::render('users/index', [
-            'users' => User::with('roles')->paginate(10),
+            'users' => $query->paginate($perPage)->withQueryString(),
+            'filters' => $request->only(['search']),
         ]);
     }
 
@@ -71,6 +85,8 @@ class Users extends Controller
             $user->syncRoles($roles);
         }
 
+        $user->assignRole('simple_user');
+
         if ($request->hasFile('avatar')) {
             $this->handleAvatarUpload($user, $request->file('avatar'));
         }
@@ -94,12 +110,17 @@ class Users extends Controller
         $data['email_verified_at'] = $data['email_verified'] ? now() : null;
         unset($data['email_verified']);
 
+        $roles = $data['roles'] ?? null;
+        unset($data['roles']);
+
         $user->update($data);
 
-        if (isset($data['roles']) && is_array($data['roles'])) {
-            $roles = Role::whereIn('id', $data['roles'])->get();
-            $user->syncRoles($roles);
+        if ($roles !== null && is_array($roles)) {
+            $roleModels = Role::whereIn('id', $roles)->get();
+            $user->syncRoles($roleModels);
         }
+
+        $user->assignRole('simple_user');
 
         return redirect()->route('users.index')->with(['success' => __('users.flash.updated')]);
     }
