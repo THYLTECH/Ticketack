@@ -8,6 +8,7 @@ import {
     endOfMonth,
     endOfWeek,
     format,
+    formatISO,
     getHours,
     getMinutes,
     isSameDay,
@@ -79,10 +80,12 @@ export function PlanningGrid({
         const minutesFromStart =
             (getHours(start) - START_HOUR) * 60 + getMinutes(start);
 
-        let zIndex = 10;
+        let zIndex: number;
         if (isResizing) {
             zIndex = 60;
-        } else if (!isEntry) {
+        } else if (isEntry) {
+            zIndex = layoutData ? 30 + layoutData.column : 30;
+        } else {
             zIndex = layoutData ? 20 + layoutData.column : 20;
         }
 
@@ -225,9 +228,13 @@ export function PlanningGrid({
                                 (e) => {
                                     if (!isSameDay(parseISO(e.start_date), day)) return false;
 
-                                    return isEditMode
-                                        ? e.user_id === currentUserId
-                                        : selectedSolvers.includes(e.user_id);
+                                    if (isEditMode) {
+                                        return e.user_id === currentUserId;
+                                    } else {
+                                        const isMyEntry = e.is_entry === true && e.user_id === currentUserId;
+                                        const isSelectedSolverSchedule = !e.is_entry && selectedSolvers.includes(e.user_id);
+                                        return isMyEntry || isSelectedSolverSchedule;
+                                    }
                                 },
                             );
                             return (
@@ -298,6 +305,7 @@ export function PlanningGrid({
                                                 event={evt}
                                                 isEditMode={isEditMode}
                                                 highlightedEventId={highlightedEventId}
+                                                currentUserId={currentUserId}
                                                 onDragStart={(e) => {
                                                     if (evt.is_entry) {
                                                         e.preventDefault();
@@ -410,17 +418,20 @@ export function PlanningGrid({
                         </div>
 
                         {days.map((day) => {
-                            const dayEvents = events.filter(
-                                (e) => {
-                                    if (!isSameDay(parseISO(e.start_date), day)) return false;
+                            const displayEvents = events.filter((e) => {
+                                if (!isSameDay(parseISO(e.start_date), day)) return false;
 
-                                    return isEditMode
-                                        ? e.user_id === currentUserId
-                                        : selectedSolvers.includes(e.user_id);
-                                },
-                            );
+                                if (isEditMode) {
+                                    return e.user_id === currentUserId;
+                                } else {
+                                    const isMyEntry = e.is_entry === true && e.user_id === currentUserId;
+                                    const isSelectedSolverSchedule = !e.is_entry && selectedSolvers.includes(e.user_id);
+                                    return isMyEntry || isSelectedSolverSchedule;
+                                }
+                            });
 
-                            const layoutMap = calculateEventLayout(dayEvents);
+                            const layoutMap = calculateEventLayout(displayEvents);
+
 
                             return (
                                 <div
@@ -463,7 +474,7 @@ export function PlanningGrid({
                                         </div>
                                     )}
 
-                                    {dayEvents.map((event) => {
+                                    {displayEvents.map((event) => {
                                         const isEntry = event.is_entry === true;
                                         const isResizing = resizingEvent?.id === event.id;
                                         const layout = layoutMap.get(event.id);
@@ -477,6 +488,7 @@ export function PlanningGrid({
                                                 isEditMode={isEditMode}
                                                 isResizing={isResizing}
                                                 highlightedEventId={highlightedEventId}
+                                                currentUserId={currentUserId}
                                                 onDragStart={(e) => {
                                                     if (isEntry) {
                                                         e.preventDefault();
@@ -498,7 +510,7 @@ export function PlanningGrid({
                                                         initialY: e.clientY,
                                                         initialDuration: event.duration_minutes,
                                                         currentDuration: event.duration_minutes,
-                                                        startData: format(startDate, 'yyyy-MM-dd HH:mm:ss'),
+                                                        startData: formatISO(startDate),
                                                     });
                                                 }}
                                                 style={getEventStyle(event, layout)}

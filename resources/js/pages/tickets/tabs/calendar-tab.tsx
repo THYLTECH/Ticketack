@@ -34,7 +34,7 @@ import {
     User,
 } from '@/types';
 import { router, usePage } from '@inertiajs/react';
-import { format, parseISO } from 'date-fns';
+import { formatISO, parseISO } from 'date-fns';
 import { ChevronLeft, ChevronRight, Inbox, LayoutGrid, List } from 'lucide-react';
 import { useEffect, useState, useMemo } from 'react';
 import { toast } from 'sonner';
@@ -80,12 +80,20 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
     }, []);
 
     const filteredEvents = useMemo(() => {
-        if (isEditMode) {
-            return events;
-        } else {
-            return events.filter(e => e.ticket_id === ticket.id);
-        }
-    }, [events, isEditMode, ticket.id]);
+        return events.filter(e => {
+            const isForThisTicket = e.ticket_id === ticket.id;
+
+            if (isEditMode) {
+                const isMySchedule = !e.is_entry && e.user_id === auth.user.id;
+                const isOtherSolverSchedule = !e.is_entry && e.user_id !== auth.user.id && selectedSolvers.includes(e.user_id);
+                return isMySchedule || isOtherSolverSchedule;
+            } else {
+                const isSelectedSolverEntry = e.is_entry === true && selectedSolvers.includes(e.user_id);
+                const isSelectedSolverSchedule = !e.is_entry && selectedSolvers.includes(e.user_id);
+                return isForThisTicket && (isSelectedSolverEntry || isSelectedSolverSchedule);
+            }
+        });
+    }, [events, isEditMode, ticket.id, auth.user.id, selectedSolvers]);
 
     const handleNavigate = (direction: 'prev' | 'next') => {
         setDate(navigateByView(date, view, direction));
@@ -102,7 +110,7 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                 {
                     ticket_id: ticketId,
                     user_id: auth.user.id,
-                    start_date: format(targetDate, 'yyyy-MM-dd HH:mm:ss'),
+                    start_date: formatISO(targetDate),
                     duration_minutes: 60,
                 },
                 {
@@ -118,7 +126,7 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
             router.put(
                 route('tickets.planning.update', eventId),
                 {
-                    start_date: format(targetDate, 'yyyy-MM-dd HH:mm:ss'),
+                    start_date: formatISO(targetDate),
                     duration_minutes: original.duration_minutes,
                 },
                 {
@@ -396,12 +404,20 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
 
             <EventDialog
                 open={isModalOpen}
-                onOpenChange={setIsModalOpen}
+                onOpenChange={(open) => {
+                    setIsModalOpen(open);
+                    if (!open) {
+                        setSelectedEvent(null);
+                    }
+                }}
                 event={selectedEvent}
                 isEditMode={isEditMode}
                 onSave={handleUpdateEvent}
                 onDelete={handleDeleteEvent}
-                onValidate={() => setIsModalOpen(false)}
+                onValidate={() => {
+                    setIsModalOpen(false);
+                    setSelectedEvent(null);
+                }}
             />
         </TabsContent>
     );

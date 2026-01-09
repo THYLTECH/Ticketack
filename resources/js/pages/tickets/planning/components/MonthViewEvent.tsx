@@ -4,24 +4,42 @@ import { Tooltip, TooltipProvider, TooltipTrigger } from '@/components/ui/toolti
 import { format, parseISO } from 'date-fns';
 import { COLORS } from '../constants';
 import { PlanningEventTooltip } from './PlanningEventTooltip';
+import React from 'react';
 
 interface MonthViewEventProps {
     event: TicketSchedule;
     isEditMode: boolean;
     highlightedEventId?: number | string | null;
+    currentUserId: number;
     onDragStart: (e: React.DragEvent) => void;
     onClick: (e: React.MouseEvent) => void;
+}
+
+/**
+ * Get color for a user based on their ID
+ * Current user always gets the first color (blue)
+ * Other users get distinct colors from the palette
+ */
+function getUserColor(userId: number, currentUserId: number): string {
+    if (userId === currentUserId) {
+        return COLORS[0];
+    }
+
+    const colorIndex = (userId % (COLORS.length - 1)) + 1;
+    return COLORS[colorIndex];
 }
 
 export function MonthViewEvent({
     event,
     isEditMode,
     highlightedEventId,
+    currentUserId,
     onDragStart,
     onClick,
 }: MonthViewEventProps) {
     const isEntry = event.is_entry === true;
     const startDate = parseISO(event.start_date);
+    const userColor = getUserColor(event.user_id, currentUserId);
 
     return (
         <TooltipProvider key={`${event.id}-${event.updated_at}`} delayDuration={300}>
@@ -38,8 +56,8 @@ export function MonthViewEvent({
                                 : isEntry
                                 ? 'cursor-default border-2 border-l-2 border-dashed border-muted-foreground/30 bg-muted/60 text-muted-foreground'
                                 : cn(
-                                      'cursor-pointer border-l-4 hover:shadow-md hover:brightness-95 hover:ring-2',
-                                      COLORS[event.user_id % COLORS.length],
+                                      'cursor-pointer hover:shadow-md hover:brightness-95 hover:ring-2',
+                                      userColor,
                                   ),
                         )}
                     >

@@ -5,6 +5,7 @@ import { format, parseISO } from 'date-fns';
 import { COLORS } from '../constants';
 import { PlanningEventTooltip } from './PlanningEventTooltip';
 import { EventLayout } from '../types';
+import React from 'react';
 
 interface PlanningEventProps {
     event: TicketSchedule;
@@ -12,10 +13,25 @@ interface PlanningEventProps {
     isEditMode: boolean;
     isResizing: boolean;
     highlightedEventId?: number | string | null;
+    currentUserId: number;
     onDragStart: (e: React.DragEvent) => void;
     onClick: (e: React.MouseEvent) => void;
     onResizeStart: (e: React.MouseEvent) => void;
     style: React.CSSProperties;
+}
+
+/**
+ * Get color for a user based on their ID
+ * Current user always gets the first color (blue)
+ * Other users get distinct colors from the palette
+ */
+function getUserColor(userId: number, currentUserId: number): string {
+    if (userId === currentUserId) {
+        return COLORS[0];
+    }
+
+    const colorIndex = (userId % (COLORS.length - 1)) + 1;
+    return COLORS[colorIndex];
 }
 
 export function PlanningEvent({
@@ -24,6 +40,7 @@ export function PlanningEvent({
     isEditMode,
     isResizing,
     highlightedEventId,
+    currentUserId,
     onDragStart,
     onClick,
     onResizeStart,
@@ -32,6 +49,7 @@ export function PlanningEvent({
     const isEntry = event.is_entry === true;
     const startDate = parseISO(event.start_date);
     const endDate = parseISO(event.end_date);
+    const userColor = getUserColor(event.user_id, currentUserId);
 
     return (
         <TooltipProvider key={`${event.id}-${event.updated_at}`} delayDuration={300}>
@@ -48,8 +66,8 @@ export function PlanningEvent({
                                 : isEntry
                                 ? 'cursor-default border-2 border-dashed border-muted-foreground/30 bg-muted/70 text-muted-foreground shadow-sm backdrop-blur-sm'
                                 : cn(
-                                      'cursor-pointer border-l-4',
-                                      COLORS[event.user_id % COLORS.length],
+                                      'cursor-pointer',
+                                      userColor,
                                       'shadow-md ring-1 ring-black/5 dark:ring-white/5',
                                   ),
                             isEditMode && !isEntry && 'cursor-move',
@@ -85,7 +103,7 @@ export function PlanningEvent({
 
                         {isEditMode && !isEntry && (
                             <div
-                                className="absolute bottom-0 left-0 flex h-4 w-full cursor-ns-resize items-end justify-center bg-gradient-to-t from-black/5 to-transparent opacity-0 transition-opacity group-hover/event:opacity-100 dark:from-white/5"
+                                className="absolute bottom-0 left-0 flex h-4 w-full cursor-ns-resize items-end justify-center bg-linear-to-t from-black/5 to-transparent opacity-0 transition-opacity group-hover/event:opacity-100 dark:from-white/5"
                                 onMouseDown={onResizeStart}
                             >
                                 <div className="mb-0.5 h-1 w-12 rounded-full bg-current opacity-40 shadow-sm" />

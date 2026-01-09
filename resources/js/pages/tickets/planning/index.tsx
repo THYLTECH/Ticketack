@@ -43,6 +43,7 @@ import {
     addWeeks,
     endOfWeek,
     format,
+    formatISO,
     parseISO,
     startOfWeek,
 } from 'date-fns';
@@ -159,7 +160,7 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                 {
                     ticket_id: ticketId,
                     user_id: auth.user.id,
-                    start_date: format(targetDate, 'yyyy-MM-dd HH:mm:ss'),
+                    start_date: formatISO(targetDate),
                     duration_minutes: 60,
                 },
                 {
@@ -176,7 +177,7 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
             router.put(
                 route('tickets.planning.update', eventId),
                 {
-                    start_date: format(targetDate, 'yyyy-MM-dd HH:mm:ss'),
+                    start_date: formatISO(targetDate),
                     duration_minutes: original.duration_minutes,
                 },
                 { preserveScroll: true },
