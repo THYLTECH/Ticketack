@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Tickets;
 
 use App\Http\Controllers\Controller;
 use App\Models\Ticket;
+use App\Models\TicketEntry;
 use App\Models\TicketSchedule;
 use App\Models\User;
 use Carbon\Carbon;
@@ -23,18 +24,50 @@ class Schedules extends Controller
     {
         $this->authorize('viewAny', TicketSchedule::class);
 
+        $schedules = TicketSchedule::with([
+            'user',
+            'ticket.priority',
+            'ticket.category',
+            'ticket.status',
+        ])->get();
+
+        $entries = TicketEntry::with([
+            'user',
+            'ticket.priority',
+            'ticket.category',
+            'ticket.status',
+        ])
+            ->get()
+            ->map(function ($entry) {
+                if (!$entry->start_at) {
+                    return null;
+                }
+
+                $startDate = Carbon::parse($entry->start_at);
+                $endDate = Carbon::parse($entry->end_at);
+
+                return [
+                    'id' => 'entry-' . $entry->id,
+                    'ticket_id' => $entry->ticket_id,
+                    'user_id' => $entry->user_id,
+                    'start_date' => $startDate->toIso8601String(),
+                    'end_date' => $endDate->toIso8601String(),
+                    'duration_minutes' => round($entry->duration_seconds / 60),
+                    'is_entry' => true,
+                    'ticket' => $entry->ticket,
+                    'user' => $entry->user,
+                    'created_at' => $entry->created_at->toIso8601String(),
+                    'updated_at' => $entry->updated_at->toIso8601String(),
+                ];
+            })
+            ->filter();
+
         return Inertia::render('tickets/planning/index', [
-            'events' => TicketSchedule::with([
-                'user',
-                'ticket.priority',
-                'ticket.category',
-                'ticket.status',
-                'ticket.comments.user'
-            ])->get(),
+            'events' => $schedules->concat($entries),
 
             'myTickets' => Ticket::whereHas('assignees', fn ($query) => $query->where('user_id', auth()->id()))
                 ->with(['priority', 'category', 'status'])
-                ->doesntHave('schedules')
+                ->whereHas('status', fn ($query) => $query->where('is_closed', false))
                 ->get(),
 
             'solvers' => User::role(['admin', 'solver'])->get()->map(fn ($user) => [
@@ -45,6 +78,7 @@ class Schedules extends Controller
             ]),
         ]);
     }
+
 
     public function store(Request $request)
     {

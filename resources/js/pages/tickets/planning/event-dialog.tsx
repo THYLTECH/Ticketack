@@ -73,17 +73,21 @@ export function EventDialog({
     const [endTime, setEndTime] = useState('09:00');
     const [activeTab, setActiveTab] = useState('planning');
     const [showTimeEntryDialog, setShowTimeEntryDialog] = useState(false);
+    const isEntry = event?.is_entry === true;
 
     const prefillData: PreFillData | undefined = useMemo(() => {
-        return event
-            ? {
-                  date: parseISO(event.start_date),
-                  hours: Math.floor(event.duration_minutes / 60),
-                  minutes: event.duration_minutes % 60,
-                  description: '',
-                  schedule_id: event.id,
-              }
-            : undefined;
+        if (!event) return undefined;
+
+        const baseData = {
+            date: parseISO(event.start_date),
+            hours: Math.floor(event.duration_minutes / 60),
+            minutes: event.duration_minutes % 60,
+            description: '',
+        };
+
+        return typeof event.id === 'number'
+            ? { ...baseData, schedule_id: event.id }
+            : baseData;
     }, [event]);
 
     useEffect(() => {
@@ -117,6 +121,11 @@ export function EventDialog({
             return;
         }
 
+        if (typeof event.id !== 'number') {
+            toast.error(__('schedule.dialog.planning.error_entry_readonly'));
+            return;
+        }
+
         onSave(event.id, {
             start_date: formattedStartDate,
             duration_minutes: duration,
@@ -128,7 +137,7 @@ export function EventDialog({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent
-                className="flex h-[100dvh] w-screen flex-col gap-0 overflow-hidden border-0 p-0 sm:h-[80vh] sm:max-w-[600px] sm:rounded-lg sm:border"
+                className="flex h-dvh w-screen flex-col gap-0 overflow-hidden border-0 p-0 sm:h-[80vh] sm:max-w-150 sm:rounded-lg sm:border"
                 aria-describedby={undefined}
             >
                 <DialogHeader className="flex shrink-0 flex-row items-start justify-between border-b bg-muted/10 p-4 pb-4 text-left sm:p-6">
@@ -249,7 +258,6 @@ export function EventDialog({
                                                             mode="single"
                                                             selected={date}
                                                             onSelect={setDate}
-                                                            initialFocus
                                                         />
                                                     </PopoverContent>
                                                 </Popover>
@@ -353,13 +361,16 @@ export function EventDialog({
                                             variant="ghost"
                                             size="icon"
                                             className="text-destructive hover:bg-destructive/10"
-                                            onClick={() =>
-                                                confirm(
+                                            onClick={() => {
+                                                if (typeof event.id !== 'number') return;
+                                                if (confirm(
                                                     __(
                                                         'schedule.dialog.planning.confirm_delete',
                                                     ),
-                                                ) && onDelete(event.id)
-                                            }
+                                                )) {
+                                                    onDelete(event.id);
+                                                }
+                                            }}
                                         >
                                             <Trash2 className="h-4 w-4" />
                                         </Button>
@@ -475,6 +486,13 @@ export function EventDialog({
                         </TabsContent>
                     </div>
                 </Tabs>
+                {isEntry && (
+                    <div className="rounded-md border border-emerald-500/30 bg-emerald-50 p-3 dark:bg-emerald-950/20">
+                        <p className="text-xs text-emerald-700 dark:text-emerald-400">
+                            ✓ {__('schedule.dialog.entry_completed')}
+                        </p>
+                    </div>
+                )}
             </DialogContent>
             <TimeEntryDialog
                 open={showTimeEntryDialog}
@@ -489,6 +507,8 @@ export function EventDialog({
                     {
                         id: event!.ticket.id,
                         title: event!.ticket.title,
+                        description: event!.ticket.description,
+                        asset: event!.ticket.asset,
                     },
                 ]}
                 initialValues={prefillData}
@@ -611,7 +631,7 @@ function TicketComments({
                                         </div>
                                         <div
                                             className={cn(
-                                                'mt-1 rounded-2xl px-4 py-2 text-sm break-words shadow-sm',
+                                                'mt-1 rounded-2xl px-4 py-2 text-sm wrap-break-word shadow-sm',
                                                 isMe
                                                     ? 'rounded-tr-sm bg-primary text-primary-foreground'
                                                     : 'rounded-tl-sm border bg-muted text-foreground',
@@ -631,15 +651,14 @@ function TicketComments({
                 <form onSubmit={handleSubmit} className="flex items-end gap-2">
                     <Textarea
                         placeholder={__('schedule.dialog.comment.placeholder')}
-                        className="h-[40px] max-h-[120px] min-h-[40px] resize-none rounded-3xl px-4 py-2 text-sm shadow-sm focus-visible:ring-1"
+                        className="h-10 max-h-30 min-h-10 resize-none rounded-3xl px-4 py-2 text-sm shadow-sm focus-visible:ring-1"
                         value={data.content}
                         onChange={(e) => setData('content', e.target.value)}
                         onKeyDown={(e) => {
-                            return (
-                                e.key === 'Enter' &&
-                                !e.shiftKey &&
-                                (e.preventDefault(), handleSubmit(e))
-                            );
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                handleSubmit(e);
+                            }
                         }}
                     />
                     <Button

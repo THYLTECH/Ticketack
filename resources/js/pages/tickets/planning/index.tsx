@@ -161,7 +161,6 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                     onSuccess: () => {
                         setSelectedTicketId(null);
                         setSelectedEvent(null);
-                        toast.success(__('schedule.page.toast_created'));
                     },
                 },
             );
@@ -222,15 +221,18 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
     };
 
     const prefillData: PreFillData | undefined = useMemo(() => {
-        return convertingEvent
-            ? {
-                  date: parseISO(convertingEvent.start_date),
-                  hours: Math.floor(convertingEvent.duration_minutes / 60),
-                  minutes: convertingEvent.duration_minutes % 60,
-                  description: '',
-                  schedule_id: convertingEvent.id,
-              }
-            : undefined;
+        if (!convertingEvent) return undefined;
+
+        const baseData = {
+            date: parseISO(convertingEvent.start_date),
+            hours: Math.floor(convertingEvent.duration_minutes / 60),
+            minutes: convertingEvent.duration_minutes % 60,
+            description: '',
+        };
+
+        return typeof convertingEvent.id === 'number'
+            ? { ...baseData, schedule_id: convertingEvent.id }
+            : baseData;
     }, [convertingEvent]);
 
     return (
@@ -246,7 +248,7 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
             <Head title={__('schedule.page.title')} />
 
             <div className="flex h-[calc(100vh-4rem)] flex-col overflow-hidden bg-background">
-                <div className="z-30 flex shrink-0 flex-col gap-3 border-b bg-background/95 px-4 py-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/60 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:gap-0">
+                <div className="z-30 flex shrink-0 flex-col gap-3 border-b bg-background/95 px-4 py-3 shadow-sm backdrop-blur supports-backdrop-filter:bg-background/60 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:gap-0">
                     <div className="flex items-center justify-between gap-2 lg:justify-start lg:gap-4">
                         <div className="flex items-center rounded-lg border bg-card p-0.5 shadow-sm">
                             <Button
@@ -261,10 +263,10 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                 <PopoverTrigger asChild>
                                     <Button
                                         variant="ghost"
-                                        className="flex h-8 min-w-[120px] items-center justify-center px-2 text-xs font-semibold sm:min-w-[140px] sm:px-3 sm:text-sm"
+                                        className="flex h-8 min-w-30 items-center justify-center px-2 text-xs font-semibold sm:min-w-35 sm:px-3 sm:text-sm"
                                     >
                                         <CalendarIcon className="mr-2 h-3.5 w-3.5 text-muted-foreground sm:h-4 sm:w-4" />
-                                        <span className="max-w-[120px] truncate leading-none capitalize sm:max-w-none">
+                                        <span className="max-w-30 truncate leading-none capitalize sm:max-w-none">
                                             {getPeriodTitle()}
                                         </span>
                                     </Button>
@@ -313,7 +315,7 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                             <Search className="h-4 w-4 text-muted-foreground" />
                                         </Button>
 
-                                        <div className="hidden lg:block lg:w-[220px] xl:w-[280px]">
+                                        <div className="hidden lg:block lg:w-55 xl:w-70">
                                             <Search className="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary" />
                                             <div className="flex h-9 w-full items-center rounded-md border border-input bg-muted/30 pr-3 pl-9 text-xs text-muted-foreground shadow-sm transition-all group-hover:border-primary/50 group-hover:bg-background">
                                                 {__(
@@ -324,7 +326,7 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                     </div>
                                 </PopoverTrigger>
                                 <PopoverContent
-                                    className="w-[280px] p-0"
+                                    className="w-70 p-0"
                                     align="end"
                                     sideOffset={5}
                                 >
@@ -342,7 +344,7 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                             autoFocus
                                         />
                                     </div>
-                                    <ScrollArea className="h-[240px]">
+                                    <ScrollArea className="h-60">
                                         <div className="p-1">
                                             {searchResults.length === 0 ? (
                                                 <div className="py-8 text-center text-xs text-muted-foreground">
@@ -397,7 +399,7 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                                                 )}
                                                             </span>
                                                             <span>•</span>
-                                                            <span className="max-w-[100px] truncate">
+                                                            <span className="max-w-25 truncate">
                                                                 {evt.user.name}
                                                             </span>
                                                         </div>
@@ -430,7 +432,7 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                     </SheetTrigger>
                                     <SheetContent
                                         side="left"
-                                        className="flex w-[85vw] flex-col gap-0 border-r bg-background p-0 sm:w-[380px]"
+                                        className="flex w-[85vw] flex-col gap-0 border-r bg-background p-0 sm:w-95"
                                     >
                                         <SheetHeader className="border-b px-4 py-3 text-left">
                                             <SheetTitle>
@@ -440,9 +442,9 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                         <div className="flex-1 overflow-hidden">
                                             <TicketSidebar
                                                 tickets={myTickets}
-                                                scheduledTicketIds={events.map(
-                                                    (e) => e.ticket_id,
-                                                )}
+                                                scheduledTicketIds={events
+                                                    .filter(e => !e.is_entry)
+                                                    .map((e) => e.ticket_id)}
                                                 selectedId={selectedTicketId}
                                                 onSelect={(id) => {
                                                     setSelectedTicketId(id);
@@ -610,9 +612,9 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                         <div className="h-full w-80 overflow-hidden rounded-xl border bg-card shadow-sm">
                             <TicketSidebar
                                 tickets={myTickets}
-                                scheduledTicketIds={events.map(
-                                    (e) => e.ticket_id,
-                                )}
+                                scheduledTicketIds={events
+                                    .filter(e => !e.is_entry)
+                                    .map((e) => e.ticket_id)}
                                 selectedId={selectedTicketId}
                                 onSelect={setSelectedTicketId}
                                 onUnschedule={handleDeleteEvent}
@@ -811,7 +813,7 @@ function PlanningStatsDialog({
                     </span>
                 </Button>
             </DialogTrigger>
-            <DialogContent className="max-h-[90vh] w-[90vw] overflow-y-auto sm:max-w-[600px]">
+                <DialogContent className="max-h-[90vh] w-[90vw] overflow-y-auto sm:max-w-150">
                 <DialogHeader className="border-b pb-4">
                     <DialogTitle>{__('schedule.stats.title')}</DialogTitle>
                     <DialogDescription>

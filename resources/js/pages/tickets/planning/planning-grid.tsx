@@ -75,7 +75,7 @@ export function PlanningGrid({
     const scrollAreaRef = useRef<HTMLDivElement>(null);
 
     const [resizingEvent, setResizingEvent] = useState<{
-        id: number;
+        id: number | string;
         initialY: number;
         initialDuration: number;
         currentDuration: number;
@@ -99,7 +99,7 @@ export function PlanningGrid({
         );
 
         const columns: TicketSchedule[][] = [];
-        const layout = new Map<number, { left: number; width: number }>();
+        const layout = new Map<number | string, { left: number; width: number }>();
 
         sorted.forEach((event) => {
             const eventStart = parseISO(event.start_date);
@@ -181,7 +181,20 @@ export function PlanningGrid({
 
         const handleMouseUp = () => {
             if (resizingEvent) {
-                onUpdate(resizingEvent.id, {
+                const event = events.find(e => e.id === resizingEvent.id);
+                if (event?.is_entry) {
+                    setResizingEvent(null);
+                    setTimeout(() => {
+                        isResizingRef.current = false;
+                    }, 100);
+                    return;
+                }
+
+                const numericId = typeof resizingEvent.id === 'number'
+                    ? resizingEvent.id
+                    : parseInt(String(resizingEvent.id).replace('entry-', ''));
+
+                onUpdate(numericId, {
                     start_date: resizingEvent.startData,
                     duration_minutes: resizingEvent.currentDuration,
                 });
@@ -192,6 +205,7 @@ export function PlanningGrid({
             }
         };
 
+
         if (resizingEvent) {
             window.addEventListener('mousemove', handleMouseMove);
             window.addEventListener('mouseup', handleMouseUp);
@@ -200,7 +214,7 @@ export function PlanningGrid({
             window.removeEventListener('mousemove', handleMouseMove);
             window.removeEventListener('mouseup', handleMouseUp);
         };
-    }, [resizingEvent, onUpdate]);
+    }, [resizingEvent, onUpdate, events]);
 
     const handleDragOver = (e: React.DragEvent) => {
         if (isEditMode) e.preventDefault();
@@ -216,8 +230,14 @@ export function PlanningGrid({
         targetDate.setHours(hour, 0, 0, 0);
 
         if (ticketId) onDrop(targetDate, parseInt(ticketId), undefined);
-        if (eventId) onDrop(targetDate, undefined, parseInt(eventId));
+        if (eventId) {
+            const numericId = eventId.startsWith('entry-')
+                ? parseInt(eventId.replace('entry-', ''))
+                : parseInt(eventId);
+            onDrop(targetDate, undefined, numericId);
+        }
     };
+
 
     const handleSlotClick = (day: Date, hour: number) => {
         if (!isEditMode || !onSlotClick) return;
@@ -247,7 +267,7 @@ export function PlanningGrid({
         return (
             <div className="flex h-full flex-col overflow-hidden bg-card select-none">
                 <div className="flex flex-1 flex-col overflow-y-auto">
-                    <div className="sticky top-0 z-20 flex h-[3rem] shrink-0 border-b bg-background sm:h-[7rem]">
+                    <div className="sticky top-0 z-20 flex h-12 shrink-0 border-b bg-background sm:h-28">
                         {weekDays.map((dayKey) => (
                             <div
                                 key={dayKey}
@@ -278,9 +298,9 @@ export function PlanningGrid({
                                 <div
                                     key={day.toString()}
                                     className={cn(
-                                        'group relative min-h-[60px] border-r border-b p-1 transition-colors sm:min-h-[120px] sm:p-2',
+                                        'group relative min-h-15 border-r border-b p-1 transition-colors sm:min-h-30 sm:p-2',
                                         !isSameMonth(day, currentDate) &&
-                                            'bg-muted/100 text-muted-foreground',
+                                            'bg-muted text-muted-foreground',
                                         idx % 7 === 6 && 'border-r-0',
                                         isEditMode &&
                                             'cursor-pointer hover:bg-muted/50',
@@ -301,61 +321,81 @@ export function PlanningGrid({
                                             {format(day, 'd')}
                                         </span>
                                     </div>
-
                                     <div className="mt-1 flex flex-wrap justify-center gap-1 sm:hidden">
-                                        {dayEvents.map((evt) => (
-                                            <div
-                                                key={evt.id}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    onEventClick(evt);
-                                                }}
-                                                className={cn(
-                                                    'h-1.5 w-1.5 cursor-pointer rounded-full',
-                                                    DOT_COLORS[
-                                                        evt.user_id %
-                                                            DOT_COLORS.length
-                                                    ],
-                                                )}
-                                            />
-                                        ))}
+                                        {dayEvents.map((evt) => {
+                                            const isEntry =
+                                                evt.is_entry === true;
+                                            return (
+                                                <div
+                                                    key={evt.id}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        onEventClick(evt);
+                                                    }}
+                                                    className={cn(
+                                                        'h-1.5 w-1.5 cursor-pointer rounded-full',
+                                                        isEntry
+                                                            ? 'bg-muted-foreground/30'
+                                                            : DOT_COLORS[
+                                                                  evt.user_id %
+                                                                      DOT_COLORS.length
+                                                              ],
+                                                    )}
+                                                />
+                                            );
+                                        })}
                                     </div>
 
-                                    {/* DESKTOP: Affichage "Barres" complètes */}
                                     <div className="hidden sm:block">
-                                        {dayEvents.map((evt) => (
-                                            <div
-                                                key={`${evt.id}-${evt.updated_at}`}
-                                                draggable={isEditMode}
-                                                onDragStart={(e) => {
-                                                    e.dataTransfer.setData(
-                                                        'eventId',
-                                                        evt.id.toString(),
-                                                    );
-                                                }}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    onEventClick(evt);
-                                                }}
-                                                className={cn(
-                                                    'mb-1 cursor-pointer truncate rounded-md border px-2 py-1 text-[10px] font-medium transition-all hover:scale-[1.02] hover:shadow-sm hover:brightness-95',
-                                                    COLORS[
-                                                        evt.user_id %
-                                                            COLORS.length
-                                                    ],
-                                                )}
-                                            >
-                                                <span className="mr-1 font-bold opacity-70">
-                                                    {format(
-                                                        parseISO(
-                                                            evt.start_date,
-                                                        ),
-                                                        'HH:mm',
+                                        {dayEvents.map((evt) => {
+                                            const isEntry =
+                                                evt.is_entry === true;
+                                            return (
+                                                <div
+                                                    key={`${evt.id}-${evt.updated_at}`}
+                                                    draggable={
+                                                        isEditMode && !isEntry
+                                                    }
+                                                    onDragStart={(e) => {
+                                                        if (isEntry) {
+                                                            e.preventDefault();
+                                                            return;
+                                                        }
+                                                        e.dataTransfer.setData(
+                                                            'eventId',
+                                                            evt.id.toString(),
+                                                        );
+                                                    }}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        onEventClick(evt);
+                                                    }}
+                                                    className={cn(
+                                                        'mb-1 truncate rounded-md border px-2 py-1 text-[10px] font-medium transition-all hover:scale-[1.02] hover:shadow-sm',
+                                                        isEntry
+                                                            ? 'cursor-default border-dashed border-muted-foreground/30 bg-muted/50 text-muted-foreground opacity-60'
+                                                            : cn(
+                                                                  'cursor-pointer hover:brightness-95',
+                                                                  COLORS[
+                                                                      evt.user_id %
+                                                                          COLORS.length
+                                                                  ],
+                                                              ),
                                                     )}
-                                                </span>
-                                                {evt.ticket.title}
-                                            </div>
-                                        ))}
+                                                >
+                                                    <span className="mr-1 font-bold opacity-70">
+                                                        {isEntry && '✓ '}
+                                                        {format(
+                                                            parseISO(
+                                                                evt.start_date,
+                                                            ),
+                                                            'HH:mm',
+                                                        )}
+                                                    </span>
+                                                    {evt.ticket.title}
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             );
@@ -376,8 +416,7 @@ export function PlanningGrid({
 
     return (
         <div className="flex h-full flex-col overflow-hidden bg-background">
-            {/* En-tête de la grille */}
-            <div className="z-50 flex h-[7rem] shrink-0 border-b bg-card shadow-sm ring-1 ring-border/5">
+            <div className="z-50 flex h-28 shrink-0 border-b bg-card shadow-sm ring-1 ring-border/5">
                 <div className="w-17 shrink-0 border-r border-border bg-card"></div>
                 <div className="flex h-full flex-1">
                     {days.map((day) => {
@@ -417,7 +456,6 @@ export function PlanningGrid({
                 </div>
             </div>
 
-            {/* Corps de la grille (Scrollable) */}
             <div
                 ref={scrollAreaRef}
                 className="scrollbar-thin relative z-0 flex-1 overflow-y-auto"
@@ -426,12 +464,11 @@ export function PlanningGrid({
                     className="relative flex min-h-full"
                     style={{ height: HOURS.length * CELL_HEIGHT }}
                 >
-                    {/* Colonne des heures */}
                     <div className="z-30 flex w-17 shrink-0 flex-col border-r bg-card shadow-[4px_0_24px_rgba(0,0,0,0.02)] select-none">
                         {HOURS.map((hour) => (
                             <div
                                 key={hour}
-                                className="relative h-[60px] border-b border-transparent"
+                                className="relative h-15 border-b border-transparent"
                             >
                                 <span
                                     className={cn(
@@ -447,14 +484,12 @@ export function PlanningGrid({
                         ))}
                     </div>
 
-                    {/* Colonnes des jours */}
                     <div className="relative flex flex-1">
-                        {/* Lignes de fond (grille) */}
                         <div className="pointer-events-none absolute inset-0 z-0 w-full">
                             {HOURS.map((hour) => (
                                 <div
                                     key={hour}
-                                    className="h-[60px] w-full border-b border-border/40"
+                                    className="h-15 w-full border-b border-border/40"
                                 />
                             ))}
                         </div>
@@ -482,7 +517,6 @@ export function PlanningGrid({
                                         'hover:z-50',
                                     )}
                                 >
-                                    {/* Zones cliquables/droppables pour chaque heure */}
                                     {HOURS.map((hour) => (
                                         <div
                                             key={hour}
@@ -502,7 +536,6 @@ export function PlanningGrid({
                                         />
                                     ))}
 
-                                    {/* Ligne "Maintenant" (rouge) */}
                                     {isToday(day) && (
                                         <div
                                             className="pointer-events-none absolute z-50 flex w-full -translate-y-1/2 transform items-center"
@@ -511,23 +544,33 @@ export function PlanningGrid({
                                             }}
                                         >
                                             <div className="-ml-1.5 h-3 w-3 shrink-0 rounded-full bg-red-500 shadow-sm ring-2 ring-background" />
-                                            <div className="h-[2px] w-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]" />
+                                            <div className="h-0.5 w-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]" />
                                         </div>
                                     )}
 
-                                    {/* Événements */}
                                     {dayEvents.map((event) => {
+                                        const isEntry = event.is_entry === true;
                                         const isResizing =
                                             resizingEvent?.id === event.id;
-                                        const layout = layoutMap.get(event.id);
+                                        const layout = layoutMap.get(
+                                            typeof event.id === 'number'
+                                                ? event.id
+                                                : 0,
+                                        );
 
                                         return (
                                             <div
                                                 key={`${event.id}-${event.updated_at}`}
                                                 draggable={
-                                                    isEditMode && !isResizing
+                                                    isEditMode &&
+                                                    !isEntry &&
+                                                    !isResizing
                                                 }
                                                 onDragStart={(e) => {
+                                                    if (isEntry) {
+                                                        e.preventDefault();
+                                                        return;
+                                                    }
                                                     e.dataTransfer.setData(
                                                         'eventId',
                                                         event.id.toString(),
@@ -535,19 +578,27 @@ export function PlanningGrid({
                                                 }}
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    if (isResizingRef.current)
+                                                    if (
+                                                        isResizingRef.current ||
+                                                        isEntry
+                                                    )
                                                         return;
                                                     onEventClick(event);
                                                 }}
                                                 className={cn(
                                                     'group/event absolute flex cursor-pointer flex-col justify-center overflow-hidden rounded-md px-2 py-1 text-xs shadow-sm transition-all duration-200',
-                                                    'mx-[1px]',
-                                                    COLORS[
-                                                        event.user_id %
-                                                            COLORS.length
-                                                    ],
-                                                    isEditMode && 'cursor-move',
-                                                    'hover:z-50 hover:scale-[1.02] hover:shadow-lg hover:brightness-105',
+                                                    'mx-px',
+                                                    isEntry
+                                                        ? 'cursor-not-allowed border-2 border-dashed border-muted-foreground/30 bg-muted/50 text-muted-foreground opacity-60'
+                                                        : COLORS[
+                                                              event.user_id %
+                                                                  COLORS.length
+                                                          ],
+                                                    isEditMode &&
+                                                        !isEntry &&
+                                                        'cursor-move',
+                                                    !isEntry &&
+                                                        'hover:z-50 hover:scale-[1.02] hover:shadow-lg hover:brightness-105',
                                                     isResizing &&
                                                         'z-50 scale-[1.02] cursor-ns-resize opacity-95 shadow-xl ring-2 ring-primary',
                                                 )}
@@ -557,6 +608,7 @@ export function PlanningGrid({
                                                 )}
                                             >
                                                 <div className="truncate leading-snug font-semibold">
+                                                    {isEntry && '✓ '}
                                                     {event.ticket.title}
                                                 </div>
                                                 <div className="pointer-events-none mt-0.5 flex justify-between font-mono text-[10px] opacity-80">
@@ -576,7 +628,7 @@ export function PlanningGrid({
                                                     </span>
                                                 </div>
 
-                                                {isEditMode && (
+                                                {isEditMode && !isEntry && (
                                                     <div
                                                         className="absolute bottom-0 left-0 flex h-3 w-full cursor-ns-resize items-end justify-center opacity-0 transition-opacity group-hover/event:opacity-100"
                                                         onMouseDown={(e) => {
@@ -584,7 +636,7 @@ export function PlanningGrid({
                                                             e.preventDefault();
                                                             isResizingRef.current = true;
                                                             setResizingEvent({
-                                                                id: event.id,
+                                                                id: event.id as number,
                                                                 initialY:
                                                                     e.clientY,
                                                                 initialDuration:

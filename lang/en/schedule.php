@@ -40,6 +40,7 @@ return [
             'save' => 'Save',
             'confirm_delete' => 'Delete ?',
             'error_end_time' => 'End time must be after start time.',
+            'error_entry_readonly' => 'This time entry cannot be modified as it has already been validated.',
         ],
         'details' => [
             'priority' => 'Priority',
