@@ -56,8 +56,11 @@ def delete_ticket_data(ticket_id):
 
     try:
         # SQL-like delete syntax for LanceDB
-        table.delete(f"ticket_id = '{ticket_id}'")
+        table.delete(f"ticket_id = {int(ticket_id)}")
         print(f"✅ [CELERY] Successfully deleted Ticket ID: {ticket_id}")
+    except ValueError:
+        print(f"❌ [CELERY] Invalid Ticket ID format"
+              f"(not a number): {ticket_id}")
     except Exception as e:
         print(f"❌ [CELERY] Delete failed: {str(e)}")
 

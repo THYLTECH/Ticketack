@@ -48,7 +48,7 @@ class TicketObserver
      */
     public function updated(Ticket $ticket): void
     {
-        // Modificating fields logging
+        // Modifying fields logging
         foreach ($ticket->getDirty() as $field => $newValue) {
             if (in_array($field, ['updated_at', 'deleted_at'])) {
                 continue;
@@ -64,6 +64,14 @@ class TicketObserver
 
                 $this->logAction($ticket, 'updated', $label, $formattedOld, $formattedNew);
             }
+        }
+
+        // Referencing the ticket (must be is_referenced, with a state is_closed and detailed_solution filled)
+        if ($ticket->wasChanged('is_referenced') && $ticket->is_referenced) {
+            if ($ticket->status?->is_closed && !empty($ticket->detailed_solution)) {
+                DB::afterCommit(fn() => $this->exportToMinio($ticket));
+            }
+            return;
         }
 
         // Unreferencing the ticket
