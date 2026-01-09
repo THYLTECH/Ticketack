@@ -21,10 +21,17 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 use Throwable;
+
+use App\Notifications\Tickets\Created as NotificationsTicketCreated;
+use App\Notifications\Tickets\Updated as NotificationsTicketUpdated;
+use App\Notifications\Tickets\Assigned as NotificationsTicketAssigned;
+use App\Notifications\Tickets\StatusChanged as NotificationsTicketStatusChanged;
+use App\Notifications\Tickets\PriorityChanged as NotificationsTicketPriorityChanged;
 
 class Crud extends Controller
 {
@@ -269,6 +276,8 @@ class Crud extends Controller
             if (!empty($data['assignees']) && $user->hasAnyRole(['admin', 'solver'])) {
                 foreach ($data['assignees'] as $assignee) {
                     $ticket->assignees()->create(['user_id' => $assignee['id']]);
+
+                    Notification::send(User::find($assignee['id']), new NotificationsTicketCreated($ticket));
                 }
             }
 
@@ -312,28 +321,58 @@ class Crud extends Controller
             /** @var User $user */
             $user = $request->user();
 
+            // État initial pour comparaison
+            $originalStatus = $ticket->status;
+            $originalPriority = $ticket->priority;
+            $originalAssignees = $ticket->assignees()->pluck('user_id')->toArray();
+
             if (!$user->hasAnyRole(['admin', 'solver'])) {
                 $data = collect($data)->only(['title', 'description', 'asset_id', 'is_public'])->toArray();
             }
 
             $ticket->update($data);
+            
 
             if (isset($data['assignees']) && $user->hasAnyRole(['admin', 'solver'])) {
                 $newIds = collect($data['assignees'])->pluck('id')->toArray();
-                $ticket->assignees()->whereNotIn('user_id', $newIds)->get()->each->delete();
+
+                $ticket->assignees()
+                    ->whereNotIn('user_id', $newIds)
+                    ->get()
+                    ->each
+                    ->delete();
 
                 foreach ($newIds as $userId) {
                     $ticket->assignees()->updateOrCreate(['user_id' => $userId]);
+                    Notification::send(User::find($userId), new NotificationsTicketAssigned($ticket));
                 }
             }
+
+            $assignees = User::whereIn(
+                'id',
+                $ticket->assignees()->pluck('user_id')
+            )->get();
+
+            Notification::send($assignees, new NotificationsTicketUpdated($ticket));
 
             if ($request->hasFile('attachments')) {
                 $this->handleAttachments($request->file('attachments'), $ticket);
             }
 
-            return redirect()->route('tickets.show', $ticket)->with('success', __('tickets.flash.updated'));
+            if (isset($data['status']) && $data['status'] !== $originalStatus) {
+                Notification::send($assignees, new NotificationsTicketStatusChanged($ticket));
+            }
+
+            if (isset($data['priority']) && $data['priority'] !== $originalPriority) {
+                Notification::send($assignees, new NotificationsTicketPriorityChanged($ticket));
+            }
+
+            return redirect()
+                ->route('tickets.show', $ticket)
+                ->with('success', __('tickets.flash.updated'));
         });
     }
+
 
     public function destroy(Ticket $ticket): RedirectResponse
     {

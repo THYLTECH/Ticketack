@@ -12,6 +12,11 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\Tickets\ScheduleCreated as NotificationsTicketScheduleCreated;
+use App\Notifications\Tickets\ScheduleUpdated as NotificationsTicketScheduleUpdated;
+use App\Notifications\Tickets\ScheduleDeleted as NotificationsTicketScheduleDeleted;
+
 class Schedules extends Controller
 {
 
@@ -83,6 +88,17 @@ class Schedules extends Controller
             'duration_minutes' => $data['duration_minutes'],
         ]);
 
+        $ticket = Ticket::findOrFail($data['ticket_id']);
+
+        if($ticket) {
+            $assignees = User::whereIn(
+                'id',
+                $ticket->assignees()->pluck('user_id')
+            )->get();
+    
+            Notification::send($assignees, new NotificationsTicketScheduleCreated($ticket));
+        }
+
         return back()->with('success', __('schedule.flash.created'));
     }
 
@@ -104,11 +120,34 @@ class Schedules extends Controller
             'duration_minutes' => $data['duration_minutes'],
         ]);
 
+        $ticket = Ticket::findOrFail($schedule->ticket_id);
+
+        if($ticket) {
+            $assignees = User::whereIn(
+                'id',
+                $ticket->assignees()->pluck('user_id')
+            )->get();
+    
+            Notification::send($assignees, new NotificationsTicketScheduleUpdated($ticket));
+        }
+
         return back()->with('success', __('schedule.flash.updated'));
     }
 
     public function destroy(TicketSchedule $schedule)
     {
+
+        $ticket = Ticket::findOrFail($schedule->ticket_id);
+
+        if($ticket) {
+            $assignees = User::whereIn(
+                'id',
+                $ticket->assignees()->pluck('user_id')
+            )->get();
+    
+            Notification::send($assignees, new NotificationsTicketScheduleDeleted($ticket));
+        }
+
         $schedule->delete();
 
         return back()->with('success', __('schedule.flash.deleted'));
