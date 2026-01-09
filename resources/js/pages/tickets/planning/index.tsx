@@ -107,6 +107,7 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
 
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [highlightedEventId, setHighlightedEventId] = useState<number | string | null>(null);
 
     const searchResults = useMemo(() => {
         if (!searchQuery) return [];
@@ -131,6 +132,11 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
         setDate(eventDate);
         setIsSearchOpen(false);
         setSearchQuery('');
+
+        setHighlightedEventId(event.id);
+        setTimeout(() => {
+            setHighlightedEventId(null);
+        }, 3000);
 
         const message = __('schedule.page.search_found').replace(
             ':id',
@@ -442,9 +448,6 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                         <div className="flex-1 overflow-hidden">
                                             <TicketSidebar
                                                 tickets={myTickets}
-                                                scheduledTicketIds={events
-                                                    .filter(e => !e.is_entry)
-                                                    .map((e) => e.ticket_id)}
                                                 selectedId={selectedTicketId}
                                                 onSelect={(id) => {
                                                     setSelectedTicketId(id);
@@ -612,9 +615,6 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                         <div className="h-full w-80 overflow-hidden rounded-xl border bg-card shadow-sm">
                             <TicketSidebar
                                 tickets={myTickets}
-                                scheduledTicketIds={events
-                                    .filter(e => !e.is_entry)
-                                    .map((e) => e.ticket_id)}
                                 selectedId={selectedTicketId}
                                 onSelect={setSelectedTicketId}
                                 onUnschedule={handleDeleteEvent}
@@ -630,6 +630,7 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                             isEditMode={isEditMode}
                             currentUserId={auth.user.id}
                             selectedSolvers={selectedSolvers}
+                            highlightedEventId={highlightedEventId}
                             onDrop={handleDropEvent}
                             onUpdate={handleUpdateEvent}
                             onEventClick={(evt) => {

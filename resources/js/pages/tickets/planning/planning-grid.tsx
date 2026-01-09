@@ -2,8 +2,13 @@ import { useTrans } from '@/lib/translation';
 import { cn } from '@/lib/utils';
 import { TicketSchedule, UpdatePayload } from '@/types';
 import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
     addDays,
-    areIntervalsOverlapping,
     eachDayOfInterval,
     endOfMonth,
     endOfWeek,
@@ -17,6 +22,8 @@ import {
     startOfMonth,
     startOfWeek,
 } from 'date-fns';
+import { enUS, fr } from 'date-fns/locale';
+import { usePage } from '@inertiajs/react';
 import React, { useEffect, useRef, useState } from 'react';
 
 export type ViewType = 'day' | 'week' | 'month';
@@ -53,6 +60,7 @@ interface Props {
     isEditMode: boolean;
     currentUserId: number;
     selectedSolvers: number[];
+    highlightedEventId?: number | string | null;
     onDrop: (date: Date, ticketId?: number, eventId?: number) => void;
     onUpdate: (id: number, data: UpdatePayload) => void;
     onEventClick: (event: TicketSchedule) => void;
@@ -66,13 +74,27 @@ export function PlanningGrid({
     isEditMode,
     currentUserId,
     selectedSolvers,
+    highlightedEventId,
     onDrop,
     onUpdate,
     onEventClick,
     onSlotClick,
 }: Props) {
     const __ = useTrans();
+    const { props } = usePage<{ locale: string }>();
     const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+    const getDateLocale = () => {
+        switch (props.locale) {
+            case 'fr':
+                return fr;
+            case 'en':
+            default:
+                return enUS;
+        }
+    };
+
+    const dateLocale = getDateLocale();
 
     const [resizingEvent, setResizingEvent] = useState<{
         id: number | string;
@@ -92,14 +114,17 @@ export function PlanningGrid({
     }, [view]);
 
     const getEventLayout = (dayEvents: TicketSchedule[]) => {
-        const sorted = [...dayEvents].sort(
+        const schedules = dayEvents.filter(e => !e.is_entry);
+        const entries = dayEvents.filter(e => e.is_entry);
+
+        const sorted = [...schedules].sort(
             (a, b) =>
                 parseISO(a.start_date).getTime() -
                 parseISO(b.start_date).getTime(),
         );
 
         const columns: TicketSchedule[][] = [];
-        const layout = new Map<number | string, { left: number; width: number }>();
+        const layout = new Map<number | string, { left: number; width: number; column: number; totalColumns: number }>();
 
         sorted.forEach((event) => {
             const eventStart = parseISO(event.start_date);
@@ -108,20 +133,17 @@ export function PlanningGrid({
             let colIndex = 0;
             while (true) {
                 const col = columns[colIndex] || [];
-                const hasOverlap = col.some((placedEvent) =>
-                    areIntervalsOverlapping(
-                        { start: eventStart, end: eventEnd },
-                        {
-                            start: parseISO(placedEvent.start_date),
-                            end: parseISO(placedEvent.end_date),
-                        },
-                    ),
-                );
+                const hasOverlap = col.some((placedEvent) => {
+                    const placedStart = parseISO(placedEvent.start_date);
+                    const placedEnd = parseISO(placedEvent.end_date);
+
+                    return eventStart < placedEnd && eventEnd > placedStart;
+                });
 
                 if (!hasOverlap) {
                     if (!columns[colIndex]) columns[colIndex] = [];
                     columns[colIndex].push(event);
-                    layout.set(event.id, { left: colIndex, width: 0 });
+                    layout.set(event.id, { left: colIndex, width: 0, column: colIndex, totalColumns: 0 });
                     break;
                 }
                 colIndex++;
@@ -133,22 +155,38 @@ export function PlanningGrid({
             sorted.forEach((event) => {
                 const pos = layout.get(event.id);
                 if (pos) {
+                    const GAP_PERCENT = 0.5;
+                    const columnWidth = (100 - (GAP_PERCENT * (totalColumns - 1))) / totalColumns;
+                    const leftPosition = pos.left * (columnWidth + GAP_PERCENT);
+
                     layout.set(event.id, {
-                        left: (pos.left / totalColumns) * 100,
-                        width: 100 / totalColumns,
+                        left: leftPosition,
+                        width: columnWidth,
+                        column: pos.left,
+                        totalColumns: totalColumns
                     });
                 }
             });
         }
+
+        entries.forEach((entry) => {
+            layout.set(entry.id, {
+                left: 0,
+                width: 100,
+                column: 0,
+                totalColumns: 1
+            });
+        });
 
         return layout;
     };
 
     const getEventStyle = (
         event: TicketSchedule,
-        layoutData: { left: number; width: number } | undefined,
+        layoutData: { left: number; width: number; column: number; totalColumns: number } | undefined,
     ) => {
         const isResizing = resizingEvent?.id === event.id;
+        const isEntry = event.is_entry === true;
         const duration = isResizing
             ? resizingEvent.currentDuration
             : event.duration_minutes;
@@ -156,12 +194,19 @@ export function PlanningGrid({
         const minutesFromStart =
             (getHours(start) - START_HOUR) * 60 + getMinutes(start);
 
+        let zIndex = 10;
+        if (isResizing) {
+            zIndex = 60;
+        } else if (!isEntry) {
+            zIndex = layoutData ? 20 + layoutData.column : 20;
+        }
+
         return {
             top: `${(minutesFromStart / 60) * CELL_HEIGHT}px`,
             height: `${Math.max((duration / 60) * CELL_HEIGHT, 24)}px`,
             left: layoutData ? `${layoutData.left}%` : '0%',
             width: layoutData ? `${layoutData.width}%` : '100%',
-            zIndex: isResizing ? 60 : 20,
+            zIndex,
         };
     };
 
@@ -192,7 +237,9 @@ export function PlanningGrid({
 
                 const numericId = typeof resizingEvent.id === 'number'
                     ? resizingEvent.id
-                    : parseInt(String(resizingEvent.id).replace('entry-', ''));
+                    : (resizingEvent.id.startsWith('entry-')
+                        ? parseInt(resizingEvent.id.replace('entry-', ''))
+                        : parseInt(resizingEvent.id));
 
                 onUpdate(numericId, {
                     start_date: resizingEvent.startData,
@@ -229,8 +276,12 @@ export function PlanningGrid({
         const targetDate = new Date(day);
         targetDate.setHours(hour, 0, 0, 0);
 
-        if (ticketId) onDrop(targetDate, parseInt(ticketId), undefined);
-        if (eventId) {
+        if (ticketId) {
+            onDrop(targetDate, parseInt(ticketId), undefined);
+        } else if (eventId) {
+            const event = events.find(e => e.id.toString() === eventId);
+            if (event?.is_entry) return;
+
             const numericId = eventId.startsWith('entry-')
                 ? parseInt(eventId.replace('entry-', ''))
                 : parseInt(eventId);
@@ -286,13 +337,15 @@ export function PlanningGrid({
                     <div className="grid flex-1 auto-rows-fr grid-cols-7">
                         {days.map((day, idx) => {
                             const dayEvents = events.filter(
-                                (e) =>
-                                    (isEditMode
+                                (e) => {
+                                    if (!isSameDay(parseISO(e.start_date), day)) return false;
+                                    if (e.is_entry) {
+                                        return e.user_id === currentUserId;
+                                    }
+                                    return isEditMode
                                         ? e.user_id === currentUserId
-                                        : selectedSolvers.includes(
-                                              e.user_id,
-                                          )) &&
-                                    isSameDay(parseISO(e.start_date), day),
+                                        : selectedSolvers.includes(e.user_id);
+                                },
                             );
                             return (
                                 <div
@@ -323,77 +376,315 @@ export function PlanningGrid({
                                     </div>
                                     <div className="mt-1 flex flex-wrap justify-center gap-1 sm:hidden">
                                         {dayEvents.map((evt) => {
-                                            const isEntry =
-                                                evt.is_entry === true;
+                                            const isEntry = evt.is_entry === true;
+                                            const startDate = parseISO(evt.start_date);
+                                            const endDate = parseISO(evt.end_date);
+                                            const durationHours = Math.floor(evt.duration_minutes / 60);
+                                            const durationMins = evt.duration_minutes % 60;
+
                                             return (
-                                                <div
-                                                    key={evt.id}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        onEventClick(evt);
-                                                    }}
-                                                    className={cn(
-                                                        'h-1.5 w-1.5 cursor-pointer rounded-full',
-                                                        isEntry
-                                                            ? 'bg-muted-foreground/30'
-                                                            : DOT_COLORS[
-                                                                  evt.user_id %
-                                                                      DOT_COLORS.length
-                                                              ],
-                                                    )}
-                                                />
+                                                <TooltipProvider key={evt.id} delayDuration={300}>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <div
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    if (!isEntry) onEventClick(evt);
+                                                                }}
+                                                                className={cn(
+                                                                    'h-1.5 w-1.5 rounded-full',
+                                                                    isEntry
+                                                                        ? 'cursor-default bg-muted-foreground/40'
+                                                                        : cn(
+                                                                              'cursor-pointer',
+                                                                              DOT_COLORS[
+                                                                                  evt.user_id %
+                                                                                      DOT_COLORS.length
+                                                                              ],
+                                                                          ),
+                                                                )}
+                                                            />
+                                                        </TooltipTrigger>
+                                                        <TooltipContent
+                                                            side="right"
+                                                            align="start"
+                                                            className="max-w-80 p-0 shadow-xl"
+                                                            sideOffset={8}
+                                                        >
+                                                            <div className="space-y-2 p-3">
+                                                                <div className="flex items-start gap-2">
+                                                                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                                                                        {isEntry ? '✓' : '#'}
+                                                                    </div>
+                                                                    <div className="flex-1 space-y-1">
+                                                                        <div className="font-semibold leading-tight text-foreground">
+                                                                            {evt.ticket.title}
+                                                                        </div>
+                                                                        <div className="text-xs text-muted-foreground">
+                                                                            Ticket #{evt.ticket.id}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="h-px bg-border" />
+
+                                                                <div className="space-y-1.5 text-xs">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className="w-16 text-muted-foreground">
+                                                                            {__('schedule.tooltip.assignee')}:
+                                                                        </span>
+                                                                        <span className="font-medium text-foreground">
+                                                                            {evt.user.name}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className="w-16 text-muted-foreground">
+                                                                            {__('schedule.tooltip.date')}:
+                                                                        </span>
+                                                                        <span className="font-medium text-foreground">
+                                                                            {format(startDate, 'EEEE d MMMM yyyy', { locale: dateLocale })}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className="w-16 text-muted-foreground">
+                                                                            {__('schedule.tooltip.time')}:
+                                                                        </span>
+                                                                        <span className="font-medium text-foreground">
+                                                                            {format(startDate, 'HH:mm')} - {format(endDate, 'HH:mm')}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className="w-16 text-muted-foreground">
+                                                                            {__('schedule.tooltip.duration')}:
+                                                                        </span>
+                                                                        <span className="font-medium text-foreground">
+                                                                            {durationHours > 0 && `${durationHours}h `}
+                                                                            {durationMins > 0 && `${durationMins}min`}
+                                                                        </span>
+                                                                    </div>
+                                                                    {evt.ticket.priority && (
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="w-16 text-muted-foreground">
+                                                                                {__('schedule.tooltip.priority')}:
+                                                                            </span>
+                                                                            <span className="font-medium text-foreground">
+                                                                                {evt.ticket.priority.title}
+                                                                            </span>
+                                                                        </div>
+                                                                    )}
+                                                                    {evt.ticket.category && (
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="w-16 text-muted-foreground">
+                                                                                {__('schedule.tooltip.category')}:
+                                                                            </span>
+                                                                            <span className="font-medium text-foreground">
+                                                                                {evt.ticket.category.title}
+                                                                            </span>
+                                                                        </div>
+                                                                    )}
+                                                                    {evt.ticket.status && (
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="w-16 text-muted-foreground">
+                                                                                {__('schedule.tooltip.status')}:
+                                                                            </span>
+                                                                            <span className="font-medium text-foreground">
+                                                                                {evt.ticket.status.title}
+                                                                            </span>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+
+                                                                {isEntry && (
+                                                                    <>
+                                                                        <div className="h-px bg-border" />
+                                                                        <div className="flex items-center gap-2 rounded-lg bg-muted/40 px-3 py-2 ring-1 ring-border/50">
+                                                                            <div className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500/20 ring-1 ring-emerald-500/30">
+                                                                                <svg className="h-2.5 w-2.5 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                                                                </svg>
+                                                                            </div>
+                                                                            <span className="text-xs font-medium text-muted-foreground">
+                                                                                {__('schedule.tooltip.validated')}
+                                                                            </span>
+                                                                        </div>
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
                                             );
                                         })}
                                     </div>
 
                                     <div className="hidden sm:block">
                                         {dayEvents.map((evt) => {
-                                            const isEntry =
-                                                evt.is_entry === true;
+                                            const isEntry = evt.is_entry === true;
+                                            const startDate = parseISO(evt.start_date);
+                                            const endDate = parseISO(evt.end_date);
+                                            const durationHours = Math.floor(evt.duration_minutes / 60);
+                                            const durationMins = evt.duration_minutes % 60;
+
                                             return (
-                                                <div
-                                                    key={`${evt.id}-${evt.updated_at}`}
-                                                    draggable={
-                                                        isEditMode && !isEntry
-                                                    }
-                                                    onDragStart={(e) => {
-                                                        if (isEntry) {
-                                                            e.preventDefault();
-                                                            return;
-                                                        }
-                                                        e.dataTransfer.setData(
-                                                            'eventId',
-                                                            evt.id.toString(),
-                                                        );
-                                                    }}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        onEventClick(evt);
-                                                    }}
-                                                    className={cn(
-                                                        'mb-1 truncate rounded-md border px-2 py-1 text-[10px] font-medium transition-all hover:scale-[1.02] hover:shadow-sm',
-                                                        isEntry
-                                                            ? 'cursor-default border-dashed border-muted-foreground/30 bg-muted/50 text-muted-foreground opacity-60'
-                                                            : cn(
-                                                                  'cursor-pointer hover:brightness-95',
-                                                                  COLORS[
-                                                                      evt.user_id %
-                                                                          COLORS.length
-                                                                  ],
-                                                              ),
-                                                    )}
-                                                >
-                                                    <span className="mr-1 font-bold opacity-70">
-                                                        {isEntry && '✓ '}
-                                                        {format(
-                                                            parseISO(
-                                                                evt.start_date,
-                                                            ),
-                                                            'HH:mm',
-                                                        )}
-                                                    </span>
-                                                    {evt.ticket.title}
-                                                </div>
+                                                <TooltipProvider key={`${evt.id}-${evt.updated_at}`} delayDuration={300}>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <div
+                                                                draggable={
+                                                                    isEditMode && !isEntry
+                                                                }
+                                                                onDragStart={(e) => {
+                                                                    if (isEntry) {
+                                                                        e.preventDefault();
+                                                                        return;
+                                                                    }
+                                                                    e.dataTransfer.setData(
+                                                                        'eventId',
+                                                                        evt.id.toString(),
+                                                                    );
+                                                                }}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    onEventClick(evt);
+                                                                }}
+                                                                className={cn(
+                                                                    'mb-1 truncate rounded-md px-2 py-1 text-[10px] font-medium shadow-sm ring-1 ring-black/5 transition-all dark:ring-white/5',
+                                                                    highlightedEventId === evt.id
+                                                                        ? 'animate-pulse cursor-pointer border-2 border-yellow-500 bg-yellow-100/90 text-yellow-900 shadow-lg ring-2 ring-yellow-400/50 dark:bg-yellow-900/40 dark:text-yellow-100'
+                                                                        : isEntry
+                                                                        ? 'cursor-default border-2 border-l-2 border-dashed border-muted-foreground/30 bg-muted/60 text-muted-foreground'
+                                                                        : cn(
+                                                                              'cursor-pointer border-l-4 hover:shadow-md hover:brightness-95 hover:ring-2',
+                                                                              COLORS[
+                                                                                  evt.user_id %
+                                                                                      COLORS.length
+                                                                              ],
+                                                                          ),
+                                                                )}
+                                                            >
+                                                                <span className="mr-1 font-bold opacity-70">
+                                                                    {isEntry && (
+                                                                        <span className="text-green-600 dark:text-green-500">
+                                                                            ✓{' '}
+                                                                        </span>
+                                                                    )}
+                                                                    {format(startDate, 'HH:mm')}
+                                                                </span>
+                                                                {evt.ticket.title}
+                                                            </div>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent
+                                                            side="right"
+                                                            align="start"
+                                                            className="max-w-96 border-border/50 bg-linear-to-br from-card to-card/95 p-0 shadow-2xl backdrop-blur-xl"
+                                                            sideOffset={12}
+                                                        >
+                                                            <div className="space-y-3 p-4">
+                                                                <div className="flex items-start gap-3">
+                                                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-primary/20 to-primary/10 text-primary shadow-sm ring-1 ring-primary/20">
+                                                                        {isEntry ? (
+                                                                            <span className="text-lg font-bold">✓</span>
+                                                                        ) : (
+                                                                            <span className="text-base font-semibold">#</span>
+                                                                        )}
+                                                                    </div>
+                                                                    <div className="flex-1 space-y-1">
+                                                                        <div className="font-semibold leading-tight text-foreground">
+                                                                            {evt.ticket.title}
+                                                                        </div>
+                                                                        <div className="text-xs text-muted-foreground">
+                                                                            Ticket #{evt.ticket.id}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="h-px bg-linear-to-r from-transparent via-border to-transparent" />
+
+                                                                <div className="space-y-2 text-xs">
+                                                                    <div className="flex items-center gap-3 rounded-lg bg-muted/30 px-3 py-2">
+                                                                        <span className="w-20 font-medium text-muted-foreground">
+                                                                            {__('schedule.tooltip.assignee')}
+                                                                        </span>
+                                                                        <span className="flex-1 font-semibold text-foreground">
+                                                                            {evt.user.name}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-3 rounded-lg bg-muted/30 px-3 py-2">
+                                                                        <span className="w-20 font-medium text-muted-foreground">
+                                                                            {__('schedule.tooltip.date')}
+                                                                        </span>
+                                                                        <span className="flex-1 font-semibold text-foreground">
+                                                                            {format(startDate, 'EEEE d MMMM yyyy', { locale: dateLocale })}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-3 rounded-lg bg-muted/30 px-3 py-2">
+                                                                        <span className="w-20 font-medium text-muted-foreground">
+                                                                            {__('schedule.tooltip.time')}
+                                                                        </span>
+                                                                        <span className="flex-1 font-mono font-bold text-foreground">
+                                                                            {format(startDate, 'HH:mm')} - {format(endDate, 'HH:mm')}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-3 rounded-lg bg-muted/30 px-3 py-2">
+                                                                        <span className="w-20 font-medium text-muted-foreground">
+                                                                            {__('schedule.tooltip.duration')}
+                                                                        </span>
+                                                                        <span className="flex-1 font-semibold text-foreground">
+                                                                            {durationHours > 0 && `${durationHours}h `}
+                                                                            {durationMins > 0 && `${durationMins}min`}
+                                                                        </span>
+                                                                    </div>
+                                                                    {evt.ticket.priority && (
+                                                                        <div className="flex items-center gap-3 rounded-lg bg-muted/30 px-3 py-2">
+                                                                            <span className="w-20 font-medium text-muted-foreground">
+                                                                                {__('schedule.tooltip.priority')}
+                                                                            </span>
+                                                                            <span className="flex-1 font-semibold text-foreground">
+                                                                                {evt.ticket.priority.title}
+                                                                            </span>
+                                                                        </div>
+                                                                    )}
+                                                                    {evt.ticket.category && (
+                                                                        <div className="flex items-center gap-3 rounded-lg bg-muted/30 px-3 py-2">
+                                                                            <span className="w-20 font-medium text-muted-foreground">
+                                                                                {__('schedule.tooltip.category')}
+                                                                            </span>
+                                                                            <span className="flex-1 font-semibold text-foreground">
+                                                                                {evt.ticket.category.title}
+                                                                            </span>
+                                                                        </div>
+                                                                    )}
+                                                                    {evt.ticket.status && (
+                                                                        <div className="flex items-center gap-3 rounded-lg bg-muted/30 px-3 py-2">
+                                                                            <span className="w-20 font-medium text-muted-foreground">
+                                                                                {__('schedule.tooltip.status')}
+                                                                            </span>
+                                                                            <span className="flex-1 font-semibold text-foreground">
+                                                                                {evt.ticket.status.title}
+                                                                            </span>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+
+                                                                {isEntry && (
+                                                                    <>
+                                                                        <div className="h-px bg-linear-to-r from-transparent via-border to-transparent" />
+                                                                        <div className="flex items-center gap-2.5 rounded-lg bg-muted/40 px-3 py-2.5 ring-1 ring-border/50">
+                                                                            <div className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500/20 ring-1 ring-emerald-500/30">
+                                                                                <svg className="h-2.5 w-2.5 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                                                                </svg>
+                                                                            </div>
+                                                                            <span className="text-xs font-medium text-muted-foreground">
+                                                                                {__('schedule.tooltip.validated')}
+                                                                            </span>
+                                                                        </div>
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
                                             );
                                         })}
                                     </div>
@@ -496,13 +787,15 @@ export function PlanningGrid({
 
                         {days.map((day) => {
                             const dayEvents = events.filter(
-                                (e) =>
-                                    (isEditMode
+                                (e) => {
+                                    if (!isSameDay(parseISO(e.start_date), day)) return false;
+                                    if (e.is_entry) {
+                                        return e.user_id === currentUserId;
+                                    }
+                                    return isEditMode
                                         ? e.user_id === currentUserId
-                                        : selectedSolvers.includes(
-                                              e.user_id,
-                                          )) &&
-                                    isSameDay(parseISO(e.start_date), day),
+                                        : selectedSolvers.includes(e.user_id);
+                                },
                             );
 
                             const layoutMap = getEventLayout(dayEvents);
@@ -558,105 +851,241 @@ export function PlanningGrid({
                                                 : 0,
                                         );
 
-                                        return (
-                                            <div
-                                                key={`${event.id}-${event.updated_at}`}
-                                                draggable={
-                                                    isEditMode &&
-                                                    !isEntry &&
-                                                    !isResizing
-                                                }
-                                                onDragStart={(e) => {
-                                                    if (isEntry) {
-                                                        e.preventDefault();
-                                                        return;
-                                                    }
-                                                    e.dataTransfer.setData(
-                                                        'eventId',
-                                                        event.id.toString(),
-                                                    );
-                                                }}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    if (
-                                                        isResizingRef.current ||
-                                                        isEntry
-                                                    )
-                                                        return;
-                                                    onEventClick(event);
-                                                }}
-                                                className={cn(
-                                                    'group/event absolute flex cursor-pointer flex-col justify-center overflow-hidden rounded-md px-2 py-1 text-xs shadow-sm transition-all duration-200',
-                                                    'mx-px',
-                                                    isEntry
-                                                        ? 'cursor-not-allowed border-2 border-dashed border-muted-foreground/30 bg-muted/50 text-muted-foreground opacity-60'
-                                                        : COLORS[
-                                                              event.user_id %
-                                                                  COLORS.length
-                                                          ],
-                                                    isEditMode &&
-                                                        !isEntry &&
-                                                        'cursor-move',
-                                                    !isEntry &&
-                                                        'hover:z-50 hover:scale-[1.02] hover:shadow-lg hover:brightness-105',
-                                                    isResizing &&
-                                                        'z-50 scale-[1.02] cursor-ns-resize opacity-95 shadow-xl ring-2 ring-primary',
-                                                )}
-                                                style={getEventStyle(
-                                                    event,
-                                                    layout,
-                                                )}
-                                            >
-                                                <div className="truncate leading-snug font-semibold">
-                                                    {isEntry && '✓ '}
-                                                    {event.ticket.title}
-                                                </div>
-                                                <div className="pointer-events-none mt-0.5 flex justify-between font-mono text-[10px] opacity-80">
-                                                    <span>
-                                                        {isResizing
-                                                            ? format(
-                                                                  new Date(
-                                                                      new Date(
-                                                                          event.start_date,
-                                                                      ).getTime() +
-                                                                          resizingEvent.currentDuration *
-                                                                              60000,
-                                                                  ),
-                                                                  'HH:mm',
-                                                              )
-                                                            : `${format(parseISO(event.start_date), 'HH:mm')} - ${format(parseISO(event.end_date), 'HH:mm')}`}
-                                                    </span>
-                                                </div>
+                                        const startDate = parseISO(event.start_date);
+                                        const endDate = parseISO(event.end_date);
+                                        const durationHours = Math.floor(event.duration_minutes / 60);
+                                        const durationMins = event.duration_minutes % 60;
 
-                                                {isEditMode && !isEntry && (
-                                                    <div
-                                                        className="absolute bottom-0 left-0 flex h-3 w-full cursor-ns-resize items-end justify-center opacity-0 transition-opacity group-hover/event:opacity-100"
-                                                        onMouseDown={(e) => {
-                                                            e.stopPropagation();
-                                                            e.preventDefault();
-                                                            isResizingRef.current = true;
-                                                            setResizingEvent({
-                                                                id: event.id as number,
-                                                                initialY:
-                                                                    e.clientY,
-                                                                initialDuration:
-                                                                    event.duration_minutes,
-                                                                currentDuration:
-                                                                    event.duration_minutes,
-                                                                startData:
-                                                                    format(
-                                                                        parseISO(
-                                                                            event.start_date,
-                                                                        ),
-                                                                        'yyyy-MM-dd HH:mm:ss',
-                                                                    ),
-                                                            });
-                                                        }}
+                                        return (
+                                            <TooltipProvider key={`${event.id}-${event.updated_at}`} delayDuration={300}>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <div
+                                                            draggable={
+                                                                isEditMode &&
+                                                                !isEntry &&
+                                                                !isResizing
+                                                            }
+                                                            onDragStart={(e) => {
+                                                                if (isEntry) {
+                                                                    e.preventDefault();
+                                                                    return;
+                                                                }
+                                                                e.dataTransfer.setData(
+                                                                    'eventId',
+                                                                    event.id.toString(),
+                                                                );
+                                                            }}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                if (
+                                                                    isResizingRef.current ||
+                                                                    isEntry
+                                                                )
+                                                                    return;
+                                                                onEventClick(event);
+                                                            }}
+                                                            className={cn(
+                                                                'group/event absolute flex flex-col justify-center overflow-hidden rounded-lg px-2 py-1.5 text-xs transition-all duration-200',
+                                                                highlightedEventId === event.id
+                                                                    ? 'animate-pulse cursor-pointer border-2 border-yellow-500 bg-yellow-100/90 text-yellow-900 shadow-lg ring-2 ring-yellow-400/50 dark:bg-yellow-900/40 dark:text-yellow-100'
+                                                                    : isEntry
+                                                                    ? 'cursor-default border-2 border-dashed border-muted-foreground/30 bg-muted/70 text-muted-foreground shadow-sm backdrop-blur-sm'
+                                                                    : cn(
+                                                                          'cursor-pointer border-l-4',
+                                                                          COLORS[
+                                                                              event.user_id %
+                                                                                  COLORS.length
+                                                                          ],
+                                                                          'shadow-md ring-1 ring-black/5 dark:ring-white/5',
+                                                                      ),
+                                                                isEditMode &&
+                                                                    !isEntry &&
+                                                                    'cursor-move',
+                                                                !isEntry &&
+                                                                    highlightedEventId !== event.id &&
+                                                                    'hover:z-50 hover:shadow-xl hover:ring-2 hover:ring-offset-1 hover:brightness-105',
+                                                                isResizing &&
+                                                                    'z-50 cursor-ns-resize opacity-95 shadow-2xl ring-2 ring-primary ring-offset-2',
+                                                                layout && layout.totalColumns > 1 && 'backdrop-blur-sm',
+                                                            )}
+                                                            style={getEventStyle(
+                                                                event,
+                                                                layout,
+                                                            )}
+                                                        >
+                                                            <div className="flex items-start gap-1">
+                                                                {isEntry && (
+                                                                    <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-green-600 text-[10px] font-bold text-white dark:bg-green-500">
+                                                                        ✓
+                                                                    </span>
+                                                                )}
+                                                                <div className="min-w-0 flex-1 truncate leading-tight font-semibold">
+                                                                    {event.ticket.title}
+                                                                </div>
+                                                            </div>
+                                                            <div className="pointer-events-none mt-1 flex items-center justify-between gap-1 font-mono text-[10px] opacity-80">
+                                                                <span className="truncate">
+                                                                    {isResizing
+                                                                        ? format(
+                                                                              new Date(
+                                                                                  new Date(
+                                                                                      event.start_date,
+                                                                                  ).getTime() +
+                                                                                      resizingEvent.currentDuration *
+                                                                                          60000,
+                                                                              ),
+                                                                              'HH:mm',
+                                                                          )
+                                                                        : `${format(startDate, 'HH:mm')} - ${format(endDate, 'HH:mm')}`}
+                                                                </span>
+                                                                {layout && layout.totalColumns > 1 && (
+                                                                    <span className="shrink-0 rounded-full bg-black/10 px-1 text-[9px] dark:bg-white/10">
+                                                                        {event.user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+
+                                                            {isEditMode && !isEntry && (
+                                                                <div
+                                                                    className="absolute bottom-0 left-0 flex h-4 w-full cursor-ns-resize items-end justify-center bg-linear-to-t from-black/5 to-transparent opacity-0 transition-opacity group-hover/event:opacity-100 dark:from-white/5"
+                                                                    onMouseDown={(e) => {
+                                                                        e.stopPropagation();
+                                                                        e.preventDefault();
+                                                                        isResizingRef.current = true;
+                                                                        setResizingEvent({
+                                                                            id: event.id as number,
+                                                                            initialY:
+                                                                                e.clientY,
+                                                                            initialDuration:
+                                                                                event.duration_minutes,
+                                                                            currentDuration:
+                                                                                event.duration_minutes,
+                                                                            startData:
+                                                                                format(
+                                                                                    startDate,
+                                                                                    'yyyy-MM-dd HH:mm:ss',
+                                                                                ),
+                                                                        });
+                                                                    }}
+                                                                >
+                                                                    <div className="mb-0.5 h-1 w-12 rounded-full bg-current opacity-40 shadow-sm" />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent
+                                                        side="right"
+                                                        align="start"
+                                                        className="max-w-96 border-border/50 bg-linear-to-br from-card to-card/95 p-0 shadow-2xl backdrop-blur-xl"
+                                                        sideOffset={12}
                                                     >
-                                                        <div className="mb-1 h-1 w-10 rounded-full bg-foreground/20" />
-                                                    </div>
-                                                )}
-                                            </div>
+                                                        <div className="space-y-3 p-4">
+                                                            <div className="flex items-start gap-3">
+                                                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-primary/20 to-primary/10 text-primary shadow-sm ring-1 ring-primary/20">
+                                                                    {isEntry ? (
+                                                                        <span className="text-lg font-bold">✓</span>
+                                                                    ) : (
+                                                                        <span className="text-base font-semibold">#</span>
+                                                                    )}
+                                                                </div>
+                                                                <div className="flex-1 space-y-1">
+                                                                    <div className="font-semibold leading-tight text-foreground">
+                                                                        {event.ticket.title}
+                                                                    </div>
+                                                                    <div className="text-xs text-muted-foreground">
+                                                                        Ticket #{event.ticket.id}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="h-px bg-linear-to-r from-transparent via-border to-transparent" />
+
+                                                            <div className="space-y-2 text-xs">
+                                                                <div className="flex items-center gap-3 rounded-lg bg-muted/30 px-3 py-2">
+                                                                    <span className="w-20 font-medium text-muted-foreground">
+                                                                        {__('schedule.tooltip.assignee')}
+                                                                    </span>
+                                                                    <span className="flex-1 font-semibold text-foreground">
+                                                                        {event.user.name}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="flex items-center gap-3 rounded-lg bg-muted/30 px-3 py-2">
+                                                                    <span className="w-20 font-medium text-muted-foreground">
+                                                                        {__('schedule.tooltip.date')}
+                                                                    </span>
+                                                                    <span className="flex-1 font-semibold text-foreground">
+                                                                        {format(startDate, 'EEEE d MMMM yyyy', { locale: dateLocale })}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="flex items-center gap-3 rounded-lg bg-muted/30 px-3 py-2">
+                                                                    <span className="w-20 font-medium text-muted-foreground">
+                                                                        {__('schedule.tooltip.time')}
+                                                                    </span>
+                                                                    <span className="flex-1 font-mono font-bold text-foreground">
+                                                                        {format(startDate, 'HH:mm')} - {format(endDate, 'HH:mm')}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="flex items-center gap-3 rounded-lg bg-muted/30 px-3 py-2">
+                                                                    <span className="w-20 font-medium text-muted-foreground">
+                                                                        {__('schedule.tooltip.duration')}
+                                                                    </span>
+                                                                    <span className="flex-1 font-semibold text-foreground">
+                                                                        {durationHours > 0 && `${durationHours}h `}
+                                                                        {durationMins > 0 && `${durationMins}min`}
+                                                                    </span>
+                                                                </div>
+                                                                {event.ticket.priority && (
+                                                                    <div className="flex items-center gap-3 rounded-lg bg-muted/30 px-3 py-2">
+                                                                        <span className="w-20 font-medium text-muted-foreground">
+                                                                            {__('schedule.tooltip.priority')}
+                                                                        </span>
+                                                                        <span className="flex-1 font-semibold text-foreground">
+                                                                            {event.ticket.priority.title}
+                                                                        </span>
+                                                                    </div>
+                                                                )}
+                                                                {event.ticket.category && (
+                                                                    <div className="flex items-center gap-3 rounded-lg bg-muted/30 px-3 py-2">
+                                                                        <span className="w-20 font-medium text-muted-foreground">
+                                                                            {__('schedule.tooltip.category')}
+                                                                        </span>
+                                                                        <span className="flex-1 font-semibold text-foreground">
+                                                                            {event.ticket.category.title}
+                                                                        </span>
+                                                                    </div>
+                                                                )}
+                                                                {event.ticket.status && (
+                                                                    <div className="flex items-center gap-3 rounded-lg bg-muted/30 px-3 py-2">
+                                                                        <span className="w-20 font-medium text-muted-foreground">
+                                                                            {__('schedule.tooltip.status')}
+                                                                        </span>
+                                                                        <span className="flex-1 font-semibold text-foreground">
+                                                                            {event.ticket.status.title}
+                                                                        </span>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+
+                                                            {isEntry && (
+                                                                <>
+                                                                    <div className="h-px bg-linear-to-r from-transparent via-border to-transparent" />
+                                                                    <div className="flex items-center gap-2.5 rounded-lg bg-muted/40 px-3 py-2.5 ring-1 ring-border/50">
+                                                                        <div className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500/20 ring-1 ring-emerald-500/30">
+                                                                            <svg className="h-2.5 w-2.5 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                                                            </svg>
+                                                                        </div>
+                                                                        <span className="text-xs font-medium text-muted-foreground">
+                                                                            {__('schedule.tooltip.validated')}
+                                                                        </span>
+                                                                    </div>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
                                         );
                                     })}
                                 </div>

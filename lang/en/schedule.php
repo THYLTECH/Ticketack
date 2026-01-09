@@ -135,4 +135,14 @@ return [
         'select_title' => 'Ticket selected',
         'select_description' => 'Click on a slot in the schedule to plan it.'
     ],
+    'tooltip' => [
+        'assignee' => 'Assignee',
+        'date' => 'Date',
+        'time' => 'Time',
+        'duration' => 'Duration',
+        'priority' => 'Priority',
+        'category' => 'Category',
+        'status' => 'Status',
+        'validated' => 'Validated time entry',
+    ],
 ];
