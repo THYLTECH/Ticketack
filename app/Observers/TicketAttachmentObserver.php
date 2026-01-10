@@ -31,8 +31,8 @@ class TicketAttachmentObserver
     {
         $attachment = $ticketAttachment->attachment;
         $ticket = $ticketAttachment->ticket;
-
-        $minioFilename = "tickets-raw/{$ticketAttachment->id}_{$ticketAttachment->name}";
+        $fileName = "{$ticket->id}_{$attachment->file_name}";
+        $minioFilename = "tickets-raw/{$ticket->id}_{$attachment->file_name}";
 
         // 1. Delete from MinIO
         if (Storage::disk('s3')->exists($minioFilename)) {
@@ -41,7 +41,7 @@ class TicketAttachmentObserver
 
         // 2. Dispatch delete event to LanceDB via Redis
         $this->dispatchDeleteEvent('delete_file', [
-            'filename' => $minioFilename,
+            'filename' => $fileName,
             'ticket_id' => $ticketAttachment->ticket_id
         ]);
     }

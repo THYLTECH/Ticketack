@@ -115,9 +115,10 @@ return new class extends Migration
 
         // Tickets <-> Attachments
         Schema::create('ticket_attachments', function (Blueprint $table) {
+            $table->id(); // 1. On ajoute une clé primaire unique "id"
             $table->foreignId('ticket_id')->constrained()->onDelete('cascade');
             $table->foreignId('attachment_id')->constrained()->onDelete('cascade');
-            $table->primary(['ticket_id', 'attachment_id']);
+            $table->unique(['ticket_id', 'attachment_id']); 
             $table->timestamps();
         });
 
