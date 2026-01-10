@@ -16,23 +16,28 @@ class TicketFactory extends Factory
         return [
             'title' => $this->faker->sentence(),
             'description' => $this->faker->paragraph(),
-
-            // CORRECTION ICI : 'author_id' au lieu de 'user_id'
             'author_id' => User::factory(),
-
             'asset_id' => Asset::factory(),
-
-            'priority_id' => TicketPriority::first()?->id ?? TicketPriority::create([
-                    'title' => 'Medium', 'color' => '#000000', 'sort_order' => 1
-                ])->id,
-
-            'status_id' => TicketStatus::first()?->id ?? TicketStatus::create([
-                    'title' => 'Open', 'color' => '#000000', 'sort_order' => 1, 'is_default' => true
-                ])->id,
-
-            'category_id' => TicketCategory::first()?->id ?? TicketCategory::create([
-                    'title' => 'General', 'color' => '#000000', 'sort_order' => 1
-                ])->id,
+            'priority_id' => TicketPriority::inRandomOrder()->first()?->id ?? TicketPriority::factory(),
+            'status_id' => TicketStatus::inRandomOrder()->first()?->id ?? TicketStatus::factory(),
+            'category_id' => TicketCategory::inRandomOrder()->first()?->id ?? TicketCategory::factory(),
+            'is_public' => $this->faker->boolean(20),
         ];
+    }
+    
+    public function withContext(string $icon): static
+    {
+        $scenarios = __("factory_tickets.scenarios.$icon");
+        
+        if (!is_array($scenarios)) {
+            $scenarios = __("factory_tickets.generic");
+        }
+    
+        $selected = $this->faker->randomElement($scenarios);
+    
+        return $this->state(fn () => [
+            'title' => $selected['title'],
+            'description' => $selected['description'],
+        ]);
     }
 }

@@ -33,7 +33,8 @@ class DatabaseSeeder extends Seeder
         $user->assignRole('admin', 'simple_user');
 
         $this->call([
-            TicketSeeder::class,
+            TicketStructureSeeder::class,
+            dummy_Seeder::class,
         ]);
     }
 }
