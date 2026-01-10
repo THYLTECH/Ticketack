@@ -55,5 +55,6 @@ class dummy_TicketEntrySeeder extends Seeder
         }
 
         Auth::logout();
+        $this->command->info('Entries dummy created for solvers over the past month.');
     }
 }

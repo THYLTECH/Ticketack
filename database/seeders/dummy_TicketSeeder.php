@@ -46,6 +46,7 @@ class dummy_TicketSeeder extends Seeder
             }
         }
         $this->referencedTickets($simpleUsers);
+        $this->command->info('Tickets created successfully.');
     }
 
     public function referencedTickets($simpleUsers) : void 
@@ -83,4 +84,5 @@ class dummy_TicketSeeder extends Seeder
             'created_at' => Carbon::parse('2025-11-05'),
         ]);
     }
+    
 }

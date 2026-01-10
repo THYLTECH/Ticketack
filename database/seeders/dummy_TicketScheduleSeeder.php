@@ -52,5 +52,6 @@ class dummy_TicketScheduleSeeder extends Seeder
         }
 
         Auth::logout();
+        $this->command->info('Ticket schedules dummy created for solvers over the next month.');
     }
 }

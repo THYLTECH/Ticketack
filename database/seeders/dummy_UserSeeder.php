@@ -35,5 +35,6 @@ class dummy_UserSeeder extends Seeder
             ]);
             $solver->assignRole('solver');
         }
+        $this->command->info('10 users created: 5 simple_users and 5 solvers.');
     }
 }

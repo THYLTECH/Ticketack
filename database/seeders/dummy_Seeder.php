@@ -17,5 +17,6 @@ class dummy_Seeder extends Seeder
             dummy_TicketEntrySeeder::class,
             dummy_TicketScheduleSeeder::class,
         ]);
+        this-> command->info('Dummy data seeded successfully.');
     }
 }
