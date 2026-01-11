@@ -95,4 +95,12 @@ class Ticket
         return $user->can('assign tickets');
     }
 
+    /**
+     * Determine whether the user can self-assign a ticket.
+     */
+    public function selfAssign(User $user): bool
+    {
+        return $user->can('be assigned tickets');
+    }
+
 }
