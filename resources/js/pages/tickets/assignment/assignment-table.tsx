@@ -98,6 +98,34 @@ export function AssignmentTable({
     };
 
     /**
+     * Calculate urgency level based on priority and age
+     * Returns a number from 0-3 (0=low, 1=medium, 2=high, 3=critical)
+     */
+    const getUrgencyLevel = (priority: number, daysOld: number): number => {
+        let urgency: number;
+
+        if (priority >= 4) urgency = 3;
+        else if (priority === 3) urgency = 2;
+        else if (priority === 2) urgency = 1;
+        else urgency = 0;
+
+        if (daysOld >= 7 && urgency < 3) urgency++;
+        if (daysOld >= 14 && urgency < 3) urgency++;
+
+        return Math.min(urgency, 3);
+    };
+
+    /**
+     * Get days since ticket creation
+     */
+    const getDaysOld = (createdAt: string): number => {
+        const created = new Date(createdAt);
+        const now = new Date();
+        const diffTime = Math.abs(now.getTime() - created.getTime());
+        return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    };
+
+    /**
      * Formats the ticket creation date as a relative time string
      * @param createdAt ISO date string
      */
@@ -141,12 +169,26 @@ export function AssignmentTable({
     return (
         <>
             <div className="block space-y-3 lg:hidden">
-                {tickets.map((ticket) => (
-                    <Card
-                        key={ticket.id}
-                        className="overflow-hidden transition-all hover:shadow-md cursor-pointer"
-                        onClick={() => handleTicketClick(ticket.id)}
-                    >
+                {tickets.map((ticket) => {
+                    const daysOld = getDaysOld(ticket.created_at);
+                    const urgencyLevel = getUrgencyLevel(
+                        ticket.priority?.sort_order || 0,
+                        daysOld
+                    );
+
+                    const urgencyBorder = [
+                        '',
+                        'border-l-4 border-l-yellow-500',
+                        'border-l-4 border-l-orange-500',
+                        'border-l-4 border-l-red-500',
+                    ][urgencyLevel];
+
+                    return (
+                        <Card
+                            key={ticket.id}
+                            className={`overflow-hidden transition-all hover:shadow-md cursor-pointer ${urgencyBorder}`}
+                            onClick={() => handleTicketClick(ticket.id)}
+                        >
                         <CardContent className="p-4 space-y-3">
                             <div className="space-y-2">
                                 <div className="flex items-start justify-between gap-2">
@@ -254,7 +296,8 @@ export function AssignmentTable({
                             </div>
                         </CardContent>
                     </Card>
-                ))}
+                    );
+                })}
             </div>
 
             <div className="hidden w-full lg:block">

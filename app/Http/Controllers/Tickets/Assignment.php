@@ -76,12 +76,19 @@ class Assignment extends Controller
 
             /**
              * Sort tickets by priority (DESC) then by creation date (ASC)
-             * This ensures high-priority tickets appear first, with the oldest tickets prioritized within each
-             * priority level
+             * This ensures high-priority tickets appear first, with the oldest tickets
+             * prioritized within each priority level
              */
-            $sortedTickets = $allTickets->sortByDesc(function ($ticket) {
-                return $ticket->priority ? $ticket->priority->order : 0;
-            })->sortBy('created_at')->values();
+            $sortedTickets = $allTickets->sort(function ($a, $b) {
+                $aPriority = $a->priority ? $a->priority->sort_order : 0;
+                $bPriority = $b->priority ? $b->priority->sort_order : 0;
+
+                if ($aPriority !== $bPriority) {
+                    return $bPriority <=> $aPriority;
+                }
+
+                return $a->created_at <=> $b->created_at;
+            })->values();
 
             $perPage = 15;
             $currentPage = $request->get('page', 1);
