@@ -1,4 +1,4 @@
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTrans } from '@/lib/translation';
 import { AlertCircle, AlertTriangle, Clock, Info, ListTodo } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -47,72 +47,94 @@ export function AssignmentStats({ stats }: AssignmentStatsProps) {
         bgColor: string;
         suffix?: string;
         customColor?: string;
+        variant?: 'default' | 'primary';
     }> = [
         {
             label: __('tickets.assignment.stats.total_unassigned'),
             value: stats.total_unassigned,
             icon: ListTodo,
-            color: 'text-foreground',
-            bgColor: 'bg-muted',
+            color: 'text-primary',
+            bgColor: 'bg-background',
+            variant: 'primary',
         },
         ...stats.priority_stats.map((priority) => ({
             label: priority.title,
             value: priority.count,
             icon: getPriorityIcon(priority.sort_order),
-            color: `text-[${priority.color}]`,
-            bgColor: 'bg-muted/50',
+            color: 'text-muted-foreground',
+            bgColor: 'bg-muted/20',
             customColor: priority.color,
+            variant: 'default' as const,
         })),
         {
             label: __('tickets.assignment.stats.oldest_unassigned'),
             value: `${stats.oldest_unassigned_days}`,
             suffix: __('tickets.assignment.stats.days'),
             icon: Clock,
-            color: 'text-purple-500',
-            bgColor: 'bg-purple-500/10',
+            color: 'text-muted-foreground',
+            bgColor: 'bg-muted/20',
+            variant: 'default' as const,
         },
     ];
 
     return (
-        <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
-            {statItems.map((stat, index) => (
-                <Card key={index} className="border-border/50 shadow-sm">
-                    <CardContent className="p-3 sm:p-4">
-                        <div className="flex items-start justify-between gap-2">
-                            <div className="flex-1 space-y-1 min-w-0">
-                                <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide truncate">
-                                    {stat.label}
-                                </p>
-                                <div className="flex items-baseline gap-1 sm:gap-1.5">
-                                    <p className="text-xl sm:text-2xl font-bold tracking-tight">
-                                        {stat.value}
-                                    </p>
-                                    {stat.suffix && (
-                                        <span className="text-[10px] sm:text-xs text-muted-foreground">
-                                            {stat.suffix}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
+        <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+            {statItems.map((stat, index) => {
+                const isPrimary = stat.variant === 'primary';
+
+                return (
+                    <Card
+                        key={index}
+                        className={cn(
+                            'relative overflow-hidden transition-all hover:shadow-md',
+                            isPrimary
+                                ? 'border-primary/20 bg-primary/5 shadow-sm'
+                                : 'border-border/60 shadow-sm',
+                        )}
+                    >
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium text-muted-foreground">
+                                {stat.label}
+                            </CardTitle>
                             <div
                                 className={cn(
-                                    'flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg shrink-0',
+                                    'flex h-9 w-9 items-center justify-center rounded-lg border',
+                                    isPrimary
+                                        ? 'border-primary/20 bg-background text-primary'
+                                        : 'border-border/50 text-muted-foreground',
                                     stat.bgColor,
                                 )}
                             >
                                 <stat.icon
-                                    className={cn('h-4 w-4 sm:h-5 sm:w-5', stat.color)}
+                                    className="h-5 w-5"
                                     style={
-                                        stat.customColor
+                                        stat.customColor && !isPrimary
                                             ? { color: stat.customColor }
                                             : undefined
                                     }
                                 />
                             </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            ))}
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex flex-col gap-1">
+                                <div
+                                    className={cn(
+                                        'truncate text-2xl font-bold tracking-tight',
+                                        isPrimary ? 'text-primary' : 'text-foreground',
+                                    )}
+                                >
+                                    {stat.value}
+                                    {stat.suffix && (
+                                        <span className="ml-1 text-sm font-normal text-muted-foreground">
+                                            {stat.suffix}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                );
+            })}
         </div>
     );
 }
