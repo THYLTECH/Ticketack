@@ -22,7 +22,7 @@ jobs:
             set -e
             cd /var/www/ticketack
 
-            echo "Fixing permissions for deployment..."
+            echo "Fixing permissions for deployment... "
             sudo chown -R $USER:$USER .
 
             echo "Pulling latest code from branch ${{ github.ref_name }}..."
