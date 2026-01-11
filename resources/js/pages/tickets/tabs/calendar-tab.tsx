@@ -95,6 +95,11 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
         setDate(navigateByView(date, view, direction));
     };
 
+    const handleDayHeaderClick = (targetDate: Date) => {
+        setDate(targetDate);
+        setView('day');
+    };
+
     const handleDropEvent = (
         targetDate: Date,
         ticketId?: number,
@@ -174,7 +179,7 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                         <PopoverTrigger asChild>
                             <Button
                                 variant="outline"
-                                className="h-8 min-w-[140px] flex-1 justify-start text-sm font-medium sm:min-w-[200px] sm:flex-none"
+                                className="h-8 min-w-35 flex-1 justify-start text-sm font-medium sm:min-w-50 sm:flex-none"
                             >
                                 <span className="truncate capitalize">
                                     {formatPeriodTitle(date, view)}
@@ -239,7 +244,7 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                                     </SheetTrigger>
                                     <SheetContent
                                         side="left"
-                                        className="flex w-[85vw] flex-col gap-0 border-r bg-background p-0 sm:w-[380px]"
+                                        className="flex w-[85vw] flex-col gap-0 border-r bg-background p-0 sm:w-95"
                                     >
                                         <SheetHeader className="border-b px-4 py-3 text-left">
                                             <SheetTitle>
@@ -347,7 +352,7 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                     />
                 </div>
             ) : (
-                <div className="flex h-[600px] flex-1 overflow-hidden rounded-md border bg-muted/10">
+                <div className="flex h-150 flex-1 overflow-hidden rounded-md border bg-muted/10">
                     <div
                         className={cn(
                             'relative hidden flex-col overflow-hidden border-r bg-background transition-all duration-300 ease-in-out sm:flex',
@@ -376,6 +381,7 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                             selectedSolvers={selectedSolvers}
                             onDrop={handleDropEvent}
                             onUpdate={handleUpdateEvent}
+                            onDayHeaderClick={handleDayHeaderClick}
                             onEventClick={(evt) => {
                                 const fullEvent = {
                                     ...evt,
