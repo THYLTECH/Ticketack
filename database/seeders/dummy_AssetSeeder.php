@@ -29,6 +29,6 @@ class dummy_AssetSeeder extends Seeder
                 }
             }
         }
-        this-> command->info('10 assets dummy created with hierarchical relationships.');
+        $this-> command->info('10 assets dummy created with hierarchical relationships.');
     }
 }
