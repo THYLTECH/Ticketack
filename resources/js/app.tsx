@@ -5,6 +5,22 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
 import { configureEcho } from '@laravel/echo-react';
 
+// Polyfill pour crypto.randomUUID dans les contextes non sécurisés (HTTP)
+if (typeof window.crypto === 'undefined') {
+    // @ts-ignore
+    window.crypto = {};
+}
+if (typeof window.crypto.randomUUID === 'undefined') {
+    // @ts-ignore
+    window.crypto.randomUUID = function () {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = (Math.random() * 16) | 0,
+                v = c == 'x' ? r : (r & 0x3) | 0x8;
+            return v.toString(16);
+        });
+    };
+}
+
 configureEcho({
     broadcaster: 'reverb',
 });

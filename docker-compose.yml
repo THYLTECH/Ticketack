@@ -99,7 +99,7 @@ services:
                   echo "Configuration des événements réussie."
                   break
                 else
-                  echo "ARN non prêt, nouvelle tentative dans 5s ($i/10)..."
+                  echo "ARN non prêt, nouvelle tentative dans 5s ($$i/10)..."
                   sleep 5
                 fi
               done
