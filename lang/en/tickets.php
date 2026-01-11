@@ -233,6 +233,10 @@ return [
                 'resolved' => 'Resolved',
                 'avg_days' => 'Avg. Days Before Archive',
                 'last_30_days' => 'Archived Last 30 Days',
+                'total_description' => 'Total number of archived tickets visible to you based on your permissions.',
+                'resolved_description' => 'Number of archived tickets that were closed/resolved before being archived.',
+                'avg_days_description' => 'Average time (in days) between ticket creation and archiving.',
+                'last_30_days_description' => 'Number of tickets archived in the last 30 days.',
             ],
         ],
         'create' => [

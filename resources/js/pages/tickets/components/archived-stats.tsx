@@ -1,6 +1,13 @@
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useTrans } from '@/lib/translation';
 import { Archive, Calendar, CheckCircle, Clock } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface ArchivedStatsProps {
     stats: {
@@ -19,55 +26,113 @@ export function ArchivedStats({ stats }: ArchivedStatsProps) {
             label: __('tickets.pages.archived.stats.total'),
             value: stats.total,
             icon: Archive,
-            color: 'text-amber-600',
-            bgColor: 'bg-amber-50 dark:bg-amber-950/20',
+            variant: 'warning' as const,
+            description: __('tickets.pages.archived.stats.total_description'),
         },
         {
             label: __('tickets.pages.archived.stats.resolved'),
             value: stats.resolved,
             icon: CheckCircle,
-            color: 'text-emerald-600',
-            bgColor: 'bg-emerald-50 dark:bg-emerald-950/20',
+            variant: 'success' as const,
+            description: __('tickets.pages.archived.stats.resolved_description'),
         },
         {
             label: __('tickets.pages.archived.stats.avg_days'),
             value: `${stats.avg_archive_days}j`,
             icon: Clock,
-            color: 'text-blue-600',
-            bgColor: 'bg-blue-50 dark:bg-blue-950/20',
+            variant: 'primary' as const,
+            description: __('tickets.pages.archived.stats.avg_days_description'),
         },
         {
             label: __('tickets.pages.archived.stats.last_30_days'),
             value: stats.archived_last_30_days,
             icon: Calendar,
-            color: 'text-purple-600',
-            bgColor: 'bg-purple-50 dark:bg-purple-950/20',
+            variant: 'default' as const,
+            description: __('tickets.pages.archived.stats.last_30_days_description'),
         },
     ];
 
+    const getVariantStyles = (variant: 'default' | 'primary' | 'success' | 'warning') => {
+        switch (variant) {
+            case 'primary':
+                return {
+                    card: 'border-primary/20 bg-primary/5 shadow-sm',
+                    icon: 'border-primary/20 bg-background text-primary',
+                    value: 'text-primary',
+                };
+            case 'success':
+                return {
+                    card: 'border-emerald-500/20 bg-emerald-500/5 shadow-sm',
+                    icon: 'border-emerald-500/20 bg-background text-emerald-600',
+                    value: 'text-emerald-600',
+                };
+            case 'warning':
+                return {
+                    card: 'border-orange-500/20 bg-orange-500/5 shadow-sm',
+                    icon: 'border-orange-500/20 bg-background text-orange-600',
+                    value: 'text-orange-600',
+                };
+            default:
+                return {
+                    card: 'border-border/60 shadow-sm',
+                    icon: 'border-border/50 text-muted-foreground bg-muted/20',
+                    value: 'text-foreground',
+                };
+        }
+    };
+
     return (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {statCards.map((stat, index) => (
-                <Card key={index} className="overflow-hidden">
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div className="space-y-1">
-                                <p className="text-sm font-medium text-muted-foreground">
-                                    {stat.label}
-                                </p>
-                                <p className="text-3xl font-bold tracking-tight">
-                                    {stat.value}
-                                </p>
-                            </div>
-                            <div
-                                className={`flex h-12 w-12 items-center justify-center rounded-lg ${stat.bgColor}`}
+        <div className="grid gap-4 grid-cols-2 sm:grid-cols-2 lg:grid-cols-4">
+            <TooltipProvider delayDuration={200}>
+                {statCards.map((stat, index) => {
+                    const styles = getVariantStyles(stat.variant);
+
+                    return (
+                        <Tooltip key={index}>
+                            <TooltipTrigger asChild>
+                                <Card
+                                    className={cn(
+                                        'relative overflow-hidden transition-all hover:shadow-md h-full',
+                                        styles.card,
+                                    )}
+                                >
+                                    <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2 min-h-14">
+                                        <CardTitle className="text-sm font-medium text-muted-foreground line-clamp-2 pr-2">
+                                            {stat.label}
+                                        </CardTitle>
+                                        <div
+                                            className={cn(
+                                                'flex h-9 w-9 items-center justify-center rounded-lg border shrink-0',
+                                                styles.icon,
+                                            )}
+                                        >
+                                            <stat.icon className="h-5 w-5" />
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="flex flex-col gap-1">
+                                            <div
+                                                className={cn(
+                                                    'text-2xl font-bold tracking-tight',
+                                                    styles.value,
+                                                )}
+                                            >
+                                                {stat.value}
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </TooltipTrigger>
+                            <TooltipContent
+                                side="bottom"
+                                className="max-w-xs bg-popover text-popover-foreground backdrop-blur-sm border shadow-lg p-3"
                             >
-                                <stat.icon className={`h-6 w-6 ${stat.color}`} />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            ))}
+                                <p className="text-sm leading-normal text-pretty">{stat.description}</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    );
+                })}
+            </TooltipProvider>
         </div>
     );
 }

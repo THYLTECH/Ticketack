@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import AppLayout from '@/layouts/app/layout';
 import { useTrans } from '@/lib/translation';
 import { userHasPermission } from '@/lib/utils';
@@ -12,15 +13,14 @@ import {
     TicketStatus,
     User,
 } from '@/types';
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { Archive, ArrowLeft, Plus } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useDebounce } from 'use-debounce';
 import { TicketEmpty } from './components/ticket-empty';
 import { TicketTable } from './components/ticket-table';
 import { TicketToolbar } from './components/ticket-toolbar';
 import { TicketStats } from './components/ticket-stats';
 import { PaginationControl } from '@/components/pagination-control';
+import { useTicketFilters } from './hooks/use-ticket-filters';
 
 interface PaginatedData<T> {
     data: T[];
@@ -46,6 +46,7 @@ interface Props {
         resolved: number;
         avg_resolution_days: number;
         assigned_to_me: number;
+        archived: number;
     };
     filters: Record<string, string>;
     statuses: TicketStatus[];
@@ -68,50 +69,13 @@ export default function Manage({
     const __ = useTrans();
     const { auth } = usePage<SharedData>().props;
 
-    const [searchTerm, setSearchTerm] = useState(filters.search || '');
-    const [debouncedSearch] = useDebounce(searchTerm, 300);
-
-    const updateFilters = useCallback(
-        (key: string, value: string | null) => {
-            const newFilters: Record<string, string> = {
-                ...filters,
-                search: searchTerm,
-            };
-            if (value && value !== 'all') {
-                newFilters[key] = value;
-            } else {
-                delete newFilters[key];
-            }
-            router.get(route('tickets.manage'), newFilters, {
-                preserveState: true,
-                replace: true,
-                preserveScroll: true,
-            });
-        },
-        [filters, searchTerm],
-    );
-
-    useEffect(() => {
-        if (debouncedSearch !== (filters.search || '')) {
-            router.get(
-                route('tickets.manage'),
-                { ...filters, search: debouncedSearch },
-                { preserveState: true, replace: true, preserveScroll: true },
-            );
-        }
-    }, [debouncedSearch, filters]);
-
-    const clearFilters = () => {
-        setSearchTerm('');
-        router.get(route('tickets.manage'));
-    };
-
-    const hasActiveFilters = useMemo(() => {
-        return (
-            Object.keys(filters).length > 0 &&
-            Object.values(filters).some((v) => v)
-        );
-    }, [filters]);
+    const {
+        searchTerm,
+        setSearchTerm,
+        updateFilters,
+        clearFilters,
+        hasActiveFilters,
+    } = useTicketFilters({ filters, routeName: 'tickets.manage' });
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -143,19 +107,27 @@ export default function Manage({
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
                         {userHasPermission({
                             user: auth.user,
                             permission: 'view tickets',
                         }) && (
-                            <Button asChild variant="outline" size="sm">
+                            <Button asChild variant="outline" size="sm" className="relative flex-1 sm:flex-initial">
                                 <Link href={route('tickets.archived')}>
                                     <Archive className="mr-2 h-4 w-4" />
                                     {__('tickets.pages.index.buttons.archived')}
+                                    {stats.archived > 0 && (
+                                        <Badge
+                                            variant="secondary"
+                                            className="ml-2 h-5 min-w-5 px-1.5 text-xs"
+                                        >
+                                            {stats.archived}
+                                        </Badge>
+                                    )}
                                 </Link>
                             </Button>
                         )}
-                        <Button asChild variant="secondary" size="sm">
+                        <Button asChild variant="secondary" size="sm" className="flex-1 sm:flex-initial">
                             <Link href={route('tickets.index')}>
                                 <ArrowLeft className="mr-2 h-4 w-4" />
                                 {__('tickets.pages.form.buttons.back')}
@@ -165,7 +137,7 @@ export default function Manage({
                             user: auth.user,
                             permission: 'create tickets',
                         }) && (
-                            <Button asChild size="sm">
+                            <Button asChild size="sm" className="flex-1 sm:flex-initial">
                                 <Link href={route('tickets.create')}>
                                     <Plus className="mr-2 h-4 w-4" />
                                     {__('tickets.pages.index.buttons.create')}

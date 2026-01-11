@@ -141,6 +141,10 @@ class Crud extends Controller
             })
             ->count();
 
+        $archivedCount = Ticket::whereNotNull('archived_at');
+        $archivedCount = $this->applyUserVisibilityFilter($archivedCount, $user, $view === 'tickets/manage');
+        $archivedCount = $archivedCount->count();
+
         $stats = [
             'total' => $total,
             'open' => $open,
@@ -148,6 +152,7 @@ class Crud extends Controller
             'resolved' => $resolved,
             'avg_resolution_days' => (float) $avgResolutionDays,
             'assigned_to_me' => $assignedToMe,
+            'archived' => $archivedCount,
         ];
 
         return Inertia::render($view, [
