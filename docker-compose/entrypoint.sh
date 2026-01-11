@@ -7,8 +7,13 @@ set -e
 git config --global --add safe.directory /var/www/html
 
 # dependency check
-echo "Vérification des dépendances Composer..."
-composer install --no-progress --no-interaction
+if [ -f .env ] && grep -q "APP_ENV=production" .env; then
+    echo "Production détectée : Installation optimisée (sans dev)..."
+    composer install --no-dev --optimize-autoloader --no-progress --no-interaction
+else
+    echo "Installation standard des dépendances..."
+    composer install --no-progress --no-interaction
+fi
 
 # 1. .env file management
 if [ ! -f ".env" ]; then
