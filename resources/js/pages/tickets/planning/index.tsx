@@ -102,9 +102,10 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
     const [convertingEvent, setConvertingEvent] =
         useState<TicketSchedule | null>(null);
 
-    const [selectedSolvers, setSelectedSolvers] = useState<number[]>(
-        solvers.map((s) => s.id),
-    );
+    const [selectedSolvers, setSelectedSolvers] = useState<number[]>(() => {
+        const currentUserInSolvers = solvers.find((s) => s.id === auth.user.id);
+        return currentUserInSolvers ? [auth.user.id] : [];
+    });
 
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -189,6 +190,11 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
         if (selectedTicketId) {
             handleDropEvent(targetDate, selectedTicketId);
         }
+    };
+
+    const handleDayHeaderClick = (targetDate: Date) => {
+        setDate(targetDate);
+        setView('day');
     };
 
     const handleUpdateEvent = (id: number, data: UpdatePayload) => {
@@ -639,10 +645,11 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                 setIsModalOpen(true);
                             }}
                             onSlotClick={handleSlotClick}
+                            onDayHeaderClick={handleDayHeaderClick}
                         />
                     </main>
 
-                    <aside className="relative flex shrink-0 flex-col overflow-visible">
+                    <aside className="relative hidden shrink-0 flex-col overflow-visible lg:flex">
                         <SolverFilters
                             solvers={solvers}
                             selectedIds={selectedSolvers}

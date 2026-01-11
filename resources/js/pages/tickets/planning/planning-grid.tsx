@@ -38,6 +38,7 @@ interface Props {
     onUpdate: (id: number, data: UpdatePayload) => void;
     onEventClick: (event: TicketSchedule) => void;
     onSlotClick?: (date: Date) => void;
+    onDayHeaderClick?: (date: Date) => void;
 }
 
 export function PlanningGrid({
@@ -52,6 +53,7 @@ export function PlanningGrid({
     onUpdate,
     onEventClick,
     onSlotClick,
+    onDayHeaderClick,
 }: Props) {
     const __ = useTrans();
     const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -59,6 +61,30 @@ export function PlanningGrid({
     const [resizingEvent, setResizingEvent] = useState<ResizingEvent | null>(null);
 
     const isResizingRef = useRef(false);
+
+    /**
+     * Filter events for a specific day based on edit mode and selected solvers
+     */
+    const filterEventsForDay = (day: Date) => {
+        return events.filter((e) => {
+            if (!isSameDay(parseISO(e.start_date), day)) return false;
+
+            if (isEditMode) {
+                return e.user_id === currentUserId;
+            } else {
+                const isMyEntry = e.is_entry === true && e.user_id === currentUserId;
+                const isSelectedSolverSchedule = !e.is_entry && selectedSolvers.includes(e.user_id);
+                return isMyEntry || isSelectedSolverSchedule;
+            }
+        });
+    };
+
+    /**
+     * Check if an event can be dragged (entries cannot be dragged)
+     */
+    const canDragEvent = (event: TicketSchedule) => {
+        return !event.is_entry;
+    };
 
     useEffect(() => {
         if (scrollAreaRef.current && (view === 'week' || view === 'day')) {
@@ -115,7 +141,7 @@ export function PlanningGrid({
         const handleMouseUp = () => {
             if (resizingEvent) {
                 const event = events.find(e => e.id === resizingEvent.id);
-                if (event?.is_entry) {
+                if (event && !canDragEvent(event)) {
                     setResizingEvent(null);
                     setTimeout(() => {
                         isResizingRef.current = false;
@@ -168,7 +194,7 @@ export function PlanningGrid({
             onDrop(targetDate, parseInt(ticketId), undefined);
         } else if (eventId) {
             const event = events.find(e => e.id.toString() === eventId);
-            if (event?.is_entry) return;
+            if (event && !canDragEvent(event)) return;
 
             const numericId = eventId.startsWith('entry-')
                 ? parseInt(eventId.replace('entry-', ''))
@@ -224,42 +250,47 @@ export function PlanningGrid({
 
                     <div className="grid flex-1 auto-rows-fr grid-cols-7">
                         {days.map((day, idx) => {
-                            const dayEvents = events.filter(
-                                (e) => {
-                                    if (!isSameDay(parseISO(e.start_date), day)) return false;
-
-                                    if (isEditMode) {
-                                        return e.user_id === currentUserId;
-                                    } else {
-                                        const isMyEntry = e.is_entry === true && e.user_id === currentUserId;
-                                        const isSelectedSolverSchedule = !e.is_entry && selectedSolvers.includes(e.user_id);
-                                        return isMyEntry || isSelectedSolverSchedule;
-                                    }
-                                },
-                            );
+                            const dayEvents = filterEventsForDay(day);
                             return (
                                 <div
                                     key={day.toString()}
                                     className={cn(
-                                        'group relative min-h-15 border-r border-b p-1 transition-colors sm:min-h-30 sm:p-2',
+                                        'group relative min-h-15 border-r border-b p-1 transition-colors sm:min-h-30 sm:p-2 cursor-pointer hover:bg-muted/50',
                                         !isSameMonth(day, currentDate) &&
                                             'bg-muted text-muted-foreground',
                                         idx % 7 === 6 && 'border-r-0',
-                                        isEditMode &&
-                                            'cursor-pointer hover:bg-muted/50',
                                     )}
                                     onDragOver={handleDragOver}
                                     onDrop={(e) => handleDrop(e, day)}
-                                    onClick={() => handleSlotClick(day, 8)}
+                                    onClick={(e) => {
+                                        const target = e.target as HTMLElement;
+                                        const clickedOnEvent = target.closest('[data-event-dot]');
+
+                                        if (!clickedOnEvent) {
+                                            if (isEditMode) {
+                                                handleSlotClick(day, 8);
+                                            } else {
+                                                onDayHeaderClick?.(day);
+                                            }
+                                        }
+                                    }}
                                 >
                                     <div className="mb-1 flex justify-center sm:justify-end">
                                         <span
                                             className={cn(
-                                                'flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium',
+                                                'flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium pointer-events-auto',
                                                 isToday(day)
                                                     ? 'bg-primary text-primary-foreground shadow-sm'
                                                     : 'text-foreground/70',
                                             )}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (isEditMode) {
+                                                    handleSlotClick(day, 8);
+                                                } else {
+                                                    onDayHeaderClick?.(day);
+                                                }
+                                            }}
                                         >
                                             {format(day, 'd')}
                                         </span>
@@ -273,6 +304,7 @@ export function PlanningGrid({
                                                     <Tooltip>
                                                         <TooltipTrigger asChild>
                                                             <div
+                                                                data-event-dot="true"
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
                                                                     if (!isEntry) onEventClick(evt);
@@ -307,7 +339,7 @@ export function PlanningGrid({
                                                 highlightedEventId={highlightedEventId}
                                                 currentUserId={currentUserId}
                                                 onDragStart={(e) => {
-                                                    if (evt.is_entry) {
+                                                    if (!canDragEvent(evt)) {
                                                         e.preventDefault();
                                                         return;
                                                     }
@@ -349,9 +381,10 @@ export function PlanningGrid({
                                 key={day.toString()}
                                 style={{ width: colWidth }}
                                 className={cn(
-                                    'flex h-full flex-col items-center justify-center border-r border-border bg-card text-center last:border-r-0',
-                                    isToday(day) && 'bg-primary/5',
+                                    'flex h-full flex-col items-center justify-center border-r border-border bg-card text-center last:border-r-0 cursor-pointer transition-colors hover:bg-muted/50',
+                                    isToday(day) && 'bg-primary/5 hover:bg-primary/10',
                                 )}
+                                onClick={() => onDayHeaderClick?.(day)}
                             >
                                 <span
                                     className={cn(
@@ -418,17 +451,7 @@ export function PlanningGrid({
                         </div>
 
                         {days.map((day) => {
-                            const displayEvents = events.filter((e) => {
-                                if (!isSameDay(parseISO(e.start_date), day)) return false;
-
-                                if (isEditMode) {
-                                    return e.user_id === currentUserId;
-                                } else {
-                                    const isMyEntry = e.is_entry === true && e.user_id === currentUserId;
-                                    const isSelectedSolverSchedule = !e.is_entry && selectedSolvers.includes(e.user_id);
-                                    return isMyEntry || isSelectedSolverSchedule;
-                                }
-                            });
+                            const displayEvents = filterEventsForDay(day);
 
                             const layoutMap = calculateEventLayout(displayEvents);
 
@@ -491,7 +514,7 @@ export function PlanningGrid({
                                                 currentUserId={currentUserId}
                                                 view={view}
                                                 onDragStart={(e) => {
-                                                    if (isEntry) {
+                                                    if (!canDragEvent(event)) {
                                                         e.preventDefault();
                                                         return;
                                                     }

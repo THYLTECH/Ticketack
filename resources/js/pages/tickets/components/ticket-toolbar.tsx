@@ -84,6 +84,7 @@ export function TicketToolbar({
             router.get(route('tickets.index'), newFilters, {
                 preserveState: true,
                 replace: true,
+                preserveScroll: true,
             });
         } else if (!range) {
             const newFilters = { ...filters };
@@ -93,6 +94,7 @@ export function TicketToolbar({
             router.get(route('tickets.index'), newFilters, {
                 preserveState: true,
                 replace: true,
+                preserveScroll: true,
             });
         }
     };

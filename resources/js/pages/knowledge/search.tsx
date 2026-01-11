@@ -10,7 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app/layout';
 import { useTrans } from '@/lib/translation';
 import { cn } from '@/lib/utils';
-import { BreadcrumbItem } from '@/types';
+import { BreadcrumbItem, SharedData } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { format } from 'date-fns';
@@ -44,6 +44,8 @@ export default function KnowledgeSearch({
     const __ = (key: string): string => trans(key) as string;
 
     const { url } = usePage();
+    const { auth } = usePage<SharedData>().props;
+    const isAdmin = auth.user.roles?.some((role) => role.name === 'admin') ?? false;
 
     const [query, setQuery] = React.useState('');
     const [date, setDate] = React.useState<DateRange | undefined>(undefined);
@@ -97,18 +99,16 @@ export default function KnowledgeSearch({
                     setServiceUnavailable(true);
                     if (!serviceUnavailable) {
                         toast.error(
-                            __('knowledge.pages.search.service_unavailable') ||
-                            'Search service is temporarily unavailable.',
+                            __('knowledge.pages.search.service_unavailable'),
                             {
-                                description: 'The vector search service may be offline. Please contact your administrator.',
+                                description: __('knowledge.pages.search.service_unavailable_toast_description'),
                                 duration: 5000,
                             }
                         );
                     }
                 } else {
                     toast.error(
-                        __('knowledge.pages.search.error') ||
-                        'An error occurred while searching. Please try again.',
+                        __('knowledge.pages.search.error'),
                         {
                             duration: 3000,
                         }
@@ -116,7 +116,7 @@ export default function KnowledgeSearch({
                 }
             } else {
                 console.error('Unexpected error:', error);
-                toast.error('An unexpected error occurred');
+                toast.error(__('knowledge.pages.search.error'));
             }
             setResults([]);
             setIsSearching(true);
@@ -155,7 +155,7 @@ export default function KnowledgeSearch({
                 <div className="relative border-border/40 px-4 py-3 sm:px-6 lg:px-8">
                     <div className="absolute inset-0 -z-10 bg-[radial-gradient(rgba(0,0,0,0.05)_1px,transparent_1px)] bg-size-[16px_16px] dark:bg-[radial-gradient(rgba(255,255,255,0.05)_1px,transparent_1px)]"></div>
 
-                    <div className="mx-auto max-w-2xl text-center">
+                    <div className="mx-auto max-w-full text-center">
                         <Badge
                             variant="outline"
                             className="mb-6 border-primary/20 bg-primary/10 text-primary"
@@ -167,7 +167,7 @@ export default function KnowledgeSearch({
                         <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
                             {__('knowledge.pages.search.hero_title')}
                         </h1>
-                        <p className="mx-auto mt-4 max-w-xl text-base text-muted-foreground">
+                        <p className="mx-auto mt-4 max-w-full text-base text-muted-foreground">
                             {__('knowledge.pages.search.hero_description')}
                         </p>
 
@@ -346,19 +346,20 @@ export default function KnowledgeSearch({
                             </div>
                             <div className="space-y-2">
                                 <h3 className="text-xl font-semibold text-destructive">
-                                    {__('knowledge.pages.search.service_unavailable_title') || 'Search Service Unavailable'}
+                                    {__('knowledge.pages.search.service_unavailable_title')}
                                 </h3>
                                 <p className="text-sm text-muted-foreground">
-                                    {__('knowledge.pages.search.service_unavailable_description') ||
-                                        'The vector search service is currently offline. This feature requires the ETL service to be running. Please contact your system administrator.'}
+                                    {__('knowledge.pages.search.service_unavailable_description')}
                                 </p>
-                                <div className="mt-4 rounded-lg bg-muted/50 p-4 text-xs text-left font-mono">
-                                    <p className="text-muted-foreground">
-                                        <strong>For administrators:</strong><br />
-                                        Start the ETL service with: <code className="text-foreground">docker-compose up etl-api</code><br />
-                                        Or update <code className="text-foreground">VECTOR_SEARCH_URL</code> in .env if running locally
-                                    </p>
-                                </div>
+                                {isAdmin && (
+                                    <div className="mt-4 rounded-lg bg-muted/50 p-4 text-xs text-left font-mono">
+                                        <p className="text-muted-foreground">
+                                            <strong>{__('knowledge.pages.search.admin_instructions')}:</strong><br />
+                                            {__('knowledge.pages.search.admin_start_service')}: <code className="text-foreground">docker-compose up etl-api</code><br />
+                                            {__('knowledge.pages.search.admin_or_update')} <code className="text-foreground">VECTOR_SEARCH_URL</code> {__('knowledge.pages.search.admin_in_env')}
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     ) : isLoading ? (
