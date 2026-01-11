@@ -2,7 +2,8 @@ name: Deploy to VPS
 
 on:
   push:
-    branches: [ "develop", "feature/ticket-observer-minio" ]
+    branches: [ "develop", "feature/ticket-observer-minio" ]    
+  workflow_dispatch:
 
 jobs:
   deploy:
