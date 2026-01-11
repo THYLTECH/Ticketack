@@ -169,7 +169,7 @@ export function TicketStats({ stats }: TicketStatsProps) {
                                 side="bottom"
                                 className="max-w-xs bg-popover text-popover-foreground backdrop-blur-sm border shadow-lg p-3"
                             >
-                                <p className="text-sm leading-normal">{stat.description}</p>
+                                <p className="text-sm leading-normal text-pretty">{stat.description}</p>
                             </TooltipContent>
                         </Tooltip>
                     );

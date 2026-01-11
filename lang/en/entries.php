@@ -86,15 +86,15 @@ return [
         'unit' => 'h',
         'total_hours' => [
             'title' => 'Total Hours',
-            'description' => 'Accumulated time',
+            'description' => 'Total work time logged during the filtered period. Includes all entries, billable and non-billable.',
         ],
         'count' => [
             'title' => 'Interventions',
-            'description' => 'Number of sessions',
+            'description' => 'Total number of recorded work sessions. Each entry represents a distinct intervention.',
         ],
         'period' => [
             'title' => 'Active Period',
-            'description' => 'Active date range',
+            'description' => 'Date range covered by displayed entries. Corresponds to applied filters or entire history.',
         ],
     ],
     'table' => [

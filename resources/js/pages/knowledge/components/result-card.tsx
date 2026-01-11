@@ -47,7 +47,7 @@ const ScoreBadge = ({
 
     if (isFeatured) {
         colorClass =
-            'bg-primary/10 text-primary border-primary/20 shadow-sm dark:text-primary-foreground';
+            'bg-primary/10 text-primary border-primary/20 shadow-sm';
         iconClass = 'text-primary';
     }
 
