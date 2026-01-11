@@ -2,7 +2,7 @@ name: Deploy to VPS
 
 on:
   push:
-    branches: [ "develop" ]
+    branches: [ "develop", "feature/ticket-observer-minio" ]
 
 jobs:
   deploy:
@@ -25,9 +25,9 @@ jobs:
             echo "Fixing permissions for deployment..."
             sudo chown -R $USER:$USER .
 
-            echo "Pulling latest code..."
-            git fetch origin develop
-            git reset --hard origin/develop
+            echo "Pulling latest code from branch ${{ github.ref_name }}..."
+            git fetch origin ${{ github.ref_name }}
+            git reset --hard origin/${{ github.ref_name }}
 
             echo "Rebuilding containers..."
             docker compose up -d --build --force-recreate
