@@ -19,6 +19,7 @@ import { useDebounce } from 'use-debounce';
 import { TicketEmpty } from './components/ticket-empty';
 import { TicketTable } from './components/ticket-table';
 import { TicketToolbar } from './components/ticket-toolbar';
+import { TicketStats } from './components/ticket-stats';
 import { PaginationControl } from '@/components/pagination-control';
 
 interface PaginatedData<T> {
@@ -38,6 +39,14 @@ interface PaginatedData<T> {
 
 interface Props {
     tickets: PaginatedData<Ticket>;
+    stats: {
+        total: number;
+        open: number;
+        unassigned: number;
+        resolved: number;
+        avg_resolution_days: number;
+        assigned_to_me: number;
+    };
     filters: Record<string, string>;
     statuses: TicketStatus[];
     priorities: TicketPriority[];
@@ -48,6 +57,7 @@ interface Props {
 
 export default function Manage({
     tickets,
+    stats,
     filters = {},
     statuses = [],
     priorities = [],
@@ -75,6 +85,7 @@ export default function Manage({
             router.get(route('tickets.manage'), newFilters, {
                 preserveState: true,
                 replace: true,
+                preserveScroll: true,
             });
         },
         [filters, searchTerm],
@@ -85,7 +96,7 @@ export default function Manage({
             router.get(
                 route('tickets.manage'),
                 { ...filters, search: debouncedSearch },
-                { preserveState: true, replace: true },
+                { preserveState: true, replace: true, preserveScroll: true },
             );
         }
     }, [debouncedSearch, filters]);
@@ -152,6 +163,8 @@ export default function Manage({
                         )}
                     </div>
                 </div>
+
+                <TicketStats stats={stats} />
 
                 <div className="flex flex-col gap-4">
                     <TicketToolbar

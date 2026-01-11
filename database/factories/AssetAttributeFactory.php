@@ -24,21 +24,21 @@ class AssetAttributeFactory extends Factory
      */
     public function definition(): array
     {
+        $definitions = [
+            'Serial Number' => fn () => $this->faker->bothify('SN-###-???'),
+            'Model'         => fn () => $this->faker->randomElement(['Dell R740', 'HP ProLiant', 'Cisco 2960', 'Synology RS']),
+            'Location'      => fn () => $this->faker->randomElement(['Room A', 'Room B', 'Rack 1', 'Rack 2']),
+            'Version'       => fn () => $this->faker->randomFloat(1, 1, 9),
+            'IP Address'    => fn () => $this->faker->ipv4(),
+        ];
+    
+        $key = $this->faker->randomElement(array_keys($definitions));
+        $value = $definitions[$key]();
+    
         return [
-            // Crée des clés d'attributs courantes (Serial Number, Model, etc.)
-            'key' => $this->faker->randomElement(['Serial Number', 'Model', 'Location', 'Version', 'IP Address']),
-            
-            // Crée une valeur pertinente pour la clé
-            'value' => match($this->faker->numberBetween(1, 5)) {
-                1 => $this->faker->bothify('SN-###-???'), // Serial Number
-                2 => $this->faker->word(),               // Model
-                3 => $this->faker->randomElement(['Room A', 'Rack 1', 'Storage']), // Location
-                4 => $this->faker->randomFloat(1, 1, 9),  // Version (e.g., 2.5)
-                5 => $this->faker->ipv4(),               // IP Address
-                default => $this->faker->word()
-            },
-            
-            'asset_id' => null, // Doit être défini lors de l'association
+            'key' => $key,
+            'value' => $value,
+            'asset_id' => null,
         ];
     }
 }

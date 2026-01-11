@@ -113,7 +113,10 @@ export default function EntriesIndex({
     const resetFilters = () => {
         setFilterValues({});
         setDateRange(undefined);
-        router.get(route('tickets.entries.index'));
+        router.get(route('tickets.entries.index'), {}, {
+            preserveState: true,
+            preserveScroll: true,
+        });
     };
 
     return (
@@ -128,7 +131,7 @@ export default function EntriesIndex({
         >
             <Head title={__('entries.index.title')} />
 
-            <div className="container mx-auto max-w-full space-y-5 px-4 py-8 sm:px-6 lg:px-8">
+            <div className="container mx-auto max-w-full space-y-4 px-3 py-4 sm:space-y-5 sm:px-6 sm:py-8 lg:px-8">
                 <EntriesHeader
                     onCreateClick={() => setIsCreateOpen(true)}
                     onReportClick={() => setIsReportOpen(true)}

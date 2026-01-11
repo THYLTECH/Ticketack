@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Tickets\Assignment as ControllersAssignment;
 use App\Http\Controllers\Tickets\Categories as ControllersCategories;
 use App\Http\Controllers\Tickets\Comments as ControllersComments;
 use App\Http\Controllers\Tickets\Crud as ControllersCrud;
@@ -32,6 +33,12 @@ Route::prefix('tickets')->name('tickets.')->middleware(['auth', 'verified:auth.v
         Route::put('/planning/{schedule}', 'update')->name('planning.update');
         Route::delete('/planning/{schedule}', 'destroy')->name('planning.destroy');
         Route::post('/planning/{schedule}/convert', 'convert')->name('planning.convert');
+    });
+
+    Route::controller(ControllersAssignment::class)->prefix('assignment')->name('assignment.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/{ticket}/assign', 'assign')->name('assign');
+        Route::post('/{ticket}/self-assign', 'selfAssign')->name('self-assign');
     });
 
     Route::controller(ControllersCrud::class)->group(function () {

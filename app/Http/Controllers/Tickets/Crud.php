@@ -95,8 +95,83 @@ class Crud extends Controller
 
         $tickets = $query->paginate(10)->withQueryString();
 
+        $statsQuery = Ticket::query();
+
+        if (! $user->hasRole('admin')) {
+            if ($user->hasRole('solver')) {
+                if ($view === 'tickets/manage') {
+                    $statsQuery->where(function (Builder $q) use ($user) {
+                        $q->where('author_id', $user->id)
+                            ->orWhereHas('assignees', function (Builder $subQ) use ($user) {
+                                $subQ->where('user_id', $user->id);
+                            });
+                    });
+                }
+            } else {
+                $statsQuery->where('author_id', $user->id);
+            }
+        }
+
+        $total = $statsQuery->count();
+
+        $open = (clone $statsQuery)
+            ->where(function (Builder $q) {
+                $q->whereHas('status', function (Builder $subQ) {
+                    $subQ->where('is_closed', false);
+                })
+                ->orWhereNull('status_id');
+            })
+            ->count();
+
+        $unassigned = (clone $statsQuery)
+            ->whereDoesntHave('assignees')
+            ->count();
+
+        $resolved = (clone $statsQuery)
+            ->whereHas('status', function (Builder $q) {
+                $q->where('is_closed', true);
+            })
+            ->count();
+
+        $driver = config('database.default');
+        $connection = config("database.connections.{$driver}.driver");
+
+        if ($connection === 'sqlite') {
+            $avgResolutionDays = (clone $statsQuery)
+                ->whereHas('status', function (Builder $q) {
+                    $q->where('is_closed', true);
+                })
+                ->whereNotNull('updated_at')
+                ->selectRaw('AVG(julianday(updated_at) - julianday(created_at)) as avg_days')
+                ->value('avg_days') ?? 0;
+        } else {
+            $avgResolutionDays = (clone $statsQuery)
+                ->whereHas('status', function (Builder $q) {
+                    $q->where('is_closed', true);
+                })
+                ->whereNotNull('updated_at')
+                ->selectRaw('AVG(DATEDIFF(updated_at, created_at)) as avg_days')
+                ->value('avg_days') ?? 0;
+        }
+
+        $assignedToMe = (clone $statsQuery)
+            ->whereHas('assignees', function (Builder $q) use ($user) {
+                $q->where('user_id', $user->id);
+            })
+            ->count();
+
+        $stats = [
+            'total' => $total,
+            'open' => $open,
+            'unassigned' => $unassigned,
+            'resolved' => $resolved,
+            'avg_resolution_days' => (float) $avgResolutionDays,
+            'assigned_to_me' => $assignedToMe,
+        ];
+
         return Inertia::render($view, [
             'tickets' => $tickets,
+            'stats' => $stats,
             'filters' => $request->only(['search', 'status', 'priority', 'category', 'equipment', 'assignee', 'date_from', 'date_to', 'sort', 'direction']),
             'statuses' => TicketStatus::all(),
             'priorities' => TicketPriority::all(),
