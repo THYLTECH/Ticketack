@@ -36,6 +36,7 @@ jobs:
 
             echo "Running Laravel commands..."
             docker compose exec -T app sh -c "
+              git config --global --add safe.directory /var/www/html &&
               composer install --optimize-autoloader --no-dev &&
               npm install &&
               npm run build &&
