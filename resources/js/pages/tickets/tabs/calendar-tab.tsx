@@ -298,12 +298,26 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                             )}
                         </div>
 
-                        <div className="flex h-8 items-center space-x-2 rounded-md border px-2 transition-colors sm:hidden">
+                        <div
+                            className={cn(
+                                'flex h-8 items-center space-x-2 rounded-md border px-2 transition-colors sm:hidden',
+                                isEditMode
+                                    ? 'border-primary/30 bg-primary/5'
+                                    : 'bg-card',
+                            )}
+                        >
                             <Switch
                                 id="edit-mode-tab"
                                 checked={isEditMode}
                                 onCheckedChange={setIsEditMode}
+                                className="scale-75"
                             />
+                            <Label
+                                htmlFor="edit-mode-tab"
+                                className="cursor-pointer text-xs font-medium"
+                            >
+                                {__('tickets.pages.show.calendar.edit_mode')}
+                            </Label>
                         </div>
                     </div>
 
@@ -341,7 +355,14 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                             </TabsList>
                         </Tabs>
 
-                        <div className="hidden h-9 items-center space-x-2 rounded-md border px-3 transition-colors sm:flex">
+                        <div
+                            className={cn(
+                                'hidden h-9 items-center space-x-2 rounded-md border px-3 transition-colors sm:flex',
+                                isEditMode
+                                    ? 'border-primary/30 bg-primary/5'
+                                    : 'bg-card',
+                            )}
+                        >
                             <Switch
                                 id="edit-mode-tab-desktop"
                                 checked={isEditMode}
