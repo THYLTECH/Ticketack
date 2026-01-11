@@ -139,7 +139,7 @@ test('store saves ticket and handles attachments', function () {
         'status_id' => $this->status->id,
         'category_id' => $this->category->id,
         'asset_id' => $this->asset->id,
-        'is_public' => true,
+        'is_archived' => false,
         'is_referenced' => false,
         'assignees' => [['id' => $this->user->id]],
         'attachments' => [$file]
@@ -178,7 +178,7 @@ test('update syncs assignees correctly', function () {
         'status_id' => $this->status->id,
         'category_id' => $this->category->id,
         'asset_id' => $this->asset->id,
-        'is_public' => false,
+        'is_archived' => false,
         'is_referenced' => true,
         'assignees' => [['id' => $newUser->id]]
     ];
@@ -249,7 +249,7 @@ test('it prevents adding more than 10 attachments on update', function () {
         'status_id' => $this->status->id,
         'category_id' => $this->category->id,
         'asset_id' => $this->asset->id,
-        'is_public' => false,
+        'is_archived' => false,
         'is_referenced' => true,
         'assignees' => [['id' => $this->user->id]],
         'attachments' => [$file]
@@ -318,7 +318,6 @@ test('store and update handle requests without assignees or attachments', functi
     expect($ticket->assignees)->toBeEmpty()
         ->and($ticket->attachments)->toBeEmpty();
 
-    // Test Update sans changer les assignés
     put(route('tickets.update', $ticket), array_merge($data, ['title' => 'Updated Simple']))
         ->assertRedirect(route('tickets.show', $ticket));
 });
@@ -367,7 +366,6 @@ test('non-admin solver can only see their assigned tickets in manage', function 
 test('show page displays events including entries', function () {
     $ticket = Ticket::factory()->create();
 
-    // Create a schedule
     TicketSchedule::create([
         'ticket_id' => $ticket->id,
         'user_id' => $this->user->id,
@@ -376,7 +374,6 @@ test('show page displays events including entries', function () {
         'duration_minutes' => 60,
     ]);
 
-    // Create an entry
     \App\Models\TicketEntry::create([
         'ticket_id' => $ticket->id,
         'user_id' => $this->user->id,
@@ -425,7 +422,6 @@ test('show page includes entries from all solvers for the ticket', function () {
 test('show page excludes entries without end_at', function () {
     $ticket = Ticket::factory()->create();
 
-    // Create entry with only start_at (no end_at means ongoing/not finished)
     \App\Models\TicketEntry::create([
         'ticket_id' => $ticket->id,
         'user_id' => $this->user->id,
@@ -518,7 +514,6 @@ test('update can add attachments to existing ticket', function () {
         'category_id' => $this->category->id,
     ]);
 
-    // Add first attachment
     $attachment1 = Attachment::create([
         'title' => 'existing.png',
         'file_name' => 'existing.png',
@@ -533,7 +528,6 @@ test('update can add attachments to existing ticket', function () {
         'attachment_id' => $attachment1->id,
     ]);
 
-    // Add second via update
     $file = UploadedFile::fake()->image('new.jpg');
 
     $data = [
@@ -621,7 +615,6 @@ test('index sorts by different columns', function () {
     $tickets = $response->viewData('page')['props']['tickets']['data'];
     expect($tickets[0]['title'])->toBe('AAA Ticket');
 
-    // Sort by created_at descending
     $response = get(route('tickets.index', ['sort' => 'created_at', 'direction' => 'desc']));
     $tickets = $response->viewData('page')['props']['tickets']['data'];
     expect($tickets[0]['id'])->toBe($ticket2->id);
@@ -665,7 +658,6 @@ test('update preserves existing assignees when not provided', function () {
         'description' => 'Updated description',
         'priority_id' => $this->priority->id,
         'category_id' => $this->category->id,
-        // No assignees provided
     ];
 
     put(route('tickets.update', $ticket), $data);
@@ -748,17 +740,17 @@ test('index returns correct pagination metadata', function () {
     $tickets = $response->viewData('page')['props']['tickets'];
 
     expect($tickets)->toHaveKeys(['data', 'current_page', 'per_page', 'total'])
-        ->and($tickets['data'])->toHaveCount(10) // Default per page
+        ->and($tickets['data'])->toHaveCount(10)
         ->and($tickets['total'])->toBe(15);
 });
 
-test('store and update handle is_public and is_referenced flags', function () {
+test('store and update handle is_archived and is_referenced flags', function () {
     $data = [
         'title' => 'Flags Test',
         'description' => 'Testing flags',
         'priority_id' => $this->priority->id,
         'category_id' => $this->category->id,
-        'is_public' => true,
+        'is_archived' => false,
         'is_referenced' => true,
     ];
 
@@ -766,32 +758,28 @@ test('store and update handle is_public and is_referenced flags', function () {
 
     $ticket = Ticket::where('title', 'Flags Test')->first();
 
-    expect($ticket->is_public)->toBeTrue()
+    expect($ticket->archived_at)->toBeNull()
         ->and($ticket->is_referenced)->toBeTrue();
 
-    // Update flags
     put(route('tickets.update', $ticket), array_merge($data, [
-        'is_public' => false,
+        'is_archived' => true,
         'is_referenced' => false,
     ]));
 
     $ticket->refresh();
 
-    expect($ticket->is_public)->toBeFalse()
+    expect($ticket->archived_at)->not->toBeNull()
         ->and($ticket->is_referenced)->toBeFalse();
 });
 
 test('update notifies admins when last assignee removes themselves', function () {
-    // Create an admin user
     $admin = User::factory()->create();
     $admin->assignRole('admin');
 
-    // Create a solver user who will unassign themselves
     $solver = User::factory()->create();
     $solver->assignRole('solver');
     $solver->givePermissionTo(['update tickets', 'view tickets', 'show tickets']);
 
-    // Create a ticket assigned only to the solver
     $ticket = Ticket::factory()->create([
         'priority_id' => $this->priority->id,
         'category_id' => $this->category->id,
@@ -799,7 +787,6 @@ test('update notifies admins when last assignee removes themselves', function ()
 
     $ticket->assignees()->create(['user_id' => $solver->id]);
 
-    // Act as the solver and remove themselves from assignees
     actingAs($solver);
 
     \Illuminate\Support\Facades\Notification::fake();
@@ -809,16 +796,14 @@ test('update notifies admins when last assignee removes themselves', function ()
         'description' => $ticket->description,
         'priority_id' => $this->priority->id,
         'category_id' => $this->category->id,
-        'assignees' => [] // Empty array = removing all assignees
+        'assignees' => []
     ]);
 
-    // Assert the ticket has no assignees
     expect($ticket->fresh()->assignees)->toHaveCount(0);
 
-    // Assert notification was sent to admin
     \Illuminate\Support\Facades\Notification::assertSentTo(
         $admin,
-        \App\Notifications\TicketUnassigned::class,
+        \App\Notifications\Tickets\Unassigned::class,
         function ($notification) use ($ticket, $solver) {
             return $notification->ticket->id === $ticket->id
                 && $notification->unassignedUser->id === $solver->id;

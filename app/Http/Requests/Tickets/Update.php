@@ -19,7 +19,7 @@ class Update extends FormRequest
             'title'             => ['required', 'string', 'max:255'],
             'description'       => ['required', 'string', 'max:10000'],
 
-            'is_public'         => ['boolean'],
+            'is_archived'       => ['boolean'],
             'is_referenced'     => ['boolean'],
             'detailed_solution' => ['nullable', 'string'],
             'status_id'         => ['nullable', 'integer', 'exists:ticket_statuses,id'],

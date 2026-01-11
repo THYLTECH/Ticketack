@@ -17,6 +17,7 @@ import { useTrans } from '@/lib/translation';
 import { userHasPermission } from '@/lib/utils';
 import { InformationsTab, TicketFormData } from '@/pages/tickets/form';
 import { prepareTicketFormData } from '@/pages/tickets/form/utils';
+import { FileWithPreview } from '@/hooks/use-file-upload';
 import {
     Asset,
     BreadcrumbItem,
@@ -40,17 +41,12 @@ interface EditProps {
     users: User[];
 }
 
-interface FileWrapper {
-    file: File;
-    id?: string | number;
-}
-
 interface TicketFormSchema extends Omit<
     TicketFormData,
     'assignees' | 'attachments'
 > {
     assignees: number[];
-    attachments: (File | FileWrapper)[];
+    attachments: (File | FileWithPreview)[];
 }
 
 type TicketWithForeignKeys = Ticket & {
@@ -129,7 +125,7 @@ function EditForm({
         useForm<TicketFormSchema>({
             title: ticket.title || '',
             description: ticket.description || '',
-            is_public: Boolean(ticket.is_public),
+            is_archived: Boolean(ticket.archived_at),
             is_referenced: Boolean(ticket.is_referenced),
             detailed_solution: ticket.detailed_solution || '',
             priority_id: ticketWithFK.priority_id
@@ -155,7 +151,6 @@ function EditForm({
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        // @ts-expect-error - Compatibilité de type mineure
         const formData = prepareTicketFormData(data, 'PUT');
 
         router.post(route('tickets.update', ticket.id), formData, {

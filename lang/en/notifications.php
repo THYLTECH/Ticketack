@@ -39,6 +39,9 @@ return [
         'ticket_assigned' => [
             'message' => 'You have been assigned to the ticket ":title" on :app. View it here: :url',
         ],
+        'ticket_unassigned' => [
+            'message' => 'The ticket ":title" has been unassigned by :user on :app. View it here: :url',
+        ],
         'ticket_status_changed' => [
             'message' => 'The status of the ticket ":title" has changed to :status on :app. See the update here: :url',
         ],
@@ -63,7 +66,7 @@ return [
         ],
         'ticket_schedule_deleted' => [
             'message' => 'A schedule has been deleted from the ticket ":title" on :app. View the ticket here: :url',
-        ],  
+        ],
     ],
 
     'database' => [
@@ -85,6 +88,11 @@ return [
         'ticket_assigned' => [
             'title' => 'Ticket Assigned',
             'message' => 'You have been assigned to the ticket ":title".',
+            'action' => 'View Ticket',
+        ],
+        'ticket_unassigned' => [
+            'title' => 'Ticket Unassigned',
+            'message' => 'The ticket ":title" has been unassigned by :user.',
             'action' => 'View Ticket',
         ],
         'ticket_status_changed' => [
@@ -180,6 +188,12 @@ return [
             'intro' => 'You have been assigned to the ticket ":title".',
             'button' => 'View Ticket',
         ],
+        'ticket_unassigned' => [
+            'subject' => ':app — Ticket Unassigned',
+            'title' => 'Ticket Unassigned',
+            'intro' => 'The ticket ":title" has been unassigned by :user.',
+            'button' => 'View Ticket',
+        ],
         'ticket_status_changed' => [
             'subject' => ':app — Ticket Status Changed',
             'title' => 'Ticket Status Changed',
@@ -260,7 +274,6 @@ return [
             'title' => 'Tickets',
             'description' => 'Manage notifications related to ticket activities and updates. If no channels are selected, the notification will by default be sent by email.',
             'items' => [
-                // Basic ticket notifications
                 'ticket_created' => [
                     'title' => 'Ticket created',
                     'description' => 'Receive a notification when a new ticket is created that you are involved in.',
@@ -279,10 +292,13 @@ return [
                 ],
                 'ticket_assigned' => [
                     'title' => 'Ticket assigned',
-                    'description' => 'Get notified when you are assigned to a ticket.', 
+                    'description' => 'Get notified when you are assigned to a ticket.',
+                ],
+                'ticket_unassigned' => [
+                    'title' => 'Ticket unassigned',
+                    'description' => 'Get notified when a ticket is unassigned.',
                 ],
 
-                // Ticket Relations
                 'ticket_entry_created' => [
                     'title' => 'New ticket entry',
                     'description' => 'Get notified when a new entry is added to a ticket you are involved in.',

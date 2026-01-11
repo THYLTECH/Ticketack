@@ -12,7 +12,7 @@ import { useTrans } from '@/lib/translation';
 import { cn } from '@/lib/utils';
 import { Ticket } from '@/types';
 import { Link } from '@inertiajs/react';
-import { Clock, Layers, type LucideIcon, Tag, User } from 'lucide-react';
+import { Archive, Clock, Layers, type LucideIcon, Tag, User } from 'lucide-react';
 import * as React from 'react';
 
 const SidebarRow = ({
@@ -134,6 +134,21 @@ export function TicketSidebar({ ticket }: { ticket: Ticket }) {
                                 renderTicketCategory(ticket.category)
                             ) : (
                                 <span className="text-muted-foreground">-</span>
+                            )}
+                        </SidebarRow>
+                        <SidebarRow
+                            icon={Archive}
+                            label={__('tickets.column.archive_status')}
+                        >
+                            {ticket.archived_at ? (
+                                <Badge variant="secondary" className="text-xs">
+                                    <Archive className="mr-1 h-3 w-3" />
+                                    {__('tickets.pages.form.fields.archived_label')}
+                                </Badge>
+                            ) : (
+                                <Badge variant="outline" className="text-xs border-emerald-500/50 text-emerald-600 dark:text-emerald-400">
+                                    {__('tickets.pages.form.fields.active_label')}
+                                </Badge>
                             )}
                         </SidebarRow>
                         <SidebarRow

@@ -8,7 +8,7 @@ use App\Models\TicketCategory;
 use App\Models\TicketPriority;
 use App\Models\TicketStatus;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage; // Ajout pour Minio
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 
 
@@ -24,7 +24,7 @@ class TicketObserver
         'asset_id'    => 'equipment',
         'title'       => 'title',
         'description' => 'description',
-        'is_public'   => 'visibility',
+        'archived_at' => 'archive_status',
     ];
 
     /**
@@ -63,17 +63,16 @@ class TicketObserver
             }
         }
         $jsonFields = ['title', 'description', 'detailed_solution', 'author_id', 'status_id'];
-    
+
         $shouldExport = false;
 
-        // On vérifie si l'un des champs du JSON a été modifié
         foreach ($jsonFields as $field) {
             if ($ticket->wasChanged($field)) {
                 $shouldExport = true;
                 break;
             }
         }
-        
+
         $dirty = $ticket->getDirty();
         if (!$shouldExport && count($dirty) === 1 && isset($dirty['updated_at'])) {
             $shouldExport = true;
@@ -106,7 +105,6 @@ class TicketObserver
                 if (!is_null($fileContent)) {
                     $newFileName = "{$ticket->id}_{$attachment->file_name}";
                     $filePath = "{$newFileName}";
-                    // Envoi vers le disque S3 (Minio)
                     Storage::disk('s3')->put($filePath, $fileContent);
                 }
             }
@@ -129,7 +127,7 @@ class TicketObserver
             'status_id'   => TicketStatus::find($value)?->title ?? "ID: $value",
             'category_id' => TicketCategory::find($value)?->title ?? "ID: $value",
             'asset_id'    => Asset::find($value)?->title ?? "ID: $value",
-            'is_public'   => $value ? 'Public' : 'Private',
+            'archived_at' => $value ? 'Archived' : 'Active',
             default       => (string) $value,
         };
     }

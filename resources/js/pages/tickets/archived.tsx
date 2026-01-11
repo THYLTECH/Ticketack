@@ -13,13 +13,13 @@ import {
     User,
 } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { Archive, Cog, Plus } from 'lucide-react';
+import { ArchiveRestore, Plus } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDebounce } from 'use-debounce';
 import { TicketEmpty } from './components/ticket-empty';
 import { TicketTable } from './components/ticket-table';
 import { TicketToolbar } from './components/ticket-toolbar';
-import { TicketStats } from './components/ticket-stats';
+import { ArchivedStats } from './components/archived-stats';
 import { PaginationControl } from '@/components/pagination-control';
 
 interface PaginatedData<T> {
@@ -41,11 +41,9 @@ interface Props {
     tickets: PaginatedData<Ticket>;
     stats: {
         total: number;
-        open: number;
-        unassigned: number;
         resolved: number;
-        avg_resolution_days: number;
-        assigned_to_me: number;
+        avg_archive_days: number;
+        archived_last_30_days: number;
     };
     filters: Record<string, string>;
     statuses: TicketStatus[];
@@ -55,7 +53,7 @@ interface Props {
     solvers: User[];
 }
 
-export default function Index({
+export default function Archived({
     tickets,
     stats,
     filters = {},
@@ -78,6 +76,10 @@ export default function Index({
         },
         {
             title: __('tickets.pages.breadcrumbs.index'),
+            href: route('tickets.index'),
+        },
+        {
+            title: __('tickets.pages.archived.title'),
             href: '#',
         },
     ];
@@ -95,7 +97,7 @@ export default function Index({
                 delete newFilters[key];
             }
 
-            router.get(route('tickets.index'), newFilters, {
+            router.get(route('tickets.archived'), newFilters, {
                 preserveState: true,
                 replace: true,
                 preserveScroll: true,
@@ -107,7 +109,7 @@ export default function Index({
     useEffect(() => {
         if (debouncedSearch !== (filters.search || '')) {
             router.get(
-                route('tickets.index'),
+                route('tickets.archived'),
                 { ...filters, search: debouncedSearch },
                 { preserveState: true, replace: true, preserveScroll: true },
             );
@@ -116,7 +118,7 @@ export default function Index({
 
     const clearFilters = () => {
         setSearchTerm('');
-        router.get(route('tickets.index'));
+        router.get(route('tickets.archived'));
     };
 
     const hasActiveFilters = useMemo(() => {
@@ -126,47 +128,27 @@ export default function Index({
         );
     }, [filters]);
 
-    const isStaff =
-        auth.user.roles?.some((role) =>
-            ['admin', 'solver'].includes(role.name),
-        ) ?? false;
-
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={__('tickets.pages.index.head_title')} />
+            <Head title={__('tickets.pages.archived.head_title')} />
 
             <div className="container mx-auto max-w-full space-y-5 px-4 py-8 sm:px-6 lg:px-8">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h2 className="text-2xl font-bold tracking-tight text-foreground">
-                            {__('tickets.pages.index.title')}
+                            {__('tickets.pages.archived.title')}
                         </h2>
                         <p className="mt-1 text-sm text-muted-foreground">
-                            {__('tickets.pages.index.description')}
+                            {__('tickets.pages.archived.description')}
                         </p>
                     </div>
                     <div className="flex items-center gap-2">
-                        {isStaff && (
-                            <>
-                                {userHasPermission({
-                                    user: auth.user,
-                                    permission: 'view tickets',
-                                }) && (
-                                    <Button asChild size="sm" variant="outline">
-                                        <Link href={route('tickets.archived')}>
-                                            <Archive className="mr-2 h-4 w-4" />
-                                            {__('tickets.pages.index.buttons.archived')}
-                                        </Link>
-                                    </Button>
-                                )}
-                                <Button asChild size="sm" variant="outline">
-                                    <Link href={route('tickets.manage')}>
-                                        <Cog className="mr-2 h-4 w-4" />
-                                        {__('tickets.pages.index.buttons.manage')}
-                                    </Link>
-                                </Button>
-                            </>
-                        )}
+                        <Button asChild size="sm" variant="outline">
+                            <Link href={route('tickets.index')}>
+                                <ArchiveRestore className="mr-2 h-4 w-4" />
+                                {__('tickets.pages.archived.back_to_active')}
+                            </Link>
+                        </Button>
                         {userHasPermission({
                             user: auth.user,
                             permission: 'create tickets',
@@ -181,7 +163,7 @@ export default function Index({
                     </div>
                 </div>
 
-                <TicketStats stats={stats} />
+                <ArchivedStats stats={stats} />
 
                 <div className="flex flex-col gap-4">
                     <TicketToolbar
@@ -190,13 +172,13 @@ export default function Index({
                         filters={filters}
                         onFilterChange={updateFilters}
                         onClearFilters={clearFilters}
+                        hasActiveFilters={hasActiveFilters}
                         statuses={statuses}
                         priorities={priorities}
                         categories={categories}
                         assets={assets}
                         solvers={solvers}
-                        hasActiveFilters={hasActiveFilters}
-                        routeName="tickets.index"
+                        routeName="tickets.archived"
                     />
 
                     {tickets.data.length === 0 ? (
@@ -204,10 +186,7 @@ export default function Index({
                     ) : (
                         <>
                             <TicketTable tickets={tickets} auth={auth} />
-
-                            <PaginationControl
-                                meta={tickets}
-                            />
+                            <PaginationControl meta={tickets} />
                         </>
                     )}
                 </div>
@@ -215,3 +194,4 @@ export default function Index({
         </AppLayout>
     );
 }
+

@@ -11,6 +11,8 @@ return [
         'created' => 'Ticket created successfully.',
         'updated' => 'Ticket updated successfully.',
         'deleted' => 'Ticket deleted successfully.',
+        'archived' => 'Ticket archived successfully.',
+        'unarchived' => 'Ticket unarchived successfully.',
         'restored' => 'Ticket restored successfully.',
         'force_deleted' => 'Ticket permanently deleted successfully.',
 
@@ -114,7 +116,6 @@ return [
         'assigned_to_me' => 'Assigned to Me',
         'days' => 'days',
 
-        // Descriptions for tooltips
         'total_description' => 'Total number of tickets visible to you based on your permissions.',
         'open_description' => 'Tickets that are not closed yet or without status.',
         'unassigned_description' => 'Tickets that have not been assigned to any user yet. These require attention.',
@@ -172,7 +173,7 @@ return [
         'category' => 'Category',
         'assignee' => 'Assignee',
         'author' => 'Author',
-        'visibility' => 'Visibility',
+        'archive_status' => 'Archive Status',
         'updated_at' => 'Updated',
         'created_at' => 'Created',
     ],
@@ -212,12 +213,26 @@ return [
             'buttons' => [
                 'create' => 'Create Ticket',
                 'manage' => 'Manage Tickets',
+                'archived' => 'Archived Tickets',
             ],
 
             'empty' => [
                 'title' => 'No tickets found',
                 'description' => 'No tickets found matching your current filters or search criteria.',
                 'button' => 'Clear Filters',
+            ],
+        ],
+        'archived' => [
+            'head_title' => 'Archived Tickets',
+            'title' => 'Archived Tickets',
+            'description' => 'View and manage archived tickets.',
+            'list_title' => 'Archived Tickets',
+            'back_to_active' => 'Back to Active Tickets',
+            'stats' => [
+                'total' => 'Total Archived',
+                'resolved' => 'Resolved',
+                'avg_days' => 'Avg. Days Before Archive',
+                'last_30_days' => 'Archived Last 30 Days',
             ],
         ],
         'create' => [
@@ -257,8 +272,8 @@ return [
                 'assignees' => 'Assignees',
             ],
             'fields' => [
-                'public_label' => 'Public Ticket (Visible to everyone)',
-                'private_label' => 'Private Ticket (Restricted access)',
+                'archived_label' => 'Archived Ticket',
+                'active_label' => 'Active Ticket',
             ],
             'placeholders' => [
                 'title' => 'eg. Server not responding',

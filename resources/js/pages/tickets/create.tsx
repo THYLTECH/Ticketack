@@ -98,7 +98,7 @@ function CreateForm({
         useForm<TicketFormSchema>({
             title: '',
             description: '',
-            is_public: false,
+            is_archived: false,
             is_referenced: false,
             detailed_solution: '',
             priority_id: null,

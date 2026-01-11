@@ -51,11 +51,11 @@ import {
 } from '@/types';
 import { Link, router, usePage } from '@inertiajs/react';
 import {
+    Archive,
     BookOpenCheck,
+    CheckCircle,
     Download,
     Ellipsis,
-    Eye,
-    EyeOff,
     FileText,
     MinusCircle,
     SquareArrowOutUpRight,
@@ -225,35 +225,45 @@ export function InformationsTab({
                 </Card>
             )}
 
-            <div className="flex items-center justify-between rounded-xl border bg-card p-4 shadow-sm transition-all hover:border-primary/20 hover:shadow-md">
-                <div className="space-y-1">
-                    <Label className="text-base font-semibold">
-                        {__('tickets.column.visibility')}
-                    </Label>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        {data.is_public ? (
-                            <>
-                                <Eye className="h-4 w-4 text-emerald-600" />{' '}
-                                <span className="font-medium text-emerald-700 dark:text-emerald-400">
-                                    {__(
-                                        'tickets.pages.form.fields.public_label',
-                                    )}
-                                </span>
-                            </>
-                        ) : (
-                            <>
-                                <EyeOff className="h-4 w-4" />{' '}
-                                {__('tickets.pages.form.fields.private_label')}
-                            </>
-                        )}
+            {(userHasPermission({
+                user: auth.user,
+                permission: 'archive tickets',
+            }) || userHasPermission({
+                user: auth.user,
+                permission: 'unarchive tickets',
+            })) && (
+                <div className="flex items-center justify-between rounded-xl border bg-card p-4 shadow-sm transition-all hover:border-primary/20 hover:shadow-md">
+                    <div className="space-y-1">
+                        <Label className="text-base font-semibold">
+                            {__('tickets.column.archive_status')}
+                        </Label>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            {data.is_archived ? (
+                                <>
+                                    <Archive className="h-4 w-4 text-amber-600" />{' '}
+                                    <span className="font-medium text-amber-700 dark:text-amber-400">
+                                        {__(
+                                            'tickets.pages.form.fields.archived_label',
+                                        )}
+                                    </span>
+                                </>
+                            ) : (
+                                <>
+                                    <CheckCircle className="h-4 w-4 text-emerald-600" />{' '}
+                                    <span className="font-medium text-emerald-700 dark:text-emerald-400">
+                                        {__('tickets.pages.form.fields.active_label')}
+                                    </span>
+                                </>
+                            )}
+                        </div>
                     </div>
+                    <Switch
+                        checked={data.is_archived}
+                        onCheckedChange={(checked) => setData('is_archived', checked)}
+                        disabled={disabled}
+                    />
                 </div>
-                <Switch
-                    checked={data.is_public}
-                    onCheckedChange={(checked) => setData('is_public', checked)}
-                    disabled={disabled}
-                />
-            </div>
+            )}
 
             <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-2 md:col-span-2">

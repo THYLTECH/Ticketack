@@ -21,20 +21,20 @@ class TicketFactory extends Factory
             'priority_id' => TicketPriority::inRandomOrder()->first()?->id ?? TicketPriority::factory(),
             'status_id' => TicketStatus::inRandomOrder()->first()?->id ?? TicketStatus::factory(),
             'category_id' => TicketCategory::inRandomOrder()->first()?->id ?? TicketCategory::factory(),
-            'is_public' => $this->faker->boolean(20),
+            'archived_at' => $this->faker->boolean(10) ? now()->subDays(rand(1, 30)) : null,
         ];
     }
-    
+
     public function withContext(string $icon): static
     {
         $scenarios = __("factory_tickets.scenarios.$icon");
-        
+
         if (!is_array($scenarios)) {
             $scenarios = __("factory_tickets.generic");
         }
-    
+
         $selected = $this->faker->randomElement($scenarios);
-    
+
         return $this->state(fn () => [
             'title' => $selected['title'],
             'description' => $selected['description'],

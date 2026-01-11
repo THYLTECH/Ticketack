@@ -43,12 +43,15 @@ Route::prefix('tickets')->name('tickets.')->middleware(['auth', 'verified:auth.v
 
     Route::controller(ControllersCrud::class)->group(function () {
         Route::get('/', 'index')->name('index');
+        Route::get('/archived', 'archived')->name('archived');
         Route::get('/manage', 'manage')->name('manage');
         Route::get('/create', 'create')->name('create');
         Route::get('/{ticket}', 'show')->name('show');
         Route::get('/{ticket}/edit', 'edit')->name('edit');
         Route::post('/', 'store')->name('store');
         Route::put('/{ticket}', 'update')->name('update');
+        Route::post('/{ticket}/archive', 'archive')->name('archive');
+        Route::post('/{ticket}/unarchive', 'unarchive')->name('unarchive');
         Route::delete('/{ticket}', 'destroy')->name('destroy');
         Route::post('/{ticket}/restore', 'restore')->name('restore')->withTrashed();
         Route::delete('/{ticket}/force', 'forceDelete')->name('force_delete')->withTrashed();

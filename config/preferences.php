@@ -93,7 +93,6 @@ return [
             ],
         ],
         'tickets' => [
-            // Basic ticket notifications
             'ticket_created' => [
                 'mail',
                 'database',
@@ -124,8 +123,12 @@ return [
                 'database',
                 'vonage',
             ],
+            'ticket_unassigned' => [
+                'mail',
+                'database',
+                'vonage',
+            ],
 
-            // Ticket Relations
             'ticket_entry_created' => [
                 'mail',
                 'database',

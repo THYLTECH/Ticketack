@@ -39,6 +39,7 @@ interface Props {
     assets: Asset[];
     solvers: User[];
     hasActiveFilters: boolean;
+    routeName?: string;
 }
 
 export function TicketToolbar({
@@ -53,6 +54,7 @@ export function TicketToolbar({
     assets,
     solvers,
     hasActiveFilters,
+    routeName = 'tickets.index',
 }: Props) {
     const __ = useTrans();
 
@@ -81,7 +83,7 @@ export function TicketToolbar({
                 date_to: format(range.to, 'yyyy-MM-dd'),
                 search: searchTerm,
             };
-            router.get(route('tickets.index'), newFilters, {
+            router.get(route(routeName), newFilters, {
                 preserveState: true,
                 replace: true,
                 preserveScroll: true,
@@ -91,7 +93,7 @@ export function TicketToolbar({
             delete newFilters.date_from;
             delete newFilters.date_to;
             newFilters.search = searchTerm;
-            router.get(route('tickets.index'), newFilters, {
+            router.get(route(routeName), newFilters, {
                 preserveState: true,
                 replace: true,
                 preserveScroll: true,

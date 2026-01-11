@@ -41,7 +41,6 @@ import { SharedData, Ticket } from '@/types';
 import { router } from '@inertiajs/react';
 import {
     Eye,
-    EyeOff,
     Flag,
     MoreHorizontal,
     Pencil,
@@ -123,7 +122,6 @@ export function TicketTable({ tickets, auth }: Props) {
 
     return (
         <div className="w-full space-y-4">
-            {/* Mobile Card View */}
             <div className="block space-y-3 lg:hidden">
                 {tickets.data.map((ticket) => {
                     const validAssignees = ticket.assignees?.filter((a) => a.user);
@@ -138,11 +136,9 @@ export function TicketTable({ tickets, auth }: Props) {
                             className="group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 border-border/60 bg-linear-to-br from-card to-card/80 cursor-pointer"
                             onClick={() => router.get(route('tickets.show', ticket.id))}
                         >
-                            {/* Subtle shine effect on hover */}
                             <div className="absolute inset-0 bg-linear-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                             <CardContent className="relative p-4 space-y-3">
-                                {/* Header with ID and Status */}
                                 <div className="flex items-start justify-between gap-2">
                                     <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-muted/40 group-hover:bg-muted/60 transition-colors min-w-0">
                                         <TicketIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
@@ -164,12 +160,10 @@ export function TicketTable({ tickets, auth }: Props) {
                                     )}
                                 </div>
 
-                                {/* Title */}
                                 <h3 className="font-semibold text-sm leading-tight line-clamp-2 group-hover:text-primary transition-colors">
                                     {ticket.title}
                                 </h3>
 
-                                {/* Metadata badges */}
                                 <div className="flex flex-wrap gap-2">
                                     {ticket.priority && (
                                         <Badge
@@ -197,7 +191,6 @@ export function TicketTable({ tickets, auth }: Props) {
                                     )}
                                 </div>
 
-                                {/* Assignees */}
                                 {validAssignees && validAssignees.length > 0 && (
                                     <div className="flex items-center gap-2">
                                         <div className="flex -space-x-2">
@@ -230,7 +223,6 @@ export function TicketTable({ tickets, auth }: Props) {
                                     </div>
                                 )}
 
-                                {/* Footer with author and actions */}
                                 <div className="flex items-center justify-between pt-2 border-t border-border/50">
                                     <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/40 text-xs text-muted-foreground">
                                         <Avatar className="h-4 w-4">
@@ -297,7 +289,6 @@ export function TicketTable({ tickets, auth }: Props) {
                 })}
             </div>
 
-            {/* Desktop Table View */}
             <div className="hidden lg:block overflow-hidden rounded-lg border bg-background shadow-sm">
                 <div className="relative overflow-x-auto">
                     <Table className="min-w-275">
@@ -319,9 +310,6 @@ export function TicketTable({ tickets, auth }: Props) {
                                     onSort={handleSort}
                                     className="w-30"
                                 />
-                                <TableHead className="w-15 text-center text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                                    <Eye className="mx-auto h-3.5 w-3.5 opacity-70" />
-                                </TableHead>
                                 <SortableTableHead
                                     column="priority_id"
                                     label={__('tickets.column.priority')}
@@ -422,13 +410,6 @@ export function TicketTable({ tickets, auth }: Props) {
                                             )}
                                         </TableCell>
 
-                                        <TableCell className="text-center align-middle">
-                                            {ticket.is_public ? (
-                                                <Eye className="mx-auto h-4 w-4 text-emerald-500/70" />
-                                            ) : (
-                                                <EyeOff className="mx-auto h-4 w-4 text-muted-foreground/30" />
-                                            )}
-                                        </TableCell>
 
                                         <TableCell className="align-middle">
                                             <div className="flex items-center gap-2">

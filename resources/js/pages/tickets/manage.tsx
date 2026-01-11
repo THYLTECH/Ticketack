@@ -13,7 +13,7 @@ import {
     User,
 } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { ArrowLeft, Plus } from 'lucide-react';
+import { Archive, ArrowLeft, Plus } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDebounce } from 'use-debounce';
 import { TicketEmpty } from './components/ticket-empty';
@@ -144,6 +144,17 @@ export default function Manage({
                     </div>
 
                     <div className="flex items-center gap-2">
+                        {userHasPermission({
+                            user: auth.user,
+                            permission: 'view tickets',
+                        }) && (
+                            <Button asChild variant="outline" size="sm">
+                                <Link href={route('tickets.archived')}>
+                                    <Archive className="mr-2 h-4 w-4" />
+                                    {__('tickets.pages.index.buttons.archived')}
+                                </Link>
+                            </Button>
+                        )}
                         <Button asChild variant="secondary" size="sm">
                             <Link href={route('tickets.index')}>
                                 <ArrowLeft className="mr-2 h-4 w-4" />
@@ -179,10 +190,11 @@ export default function Manage({
                         assets={assets}
                         solvers={solvers}
                         hasActiveFilters={hasActiveFilters}
+                        routeName="tickets.manage"
                     />
 
                     {tickets.data.length === 0 ? (
-                        <TicketEmpty />
+                        <TicketEmpty onClearFilters={clearFilters} />
                     ) : (
                         <>
                             <TicketTable tickets={tickets} auth={auth} />

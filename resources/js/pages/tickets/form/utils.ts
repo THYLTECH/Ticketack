@@ -1,16 +1,12 @@
 import { TicketFormData } from './types';
-
-interface FileWrapper {
-    file: File;
-    [key: string]: unknown;
-}
+import { FileWithPreview } from '@/hooks/use-file-upload';
 
 interface TicketFormSchema extends Omit<
     TicketFormData,
     'assignees' | 'attachments'
 > {
     assignees: number[];
-    attachments: (File | FileWrapper)[];
+    attachments: (File | FileWithPreview)[];
 }
 
 export function prepareTicketFormData(
@@ -27,7 +23,7 @@ export function prepareTicketFormData(
         const value = data[key];
 
         if (key === 'attachments') {
-            const files = value as (File | FileWrapper)[];
+            const files = value as (File | FileWithPreview)[];
             files.forEach((item, index) => {
                 if (item instanceof File) {
                     formData.append(`attachments[${index}]`, item);

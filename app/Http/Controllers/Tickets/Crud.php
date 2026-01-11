@@ -15,12 +15,12 @@ use App\Models\TicketPriority;
 use App\Models\TicketSchedule;
 use App\Models\TicketStatus;
 use App\Models\User;
-use App\Notifications\TicketUnassigned;
-use App\Notifications\Tickets\Created as NotificationsTicketCreated;
-use App\Notifications\Tickets\Updated as NotificationsTicketUpdated;
 use App\Notifications\Tickets\Assigned as NotificationsTicketAssigned;
-use App\Notifications\Tickets\StatusChanged as NotificationsTicketStatusChanged;
+use App\Notifications\Tickets\Created as NotificationsTicketCreated;
 use App\Notifications\Tickets\PriorityChanged as NotificationsTicketPriorityChanged;
+use App\Notifications\Tickets\StatusChanged as NotificationsTicketStatusChanged;
+use App\Notifications\Tickets\Unassigned as NotificationsTicketUnassigned;
+use App\Notifications\Tickets\Updated as NotificationsTicketUpdated;
 use App\Services\Knowledge\VectorSearchService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -57,9 +57,24 @@ class Crud extends Controller
         return $this->renderTicketList($request, 'tickets/manage');
     }
 
-    /**
-     * Helper to render a ticket list based on roles and view.
-     */
+    private function applyUserVisibilityFilter(Builder $query, User $user, bool $onlyAssigned = false): Builder
+    {
+        if ($user->hasRole('admin')) {
+            return $query;
+        }
+
+        if ($user->hasRole('solver') && $onlyAssigned) {
+            return $query->where(function (Builder $q) use ($user) {
+                $q->where('author_id', $user->id)
+                    ->orWhereHas('assignees', function (Builder $subQ) use ($user) {
+                        $subQ->where('user_id', $user->id);
+                    });
+            });
+        }
+
+        return $query->where('author_id', $user->id);
+    }
+
     private function renderTicketList(Request $request, string $view): Response
     {
         /** @var User $user */
@@ -74,51 +89,23 @@ class Crud extends Controller
             'asset',
             'assignees.user:id,name,attachment_avatar,email',
             'assignees.user.avatar'
-        ]);
+        ])->whereNull('archived_at');
 
-        if (! $user->hasRole('admin')) {
-            if ($user->hasRole('solver')) {
-                if ($view === 'tickets/manage') {
-                    $query->where(function (Builder $q) use ($user) {
-                        $q->where('author_id', $user->id)
-                            ->orWhereHas('assignees', function (Builder $subQ) use ($user) {
-                                $subQ->where('user_id', $user->id);
-                            });
-                    });
-                }
-            } else {
-                $query->where('author_id', $user->id);
-            }
-        }
+        $onlyAssigned = $view === 'tickets/manage';
+        $query = $this->applyUserVisibilityFilter($query, $user, $onlyAssigned);
 
         $query = $this->applyFilters($query, $request);
 
         $tickets = $query->paginate(10)->withQueryString();
 
         $statsQuery = Ticket::query();
-
-        if (! $user->hasRole('admin')) {
-            if ($user->hasRole('solver')) {
-                if ($view === 'tickets/manage') {
-                    $statsQuery->where(function (Builder $q) use ($user) {
-                        $q->where('author_id', $user->id)
-                            ->orWhereHas('assignees', function (Builder $subQ) use ($user) {
-                                $subQ->where('user_id', $user->id);
-                            });
-                    });
-                }
-            } else {
-                $statsQuery->where('author_id', $user->id);
-            }
-        }
+        $statsQuery = $this->applyUserVisibilityFilter($statsQuery, $user, $onlyAssigned);
 
         $total = $statsQuery->count();
 
         $open = (clone $statsQuery)
             ->where(function (Builder $q) {
-                $q->whereHas('status', function (Builder $subQ) {
-                    $subQ->where('is_closed', false);
-                })
+                $q->whereHas('status', fn (Builder $subQ) => $subQ->where('is_closed', false))
                     ->orWhereNull('status_id');
             })
             ->count();
@@ -128,29 +115,23 @@ class Crud extends Controller
             ->count();
 
         $resolved = (clone $statsQuery)
-            ->whereHas('status', function (Builder $q) {
-                $q->where('is_closed', true);
-            })
+            ->whereHas('status', fn (Builder $q) => $q->where('is_closed', true))
             ->count();
 
         $driver = config('database.default');
-        $connection = config("database.connections.{$driver}.driver");
+        $connection = config("database.connections.$driver.driver");
 
         if ($connection === 'sqlite') {
             $avgResolutionDays = (clone $statsQuery)
-                ->whereHas('status', function (Builder $q) {
-                    $q->where('is_closed', true);
-                })
+                ->whereHas('status', fn (Builder $q) => $q->where('is_closed', true))
                 ->whereNotNull('updated_at')
-                ->selectRaw('AVG(julianday(updated_at) - julianday(created_at)) as avg_days')
+                ->selectRaw('AVG(JULIANDAY(updated_at) - JULIANDAY(created_at)) as avg_days')
                 ->value('avg_days') ?? 0;
         } else {
             $avgResolutionDays = (clone $statsQuery)
-                ->whereHas('status', function (Builder $q) {
-                    $q->where('is_closed', true);
-                })
+                ->whereHas('status', fn (Builder $q) => $q->where('is_closed', true))
                 ->whereNotNull('updated_at')
-                ->selectRaw('AVG(DATEDIFF(updated_at, created_at)) as avg_days')
+                ->selectRaw('AVG(TIMESTAMPDIFF(DAY, created_at, updated_at)) as avg_days')
                 ->value('avg_days') ?? 0;
         }
 
@@ -303,9 +284,11 @@ class Crud extends Controller
             ->map(fn($entry) => $entry->toCalendarEvent())
             ->filter();
 
+        $events = collect($schedules->concat((array)$entries))->values()->all();
+
         return Inertia::render('tickets/show', [
             'ticket' => $ticket,
-            'events' => $schedules->concat($entries)->values()->toArray(),
+            'events' => $events,
             'solvers' => User::role(['admin', 'solver'])->with('avatar')->get()->map(fn ($user) => [
                 'id' => $user->id,
                 'name' => $user->name,
@@ -339,7 +322,7 @@ class Crud extends Controller
                 'title' => $data['title'],
                 'description' => $data['description'],
                 'author_id' => $user->id,
-                'is_public' => $data['is_public'] ?? false,
+                'archived_at' => isset($data['is_archived']) && $data['is_archived'] ? now() : null,
                 'is_referenced' => $data['is_referenced'] ?? false,
                 'detailed_solution' => $data['detailed_solution'] ?? null,
                 'priority_id' => $data['priority_id'],
@@ -349,7 +332,9 @@ class Crud extends Controller
             ]);
 
             if (!empty($data['assignees']) && $user->hasAnyRole(['admin', 'solver'])) {
-                foreach ($data['assignees'] as $assignee) {
+                $assignees = is_array($data['assignees']) ? $data['assignees'] : [];
+
+                foreach ($assignees as $assignee) {
                     $ticket->assignees()->create(['user_id' => $assignee['id']]);
 
                     Notification::send(User::find($assignee['id']), new NotificationsTicketCreated($ticket));
@@ -401,26 +386,26 @@ class Crud extends Controller
 
             $currentAssigneeIds = $ticket->assignees()->pluck('user_id')->toArray();
 
+            if (isset($data['is_archived'])) {
+                $data['archived_at'] = $data['is_archived'] ? now() : null;
+                unset($data['is_archived']);
+            }
+
             if (!$user->hasAnyRole(['admin', 'solver'])) {
-                $data = collect($data)->only(['title', 'description', 'asset_id', 'is_public'])->toArray();
+                $data = collect($data)->only(['title', 'description', 'asset_id', 'archived_at'])->toArray();
             }
 
             $ticket->update($data);
 
             if (isset($data['assignees']) && $user->hasAnyRole(['admin', 'solver'])) {
-                $newIds = [];
-                if ($data['assignees'] === '[]' || $data['assignees'] === '') {
-                    $newIds = [];
-                } elseif (is_array($data['assignees'])) {
-                    $newIds = collect($data['assignees'])->pluck('id')->toArray();
-                }
+                $newIds = is_array($data['assignees']) ? collect($data['assignees'])->pluck('id')->toArray() : [];
 
                 $isCurrentUserRemoving = in_array($user->id, $currentAssigneeIds) && !in_array($user->id, $newIds);
                 $willBeUnassigned = empty($newIds);
 
                 if ($isCurrentUserRemoving && $willBeUnassigned && count($currentAssigneeIds) === 1) {
                     $admins = User::role('admin')->get();
-                    Notification::send($admins, new TicketUnassigned($ticket, $user));
+                    Notification::send($admins, new NotificationsTicketUnassigned($ticket, $user));
                 }
 
                 $ticket->assignees()
@@ -516,5 +501,113 @@ class Crud extends Controller
         $this->authorize('forceDelete', $ticket);
         $ticket->forceDelete();
         return redirect()->route('tickets.manage')->with('success', __('tickets.flash.force_deleted'));
+    }
+
+    /**
+     * Display archived tickets page
+     */
+    public function archived(Request $request): Response
+    {
+        $this->authorize('viewAny', Ticket::class);
+
+        /** @var User $user */
+        $user = Auth::user();
+
+        $query = Ticket::with([
+            'user:id,name,attachment_avatar,email',
+            'user.avatar',
+            'priority',
+            'status',
+            'category',
+            'asset',
+            'assignees.user:id,name,attachment_avatar,email',
+            'assignees.user.avatar'
+        ])->whereNotNull('archived_at');
+
+        if (! $user->can('view all archived tickets')) {
+            $query = $this->applyUserVisibilityFilter($query, $user, true);
+        }
+
+        $query = $this->applyFilters($query, $request);
+
+        $tickets = $query->paginate(10)->withQueryString();
+
+        $statsQuery = Ticket::whereNotNull('archived_at');
+
+        if (! $user->can('view all archived tickets')) {
+            $statsQuery = $this->applyUserVisibilityFilter($statsQuery, $user, true);
+        }
+
+        $total = (clone $statsQuery)->count();
+
+        $byStatus = (clone $statsQuery)
+            ->selectRaw('status_id, COUNT(*) as count')
+            ->whereNotNull('status_id')
+            ->groupBy('status_id')
+            ->get()
+            ->mapWithKeys(fn ($item) => [$item->status_id => (int) $item->count]);
+
+        $resolved = (clone $statsQuery)
+            ->whereHas('status', fn (Builder $q) => $q->where('is_closed', true))
+            ->count();
+
+        $driver = config('database.default');
+        $connection = config("database.connections.$driver.driver");
+
+        if ($connection === 'sqlite') {
+            $avgArchiveDays = (clone $statsQuery)
+                ->whereNotNull('archived_at')
+                ->selectRaw('AVG(JULIANDAY(archived_at) - JULIANDAY(created_at)) as avg_days')
+                ->value('avg_days') ?? 0;
+        } else {
+            $avgArchiveDays = (clone $statsQuery)
+                ->whereNotNull('archived_at')
+                ->selectRaw('AVG(TIMESTAMPDIFF(DAY, created_at, archived_at)) as avg_days')
+                ->value('avg_days') ?? 0;
+        }
+
+        $archivedLast30Days = (clone $statsQuery)
+            ->where('archived_at', '>=', now()->subDays(30))
+            ->count();
+
+        $stats = [
+            'total' => $total,
+            'by_status' => $byStatus,
+            'resolved' => $resolved,
+            'avg_archive_days' => round((float) $avgArchiveDays, 1),
+            'archived_last_30_days' => $archivedLast30Days,
+        ];
+
+        return Inertia::render('tickets/archived', [
+            'tickets' => $tickets,
+            'stats' => $stats,
+            'filters' => $request->only(['search', 'status', 'priority', 'category', 'equipment', 'assignee', 'date_from', 'date_to', 'sort', 'direction']),
+            'statuses' => TicketStatus::all(),
+            'priorities' => TicketPriority::all(),
+            'categories' => TicketCategory::all(),
+            'assets' => Asset::all(['id', 'title']),
+            'solvers' => User::role(['admin', 'solver'])->with('avatar')->get(['id', 'name', 'attachment_avatar']),
+        ]);
+    }
+
+    /**
+     * Archive a ticket
+     */
+    public function archive(Ticket $ticket): RedirectResponse
+    {
+        $this->authorize('archive', $ticket);
+
+        $ticket->archive();
+
+        return redirect()->back()->with('success', __('tickets.flash.archived'));
+    }
+
+    public function unarchive(Ticket $ticket): RedirectResponse
+    {
+        $this->authorize('unarchive', $ticket);
+
+        $ticket->unarchive();
+
+        return redirect()->back()->with('success', __('tickets.flash.unarchived'));
     }
 }
