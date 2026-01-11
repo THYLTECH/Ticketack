@@ -49,9 +49,9 @@ class AppServiceProvider extends ServiceProvider
     {
         Schema::defaultStringLength(191);
 
-        if ($this->app->environment('production')) {
-            URL::forceScheme('https');
-        }
+        // if ($this->app->environment('production')) {
+        //     URL::forceScheme('https');
+        // }
 
         Gate::before(function ($user) {
             return $user->hasRole('admin') ? true : null;
@@ -83,10 +83,12 @@ class AppServiceProvider extends ServiceProvider
         Authenticate::redirectUsing(function () {
             return redirect()
                 ->route('auth.login')
-                ->with(['error' => [
-                    'title' => __('common.flash.error'),
-                    'description' => __('auth.flash.middleware.auth_required')
-                ]])
+                ->with([
+                    'error' => [
+                        'title' => __('common.flash.error'),
+                        'description' => __('auth.flash.middleware.auth_required')
+                    ]
+                ])
                 ->getTargetUrl();
         });
 
