@@ -15,9 +15,9 @@ use App\Http\Requests\Tickets\Priorities\Save as RequestsSave;
 
 /**
  * Ticket Priorities operations controller.
- * 
+ *
  * Handles creation, reading, updating, and deletion of ticket priorities.
- * 
+ *
  * @package App\Http\Controllers\Tickets
  */
 class Priorities extends Controller
@@ -47,7 +47,6 @@ class Priorities extends Controller
                 ]);
             }
 
-            // If some priorities have the locked to true, we should not delete them
             $lockedPriorities = TicketPriority::whereIn('id', $idsToDelete)
                 ->where('locked', true)
                 ->pluck('title')
@@ -79,8 +78,7 @@ class Priorities extends Controller
                     ['id' => $priorityData['id'] ?? null],
                     $attributesToSave
                 );
-                
-                // Stocker l'ID réel et le nouvel index désiré
+
                 $prioritiesMap[$priority->id] = $index;
             }
 

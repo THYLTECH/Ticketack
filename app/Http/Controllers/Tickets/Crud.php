@@ -16,6 +16,11 @@ use App\Models\TicketSchedule;
 use App\Models\TicketStatus;
 use App\Models\User;
 use App\Notifications\TicketUnassigned;
+use App\Notifications\Tickets\Created as NotificationsTicketCreated;
+use App\Notifications\Tickets\Updated as NotificationsTicketUpdated;
+use App\Notifications\Tickets\Assigned as NotificationsTicketAssigned;
+use App\Notifications\Tickets\StatusChanged as NotificationsTicketStatusChanged;
+use App\Notifications\Tickets\PriorityChanged as NotificationsTicketPriorityChanged;
 use App\Services\Knowledge\VectorSearchService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -114,7 +119,7 @@ class Crud extends Controller
                 $q->whereHas('status', function (Builder $subQ) {
                     $subQ->where('is_closed', false);
                 })
-                ->orWhereNull('status_id');
+                    ->orWhereNull('status_id');
             })
             ->count();
 
@@ -343,11 +348,11 @@ class Crud extends Controller
                 'asset_id' => $data['asset_id'] ?? null,
             ]);
 
-            if (isset($data['assignees']) && $user->hasAnyRole(['admin', 'solver'])) {
-                if (is_array($data['assignees']) && !empty($data['assignees'])) {
-                    foreach ($data['assignees'] as $assignee) {
-                        $ticket->assignees()->create(['user_id' => $assignee['id']]);
-                    }
+            if (!empty($data['assignees']) && $user->hasAnyRole(['admin', 'solver'])) {
+                foreach ($data['assignees'] as $assignee) {
+                    $ticket->assignees()->create(['user_id' => $assignee['id']]);
+
+                    Notification::send(User::find($assignee['id']), new NotificationsTicketCreated($ticket));
                 }
             }
 
@@ -391,50 +396,70 @@ class Crud extends Controller
             /** @var User $user */
             $user = $request->user();
 
+            $originalStatus = $ticket->status;
+            $originalPriority = $ticket->priority;
+
+            $currentAssigneeIds = $ticket->assignees()->pluck('user_id')->toArray();
+
             if (!$user->hasAnyRole(['admin', 'solver'])) {
                 $data = collect($data)->only(['title', 'description', 'asset_id', 'is_public'])->toArray();
             }
 
             $ticket->update($data);
 
-            if ($user->hasAnyRole(['admin', 'solver'])) {
-                $currentAssigneeIds = $ticket->assignees()->pluck('user_id')->toArray();
-
+            if (isset($data['assignees']) && $user->hasAnyRole(['admin', 'solver'])) {
                 $newIds = [];
-                if (isset($data['assignees'])) {
-                    if ($data['assignees'] === '[]' || $data['assignees'] === '') {
-                        $newIds = [];
-                    } elseif (is_array($data['assignees'])) {
-                        $newIds = collect($data['assignees'])->pluck('id')->toArray();
-                    }
+                if ($data['assignees'] === '[]' || $data['assignees'] === '') {
+                    $newIds = [];
+                } elseif (is_array($data['assignees'])) {
+                    $newIds = collect($data['assignees'])->pluck('id')->toArray();
                 }
 
                 $isCurrentUserRemoving = in_array($user->id, $currentAssigneeIds) && !in_array($user->id, $newIds);
                 $willBeUnassigned = empty($newIds);
 
-                if (isset($data['assignees'])) {
-                    if ($isCurrentUserRemoving && $willBeUnassigned && count($currentAssigneeIds) === 1) {
-                        $admins = User::role('admin')->get();
-                        Notification::send($admins, new TicketUnassigned($ticket, $user));
-                    }
+                if ($isCurrentUserRemoving && $willBeUnassigned && count($currentAssigneeIds) === 1) {
+                    $admins = User::role('admin')->get();
+                    Notification::send($admins, new TicketUnassigned($ticket, $user));
+                }
 
-                    if (empty($newIds)) {
-                        $ticket->assignees()->delete();
-                    } else {
-                        $ticket->assignees()->whereNotIn('user_id', $newIds)->delete();
+                $ticket->assignees()
+                    ->whereNotIn('user_id', $newIds)
+                    ->get()
+                    ->each
+                    ->delete();
 
-                        foreach ($newIds as $userId) {
-                            $ticket->assignees()->updateOrCreate(['user_id' => $userId]);
-                        }
+                foreach ($newIds as $userId) {
+                    $assignee = $ticket->assignees()->updateOrCreate(['user_id' => $userId]);
+
+                    if ($assignee->wasRecentlyCreated) {
+                        Notification::send(User::find($userId), new NotificationsTicketAssigned($ticket));
                     }
                 }
             }
+
+            $assignees = User::whereIn(
+                'id',
+                $ticket->assignees()->pluck('user_id')
+            )->get();
+
+            Notification::send($assignees, new NotificationsTicketUpdated($ticket));
 
             if ($request->hasFile('attachments')) {
                 $this->handleAttachments($request->file('attachments'), $ticket);
             }
 
-            return redirect()->route('tickets.show', $ticket)->with('success', __('tickets.flash.updated'));
+            if (isset($data['status']) && $data['status'] !== $originalStatus) {
+                Notification::send($assignees, new NotificationsTicketStatusChanged($ticket));
+            }
+
+            if (isset($data['priority']) && $data['priority'] !== $originalPriority) {
+                Notification::send($assignees, new NotificationsTicketPriorityChanged($ticket));
+            }
+
+            return redirect()
+                ->route('tickets.show', $ticket)
+                ->with('success', __('tickets.flash.updated'));
         });
     }
 

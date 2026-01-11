@@ -25,11 +25,20 @@ class AssetFactory extends Factory
      */
     public function definition(): array
     {
+        $brands = __('factory_assets.brands');
+        $icon = $this->faker->randomElement(['server', 'laptop', 'router', 'wrench', 'cube', 'box']);
+        $typeName = __('factory_assets.types.' . $icon);
+        $title = sprintf(
+            '%s %s %s',
+            $this->faker->randomElement($brands),
+            $typeName,
+            $this->faker->bothify('##-??')
+        );
         return [
             'parent_id' => null,
-            'title' => $this->faker->words(3, true),
+            'title' => $title,
             'description' => $this->faker->optional(0.7)->sentence(),
-            'icon' => $this->faker->optional(0.3)->randomElement(['server', 'laptop', 'router', 'wrench', 'cube', 'box']),
+            'icon' => $icon,
         ];
     }
 

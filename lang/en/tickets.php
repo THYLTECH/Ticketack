@@ -166,6 +166,7 @@ return [
     ],
     'column' => [
         'title' => 'Title',
+        'description' => 'Description',
         'status' => 'Status',
         'priority' => 'Priority',
         'category' => 'Category',
