@@ -46,6 +46,8 @@ return [
             'view' => ['title' => 'View Tickets', 'description' => 'Allow access to the index page of tickets.'],
             'show' => ['title' => 'Show Ticket Details', 'description' => 'Allow viewing detailed information of a ticket.'],
             'create' => ['title' => 'Create Tickets', 'description' => 'Allow creating new tickets.'],
+            'be assigned' => ['title' => 'Be Assigned Tickets', 'description' => 'Allow being assigned to tickets and self-assign.'],
+            'assign' => ['title' => 'Assign Tickets', 'description' => 'Allow assigning tickets to other users.'],
             'update' => ['title' => 'Update Tickets', 'description' => 'Allow updating existing tickets.'],
             'delete' => ['title' => 'Delete Tickets', 'description' => 'Allow deleting tickets.'],
             'restore' => ['title' => 'Restore Tickets', 'description' => 'Allow restoring deleted tickets.'],

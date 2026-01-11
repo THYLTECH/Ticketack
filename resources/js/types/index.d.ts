@@ -85,6 +85,7 @@ export interface NavItem {
     icon?: LucideIcon | null;
     isActive?: boolean;
     external?: boolean;
+    badge?: number;
 }
 
 export interface SharedData {
@@ -93,6 +94,7 @@ export interface SharedData {
     auth: Auth;
     sidebarOpen: boolean;
     unread_notifications: number;
+    unassigned_tickets_count: number;
     [key: string]: unknown;
 }
 

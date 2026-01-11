@@ -30,6 +30,72 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Assignment
+    |--------------------------------------------------------------------------
+    */
+    'assignment' => [
+        'assigned_successfully' => 'Ticket assigned successfully.',
+        'assigned_successfully_count' => '{1} :count user assigned successfully.|[2,*] :count users assigned successfully.',
+        'already_assigned_count' => '{1} :count user was already assigned.|[2,*] :count users were already assigned.',
+        'cannot_be_assigned_count' => '{1} :count user cannot be assigned tickets.|[2,*] :count users cannot be assigned tickets.',
+        'all_already_assigned' => 'All selected users are already assigned to this ticket.',
+        'all_cannot_be_assigned' => 'None of the selected users can be assigned tickets.',
+        'no_users_assigned' => 'No users were assigned.',
+        'no_users_selected' => 'Please select at least one user.',
+        'self_assigned_successfully' => 'You have been assigned to this ticket.',
+        'already_assigned' => 'This ticket is already assigned to this user.',
+        'user_cannot_be_assigned' => 'This user cannot be assigned tickets.',
+
+        'page_title' => 'Ticket Assignment',
+        'page_description' => 'Manage unassigned tickets and assign them based on priority and urgency.',
+
+        'dialog' => [
+            'title' => 'Assign Ticket',
+            'description' => 'Select a user to assign to this ticket.',
+            'search_label' => 'Search user',
+            'search_placeholder' => 'Search by name or email...',
+            'no_users' => 'No users found.',
+            'selected_count' => ':count selected',
+        ],
+
+        'stats' => [
+            'total_unassigned' => 'Total Unassigned',
+            'critical_unassigned' => 'Critical Priority',
+            'high_unassigned' => 'High Priority',
+            'medium_unassigned' => 'Medium Priority',
+            'low_unassigned' => 'Low Priority',
+            'oldest_unassigned' => 'Oldest Unassigned',
+            'days' => 'days',
+        ],
+
+        'actions' => [
+            'assign' => 'Assign',
+            'assign_short' => 'Assign',
+            'self_assign' => 'Assign to Me',
+            'self_assign_short' => 'Me',
+            'select_user' => 'Select a user...',
+        ],
+
+        'table' => [
+            'title' => 'Unassigned Tickets',
+            'empty' => 'No unassigned tickets found.',
+            'empty_description' => 'All tickets have been assigned or there are no tickets yet.',
+            'columns' => [
+                'id' => 'ID',
+                'title' => 'Title',
+                'priority' => 'Priority',
+                'status' => 'Status',
+                'category' => 'Category',
+                'author' => 'Author',
+                'created_at' => 'Created',
+                'age' => 'Age',
+                'actions' => 'Actions',
+            ],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Global Actions & Labels
     |--------------------------------------------------------------------------
     */
@@ -137,6 +203,7 @@ return [
                 'description' => 'Select users to assign to this ticket.',
                 'cancel' => 'Cancel',
                 'assign_to_me' => 'Assign to me',
+                'add_users' => 'Add User'
             ],
         ],
         'form' => [
@@ -384,7 +451,7 @@ return [
                             'delete' => 'Yes, delete category',
                         ],
                     ],
-                ], 
+                ],
                 'sheet' => [
                     'title' => 'Manage categories',
                     'description' => 'Create, edit, and delete ticket categories to organize your support tickets effectively.',
@@ -429,7 +496,7 @@ return [
                             'delete' => 'Yes, delete priority',
                         ],
                     ],
-                ], 
+                ],
                 'sheet' => [
                     'title' => 'Manage priorities',
                     'description' => 'Create, edit, and delete ticket priorities to organize your support tickets effectively.',
@@ -485,7 +552,7 @@ return [
                             'delete' => 'Yes, delete status',
                         ],
                     ],
-                ], 
+                ],
                 'sheet' => [
                     'title' => 'Manage statuses',
                     'description' => 'Create, edit, and delete ticket statuses to organize your support tickets effectively.',

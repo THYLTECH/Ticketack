@@ -50,6 +50,7 @@ import {
     Sparkles,
     Ticket,
     Trash2,
+    UserCheck,
     Users,
 } from 'lucide-react';
 import { type ComponentPropsWithoutRef } from 'react';
@@ -61,7 +62,7 @@ interface UserMenuContentProps {
 
 export function AppSidebar() {
     const __ = useTrans();
-    const { auth } = usePage<SharedData>().props;
+    const { auth, unassigned_tickets_count } = usePage<SharedData>().props;
 
     const mainNavItems: NavItem[] = [
         {
@@ -102,6 +103,15 @@ export function AppSidebar() {
             title: __('app.layout.sidebar.menugroups.platform.items.tickets'),
             href: route('tickets.index'),
             icon: Ticket,
+        });
+    }
+
+    if (userHasPermission({ user: auth.user, permission: 'be assigned tickets' })) {
+        mainNavItems.push({
+            title: __('app.layout.sidebar.menugroups.platform.items.assignment'),
+            href: route('tickets.assignment.index'),
+            icon: UserCheck,
+            badge: unassigned_tickets_count > 0 ? unassigned_tickets_count : undefined,
         });
     }
 
@@ -347,9 +357,24 @@ function NavMain({ items = [] }: { items: NavItem[] }) {
                                 isActive={isActive}
                                 tooltip={{ children: item.title }}
                             >
-                                <Link href={item.href} prefetch>
+                                <Link
+                                    href={item.href}
+                                    prefetch
+                                    className="relative"
+                                >
                                     {item.icon && <item.icon />}
                                     <span>{item.title}</span>
+
+                                    {item.badge && (
+                                        <Badge
+                                            variant="default"
+                                            className="/* --- Styles pour le mode fermé (Sidebar Collapsed) --- */ ml-auto h-5 min-w-5 rounded-full px-1.5 text-xs font-medium transition-all group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:top-0.5 group-data-[collapsible=icon]:right-0.5 group-data-[collapsible=icon]:z-50 group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:h-4 group-data-[collapsible=icon]:w-4 group-data-[collapsible=icon]:min-w-0 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:text-[10px] group-data-[collapsible=icon]:shadow-sm"
+                                        >
+                                            {Number(item.badge) > 99
+                                                ? '99+'
+                                                : item.badge}
+                                        </Badge>
+                                    )}
                                 </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>

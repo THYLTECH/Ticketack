@@ -173,6 +173,7 @@ return [
             'current' => 'Entries',
         ],
         'timezone' => 'Timezone',
+        'description' => 'View and manage your time entries.'
     ],
     'pagination' => [
         'showing' => 'Showing',

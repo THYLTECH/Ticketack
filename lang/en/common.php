@@ -12,6 +12,10 @@ return [
     'flash' => [
         'error' => 'An error occurred',
     ],
+
+    'all' => 'All',
+    'cancel' => 'Cancel',
+
     'filters' => [
         'title' => 'Filters',
         'reset' => 'Reset',

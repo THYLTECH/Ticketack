@@ -155,7 +155,7 @@ export default function KnowledgeSearch({
                 <div className="relative border-border/40 px-4 py-3 sm:px-6 lg:px-8">
                     <div className="absolute inset-0 -z-10 bg-[radial-gradient(rgba(0,0,0,0.05)_1px,transparent_1px)] bg-size-[16px_16px] dark:bg-[radial-gradient(rgba(255,255,255,0.05)_1px,transparent_1px)]"></div>
 
-                    <div className="mx-auto max-w-2xl text-center">
+                    <div className="mx-auto max-w-full text-center">
                         <Badge
                             variant="outline"
                             className="mb-6 border-primary/20 bg-primary/10 text-primary"
@@ -167,7 +167,7 @@ export default function KnowledgeSearch({
                         <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
                             {__('knowledge.pages.search.hero_title')}
                         </h1>
-                        <p className="mx-auto mt-4 max-w-xl text-base text-muted-foreground">
+                        <p className="mx-auto mt-4 max-w-full text-base text-muted-foreground">
                             {__('knowledge.pages.search.hero_description')}
                         </p>
 

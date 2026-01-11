@@ -6,10 +6,9 @@ namespace App\Policies;
 
 use App\Models\Ticket as ModelsTicket;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 /**
- * Policy class for managing permissions related to Ticket model.
+ * Policy class for managing permissions related to a Ticket model.
  *
  * This class defines the authorization logic for various actions
  * that can be performed on Ticket instances.
@@ -67,7 +66,7 @@ class Ticket
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, ModelsTicket $ticket): bool
+    public function delete(User $user): bool
     {
         return $user->can('delete tickets');
     }
@@ -75,7 +74,7 @@ class Ticket
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, ModelsTicket $ticket): bool
+    public function restore(User $user): bool
     {
         return $user->can('restore tickets');
     }
@@ -83,8 +82,17 @@ class Ticket
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, ModelsTicket $ticket): bool
+    public function forceDelete(User $user): bool
     {
         return $user->can('force delete tickets');
     }
+
+    /**
+     * Determine whether the user can assign a ticket to another user.
+     */
+    public function assign(User $user): bool
+    {
+        return $user->can('assign tickets');
+    }
+
 }

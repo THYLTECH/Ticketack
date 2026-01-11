@@ -1,16 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
     Tooltip,
@@ -18,12 +8,12 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { UserAssignmentDialog } from '@/components/user-assignment-dialog';
 import { useInitials } from '@/hooks/use-initials';
 import { useTrans } from '@/lib/translation';
-import { cn } from '@/lib/utils';
 import { SharedData, User } from '@/types';
 import { usePage } from '@inertiajs/react';
-import { Check, Plus, Search, UserPlus, X } from 'lucide-react';
+import { Plus, UserPlus, X } from 'lucide-react';
 import * as React from 'react';
 import { toast } from 'sonner';
 import { TicketFormData } from './types';
@@ -53,8 +43,6 @@ export function TicketAssignees({
     const getInitials = useInitials();
 
     const [assignDialogOpen, setAssignDialogOpen] = React.useState(false);
-    const [searchQuery, setSearchQuery] = React.useState('');
-    const [selectedUserIds, setSelectedUserIds] = React.useState<number[]>([]);
 
     const isAdmin =
         auth.user.roles?.some((role) => role.name === 'admin') ?? false;
@@ -72,15 +60,6 @@ export function TicketAssignees({
         return users.filter((u) => data.assignees.includes(u.id));
     }, [users, data.assignees]);
 
-    const availableUsers = React.useMemo(() => {
-        return users.filter((u) => {
-            const isNotAssigned = !data.assignees.includes(u.id);
-            const matchesSearch =
-                u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                u.email.toLowerCase().includes(searchQuery.toLowerCase());
-            return isNotAssigned && matchesSearch;
-        });
-    }, [users, data.assignees, searchQuery]);
 
     const handleAssignToMe = () => {
         if (isAssignedToMe) return;
@@ -93,19 +72,8 @@ export function TicketAssignees({
         );
     };
 
-    const handleToggleUserSelection = (userId: number) => {
-        setSelectedUserIds((prev) =>
-            prev.includes(userId)
-                ? prev.filter((id) => id !== userId)
-                : [...prev, userId],
-        );
-    };
-
-    const handleConfirmAssignment = () => {
-        setData('assignees', [...data.assignees, ...selectedUserIds]);
-        setAssignDialogOpen(false);
-        setSearchQuery('');
-        setSelectedUserIds([]);
+    const handleConfirmAssignment = (userIds: number[]) => {
+        setData('assignees', [...data.assignees, ...userIds]);
         toast.success(__('tickets.pages.form.users_tab.notifications.added'));
     };
 
@@ -184,162 +152,46 @@ export function TicketAssignees({
                     )}
 
                     {!disabled && canAddOthers && (
-                        <Dialog
-                            open={assignDialogOpen}
-                            onOpenChange={setAssignDialogOpen}
-                        >
-                            <DialogTrigger asChild>
-                                <Button
-                                    variant="outline"
-                                    size="icon"
-                                    className="h-8 w-8 rounded-full border-dashed"
-                                    type="button"
-                                >
-                                    <Plus className="h-4 w-4" />
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent className="flex max-h-[90vh] flex-col gap-0 p-0 sm:max-w-md">
-                                <DialogHeader className="border-b px-6 py-4">
-                                    <DialogTitle>
-                                        {__(
-                                            'tickets.pages.create.assign.title',
-                                        )}
-                                    </DialogTitle>
-                                    <DialogDescription>
-                                        {__(
-                                            'tickets.pages.create.assign.description',
-                                        )}
-                                    </DialogDescription>
-                                </DialogHeader>
-
-                                <div className="border-b px-4 py-3">
-                                    <div className="relative flex items-center">
-                                        <Search className="absolute left-2 h-4 w-4 text-muted-foreground" />
-                                        <Input
-                                            placeholder={__(
-                                                'tickets.pages.show.tabs.logs_content.search_placeholder',
+                        <>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            className="h-8 w-8 rounded-full border-dashed"
+                                            type="button"
+                                            onClick={() => setAssignDialogOpen(true)}
+                                        >
+                                            <Plus className="h-4 w-4" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>
+                                            {__(
+                                                'tickets.pages.create.assign.add_users',
                                             )}
-                                            className="border-none pl-8 shadow-none focus-visible:ring-0"
-                                            value={searchQuery}
-                                            onChange={(e) =>
-                                                setSearchQuery(e.target.value)
-                                            }
-                                            autoFocus
-                                        />
-                                    </div>
-                                </div>
+                                        </p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
 
-                                <div className="flex-1 overflow-y-auto p-2">
-                                    {availableUsers.length === 0 ? (
-                                        <div className="flex h-24 flex-col items-center justify-center text-center text-sm text-muted-foreground">
-                                            <p>
-                                                {__(
-                                                    'tickets.pages.show.tabs.logs_content.no_results',
-                                                )}
-                                            </p>
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-1">
-                                            {availableUsers.map((user) => {
-                                                const isSelected =
-                                                    selectedUserIds.includes(
-                                                        user.id,
-                                                    );
-                                                return (
-                                                    <div
-                                                        key={user.id}
-                                                        className={cn(
-                                                            'group flex cursor-pointer items-center justify-between rounded-md p-2 hover:bg-muted',
-                                                            isSelected &&
-                                                                'bg-muted/80 ring-1 ring-primary/20 ring-inset',
-                                                        )}
-                                                        onClick={() =>
-                                                            handleToggleUserSelection(
-                                                                user.id,
-                                                            )
-                                                        }
-                                                    >
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="relative">
-                                                                <Avatar className="h-9 w-9 border">
-                                                                    <AvatarImage
-                                                                        src={
-                                                                            user
-                                                                                .avatar
-                                                                                ?.url ??
-                                                                            undefined
-                                                                        }
-                                                                    />
-                                                                    <AvatarFallback className="text-xs">
-                                                                        {getInitials(
-                                                                            user.name,
-                                                                        )}
-                                                                    </AvatarFallback>
-                                                                </Avatar>
-                                                                {isSelected && (
-                                                                    <div className="absolute -right-1 -bottom-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm ring-2 ring-background">
-                                                                        <Check className="h-2.5 w-2.5" />
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                            <div className="flex flex-col">
-                                                                <span className="text-sm font-medium">
-                                                                    {user.name}
-                                                                </span>
-                                                                <span className="text-xs text-muted-foreground">
-                                                                    {user.email}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                        {isSelected && (
-                                                            <Check className="h-4 w-4 text-primary" />
-                                                        )}
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
-                                </div>
-
-                                <DialogFooter className="border-t p-4">
-                                    <div className="flex w-full items-center justify-between">
-                                        <div className="text-xs text-muted-foreground">
-                                            {selectedUserIds.length > 0
-                                                ? `${selectedUserIds.length} selected`
-                                                : ''}
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() =>
-                                                    setAssignDialogOpen(false)
-                                                }
-                                                type="button"
-                                            >
-                                                {__(
-                                                    'tickets.pages.create.assign.cancel',
-                                                )}
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                onClick={
-                                                    handleConfirmAssignment
-                                                }
-                                                type="button"
-                                                disabled={
-                                                    selectedUserIds.length === 0
-                                                }
-                                            >
-                                                {__(
-                                                    'tickets.pages.form.users_tab.add_button',
-                                                )}
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </DialogFooter>
-                            </DialogContent>
-                        </Dialog>
+                            <UserAssignmentDialog
+                                open={assignDialogOpen}
+                                onOpenChange={setAssignDialogOpen}
+                                users={users}
+                                onConfirm={handleConfirmAssignment}
+                                excludedUserIds={data.assignees}
+                                multiple={true}
+                                title={__('tickets.pages.create.assign.title')}
+                                description={__('tickets.pages.create.assign.description')}
+                                searchPlaceholder={__(
+                                    'tickets.pages.show.tabs.logs_content.search_placeholder',
+                                )}
+                                confirmText={__('tickets.pages.form.users_tab.add_button')}
+                                cancelText={__('tickets.pages.create.assign.cancel')}
+                            />
+                        </>
                     )}
                 </div>
             </div>
