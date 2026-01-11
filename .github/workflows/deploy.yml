@@ -29,10 +29,22 @@ jobs:
             git fetch origin ${{ github.ref_name }}
             git reset --hard origin/${{ github.ref_name }}
 
+            echo "Pre-setting Laravel permissions..."
+            sudo chown -R www-data:www-data storage bootstrap/cache
+            sudo chmod -R 775 storage bootstrap/cache
+
             echo "Rebuilding containers..."
             docker compose up -d --build --force-recreate
 
+            echo "Waiting for container stability..."
             sleep 10
+
+            # Check if app is actually running before trying exec
+            if [ -z "$(docker compose ps -q app)" ]; then
+              echo "ERROR: App container failed to start. Printing logs:"
+              docker compose logs app
+              exit 1
+            fi
 
             echo "Running Laravel commands..."
             docker compose exec -T app sh -c "
@@ -48,8 +60,5 @@ jobs:
               php artisan route:cache &&
               php artisan view:cache
             "
-
-            echo "Restoring permissions for Laravel..."
-            sudo chown -R www-data:www-data storage bootstrap/cache
 
             echo "Deployment finished successfully!"
