@@ -12,6 +12,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -83,7 +84,7 @@ export function TicketTable({ tickets, auth }: Props) {
         router.get(
             route('tickets.index'),
             Object.fromEntries(newParams.entries()),
-            { preserveState: true, replace: true },
+            { preserveState: true, replace: true, preserveScroll: true },
         );
     };
 
@@ -94,6 +95,7 @@ export function TicketTable({ tickets, auth }: Props) {
     const confirmArchive = () => {
         if (deleteConfirm.id) {
             router.delete(route('tickets.destroy', deleteConfirm.id), {
+                preserveScroll: true,
                 onFinish: () => setDeleteConfirm({ isOpen: false }),
             });
         }
@@ -121,7 +123,182 @@ export function TicketTable({ tickets, auth }: Props) {
 
     return (
         <div className="w-full space-y-4">
-            <div className="overflow-hidden rounded-lg border bg-background shadow-sm">
+            {/* Mobile Card View */}
+            <div className="block space-y-3 lg:hidden">
+                {tickets.data.map((ticket) => {
+                    const validAssignees = ticket.assignees?.filter((a) => a.user);
+                    const isAdmin = auth.user.roles?.some((r) => r.name === 'admin');
+                    const isAssigned = ticket.assignees?.some((a) => a.user?.id === auth.user.id);
+                    const isAuthor = ticket.user?.id === auth.user.id;
+                    const canArchive = isAdmin || isAssigned;
+
+                    return (
+                        <Card
+                            key={ticket.id}
+                            className="group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 border-border/60 bg-linear-to-br from-card to-card/80 cursor-pointer"
+                            onClick={() => router.get(route('tickets.show', ticket.id))}
+                        >
+                            {/* Subtle shine effect on hover */}
+                            <div className="absolute inset-0 bg-linear-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                            <CardContent className="relative p-4 space-y-3">
+                                {/* Header with ID and Status */}
+                                <div className="flex items-start justify-between gap-2">
+                                    <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-muted/40 group-hover:bg-muted/60 transition-colors min-w-0">
+                                        <TicketIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                                        <span className="font-mono text-xs font-semibold text-foreground truncate">
+                                            {ticket.id}
+                                        </span>
+                                    </div>
+                                    {ticket.status && (
+                                        <Badge
+                                            variant="outline"
+                                            className="text-xs shadow-sm shrink-0"
+                                            style={{
+                                                borderColor: ticket.status.color,
+                                                color: ticket.status.color,
+                                            }}
+                                        >
+                                            {ticket.status.title}
+                                        </Badge>
+                                    )}
+                                </div>
+
+                                {/* Title */}
+                                <h3 className="font-semibold text-sm leading-tight line-clamp-2 group-hover:text-primary transition-colors">
+                                    {ticket.title}
+                                </h3>
+
+                                {/* Metadata badges */}
+                                <div className="flex flex-wrap gap-2">
+                                    {ticket.priority && (
+                                        <Badge
+                                            variant="outline"
+                                            className="gap-1.5 text-xs shadow-sm"
+                                            style={{ borderColor: ticket.priority.color }}
+                                        >
+                                            <Flag className="h-3 w-3" style={{ color: ticket.priority.color }} />
+                                            <span style={{ color: ticket.priority.color }}>
+                                                {ticket.priority.title}
+                                            </span>
+                                        </Badge>
+                                    )}
+                                    {ticket.category && (
+                                        <Badge
+                                            variant="outline"
+                                            className="text-xs shadow-sm"
+                                            style={{
+                                                borderColor: ticket.category.color,
+                                                color: ticket.category.color,
+                                            }}
+                                        >
+                                            {ticket.category.title}
+                                        </Badge>
+                                    )}
+                                </div>
+
+                                {/* Assignees */}
+                                {validAssignees && validAssignees.length > 0 && (
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex -space-x-2">
+                                            {validAssignees.slice(0, 3).map((assignee) => (
+                                                <TooltipProvider key={assignee.user.id}>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Avatar className="h-6 w-6 border-2 border-background">
+                                                                <AvatarImage
+                                                                    src={assignee.user.avatar?.url}
+                                                                    alt={assignee.user.name}
+                                                                />
+                                                                <AvatarFallback className="text-[10px]">
+                                                                    {assignee.user.name.substring(0, 2).toUpperCase()}
+                                                                </AvatarFallback>
+                                                            </Avatar>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p className="text-xs">{assignee.user.name}</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            ))}
+                                            {validAssignees.length > 3 && (
+                                                <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-background bg-muted text-[10px] font-medium">
+                                                    +{validAssignees.length - 3}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Footer with author and actions */}
+                                <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                                    <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/40 text-xs text-muted-foreground">
+                                        <Avatar className="h-4 w-4">
+                                            <AvatarImage src={ticket.user?.avatar?.url} alt={ticket.user?.name} />
+                                            <AvatarFallback className="text-[8px]">
+                                                {ticket.user?.name.substring(0, 2).toUpperCase()}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <span className="font-medium">{ticket.user?.name}</span>
+                                    </div>
+
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-8 w-8 text-muted-foreground/60 hover:text-foreground"
+                                            >
+                                                <MoreHorizontal className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            {userHasPermission({ user: auth.user, permission: 'show tickets' }) && (
+                                                <DropdownMenuItem onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    router.get(route('tickets.show', ticket.id));
+                                                }}>
+                                                    <Eye className="mr-2 h-4 w-4" />
+                                                    {__('tickets.pages.show.head_title')}
+                                                </DropdownMenuItem>
+                                            )}
+                                            {(isAdmin || isAuthor || isAssigned) &&
+                                                userHasPermission({ user: auth.user, permission: 'update tickets' }) && (
+                                                    <DropdownMenuItem onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        router.get(route('tickets.edit', ticket.id));
+                                                    }}>
+                                                        <Pencil className="mr-2 h-4 w-4" />
+                                                        {__('tickets.pages.form.buttons.edit')}
+                                                    </DropdownMenuItem>
+                                                )}
+                                            {canArchive &&
+                                                userHasPermission({ user: auth.user, permission: 'delete tickets' }) && (
+                                                    <>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem
+                                                            className="text-destructive focus:text-destructive"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                initiateArchive(ticket.id);
+                                                            }}
+                                                        >
+                                                            <Trash className="mr-2 h-4 w-4" />
+                                                            {__('tickets.pages.form.buttons.delete')}
+                                                        </DropdownMenuItem>
+                                                    </>
+                                                )}
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    );
+                })}
+            </div>
+
+            {/* Desktop Table View */}
+            <div className="hidden lg:block overflow-hidden rounded-lg border bg-background shadow-sm">
                 <div className="relative overflow-x-auto">
                     <Table className="min-w-275">
                         <TableHeader className="bg-muted/30">

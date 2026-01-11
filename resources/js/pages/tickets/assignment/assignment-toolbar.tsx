@@ -74,6 +74,7 @@ export function AssignmentToolbar({
             router.get(route('tickets.assignment.index'), newFilters, {
                 preserveState: true,
                 replace: true,
+                preserveScroll: true,
             });
         } else if (!range) {
             const newFilters = { ...filters };
@@ -82,6 +83,7 @@ export function AssignmentToolbar({
             router.get(route('tickets.assignment.index'), rest, {
                 preserveState: true,
                 replace: true,
+                preserveScroll: true,
             });
         }
     };

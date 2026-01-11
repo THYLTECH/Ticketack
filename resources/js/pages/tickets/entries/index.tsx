@@ -113,7 +113,10 @@ export default function EntriesIndex({
     const resetFilters = () => {
         setFilterValues({});
         setDateRange(undefined);
-        router.get(route('tickets.entries.index'));
+        router.get(route('tickets.entries.index'), {}, {
+            preserveState: true,
+            preserveScroll: true,
+        });
     };
 
     return (

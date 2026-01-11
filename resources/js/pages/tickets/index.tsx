@@ -98,6 +98,7 @@ export default function Index({
             router.get(route('tickets.index'), newFilters, {
                 preserveState: true,
                 replace: true,
+                preserveScroll: true,
             });
         },
         [filters, searchTerm],
@@ -108,7 +109,7 @@ export default function Index({
             router.get(
                 route('tickets.index'),
                 { ...filters, search: debouncedSearch },
-                { preserveState: true, replace: true },
+                { preserveState: true, replace: true, preserveScroll: true },
             );
         }
     }, [debouncedSearch, filters]);

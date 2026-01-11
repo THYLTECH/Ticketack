@@ -85,6 +85,7 @@ export default function Manage({
             router.get(route('tickets.manage'), newFilters, {
                 preserveState: true,
                 replace: true,
+                preserveScroll: true,
             });
         },
         [filters, searchTerm],
@@ -95,7 +96,7 @@ export default function Manage({
             router.get(
                 route('tickets.manage'),
                 { ...filters, search: debouncedSearch },
-                { preserveState: true, replace: true },
+                { preserveState: true, replace: true, preserveScroll: true },
             );
         }
     }, [debouncedSearch, filters]);

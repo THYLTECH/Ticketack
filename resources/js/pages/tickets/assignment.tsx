@@ -91,6 +91,7 @@ export default function TicketAssignment({
             router.get(route('tickets.assignment.index'), newFilters, {
                 preserveState: true,
                 replace: true,
+                preserveScroll: true,
             });
         },
         [filters, searchTerm],
@@ -104,6 +105,7 @@ export default function TicketAssignment({
         router.get(route('tickets.assignment.index'), {}, {
             preserveState: true,
             replace: true,
+            preserveScroll: true,
         });
     }, []);
 
@@ -128,6 +130,7 @@ export default function TicketAssignment({
                 router.get(route('tickets.assignment.index'), rest, {
                     preserveState: true,
                     replace: true,
+                    preserveScroll: true,
                 });
             } else {
                 newFilters.search = debouncedSearch;
@@ -135,6 +138,7 @@ export default function TicketAssignment({
                     {
                     preserveState: true,
                     replace: true,
+                    preserveScroll: true,
                 });
             }
         }
