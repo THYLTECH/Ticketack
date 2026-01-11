@@ -23,7 +23,14 @@ class Store extends FormRequest
             'is_referenced'     => ['boolean'],
             'detailed_solution' => ['nullable', 'string'],
             'status_id'         => ['nullable', 'integer', 'exists:ticket_statuses,id'],
-            'assignees'         => ['nullable', 'array'],
+            'assignees'         => ['nullable', function ($attribute, $value, $fail) {
+                if (is_string($value) && ($value === '[]' || $value === '')) {
+                    return;
+                }
+                if (!is_array($value)) {
+                    $fail('Le champ assignees doit être un tableau.');
+                }
+            }],
             'assignees.*.id'    => ['required', 'integer', 'exists:users,id'],
 
             'priority_id'       => ['required', 'integer', 'exists:ticket_priorities,id'],

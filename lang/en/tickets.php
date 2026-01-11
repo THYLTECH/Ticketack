@@ -275,6 +275,8 @@ return [
                     'added' => 'Assignee added successfully.',
                     'removed' => 'Assignee removed successfully.',
                     'assigned_to_self' => 'Ticket assigned to yourself.',
+                    'last_assignee_removed' => 'You have unassigned yourself from this ticket.',
+                    'admins_notified' => 'The ticket is now unassigned. Administrators will be notified.',
                 ],
                 'table' => [
                     'assignee' => 'Assignee',

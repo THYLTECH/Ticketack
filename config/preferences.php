@@ -92,11 +92,18 @@ return [
                 // 'vonage',
             ],
         ],
+        'tickets' => [
+            'ticket_unassigned' => [
+                'database',
+                'mail',
+                // 'vonage',
+            ],
+        ],
     ],
 
     'notification_channels' => [
-        'mail', 
-        'database', 
+        'mail',
+        'database',
         'vonage',
     ]
 ];

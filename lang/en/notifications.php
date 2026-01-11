@@ -8,6 +8,12 @@ return [
         'delete_success' => 'Notification deleted successfully.',
         'delete_many_success' => 'Notifications deleted successfully.',
     ],
+    'ticket_unassigned' => [
+        'title' => 'Ticket Unassigned',
+        'message' => ':user has unassigned themselves from ticket #:ticket_id (:ticket). The ticket now has no assignees.',
+        'action' => 'View Ticket',
+        'sms' => ':user unassigned from ticket #:ticket_id. No assignees remaining.',
+    ],
 
     /*
     |--------------------------------------------------------------------------

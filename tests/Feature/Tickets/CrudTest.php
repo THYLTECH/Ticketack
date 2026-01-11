@@ -781,4 +781,48 @@ test('store and update handle is_public and is_referenced flags', function () {
         ->and($ticket->is_referenced)->toBeFalse();
 });
 
+test('update notifies admins when last assignee removes themselves', function () {
+    // Create an admin user
+    $admin = User::factory()->create();
+    $admin->assignRole('admin');
+
+    // Create a solver user who will unassign themselves
+    $solver = User::factory()->create();
+    $solver->assignRole('solver');
+    $solver->givePermissionTo(['update tickets', 'view tickets', 'show tickets']);
+
+    // Create a ticket assigned only to the solver
+    $ticket = Ticket::factory()->create([
+        'priority_id' => $this->priority->id,
+        'category_id' => $this->category->id,
+    ]);
+
+    $ticket->assignees()->create(['user_id' => $solver->id]);
+
+    // Act as the solver and remove themselves from assignees
+    actingAs($solver);
+
+    \Illuminate\Support\Facades\Notification::fake();
+
+    put(route('tickets.update', $ticket), [
+        'title' => $ticket->title,
+        'description' => $ticket->description,
+        'priority_id' => $this->priority->id,
+        'category_id' => $this->category->id,
+        'assignees' => [] // Empty array = removing all assignees
+    ]);
+
+    // Assert the ticket has no assignees
+    expect($ticket->fresh()->assignees)->toHaveCount(0);
+
+    // Assert notification was sent to admin
+    \Illuminate\Support\Facades\Notification::assertSentTo(
+        $admin,
+        \App\Notifications\TicketUnassigned::class,
+        function ($notification) use ($ticket, $solver) {
+            return $notification->ticket->id === $ticket->id
+                && $notification->unassignedUser->id === $solver->id;
+        }
+    );
+});
 

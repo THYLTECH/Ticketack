@@ -15,12 +15,14 @@ use App\Models\TicketPriority;
 use App\Models\TicketSchedule;
 use App\Models\TicketStatus;
 use App\Models\User;
+use App\Notifications\TicketUnassigned;
 use App\Services\Knowledge\VectorSearchService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -341,9 +343,11 @@ class Crud extends Controller
                 'asset_id' => $data['asset_id'] ?? null,
             ]);
 
-            if (!empty($data['assignees']) && $user->hasAnyRole(['admin', 'solver'])) {
-                foreach ($data['assignees'] as $assignee) {
-                    $ticket->assignees()->create(['user_id' => $assignee['id']]);
+            if (isset($data['assignees']) && $user->hasAnyRole(['admin', 'solver'])) {
+                if (is_array($data['assignees']) && !empty($data['assignees'])) {
+                    foreach ($data['assignees'] as $assignee) {
+                        $ticket->assignees()->create(['user_id' => $assignee['id']]);
+                    }
                 }
             }
 
@@ -393,12 +397,36 @@ class Crud extends Controller
 
             $ticket->update($data);
 
-            if (isset($data['assignees']) && $user->hasAnyRole(['admin', 'solver'])) {
-                $newIds = collect($data['assignees'])->pluck('id')->toArray();
-                $ticket->assignees()->whereNotIn('user_id', $newIds)->get()->each->delete();
+            if ($user->hasAnyRole(['admin', 'solver'])) {
+                $currentAssigneeIds = $ticket->assignees()->pluck('user_id')->toArray();
 
-                foreach ($newIds as $userId) {
-                    $ticket->assignees()->updateOrCreate(['user_id' => $userId]);
+                $newIds = [];
+                if (isset($data['assignees'])) {
+                    if ($data['assignees'] === '[]' || $data['assignees'] === '') {
+                        $newIds = [];
+                    } elseif (is_array($data['assignees'])) {
+                        $newIds = collect($data['assignees'])->pluck('id')->toArray();
+                    }
+                }
+
+                $isCurrentUserRemoving = in_array($user->id, $currentAssigneeIds) && !in_array($user->id, $newIds);
+                $willBeUnassigned = empty($newIds);
+
+                if (isset($data['assignees'])) {
+                    if ($isCurrentUserRemoving && $willBeUnassigned && count($currentAssigneeIds) === 1) {
+                        $admins = User::role('admin')->get();
+                        Notification::send($admins, new TicketUnassigned($ticket, $user));
+                    }
+
+                    if (empty($newIds)) {
+                        $ticket->assignees()->delete();
+                    } else {
+                        $ticket->assignees()->whereNotIn('user_id', $newIds)->delete();
+
+                        foreach ($newIds as $userId) {
+                            $ticket->assignees()->updateOrCreate(['user_id' => $userId]);
+                        }
+                    }
                 }
             }
 

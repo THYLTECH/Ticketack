@@ -78,11 +78,24 @@ export function TicketAssignees({
     };
 
     const handleRemoveUser = (userId: number) => {
+        const isLastAssignee = data.assignees.length === 1;
+        const isRemovingSelf = userId === auth.user.id;
+
         setData(
             'assignees',
             data.assignees.filter((id) => id !== userId),
         );
-        toast.success(__('tickets.pages.form.users_tab.notifications.removed'));
+
+        if (isLastAssignee && isRemovingSelf) {
+            toast.info(
+                __('tickets.pages.form.users_tab.notifications.last_assignee_removed'),
+                {
+                    description: __('tickets.pages.form.users_tab.notifications.admins_notified'),
+                }
+            );
+        } else {
+            toast.success(__('tickets.pages.form.users_tab.notifications.removed'));
+        }
     };
 
     return (
