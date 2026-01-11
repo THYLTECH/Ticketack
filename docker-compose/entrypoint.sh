@@ -3,6 +3,9 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
+# Mark the repository as safe for git operations
+git config --global --add safe.directory /var/www/html
+
 # dependency check
 echo "Vérification des dépendances Composer..."
 composer install --no-progress --no-interaction
@@ -28,6 +31,13 @@ fi
 # 3. Creating symbolic storage link (storage:link)
 echo "Création du lien de stockage symbolique..."
 php artisan storage:link
+
+# 3a. Wait for Database to be ready
+echo "Attente de la base de données..."
+until php -r "try { new PDO('mysql:host=db;port=3306', 'ticketack', 'secret'); } catch (PDOException \$e) { exit(1); }"; do
+  echo "Base de données indisponible - nouvelle tentative dans 2s..."
+  sleep 2
+done
 
 # 3b. Run Migrations
 #echo "Lancement des migrations de base de données..."
