@@ -28,13 +28,13 @@ export function Toolbar({ children, className, ...props }: ToolbarProps) {
 export function ToolbarLabel({ label }: { label: string }) {
     return (
         <>
-            <div className="ml-2 hidden items-center gap-2 text-sm font-medium text-muted-foreground md:flex">
+            <div className="ml-2 flex items-center gap-2 text-sm font-medium text-muted-foreground">
                 <ListFilter className="h-4 w-4" />
                 <span>{label}</span>
             </div>
             <Separator
                 orientation="vertical"
-                className="mr-2 hidden h-6 md:block"
+                className="mr-2 h-6"
             />
         </>
     );

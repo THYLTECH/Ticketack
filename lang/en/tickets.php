@@ -66,6 +66,12 @@ return [
             'low_unassigned' => 'Low Priority',
             'oldest_unassigned' => 'Oldest Unassigned',
             'days' => 'days',
+            'total' => 'Total Tickets',
+            'open' => 'Open',
+            'in_progress' => 'In Progress',
+            'resolved' => 'Resolved',
+            'avg_resolution' => 'Avg Resolution',
+            'assigned_to_me' => 'Assigned to Me',
         ],
 
         'actions' => [
@@ -92,6 +98,29 @@ return [
                 'actions' => 'Actions',
             ],
         ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Statistics
+    |--------------------------------------------------------------------------
+    */
+    'stats' => [
+        'total' => 'Total Tickets',
+        'open' => 'Open',
+        'unassigned' => 'Unassigned',
+        'resolved' => 'Closed',
+        'avg_resolution' => 'Avg Resolution',
+        'assigned_to_me' => 'Assigned to Me',
+        'days' => 'days',
+
+        // Descriptions for tooltips
+        'total_description' => 'Total number of tickets visible to you based on your permissions.',
+        'open_description' => 'Tickets that are not closed yet or without status.',
+        'unassigned_description' => 'Tickets that have not been assigned to any user yet. These require attention.',
+        'resolved_description' => 'Tickets that have been closed.',
+        'avg_resolution_description' => 'Average time (in days) to close a ticket from creation date.',
+        'assigned_to_me_description' => 'Number of tickets currently assigned to you (open or closed).',
     ],
 
     /*

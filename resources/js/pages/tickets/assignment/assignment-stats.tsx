@@ -98,7 +98,7 @@ export function AssignmentStats({ stats }: AssignmentStatsProps) {
                             </CardTitle>
                             <div
                                 className={cn(
-                                    'flex h-9 w-9 items-center justify-center rounded-lg border',
+                                    'flex h-9 w-9 items-center justify-center rounded-lg border shrink-0',
                                     isPrimary
                                         ? 'border-primary/20 bg-background text-primary'
                                         : 'border-border/50 text-muted-foreground',
@@ -119,7 +119,7 @@ export function AssignmentStats({ stats }: AssignmentStatsProps) {
                             <div className="flex flex-col gap-1">
                                 <div
                                     className={cn(
-                                        'truncate text-2xl font-bold tracking-tight',
+                                        'text-2xl font-bold tracking-tight',
                                         isPrimary ? 'text-primary' : 'text-foreground',
                                     )}
                                 >

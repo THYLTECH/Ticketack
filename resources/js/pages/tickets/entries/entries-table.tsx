@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -137,7 +138,142 @@ export function EntriesTable({ entries, showTicketColumn = true }: Props) {
 
     return (
         <>
-            <div className="w-full overflow-hidden rounded-lg border bg-background shadow-sm">
+            <div className="block space-y-3 lg:hidden">
+                {entries.map((entry) => (
+                    <Card
+                        key={entry.id}
+                        className="group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 border-border/60 bg-linear-to-br from-card to-card/80"
+                    >
+                        <div className="absolute inset-0 bg-linear-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                        <CardContent className="relative p-4 space-y-3">
+                            <div className="flex items-start justify-between gap-2">
+                                <div className="space-y-1 flex-1">
+                                    <div className="flex items-center gap-2 text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
+                                        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-muted/60 group-hover:bg-muted transition-colors">
+                                            <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                                        </div>
+                                        {format(
+                                            parseISO(entry.start_at),
+                                            'dd/MM/yyyy',
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-2 text-xs text-muted-foreground ml-9">
+                                        {format(
+                                            parseISO(entry.start_at),
+                                            'HH:mm',
+                                        )}
+                                        <span className="text-muted-foreground/50">•</span>
+                                        <span className="font-medium">
+                                            {formatDuration(entry.duration_seconds)}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {entry.billable ? (
+                                    <Badge
+                                        variant="outline"
+                                        className="border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs shrink-0 shadow-sm"
+                                    >
+                                        <Check className="mr-1 h-3 w-3" />
+                                        {__('entries.table.badges.yes')}
+                                    </Badge>
+                                ) : (
+                                    <Badge
+                                        variant="outline"
+                                        className="border-border/60 text-muted-foreground text-xs shrink-0 shadow-sm"
+                                    >
+                                        <X className="mr-1 h-3 w-3" />
+                                        {__('entries.table.badges.no')}
+                                    </Badge>
+                                )}
+                            </div>
+
+                            {showTicketColumn && entry.ticket && (
+                                <div className="space-y-1.5 rounded-lg bg-muted/30 p-3 group-hover:bg-muted/50 transition-colors border border-border/40">
+                                    <div className="flex items-start justify-between gap-2">
+                                        <button
+                                            onClick={() => setPreviewEntry(entry)}
+                                            className="flex-1 text-left group/title"
+                                        >
+                                            <div className="font-semibold text-sm text-foreground line-clamp-2 group-hover/title:text-primary transition-colors">
+                                                {entry.ticket.title}
+                                            </div>
+                                        </button>
+                                        <Link
+                                            href={route(
+                                                'tickets.show',
+                                                entry.ticket_id,
+                                            )}
+                                            className="shrink-0"
+                                        >
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-7 w-7"
+                                            >
+                                                <ExternalLink className="h-3.5 w-3.5" />
+                                            </Button>
+                                        </Link>
+                                    </div>
+
+                                    <div className="flex items-center gap-2">
+                                        <Badge
+                                            variant="outline"
+                                            className="h-5 rounded-sm border-border bg-background px-1.5 font-mono text-[10px]"
+                                        >
+                                            ID {entry.ticket_id}
+                                        </Badge>
+
+                                        {entry.ticket.status && (
+                                            <div className="flex items-center gap-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px]">
+                                                <div
+                                                    className="h-1.5 w-1.5 rounded-full"
+                                                    style={{
+                                                        backgroundColor:
+                                                            entry.ticket.status
+                                                                .color,
+                                                    }}
+                                                />
+                                                <span className="font-medium">
+                                                    {entry.ticket.status.title}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {entry.note && (
+                                <div className="flex items-start gap-2 text-sm">
+                                    <FileText className="h-3.5 w-3.5 shrink-0 mt-0.5 text-muted-foreground opacity-50" />
+                                    <p className="text-muted-foreground line-clamp-2">
+                                        {entry.note}
+                                    </p>
+                                </div>
+                            )}
+
+                            <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                                <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/40 text-xs text-muted-foreground">
+                                    <User className="h-3.5 w-3.5" />
+                                    <span className="font-medium">{entry.user.name}</span>
+                                </div>
+
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 transition-all"
+                                    onClick={() => setEntryToDelete(entry.id)}
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+
+            <div className="hidden w-full lg:block overflow-hidden rounded-lg border bg-background shadow-sm">
                 <Table>
                     <TableHeader className="bg-muted/30">
                         <TableRow className="hover:bg-transparent">
