@@ -163,6 +163,22 @@ services:
       # API web server by Uvicorn (FastAPI)
       command: uvicorn src.api:app --host 0.0.0.0 --port 8000 --reload
 
+  ai-worker:
+      build:
+          context: ./backend-ai
+          dockerfile: Dockerfile
+      image: ticketack-ai-worker
+      container_name: ticketack-ai-worker
+      restart: unless-stopped
+      environment:
+          REDIS_HOST: redis
+          REDIS_PORT: 6379
+          REDIS_QUEUE_NAME: ticket_processing_queue
+      networks:
+          - sail
+      depends_on:
+          - redis
+
 networks:
   ticketack-network:
     driver: bridge

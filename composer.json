@@ -22,7 +22,8 @@
         "laravel/vonage-notification-channel": "^3.3",
         "league/flysystem-aws-s3-v3": "^3.30",
         "spatie/laravel-permission": "^6.23",
-        "tightenco/ziggy": "^2.6"
+        "tightenco/ziggy": "^2.6",
+        "ext-pdo": "*"
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^3.6",

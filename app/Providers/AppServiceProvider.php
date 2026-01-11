@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Events\TicketCreated;
+use App\Listeners\DispatchTicketToAiQueue;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
@@ -47,10 +50,12 @@ class AppServiceProvider extends ServiceProvider
     {
         Schema::defaultStringLength(191);
 
+        // Force HTTPS in Production
         if ($this->app->environment('production')) {
             URL::forceScheme('https');
         }
 
+        // --- 1. Super-Admin Override Gate ---
         Gate::before(function ($user) {
             return $user->hasRole('admin') ? true : null;
         });
