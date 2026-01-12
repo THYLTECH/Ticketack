@@ -129,12 +129,12 @@ export function TicketStats({ stats }: TicketStatsProps) {
                             <TooltipTrigger asChild>
                                 <Card
                                     className={cn(
-                                        'relative overflow-hidden transition-all hover:shadow-md',
+                                        'relative overflow-hidden transition-all hover:shadow-md h-full',
                                         styles.card,
                                     )}
                                 >
-                                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                        <CardTitle className="text-sm font-medium text-muted-foreground">
+                                    <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2 min-h-14">
+                                        <CardTitle className="text-sm font-medium text-muted-foreground line-clamp-2 pr-2">
                                             {stat.label}
                                         </CardTitle>
                                         <div

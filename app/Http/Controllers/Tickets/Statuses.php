@@ -36,7 +36,6 @@ class Statuses extends Controller
         $existingIds = TicketStatus::pluck('id')->toArray();
         $idsToChange = array_diff($existingIds, $submittedIds);
 
-        // require only one default status and one closed status
         $defaultCount = collect($data['statuses'])->where('is_default', true)->count();
         $closedCount = collect($data['statuses'])->where('is_closed', true)->count();
 
@@ -52,9 +51,8 @@ class Statuses extends Controller
             ]);
         }
 
-        // Check for locked statuses before attempting to delete
         $idsToDelete = array_diff($existingIds, $submittedIds);
-        
+
         if (!empty($idsToDelete)) {
             $lockedStatuses = TicketStatus::whereIn('id', $idsToDelete)
                 ->where('locked', true)
@@ -112,7 +110,6 @@ class Statuses extends Controller
                     $attributesToSave
                 );
 
-                // Stocker l'ID réel et le nouvel index désiré
                 $statusesMap[$status->id] = $index;
             }
 

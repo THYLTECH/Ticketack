@@ -143,11 +143,11 @@ class Entries extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        DB::transaction(function () use ($data, $user, $startAt, $endAt, $durationSeconds) {
+        $entry = DB::transaction(function () use ($data, $user, $startAt, $endAt, $durationSeconds) {
 
             $this->ensureNoOverlap($user->id, $startAt, $endAt);
 
-            TicketEntry::create([
+            $entry = TicketEntry::create([
                 'ticket_id' => $data['ticket_id'],
                 'user_id' => $user->id,
                 'note' => $data['description'] ?? null,
@@ -160,6 +160,8 @@ class Entries extends Controller
             if (!empty($data['schedule_id'])) {
                 TicketSchedule::where('id', $data['schedule_id'])->delete();
             }
+
+            return $entry;
         });
 
         $ticket = Ticket::findOrFail($data['ticket_id']);
@@ -169,8 +171,8 @@ class Entries extends Controller
                 'id',
                 $ticket->assignees()->pluck('user_id')
             )->get();
-    
-            Notification::send($assignees, new NotificationsTicketEntryCreated($ticket));
+
+            Notification::send($assignees, new NotificationsTicketEntryCreated($ticket, $entry));
         }
 
 
@@ -182,7 +184,6 @@ class Entries extends Controller
         if ($entry->user_id !== auth()->id()) {
             abort(403);
         }
-        $entry->delete();
 
         $ticket = Ticket::findOrFail($entry->ticket_id);
 
@@ -191,9 +192,11 @@ class Entries extends Controller
                 'id',
                 $ticket->assignees()->pluck('user_id')
             )->get();
-    
-            Notification::send($assignees, new NotificationsTicketEntryDeleted($ticket));
+
+            Notification::send($assignees, new NotificationsTicketEntryDeleted($ticket, $entry));
         }
+
+        $entry->delete();
 
         return back()->with('success', __('entries.controller.destroy.success'));
     }

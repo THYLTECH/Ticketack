@@ -1,6 +1,5 @@
 <?php
 
-// app/Policies/Ticket.php
 
 namespace App\Policies;
 
@@ -101,6 +100,30 @@ class Ticket
     public function selfAssign(User $user): bool
     {
         return $user->can('be assigned tickets');
+    }
+
+    /**
+     * Determine whether the user can archive the ticket.
+     */
+    public function archive(User $user, ModelsTicket $ticket): bool
+    {
+        if ($user->hasRole(['admin', 'solver'])) {
+            return $user->can('archive tickets');
+        }
+
+        return false;
+    }
+
+    /**
+     * Determine whether the user can unarchive the ticket.
+     */
+    public function unarchive(User $user, ModelsTicket $ticket): bool
+    {
+        if ($user->hasRole(['admin', 'solver'])) {
+            return $user->can('unarchive tickets');
+        }
+
+        return false;
     }
 
 }

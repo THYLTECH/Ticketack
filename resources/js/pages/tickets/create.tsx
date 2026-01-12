@@ -56,7 +56,7 @@ export default function Create({
                 href: route('tickets.index'),
             },
             {
-                title: __('tickets.pages.index.buttons.manage'),
+                title: __('tickets.pages.manage.title'),
                 href: route('tickets.manage'),
             },
             {
@@ -98,7 +98,7 @@ function CreateForm({
         useForm<TicketFormSchema>({
             title: '',
             description: '',
-            is_public: false,
+            is_archived: false,
             is_referenced: false,
             detailed_solution: '',
             priority_id: null,

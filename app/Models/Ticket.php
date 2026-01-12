@@ -21,15 +21,24 @@ class   Ticket extends Model
         'asset_id',
         'title',
         'description',
-        'is_public',
+        'archived_at',
         'is_referenced',
         'detailed_solution',
     ];
 
     protected $casts = [
-        'is_public' => 'boolean',
+        'archived_at' => 'datetime',
         'is_referenced' => 'boolean',
     ];
+
+    protected $appends = [
+        'is_archived',
+    ];
+
+    public function getIsArchivedAttribute(): bool
+    {
+        return !is_null($this->archived_at);
+    }
 
     /**
      * @return BelongsTo
@@ -132,5 +141,47 @@ class   Ticket extends Model
     public function author(): BelongsTo
     {
         return $this->belongsTo(User::class, 'author_id');
+    }
+
+    /**
+     * Scope to filter archived tickets
+     */
+    public function scopeArchived($query)
+    {
+        return $query->whereNotNull('archived_at');
+    }
+
+    /**
+     * Scope to filter non-archived tickets
+     */
+    public function scopeNotArchived($query)
+    {
+        return $query->whereNull('archived_at');
+    }
+
+    /**
+     * Check if ticket is archived
+     */
+    public function isArchived(): bool
+    {
+        return !is_null($this->archived_at);
+    }
+
+    /**
+     * Archive the ticket
+     */
+    public function archive(): void
+    {
+        $this->archived_at = now();
+        $this->save();
+    }
+
+    /**
+     * Unarchive the ticket
+     */
+    public function unarchive(): void
+    {
+        $this->archived_at = null;
+        $this->save();
     }
 }

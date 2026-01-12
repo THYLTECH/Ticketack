@@ -231,14 +231,14 @@ function NotificationTable({
     notifications: NotificationsProps;
 }) {
     const __ = useTrans();
-    const { put, delete: destroy } = useForm();
+    const { put, delete: destroy } = useForm({});
 
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const { data } = notifications;
 
     // Sélecteur principal
     const allSelected = selectedIds.length === data.length && data.length > 0;
-    const partiallySelected = selectedIds.length > 0 && !allSelected;
+    const partiallySelected = selectedIds.length > 0 && selectedIds.length < data.length;
 
     const toggleSelectAll = () => {
         if (allSelected) setSelectedIds([]);
@@ -340,7 +340,7 @@ function NotificationTable({
 
             <Table className="w-full table-fixed overflow-hidden">
                 <TableHeader>
-                    <TableRow className="!bg-background">
+                    <TableRow className="bg-background!">
                         {notifications.data.length > 0 && (
                             <TableHead className="w-[4%]">
                                 <Checkbox
@@ -376,6 +376,33 @@ function NotificationTable({
                             notification.created_at,
                         );
 
+                        let typeLabel = type;
+
+                        if (category) {
+                            const categoryTranslation = __(
+                                `notifications.preferences.${category}.items.${type}.title`,
+                            );
+                            if (categoryTranslation && !categoryTranslation.includes('notifications.preferences')) {
+                                typeLabel = categoryTranslation;
+                            }
+                        }
+
+                        if (typeLabel === type) {
+                            const directTranslation = __(
+                                `notifications.${type}.title`,
+                            );
+                            if (directTranslation && !directTranslation.includes('notifications.')) {
+                                typeLabel = directTranslation;
+                            }
+                        }
+
+                        if (typeLabel === type) {
+                            typeLabel = type
+                                .split('_')
+                                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                                .join(' ');
+                        }
+
                         return (
                             <NotificationDetail
                                 key={notification.id}
@@ -406,10 +433,7 @@ function NotificationTable({
                                         />
                                     </TableCell>
                                     <TableCell className="text-left font-medium">
-                                        {__(
-                                            `notifications.preferences.${category}.items.${type}.title`,
-                                            type,
-                                        )}
+                                        {typeLabel}
                                     </TableCell>
                                     <TableCell className="truncate overflow-hidden whitespace-nowrap">
                                         <strong>
@@ -491,7 +515,7 @@ function NotificationTable({
                 </TableBody>
                 {notifications.total > 0 && (
                     <TableFooter>
-                        <TableRow className="!bg-background">
+                        <TableRow className="bg-background!">
                             <TableCell colSpan={4} className="py-2 text-center">
                                 <span className="flex text-sm font-light text-muted-foreground">
                                     {__(
@@ -547,7 +571,7 @@ function NotificationDetail({
                     </AlertDialogTitle>
                 </AlertDialogHeader>
                 <div className="flex w-full flex-col gap-2">
-                    <p className="text-sm leading-6 break-words whitespace-pre-wrap text-muted-foreground">
+                    <p className="text-sm leading-6 wrap-break-word whitespace-pre-wrap text-muted-foreground">
                         {notification.data.message}
                     </p>
                 </div>
@@ -584,7 +608,7 @@ function NotificationPagination({
     const delta = 2; // nbr of pages to show around current
     const range: number[] = [];
     const rangeWithDots: (number | string)[] = [];
-    let l: number | undefined;
+    let l: number | undefined = undefined;
 
     // Always include start and end + interval around current
     for (let i = 1; i <= totalPages; i++) {

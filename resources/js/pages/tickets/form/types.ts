@@ -4,7 +4,7 @@ import { User } from '@/types';
 export interface TicketFormData {
     title: string;
     description: string;
-    is_public: boolean;
+    is_archived: boolean;
     is_referenced: boolean;
     detailed_solution: string | null;
     priority_id: number | null;

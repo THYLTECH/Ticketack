@@ -7,10 +7,13 @@ import {
     EmptyTitle,
 } from '@/components/ui/empty';
 import { useTrans } from '@/lib/translation';
-import { Link } from '@inertiajs/react';
 import { RefreshCcw, TicketIcon } from 'lucide-react';
 
-export function TicketEmpty() {
+interface TicketEmptyProps {
+    onClearFilters?: () => void;
+}
+
+export function TicketEmpty({ onClearFilters }: TicketEmptyProps) {
     const __ = useTrans();
 
     return (
@@ -27,11 +30,13 @@ export function TicketEmpty() {
                 </EmptyDescription>
             </EmptyHeader>
             <EmptyContent className="mt-6">
-                <Button variant="outline" size="sm" asChild>
-                    <Link href={route('tickets.index')}>
-                        <RefreshCcw className="mr-2 h-4 w-4" />
-                        {__('tickets.pages.index.empty.button')}
-                    </Link>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onClearFilters}
+                >
+                    <RefreshCcw className="mr-2 h-4 w-4" />
+                    {__('tickets.pages.index.empty.button')}
                 </Button>
             </EmptyContent>
         </Empty>

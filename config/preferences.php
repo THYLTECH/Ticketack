@@ -93,10 +93,14 @@ return [
             ],
         ],
         'tickets' => [
-            // Basic ticket notifications
             'ticket_created' => [
                 'mail',
                 'database',
+                'vonage',
+            ],
+            'ticket_unassigned' => [
+                'database',
+                'mail',
                 'vonage',
             ],
             'ticket_updated' => [
@@ -119,8 +123,12 @@ return [
                 'database',
                 'vonage',
             ],
+            'ticket_unassigned' => [
+                'mail',
+                'database',
+                'vonage',
+            ],
 
-            // Ticket Relations
             'ticket_entry_created' => [
                 'mail',
                 'database',
@@ -155,8 +163,8 @@ return [
     ],
 
     'notification_channels' => [
-        'mail', 
-        'database', 
+        'mail',
+        'database',
         'vonage',
     ]
 ];

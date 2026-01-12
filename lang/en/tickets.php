@@ -11,6 +11,8 @@ return [
         'created' => 'Ticket created successfully.',
         'updated' => 'Ticket updated successfully.',
         'deleted' => 'Ticket deleted successfully.',
+        'archived' => 'Ticket archived successfully.',
+        'unarchived' => 'Ticket unarchived successfully.',
         'restored' => 'Ticket restored successfully.',
         'force_deleted' => 'Ticket permanently deleted successfully.',
 
@@ -60,11 +62,14 @@ return [
 
         'stats' => [
             'total_unassigned' => 'Total Unassigned',
+            'total_unassigned_description' => 'Total number of tickets that have not been assigned to any user yet.',
             'critical_unassigned' => 'Critical Priority',
             'high_unassigned' => 'High Priority',
             'medium_unassigned' => 'Medium Priority',
             'low_unassigned' => 'Low Priority',
             'oldest_unassigned' => 'Oldest Unassigned',
+            'oldest_unassigned_description' => 'Number of days since the oldest unassigned ticket was created.',
+            'priority_description' => 'Number of unassigned tickets with :priority priority.',
             'days' => 'days',
             'total' => 'Total Tickets',
             'open' => 'Open',
@@ -114,7 +119,6 @@ return [
         'assigned_to_me' => 'Assigned to Me',
         'days' => 'days',
 
-        // Descriptions for tooltips
         'total_description' => 'Total number of tickets visible to you based on your permissions.',
         'open_description' => 'Tickets that are not closed yet or without status.',
         'unassigned_description' => 'Tickets that have not been assigned to any user yet. These require attention.',
@@ -164,6 +168,14 @@ return [
         'message' => 'This ticket will be archived you can restore it at any time.',
         'confirm' => 'Are you sure you want to archive this ticket ?',
     ],
+    'unarchive' => [
+        'message' => 'This ticket will be restored to active tickets.',
+        'confirm' => 'Are you sure you want to unarchive this ticket?',
+    ],
+    'delete' => [
+        'message' => 'This ticket will be moved to trash. You can restore it later.',
+        'confirm' => 'Are you sure you want to delete this ticket?',
+    ],
     'column' => [
         'title' => 'Title',
         'description' => 'Description',
@@ -172,9 +184,10 @@ return [
         'category' => 'Category',
         'assignee' => 'Assignee',
         'author' => 'Author',
-        'visibility' => 'Visibility',
+        'archive_status' => 'Archive Status',
         'updated_at' => 'Updated',
         'created_at' => 'Created',
+        'actions' => 'Actions',
     ],
 
     /*
@@ -191,7 +204,7 @@ return [
         ],
         'index' => [
             'head_title' => 'Tickets',
-            'title' => 'Tickets Management',
+            'title' => 'All Tickets',
             'description' => 'View, filter and manage all support tickets.',
             'toolbar' => [
                 'search' => 'Search tickets...',
@@ -211,13 +224,36 @@ return [
             ],
             'buttons' => [
                 'create' => 'Create Ticket',
-                'manage' => 'Manage Tickets',
+                'manage' => 'Manage My Tickets',
+                'archived' => 'Archived Tickets',
             ],
 
             'empty' => [
                 'title' => 'No tickets found',
                 'description' => 'No tickets found matching your current filters or search criteria.',
                 'button' => 'Clear Filters',
+            ],
+        ],
+        'manage' => [
+            'head_title' => 'My Tickets',
+            'title' => 'My Tickets',
+            'description' => 'View tickets you created or are assigned to.',
+        ],
+        'archived' => [
+            'head_title' => 'Archived Tickets',
+            'title' => 'Archived Tickets',
+            'description' => 'View and manage archived tickets.',
+            'list_title' => 'Archived Tickets',
+            'back_to_active' => 'Back to Active Tickets',
+            'stats' => [
+                'total' => 'Total Archived',
+                'resolved' => 'Resolved',
+                'avg_days' => 'Avg. Days Before Archive',
+                'last_30_days' => 'Archived Last 30 Days',
+                'total_description' => 'Total number of archived tickets visible to you based on your permissions.',
+                'resolved_description' => 'Number of archived tickets that were closed/resolved before being archived.',
+                'avg_days_description' => 'Average time (in days) between ticket creation and archiving.',
+                'last_30_days_description' => 'Number of tickets archived in the last 30 days.',
             ],
         ],
         'create' => [
@@ -247,7 +283,9 @@ return [
                 'back' => 'Go back to tickets',
                 'store' => 'Store Ticket',
                 'update' => 'Update Ticket',
-                'delete' => 'Archive Ticket',
+                'delete' => 'Delete Ticket',
+                'archive' => 'Archive Ticket',
+                'unarchive' => 'Unarchive Ticket',
                 'edit' => 'Edit Ticket',
                 'back_to_ticket' => 'Back to Ticket',
                 'add' => 'Add Assignee'
@@ -257,8 +295,8 @@ return [
                 'assignees' => 'Assignees',
             ],
             'fields' => [
-                'public_label' => 'Public Ticket (Visible to everyone)',
-                'private_label' => 'Private Ticket (Restricted access)',
+                'archived_label' => 'Archived Ticket',
+                'active_label' => 'Active Ticket',
             ],
             'placeholders' => [
                 'title' => 'eg. Server not responding',
@@ -276,6 +314,8 @@ return [
                     'added' => 'Assignee added successfully.',
                     'removed' => 'Assignee removed successfully.',
                     'assigned_to_self' => 'Ticket assigned to yourself.',
+                    'last_assignee_removed' => 'You have unassigned yourself from this ticket.',
+                    'admins_notified' => 'The ticket is now unassigned. Administrators will be notified.',
                 ],
                 'table' => [
                     'assignee' => 'Assignee',

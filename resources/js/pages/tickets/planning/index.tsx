@@ -509,6 +509,7 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                                         : [...prev, id],
                                                 )
                                             }
+                                            embedded
                                         />
                                     </div>
                                 </SheetContent>
@@ -615,11 +616,11 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                         className={cn(
                             'relative hidden shrink-0 flex-col overflow-hidden transition-all duration-300 ease-in-out lg:flex',
                             isEditMode
-                                ? 'w-80 translate-x-0 opacity-100'
+                                ? 'w-64 translate-x-0 opacity-100'
                                 : '-ml-4 w-0 -translate-x-4 opacity-0',
                         )}
                     >
-                        <div className="h-full w-80 overflow-hidden rounded-xl border bg-card shadow-sm">
+                        <div className="h-full w-64 overflow-hidden rounded-xl border bg-card shadow-sm">
                             <TicketSidebar
                                 tickets={myTickets}
                                 selectedId={selectedTicketId}
@@ -760,14 +761,14 @@ function PlanningStatsDialog({
 
     const priorityCounts = aggregateBy(
         events,
-        (e) => e.ticket.priority?.title,
-        (e) => e.ticket.priority?.color,
+        (e) => e.ticket?.priority?.title,
+        (e) => e.ticket?.priority?.color,
     );
 
     const statusCounts = aggregateBy(
         events,
-        (e) => e.ticket.status?.title || 'Inconnu',
-        (e) => e.ticket.status?.color,
+        (e) => e.ticket?.status?.title || 'Inconnu',
+        (e) => e.ticket?.status?.color,
     );
 
     const renderBars = (

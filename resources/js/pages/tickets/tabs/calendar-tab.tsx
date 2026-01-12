@@ -18,10 +18,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTrans } from '@/lib/translation';
 import { cn } from '@/lib/utils';
 import { ViewType } from '@/pages/tickets/planning';
+import { ScheduleList } from '@/pages/tickets/planning/components';
 import { EventDialog } from '@/pages/tickets/planning/event-dialog';
 import { PlanningGrid } from '@/pages/tickets/planning/planning-grid';
 import { TicketSidebar } from '@/pages/tickets/planning/ticket-sidebar';
-import { ScheduleList } from '@/pages/tickets/planning/components';
 import {
     formatPeriodTitle,
     navigateByView,
@@ -35,8 +35,14 @@ import {
 } from '@/types';
 import { router, usePage } from '@inertiajs/react';
 import { formatISO, parseISO } from 'date-fns';
-import { ChevronLeft, ChevronRight, Inbox, LayoutGrid, List } from 'lucide-react';
-import { useEffect, useState, useMemo } from 'react';
+import {
+    ChevronLeft,
+    ChevronRight,
+    Inbox,
+    LayoutGrid,
+    List,
+} from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 interface Props {
@@ -80,12 +86,14 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
     }, []);
 
     const filteredEvents = useMemo(() => {
-        return events.filter(e => {
+        return events.filter((e) => {
             if (isEditMode) {
                 return selectedSolvers.includes(e.user_id);
             } else {
                 const isForThisTicket = e.ticket_id === ticket.id;
-                const isFromSelectedSolver = selectedSolvers.includes(e.user_id);
+                const isFromSelectedSolver = selectedSolvers.includes(
+                    e.user_id,
+                );
                 return isForThisTicket && isFromSelectedSolver;
             }
         });
@@ -105,11 +113,13 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
         ticketId?: number,
         eventId?: number,
     ) => {
-        if (ticketId) {
+        const effectiveTicketId = ticketId || selectedTicketId;
+
+        if (effectiveTicketId) {
             router.post(
                 route('tickets.planning.store'),
                 {
-                    ticket_id: ticketId,
+                    ticket_id: effectiveTicketId,
                     user_id: auth.user.id,
                     start_date: formatISO(targetDate),
                     duration_minutes: 60,
@@ -118,6 +128,7 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                     preserveScroll: true,
                     onSuccess: () => {
                         setSelectedTicketId(null);
+                        if (isTicketsSheetOpen) setIsTicketsSheetOpen(false);
                     },
                 },
             );
@@ -210,7 +221,9 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                         <div className="flex items-center gap-2">
                             <div className="flex items-center rounded-md border">
                                 <Button
-                                    variant={showListView ? "ghost" : "secondary"}
+                                    variant={
+                                        showListView ? 'ghost' : 'secondary'
+                                    }
                                     size="sm"
                                     className="h-8 px-2 sm:px-3"
                                     onClick={() => setShowListView(false)}
@@ -218,7 +231,9 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                                     <LayoutGrid className="h-3.5 w-3.5" />
                                 </Button>
                                 <Button
-                                    variant={showListView ? "secondary" : "ghost"}
+                                    variant={
+                                        showListView ? 'secondary' : 'ghost'
+                                    }
                                     size="sm"
                                     className="h-8 px-2 sm:px-3"
                                     onClick={() => setShowListView(true)}
@@ -239,7 +254,9 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                                             className="h-8 gap-1.5 border-dashed border-primary/50 px-2 text-xs text-primary sm:hidden"
                                         >
                                             <Inbox className="h-3.5 w-3.5" />
-                                            <span className="text-[10px]">{__('schedule.sidebar.trigger')}</span>
+                                            <span className="text-[10px]">
+                                                {__('schedule.sidebar.trigger')}
+                                            </span>
                                         </Button>
                                     </SheetTrigger>
                                     <SheetContent
@@ -258,12 +275,17 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                                                 onSelect={(id) => {
                                                     setSelectedTicketId(id);
                                                     if (id) {
-                                                        setIsTicketsSheetOpen(false);
+                                                        setIsTicketsSheetOpen(
+                                                            false,
+                                                        );
                                                         toast.info(
-                                                            __('schedule.flash.select_title'),
+                                                            __(
+                                                                'schedule.flash.select_title',
+                                                            ),
                                                             {
-                                                                description:
-                                                                    __('schedule.flash.select_description'),
+                                                                description: __(
+                                                                    'schedule.flash.select_description',
+                                                                ),
                                                             },
                                                         );
                                                     }
@@ -276,12 +298,26 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                             )}
                         </div>
 
-                        <div className="flex h-8 items-center space-x-2 rounded-md border px-2 transition-colors sm:hidden">
+                        <div
+                            className={cn(
+                                'flex h-8 items-center space-x-2 rounded-md border px-2 transition-colors sm:hidden',
+                                isEditMode
+                                    ? 'border-primary/30 bg-primary/5'
+                                    : 'bg-card',
+                            )}
+                        >
                             <Switch
                                 id="edit-mode-tab"
                                 checked={isEditMode}
                                 onCheckedChange={setIsEditMode}
+                                className="scale-75"
                             />
+                            <Label
+                                htmlFor="edit-mode-tab"
+                                className="cursor-pointer text-xs font-medium"
+                            >
+                                {__('tickets.pages.show.calendar.edit_mode')}
+                            </Label>
                         </div>
                     </div>
 
@@ -296,24 +332,37 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                                     value="day"
                                     className="flex-1 text-[10px] uppercase sm:flex-none"
                                 >
-                                    {__('tickets.pages.show.calendar.views.day')}
+                                    {__(
+                                        'tickets.pages.show.calendar.views.day',
+                                    )}
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="week"
                                     className="hidden text-[10px] uppercase sm:inline-flex"
                                 >
-                                    {__('tickets.pages.show.calendar.views.week')}
+                                    {__(
+                                        'tickets.pages.show.calendar.views.week',
+                                    )}
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="month"
                                     className="flex-1 text-[10px] uppercase sm:flex-none"
                                 >
-                                    {__('tickets.pages.show.calendar.views.month')}
+                                    {__(
+                                        'tickets.pages.show.calendar.views.month',
+                                    )}
                                 </TabsTrigger>
                             </TabsList>
                         </Tabs>
 
-                        <div className="hidden h-9 items-center space-x-2 rounded-md border px-3 transition-colors sm:flex">
+                        <div
+                            className={cn(
+                                'hidden h-9 items-center space-x-2 rounded-md border px-3 transition-colors sm:flex',
+                                isEditMode
+                                    ? 'border-primary/30 bg-primary/5'
+                                    : 'bg-card',
+                            )}
+                        >
                             <Switch
                                 id="edit-mode-tab-desktop"
                                 checked={isEditMode}
@@ -338,7 +387,10 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                                 {__('schedule.list.title')}
                             </h3>
                             <p className="text-sm text-muted-foreground">
-                                {filteredEvents.length} {filteredEvents.length > 1 ? __('schedule.list.interventions') : __('schedule.list.intervention')}
+                                {filteredEvents.length}{' '}
+                                {filteredEvents.length > 1
+                                    ? __('schedule.list.interventions')
+                                    : __('schedule.list.intervention')}
                             </p>
                         </div>
                     </div>
@@ -380,6 +432,7 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                             currentUserId={auth.user.id}
                             selectedSolvers={selectedSolvers}
                             onDrop={handleDropEvent}
+                            onSlotClick={handleDropEvent}
                             onUpdate={handleUpdateEvent}
                             onDayHeaderClick={handleDayHeaderClick}
                             onEventClick={(evt) => {
@@ -389,11 +442,11 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                                         solvers.find(
                                             (s) => s.id === evt.user_id,
                                         ) || {
-                                        id: evt.user_id,
-                                        name: 'Technicien',
-                                        email: '',
-                                        avatar: null,
-                                    },
+                                            id: evt.user_id,
+                                            name: 'Technicien',
+                                            email: '',
+                                            avatar: null,
+                                        },
                                     ticket: evt.ticket || ticket,
                                 };
                                 setSelectedEvent(fullEvent);

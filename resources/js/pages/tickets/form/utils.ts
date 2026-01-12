@@ -1,16 +1,12 @@
 import { TicketFormData } from './types';
-
-interface FileWrapper {
-    file: File;
-    [key: string]: unknown;
-}
+import { FileWithPreview } from '@/hooks/use-file-upload';
 
 interface TicketFormSchema extends Omit<
     TicketFormData,
     'assignees' | 'attachments'
 > {
     assignees: number[];
-    attachments: (File | FileWrapper)[];
+    attachments: (File | FileWithPreview)[];
 }
 
 export function prepareTicketFormData(
@@ -27,7 +23,7 @@ export function prepareTicketFormData(
         const value = data[key];
 
         if (key === 'attachments') {
-            const files = value as (File | FileWrapper)[];
+            const files = value as (File | FileWithPreview)[];
             files.forEach((item, index) => {
                 if (item instanceof File) {
                     formData.append(`attachments[${index}]`, item);
@@ -37,9 +33,13 @@ export function prepareTicketFormData(
             });
         } else if (key === 'assignees') {
             const ids = value as number[];
-            ids.forEach((userId, index) => {
-                formData.append(`assignees[${index}][id]`, String(userId));
-            });
+            if (ids.length === 0) {
+                formData.append('assignees', '[]');
+            } else {
+                ids.forEach((userId, index) => {
+                    formData.append(`assignees[${index}][id]`, String(userId));
+                });
+            }
         } else if (value !== null && value !== undefined) {
             if (typeof value === 'boolean') {
                 formData.append(key, value ? '1' : '0');

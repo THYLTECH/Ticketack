@@ -1,103 +1,38 @@
 <?php
 
-// app/Notifications/PriorityChanged.php
-
 namespace App\Notifications\Tickets;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Notification;
-use Illuminate\Mail\Mailable;
-use Illuminate\Notifications\Messages\VonageMessage;
-use App\Helpers\NotificationPreferences;
-
-// Models
 use App\Models\Ticket;
+use App\Models\TicketPriority;
+use App\Models\User;
+use Illuminate\Mail\Mailable;
 
-class PriorityChanged extends Notification implements shouldQueue
+class PriorityChanged extends BaseTicketNotification
 {
-    use Queueable;
+    public ?TicketPriority $oldPriority;
+    public ?TicketPriority $newPriority;
 
-    protected $type;
-    protected $ticket;
-
-    /**
-     * Create a new notification instance.
-     */
-    public function __construct(Ticket $ticket)
+    public function __construct(Ticket $ticket, ?TicketPriority $oldPriority = null, ?TicketPriority $newPriority = null)
     {
-        $this->type = 'ticket_priority_changed';
-        $this->ticket = $ticket;
+        parent::__construct($ticket);
+        $this->oldPriority = $oldPriority;
+        $this->newPriority = $newPriority;
     }
 
-
-    /**
-    * Get the notification's database type.
-    */
-    public function databaseType(object $notifiable): string
+    protected function getType(): string
     {
-        return $this->type;
+        return 'ticket_priority_changed';
     }
 
-    /**
-     * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
-     */
-    public function via(object $notifiable): array
-    { 
-        // Fetch preferences
-        $preferences = $notifiable->notificationPreferences()
-            ->where('type', $this->type)
-            ->where('enabled', true)
-            ->pluck('channel')
-            ->toArray();
-
-        // Fallback if preferences are not defined
-        $channels = !empty($preferences) ? $preferences : ['mail'];
-
-        // Always add the notification to the database.
-        // if (!in_array('database', $channels)) {
-        //     $channels[] = 'database';
-        // }
-
-        return $channels;
-    }
-
-    /**
-     * Get the mail representation of the notification.
-     */
-    public function toMail(object $notifiable): Mailable
+    protected function getMailable(User $notifiable): Mailable
     {
         return new \App\Mail\Tickets\PriorityChanged($notifiable, $this->ticket, $this->type);
     }
 
-    /**
-     * Get the database representation of the notification
-     */
-    public function toDatabase(object $notifiable): array
+    protected function getSmsParams(): array
     {
-        return [
-            'type' => $this->type,
-            'title' => __('notifications.database.' . $this->type . '.title'),
-            'message' => __("notifications.database." . $this->type . ".message", ['title' => $this->ticket->title, 'priority' => $this->ticket->priority->title]),
-            'action' => __("notifications.database." . $this->type . ".action"),
-            'action_url' => route('tickets.show', $this->ticket->id),
-        ];
-    }
-
-    /**
-    * Get the Vonage / SMS representation of the notification.
-    */
-    public function toVonage(object $notifiable): VonageMessage | bool
-    {
-        return (new VonageMessage)
-            ->clientReference((string) $notifiable->id)
-            ->content(__('notifications.sms.' . $this->type . '.message', [
-                'title' => $this->ticket->title,
-                'priority' => $this->ticket->priority->title,
-                'app' => config('app.name'),
-                'url' => route('tickets.show', $this->ticket->id),
-            ]));
+        return array_merge(parent::getSmsParams(), [
+            'priority' => $this->ticket->priority?->title ?? '',
+        ]);
     }
 }

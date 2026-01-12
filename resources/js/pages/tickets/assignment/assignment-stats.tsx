@@ -1,4 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useTrans } from '@/lib/translation';
 import { AlertCircle, AlertTriangle, Clock, Info, ListTodo } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -43,98 +49,138 @@ export function AssignmentStats({ stats }: AssignmentStatsProps) {
         label: string;
         value: number | string;
         icon: typeof ListTodo;
-        color: string;
-        bgColor: string;
         suffix?: string;
         customColor?: string;
-        variant?: 'default' | 'primary';
+        variant: 'default' | 'primary' | 'success' | 'warning';
+        description: string;
     }> = [
         {
             label: __('tickets.assignment.stats.total_unassigned'),
             value: stats.total_unassigned,
             icon: ListTodo,
-            color: 'text-primary',
-            bgColor: 'bg-background',
             variant: 'primary',
+            description: __('tickets.assignment.stats.total_unassigned_description'),
         },
         ...stats.priority_stats.map((priority) => ({
             label: priority.title,
             value: priority.count,
             icon: getPriorityIcon(priority.sort_order),
-            color: 'text-muted-foreground',
-            bgColor: 'bg-muted/20',
             customColor: priority.color,
             variant: 'default' as const,
+            description: __('tickets.assignment.stats.priority_description').replace(':priority', priority.title),
         })),
         {
             label: __('tickets.assignment.stats.oldest_unassigned'),
-            value: `${stats.oldest_unassigned_days}`,
+            value: stats.oldest_unassigned_days,
             suffix: __('tickets.assignment.stats.days'),
             icon: Clock,
-            color: 'text-muted-foreground',
-            bgColor: 'bg-muted/20',
             variant: 'default' as const,
+            description: __('tickets.assignment.stats.oldest_unassigned_description'),
         },
     ];
 
+    const getVariantStyles = (variant: string, customColor?: string) => {
+        if (customColor) {
+            return {
+                card: 'border-border/60 shadow-sm',
+                icon: 'border-border/50 bg-muted/20',
+                value: 'text-foreground',
+                iconColor: customColor,
+            };
+        }
+
+        switch (variant) {
+            case 'primary':
+                return {
+                    card: 'border-primary/20 bg-primary/5 shadow-sm',
+                    icon: 'border-primary/20 bg-background text-primary',
+                    value: 'text-primary',
+                };
+            case 'success':
+                return {
+                    card: 'border-emerald-500/20 bg-emerald-500/5 shadow-sm',
+                    icon: 'border-emerald-500/20 bg-background text-emerald-600',
+                    value: 'text-emerald-600',
+                };
+            case 'warning':
+                return {
+                    card: 'border-orange-500/20 bg-orange-500/5 shadow-sm',
+                    icon: 'border-orange-500/20 bg-background text-orange-600',
+                    value: 'text-orange-600',
+                };
+            default:
+                return {
+                    card: 'border-border/60 shadow-sm',
+                    icon: 'border-border/50 text-muted-foreground bg-muted/20',
+                    value: 'text-foreground',
+                };
+        }
+    };
+
     return (
         <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
-            {statItems.map((stat, index) => {
-                const isPrimary = stat.variant === 'primary';
+            <TooltipProvider delayDuration={200}>
+                {statItems.map((stat, index) => {
+                    const styles = getVariantStyles(stat.variant, stat.customColor);
 
-                return (
-                    <Card
-                        key={index}
-                        className={cn(
-                            'relative overflow-hidden transition-all hover:shadow-md',
-                            isPrimary
-                                ? 'border-primary/20 bg-primary/5 shadow-sm'
-                                : 'border-border/60 shadow-sm',
-                        )}
-                    >
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium text-muted-foreground">
-                                {stat.label}
-                            </CardTitle>
-                            <div
-                                className={cn(
-                                    'flex h-9 w-9 items-center justify-center rounded-lg border shrink-0',
-                                    isPrimary
-                                        ? 'border-primary/20 bg-background text-primary'
-                                        : 'border-border/50 text-muted-foreground',
-                                    stat.bgColor,
-                                )}
-                            >
-                                <stat.icon
-                                    className="h-5 w-5"
-                                    style={
-                                        stat.customColor && !isPrimary
-                                            ? { color: stat.customColor }
-                                            : undefined
-                                    }
-                                />
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="flex flex-col gap-1">
-                                <div
+                    return (
+                        <Tooltip key={index}>
+                            <TooltipTrigger asChild>
+                                <Card
                                     className={cn(
-                                        'text-2xl font-bold tracking-tight',
-                                        isPrimary ? 'text-primary' : 'text-foreground',
+                                        'relative overflow-hidden transition-all hover:shadow-md h-full',
+                                        styles.card,
                                     )}
                                 >
-                                    {stat.value}
-                                    {stat.suffix && (
-                                        <span className="ml-1 text-sm font-normal text-muted-foreground">
-                                            {stat.suffix}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                );
-            })}
+                                    <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2 min-h-14">
+                                        <CardTitle className="text-sm font-medium text-muted-foreground line-clamp-2 pr-2">
+                                            {stat.label}
+                                        </CardTitle>
+                                        <div
+                                            className={cn(
+                                                'flex h-9 w-9 items-center justify-center rounded-lg border shrink-0',
+                                                styles.icon,
+                                            )}
+                                        >
+                                            <stat.icon
+                                                className="h-5 w-5"
+                                                style={
+                                                    'iconColor' in styles
+                                                        ? { color: styles.iconColor }
+                                                        : undefined
+                                                }
+                                            />
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="flex flex-col gap-1">
+                                            <div
+                                                className={cn(
+                                                    'text-2xl font-bold tracking-tight',
+                                                    styles.value,
+                                                )}
+                                            >
+                                                {stat.value}
+                                                {stat.suffix && (
+                                                    <span className="ml-1 text-sm font-normal text-muted-foreground">
+                                                        {stat.suffix}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </TooltipTrigger>
+                            <TooltipContent
+                                side="bottom"
+                                className="max-w-xs bg-popover text-popover-foreground backdrop-blur-sm border shadow-lg p-3"
+                            >
+                                <p className="text-sm leading-normal text-pretty">{stat.description}</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    );
+                })}
+            </TooltipProvider>
         </div>
     );
 }

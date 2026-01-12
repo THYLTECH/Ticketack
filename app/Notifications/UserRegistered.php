@@ -4,6 +4,7 @@
 
 namespace App\Notifications;
 
+use App\Helpers\NotificationPreferences;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
@@ -42,7 +43,7 @@ class UserRegistered extends Notification implements shouldQueue
      * @return array<int, string>
      */
     public function via(object $notifiable): array
-    { 
+    {
         return ['mail', 'database'];
     }
 
@@ -61,6 +62,7 @@ class UserRegistered extends Notification implements shouldQueue
     {
         return [
             'type' => $this->type,
+            'category' => NotificationPreferences::getCategoryForType($this->type) ?? 'auth',
             'title' => __("notifications.database.registered.title", ['app' => config('app.name')]),
             'message' => __("notifications.database.registered.message", ['app' => config('app.name')]),
             'action' => __("notifications.database.registered.action"),

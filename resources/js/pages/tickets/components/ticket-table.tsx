@@ -40,8 +40,9 @@ import { userHasPermission } from '@/lib/utils';
 import { SharedData, Ticket } from '@/types';
 import { router } from '@inertiajs/react';
 import {
+    Archive,
+    ArchiveRestore,
     Eye,
-    EyeOff,
     Flag,
     MoreHorizontal,
     Pencil,
@@ -61,6 +62,14 @@ type SortDirection = 'asc' | 'desc';
 
 export function TicketTable({ tickets, auth }: Props) {
     const __ = useTrans();
+    const [archiveConfirm, setArchiveConfirm] = useState<{
+        isOpen: boolean;
+        id?: number;
+    }>({ isOpen: false });
+    const [unarchiveConfirm, setUnarchiveConfirm] = useState<{
+        isOpen: boolean;
+        id?: number;
+    }>({ isOpen: false });
     const [deleteConfirm, setDeleteConfirm] = useState<{
         isOpen: boolean;
         id?: number;
@@ -89,10 +98,36 @@ export function TicketTable({ tickets, auth }: Props) {
     };
 
     const initiateArchive = (id: number) => {
-        setDeleteConfirm({ isOpen: true, id });
+        setArchiveConfirm({ isOpen: true, id });
     };
 
     const confirmArchive = () => {
+        if (archiveConfirm.id) {
+            router.post(route('tickets.archive', archiveConfirm.id), {}, {
+                preserveScroll: true,
+                onFinish: () => setArchiveConfirm({ isOpen: false }),
+            });
+        }
+    };
+
+    const initiateUnarchive = (id: number) => {
+        setUnarchiveConfirm({ isOpen: true, id });
+    };
+
+    const confirmUnarchive = () => {
+        if (unarchiveConfirm.id) {
+            router.post(route('tickets.unarchive', unarchiveConfirm.id), {}, {
+                preserveScroll: true,
+                onFinish: () => setUnarchiveConfirm({ isOpen: false }),
+            });
+        }
+    };
+
+    const initiateDelete = (id: number) => {
+        setDeleteConfirm({ isOpen: true, id });
+    };
+
+    const confirmDelete = () => {
         if (deleteConfirm.id) {
             router.delete(route('tickets.destroy', deleteConfirm.id), {
                 preserveScroll: true,
@@ -123,7 +158,6 @@ export function TicketTable({ tickets, auth }: Props) {
 
     return (
         <div className="w-full space-y-4">
-            {/* Mobile Card View */}
             <div className="block space-y-3 lg:hidden">
                 {tickets.data.map((ticket) => {
                     const validAssignees = ticket.assignees?.filter((a) => a.user);
@@ -138,11 +172,9 @@ export function TicketTable({ tickets, auth }: Props) {
                             className="group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 border-border/60 bg-linear-to-br from-card to-card/80 cursor-pointer"
                             onClick={() => router.get(route('tickets.show', ticket.id))}
                         >
-                            {/* Subtle shine effect on hover */}
                             <div className="absolute inset-0 bg-linear-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                             <CardContent className="relative p-4 space-y-3">
-                                {/* Header with ID and Status */}
                                 <div className="flex items-start justify-between gap-2">
                                     <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-muted/40 group-hover:bg-muted/60 transition-colors min-w-0">
                                         <TicketIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
@@ -164,12 +196,10 @@ export function TicketTable({ tickets, auth }: Props) {
                                     )}
                                 </div>
 
-                                {/* Title */}
                                 <h3 className="font-semibold text-sm leading-tight line-clamp-2 group-hover:text-primary transition-colors">
                                     {ticket.title}
                                 </h3>
 
-                                {/* Metadata badges */}
                                 <div className="flex flex-wrap gap-2">
                                     {ticket.priority && (
                                         <Badge
@@ -197,7 +227,6 @@ export function TicketTable({ tickets, auth }: Props) {
                                     )}
                                 </div>
 
-                                {/* Assignees */}
                                 {validAssignees && validAssignees.length > 0 && (
                                     <div className="flex items-center gap-2">
                                         <div className="flex -space-x-2">
@@ -230,7 +259,6 @@ export function TicketTable({ tickets, auth }: Props) {
                                     </div>
                                 )}
 
-                                {/* Footer with author and actions */}
                                 <div className="flex items-center justify-between pt-2 border-t border-border/50">
                                     <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/40 text-xs text-muted-foreground">
                                         <Avatar className="h-4 w-4">
@@ -273,20 +301,44 @@ export function TicketTable({ tickets, auth }: Props) {
                                                     </DropdownMenuItem>
                                                 )}
                                             {canArchive &&
-                                                userHasPermission({ user: auth.user, permission: 'delete tickets' }) && (
+                                                userHasPermission({ user: auth.user, permission: 'archive tickets' }) && (
                                                     <>
                                                         <DropdownMenuSeparator />
-                                                        <DropdownMenuItem
-                                                            className="text-destructive focus:text-destructive"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                initiateArchive(ticket.id);
-                                                            }}
-                                                        >
-                                                            <Trash className="mr-2 h-4 w-4" />
-                                                            {__('tickets.pages.form.buttons.delete')}
-                                                        </DropdownMenuItem>
+                                                        {ticket.is_archived ? (
+                                                            <DropdownMenuItem
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    initiateUnarchive(ticket.id);
+                                                                }}
+                                                            >
+                                                                <ArchiveRestore className="mr-2 h-4 w-4" />
+                                                                {__('tickets.pages.form.buttons.unarchive')}
+                                                            </DropdownMenuItem>
+                                                        ) : (
+                                                            <DropdownMenuItem
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    initiateArchive(ticket.id);
+                                                                }}
+                                                            >
+                                                                <Archive className="mr-2 h-4 w-4" />
+                                                                {__('tickets.pages.form.buttons.archive')}
+                                                            </DropdownMenuItem>
+                                                        )}
                                                     </>
+                                                )}
+                                            {canArchive &&
+                                                userHasPermission({ user: auth.user, permission: 'delete tickets' }) && (
+                                                    <DropdownMenuItem
+                                                        className="text-destructive focus:text-destructive"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            initiateDelete(ticket.id);
+                                                        }}
+                                                    >
+                                                        <Trash className="mr-2 h-4 w-4" />
+                                                        {__('tickets.pages.form.buttons.delete')}
+                                                    </DropdownMenuItem>
                                                 )}
                                         </DropdownMenuContent>
                                     </DropdownMenu>
@@ -297,7 +349,6 @@ export function TicketTable({ tickets, auth }: Props) {
                 })}
             </div>
 
-            {/* Desktop Table View */}
             <div className="hidden lg:block overflow-hidden rounded-lg border bg-background shadow-sm">
                 <div className="relative overflow-x-auto">
                     <Table className="min-w-275">
@@ -309,7 +360,7 @@ export function TicketTable({ tickets, auth }: Props) {
                                     currentSort={currentSort}
                                     currentDirection={currentDirection}
                                     onSort={handleSort}
-                                    className="w-75 pl-6"
+                                    className="w-40 pl-6"
                                 />
                                 <SortableTableHead
                                     column="status_id"
@@ -317,18 +368,15 @@ export function TicketTable({ tickets, auth }: Props) {
                                     currentSort={currentSort}
                                     currentDirection={currentDirection}
                                     onSort={handleSort}
-                                    className="w-30"
+                                    className="w-32"
                                 />
-                                <TableHead className="w-15 text-center text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                                    <Eye className="mx-auto h-3.5 w-3.5 opacity-70" />
-                                </TableHead>
                                 <SortableTableHead
                                     column="priority_id"
                                     label={__('tickets.column.priority')}
                                     currentSort={currentSort}
                                     currentDirection={currentDirection}
                                     onSort={handleSort}
-                                    className="w-30"
+                                    className="w-32"
                                 />
                                 <TableHead className="hidden text-xs font-semibold tracking-wider text-muted-foreground uppercase md:table-cell">
                                     {__('tickets.column.author')}
@@ -359,7 +407,9 @@ export function TicketTable({ tickets, auth }: Props) {
                                     className="hidden xl:table-cell"
                                 />
 
-                                <TableHead className="sticky right-0 z-20 w-15 bg-muted/30"></TableHead>
+                                <TableHead className="sticky right-0 w-12 bg-muted/30 text-center text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                                    <span className="sr-only">{__('tickets.column.actions')}</span>
+                                </TableHead>
                             </TableRow>
                         </TableHeader>
 
@@ -395,10 +445,19 @@ export function TicketTable({ tickets, auth }: Props) {
                                         }
                                     >
                                         <TableCell className="pl-4 align-middle">
-                                            <div className="flex flex-col">
-                                                <span className="line-clamp-1 text-sm font-medium text-foreground transition-colors group-hover:text-primary">
-                                                    {ticket.title}
-                                                </span>
+                                            <div className="flex flex-col max-w-36">
+                                                <TooltipProvider delayDuration={300}>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <span className="truncate text-sm font-medium text-foreground transition-colors group-hover:text-primary">
+                                                                {ticket.title}
+                                                            </span>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent side="top" className="max-w-none whitespace-nowrap">
+                                                            <p className="text-sm">{ticket.title}</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
                                                 <span className="font-mono text-[10px] text-muted-foreground">
                                                     #{ticket.id}
                                                 </span>
@@ -422,13 +481,6 @@ export function TicketTable({ tickets, auth }: Props) {
                                             )}
                                         </TableCell>
 
-                                        <TableCell className="text-center align-middle">
-                                            {ticket.is_public ? (
-                                                <Eye className="mx-auto h-4 w-4 text-emerald-500/70" />
-                                            ) : (
-                                                <EyeOff className="mx-auto h-4 w-4 text-muted-foreground/30" />
-                                            )}
-                                        </TableCell>
 
                                         <TableCell className="align-middle">
                                             <div className="flex items-center gap-2">
@@ -443,45 +495,76 @@ export function TicketTable({ tickets, auth }: Props) {
 
                                         <TableCell className="hidden align-middle md:table-cell">
                                             {ticket.user ? (
-                                                <div className="flex items-center gap-2">
-                                                    <Avatar className="h-6 w-6 border-2 border-background ring-1 ring-border/10">
-                                                        <AvatarImage
-                                                            src={
-                                                                ticket.user
-                                                                    .avatar
-                                                                    ?.url ??
-                                                                undefined
-                                                            }
-                                                        />
-                                                        <AvatarFallback className="bg-muted text-[8px] font-bold">
-                                                            {ticket.user.name
-                                                                .substring(0, 2)
-                                                                .toUpperCase()}
-                                                        </AvatarFallback>
-                                                    </Avatar>
-                                                    <span className="truncate text-xs font-medium text-muted-foreground">
-                                                        {ticket.user.name}
-                                                    </span>
-                                                </div>
+                                                <TooltipProvider delayDuration={300}>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <div className="flex items-center gap-2 max-w-28">
+                                                                <Avatar className="h-6 w-6 border-2 border-background ring-1 ring-border/10 shrink-0">
+                                                                    <AvatarImage
+                                                                        src={
+                                                                            ticket.user.avatar?.url ??
+                                                                            undefined
+                                                                        }
+                                                                    />
+                                                                    <AvatarFallback className="bg-muted text-[8px] font-bold">
+                                                                        {ticket.user.name
+                                                                            .substring(0, 2)
+                                                                            .toUpperCase()}
+                                                                    </AvatarFallback>
+                                                                </Avatar>
+                                                                <span className="truncate text-xs font-medium text-muted-foreground">
+                                                                    {ticket.user.name}
+                                                                </span>
+                                                            </div>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent side="top">
+                                                            <p className="text-sm">{ticket.user.name}</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
                                             ) : (
-                                                <span className="text-xs text-muted-foreground/50">
-                                                    \-
-                                                </span>
+                                                <span className="text-xs text-muted-foreground/50">\-</span>
                                             )}
                                         </TableCell>
 
                                         <TableCell className="hidden align-middle md:table-cell">
-                                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                                <GetIcon icon={ticket.category?.icon ?? 'tag'} props={{ className: 'h-3.5 w-3.5 opacity-50' }} />
-                                                {ticket.category?.title || '-'}
-                                            </div>
+                                            {ticket.category ? (
+                                                <TooltipProvider delayDuration={300}>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <div className="flex items-center gap-2 text-xs text-muted-foreground max-w-32">
+                                                                <GetIcon icon={ticket.category.icon ?? 'tag'} props={{ className: 'h-3.5 w-3.5 opacity-50 shrink-0' }} />
+                                                                <span className="truncate">{ticket.category.title}</span>
+                                                            </div>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent side="top">
+                                                            <p className="text-sm">{ticket.category.title}</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            ) : (
+                                                <span className="text-xs text-muted-foreground/50">-</span>
+                                            )}
                                         </TableCell>
 
                                         <TableCell className="hidden align-middle lg:table-cell">
-                                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                                <GetIcon icon={ticket.asset?.icon ?? 'monitor'} props={{ className: 'h-3.5 w-3.5 opacity-50' }} />
-                                                {ticket.asset?.title || '-'}
-                                            </div>
+                                            {ticket.asset ? (
+                                                <TooltipProvider delayDuration={300}>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <div className="flex items-center gap-2 text-xs text-muted-foreground max-w-32">
+                                                                <GetIcon icon={ticket.asset.icon ?? 'monitor'} props={{ className: 'h-3.5 w-3.5 opacity-50 shrink-0' }} />
+                                                                <span className="truncate">{ticket.asset.title}</span>
+                                                            </div>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent side="top">
+                                                            <p className="text-sm">{ticket.asset.title}</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            ) : (
+                                                <span className="text-xs text-muted-foreground/50">-</span>
+                                            )}
                                         </TableCell>
 
                                         <TableCell className="hidden align-middle xl:table-cell">
@@ -530,7 +613,7 @@ export function TicketTable({ tickets, auth }: Props) {
                                                                     </TooltipContent>
                                                                 </Tooltip>
                                                             </TooltipProvider>
-                                                        ))}
+                                                       ))}
                                                     {validAssignees.length >
                                                         3 && (
                                                         <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-background bg-muted text-[9px] font-medium text-muted-foreground ring-1 ring-border/10">
@@ -575,7 +658,7 @@ export function TicketTable({ tickets, auth }: Props) {
                                             })}
                                         </TableCell>
 
-                                        <TableCell className="sticky right-0 z-10 bg-background pr-4 text-right align-middle shadow-[-12px_0_16px_-16px_rgba(0,0,0,0.35)]">
+                                        <TableCell className="sticky right-0 w-12 bg-background pr-2 text-center align-middle">
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger
                                                     asChild
@@ -586,7 +669,7 @@ export function TicketTable({ tickets, auth }: Props) {
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        className="h-8 w-8 text-muted-foreground/60 transition-all hover:bg-muted hover:text-foreground"
+                                                        className="h-8 w-8 rounded-md text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
                                                     >
                                                         <MoreHorizontal className="h-4 w-4" />
                                                     </Button>
@@ -635,23 +718,53 @@ export function TicketTable({ tickets, auth }: Props) {
                                                         </DropdownMenuItem>
                                                     )}
 
-                                                    {canArchive && (
+                                                    {canArchive && userHasPermission({ user: auth.user, permission: 'archive tickets' }) && (
                                                         <>
                                                             <DropdownMenuSeparator />
-                                                            <DropdownMenuItem
-                                                                onClick={() =>
-                                                                    initiateArchive(
-                                                                        ticket.id,
-                                                                    )
-                                                                }
-                                                                className="text-destructive focus:text-destructive"
-                                                            >
-                                                                <Trash className="mr-2 h-4 w-4" />
-                                                                {__(
-                                                                    'tickets.pages.form.buttons.delete',
-                                                                )}
-                                                            </DropdownMenuItem>
+                                                            {ticket.is_archived ? (
+                                                                <DropdownMenuItem
+                                                                    onClick={() =>
+                                                                        initiateUnarchive(
+                                                                            ticket.id,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <ArchiveRestore className="mr-2 h-4 w-4" />
+                                                                    {__(
+                                                                        'tickets.pages.form.buttons.unarchive',
+                                                                    )}
+                                                                </DropdownMenuItem>
+                                                            ) : (
+                                                                <DropdownMenuItem
+                                                                    onClick={() =>
+                                                                        initiateArchive(
+                                                                            ticket.id,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <Archive className="mr-2 h-4 w-4" />
+                                                                    {__(
+                                                                        'tickets.pages.form.buttons.archive',
+                                                                    )}
+                                                                </DropdownMenuItem>
+                                                            )}
                                                         </>
+                                                    )}
+
+                                                    {canArchive && userHasPermission({ user: auth.user, permission: 'delete tickets' }) && (
+                                                        <DropdownMenuItem
+                                                            onClick={() =>
+                                                                initiateDelete(
+                                                                    ticket.id,
+                                                                )
+                                                            }
+                                                            className="text-destructive focus:text-destructive"
+                                                        >
+                                                            <Trash className="mr-2 h-4 w-4" />
+                                                            {__(
+                                                                'tickets.pages.form.buttons.delete',
+                                                            )}
+                                                        </DropdownMenuItem>
                                                     )}
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
@@ -665,6 +778,65 @@ export function TicketTable({ tickets, auth }: Props) {
             </div>
 
             <AlertDialog
+                open={archiveConfirm.isOpen}
+                onOpenChange={(open) =>
+                    !open &&
+                    setArchiveConfirm({ ...archiveConfirm, isOpen: false })
+                }
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            {__('tickets.archive.confirm')}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {__('tickets.archive.message')}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>
+                            {__('tickets.pages.delete.buttons.cancel')}
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={confirmArchive}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                            {__('tickets.pages.form.buttons.archive')}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog
+                open={unarchiveConfirm.isOpen}
+                onOpenChange={(open) =>
+                    !open &&
+                    setUnarchiveConfirm({ ...unarchiveConfirm, isOpen: false })
+                }
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            {__('tickets.unarchive.confirm')}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {__('tickets.unarchive.message')}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>
+                            {__('tickets.pages.delete.buttons.cancel')}
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={confirmUnarchive}
+                        >
+                            {__('tickets.pages.form.buttons.unarchive')}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog
                 open={deleteConfirm.isOpen}
                 onOpenChange={(open) =>
                     !open &&
@@ -674,24 +846,21 @@ export function TicketTable({ tickets, auth }: Props) {
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
-                            {__('tickets.archive.confirm')}
+                            {__('tickets.delete.confirm')}
                         </AlertDialogTitle>
                         <AlertDialogDescription>
-                            {__('tickets.archive.message') ||
-                                'Are you sure you want to move this ticket to trash?'}
+                            {__('tickets.delete.message')}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>
-                            {__('tickets.pages.delete.buttons.cancel') ||
-                                'Cancel'}
+                            {__('tickets.pages.delete.buttons.cancel')}
                         </AlertDialogCancel>
                         <AlertDialogAction
-                            onClick={confirmArchive}
+                            onClick={confirmDelete}
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
-                            {__('tickets.pages.delete.buttons.confirm') ||
-                                'Confirm'}
+                            {__('tickets.pages.form.buttons.delete')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

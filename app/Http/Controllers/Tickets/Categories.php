@@ -16,9 +16,9 @@ use App\Http\Requests\Tickets\Categories\Save as RequestsSave;
 
 /**
  * Ticket Categories operations controller.
- * 
+ *
  * Handles creation, reading, updating, and deletion of ticket categories.
- * 
+ *
  * @package App\Http\Controllers\Tickets
  */
 class Categories extends Controller
@@ -67,8 +67,7 @@ class Categories extends Controller
                     ['id' => $categoryData['id'] ?? null],
                     $attributesToSave
                 );
-                
-                // Stocker l'ID réel et le nouvel index désiré
+
                 $categoriesMap[$category->id] = $index;
             }
 
