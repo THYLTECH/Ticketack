@@ -23,7 +23,7 @@ uses(RefreshDatabase::class);
 beforeEach(function () {
     $permissions = [
         'view tickets', 'show tickets', 'create tickets',
-        'update tickets', 'delete tickets', 'restore tickets', 'force delete tickets'
+        'update tickets', 'delete tickets', 'restore tickets', 'force delete tickets','be assigned tickets'
     ];
 
     foreach ($permissions as $perm) {
