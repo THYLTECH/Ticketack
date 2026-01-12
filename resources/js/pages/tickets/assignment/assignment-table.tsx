@@ -8,9 +8,8 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Card, CardContent } from '@/components/ui/card';
 import { useTrans } from '@/lib/translation';
-import { cn } from '@/lib/utils';
+import { userHasPermission } from '@/lib/utils';
 import { router, usePage } from '@inertiajs/react';
 import { formatDistanceToNow } from 'date-fns';
 import { enUS, fr } from 'date-fns/locale';
@@ -18,7 +17,16 @@ import { AlertCircle, AlertTriangle, Info, UserPlus, Clock, User as UserIcon, Ha
 import { useState } from 'react';
 import { AssignDialog } from './assign-dialog';
 import { SharedData, User, Ticket } from '@/types';
-import { userHasPermission } from '@/lib/utils';
+import {
+    EmptyState,
+    MobileCard,
+    MobileCardHeader,
+    MobileCardIdBadge,
+    MobileCardTitle,
+    MobileCardMeta,
+    MobileCardMetaItem,
+    MobileCardActions,
+} from '../shared';
 
 
 interface AssignmentTableProps {
@@ -123,19 +131,11 @@ export function AssignmentTable({
 
     if (tickets.length === 0) {
         return (
-            <div className="flex min-h-100 flex-col items-center justify-center gap-3 rounded-lg border border-dashed text-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted/50 ring-1 ring-border">
-                    <UserPlus className="h-6 w-6 text-muted-foreground" />
-                </div>
-                <div className="space-y-1">
-                    <h3 className="text-lg font-semibold tracking-tight text-foreground">
-                        {__('tickets.assignment.table.empty')}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                        {__('tickets.assignment.table.empty_description')}
-                    </p>
-                </div>
-            </div>
+            <EmptyState
+                icon={UserPlus}
+                title={__('tickets.assignment.table.empty')}
+                description={__('tickets.assignment.table.empty_description')}
+            />
         );
     }
 
@@ -143,26 +143,19 @@ export function AssignmentTable({
         <>
             <div className="block space-y-3 lg:hidden">
                 {tickets.map((ticket) => (
-                    <Card
+                    <MobileCard
                         key={ticket.id}
-                        className={cn(
-                            'group relative overflow-hidden transition-all duration-300 cursor-pointer',
-                            'hover:shadow-lg hover:-translate-y-0.5 border-border/60',
-                            'bg-linear-to-br from-card to-card/80',
-                        )}
                         onClick={() => handleTicketClick(ticket.id)}
                     >
-                        <div className="absolute inset-0 bg-linear-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-                        <CardContent className="relative p-4 space-y-3">
-                            <div className="flex items-start justify-between gap-3">
-                                <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-muted/40 group-hover:bg-muted/60 transition-colors min-w-0">
-                                    <Hash className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                                    <span className="font-mono text-xs font-semibold text-foreground truncate">
-                                        {ticket.id}
-                                    </span>
-                                </div>
-                                {ticket.priority && (
+                        <MobileCardHeader
+                            left={
+                                <MobileCardIdBadge
+                                    id={ticket.id}
+                                    icon={<Hash className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
+                                />
+                            }
+                            right={
+                                ticket.priority && (
                                     <Badge
                                         variant="outline"
                                         className="gap-1.5 text-xs shrink-0"
@@ -175,89 +168,82 @@ export function AssignmentTable({
                                             {ticket.priority.title}
                                         </span>
                                     </Badge>
-                                )}
-                            </div>
+                                )
+                            }
+                        />
 
-                            <h3 className="font-semibold text-sm leading-tight line-clamp-2 group-hover:text-primary transition-colors">
-                                {ticket.title}
-                            </h3>
+                        <MobileCardTitle>{ticket.title}</MobileCardTitle>
 
-                            <div className="flex flex-wrap gap-2">
-                                {ticket.status && (
-                                    <Badge
-                                        variant="outline"
-                                        className="text-xs shadow-sm"
-                                        style={{
-                                            borderColor: ticket.status.color,
-                                            color: ticket.status.color,
-                                        }}
-                                    >
-                                        {ticket.status.title}
-                                    </Badge>
-                                )}
-                                {ticket.category && (
-                                    <Badge
-                                        variant="outline"
-                                        className="text-xs shadow-sm"
-                                        style={{
-                                            borderColor: ticket.category.color,
-                                            color: ticket.category.color,
-                                        }}
-                                    >
-                                        {ticket.category.title}
-                                    </Badge>
-                                )}
-                            </div>
+                        <div className="flex flex-wrap gap-2">
+                            {ticket.status && (
+                                <Badge
+                                    variant="outline"
+                                    className="text-xs shadow-sm"
+                                    style={{
+                                        borderColor: ticket.status.color,
+                                        color: ticket.status.color,
+                                    }}
+                                >
+                                    {ticket.status.title}
+                                </Badge>
+                            )}
+                            {ticket.category && (
+                                <Badge
+                                    variant="outline"
+                                    className="text-xs shadow-sm"
+                                    style={{
+                                        borderColor: ticket.category.color,
+                                        color: ticket.category.color,
+                                    }}
+                                >
+                                    {ticket.category.title}
+                                </Badge>
+                            )}
+                        </div>
 
-                            <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/40">
-                                    <UserIcon className="h-3.5 w-3.5" />
-                                    <span className="font-medium">{ticket.user.name}</span>
-                                </div>
-                                <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/40">
-                                    <Clock className="h-3.5 w-3.5" />
-                                    <span className="font-medium">{getTicketAge(ticket.created_at)}</span>
-                                </div>
-                            </div>
+                        <MobileCardMeta>
+                            <MobileCardMetaItem icon={<UserIcon className="h-3.5 w-3.5" />}>
+                                {ticket.user.name}
+                            </MobileCardMetaItem>
+                            <MobileCardMetaItem icon={<Clock className="h-3.5 w-3.5" />}>
+                                {getTicketAge(ticket.created_at)}
+                            </MobileCardMetaItem>
+                        </MobileCardMeta>
 
-                            <div
-                                className="flex gap-2 pt-2 border-t border-border/50"
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                                {canBeAssigned && (
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => handleSelfAssign(ticket.id)}
-                                        className="flex-1 h-9 text-xs"
-                                    >
-                                        <UserPlus className="mr-1.5 h-3.5 w-3.5" />
-                                        <span className="hidden xs:inline">
-                                            {__('tickets.assignment.actions.self_assign')}
-                                        </span>
-                                        <span className="inline xs:hidden">
-                                            {__('tickets.assignment.actions.self_assign_short')}
-                                        </span>
-                                    </Button>
-                                )}
-                                {canAssign && (
-                                    <Button
-                                        size="sm"
-                                        onClick={() => openAssignDialog(ticket.id)}
-                                        className="flex-1 h-9 text-xs"
-                                    >
-                                        <UserPlus className="mr-1.5 h-3.5 w-3.5" />
-                                        <span className="hidden xs:inline">
-                                            {__('tickets.assignment.actions.assign')}
-                                        </span>
-                                        <span className="inline xs:hidden">
-                                            {__('tickets.assignment.actions.assign_short')}
-                                        </span>
-                                    </Button>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
+                        <MobileCardActions>
+                            {canBeAssigned && (
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleSelfAssign(ticket.id)}
+                                    className="flex-1 h-9 text-xs"
+                                >
+                                    <UserPlus className="mr-1.5 h-3.5 w-3.5" />
+                                    <span className="hidden xs:inline">
+                                        {__('tickets.assignment.actions.self_assign')}
+                                    </span>
+                                    <span className="inline xs:hidden">
+                                        {__('tickets.assignment.actions.self_assign_short')}
+                                    </span>
+                                </Button>
+                            )}
+                            {canAssign && (
+                                <Button
+                                    size="sm"
+                                    onClick={() => openAssignDialog(ticket.id)}
+                                    className="flex-1 h-9 text-xs"
+                                >
+                                    <UserPlus className="mr-1.5 h-3.5 w-3.5" />
+                                    <span className="hidden xs:inline">
+                                        {__('tickets.assignment.actions.assign')}
+                                    </span>
+                                    <span className="inline xs:hidden">
+                                        {__('tickets.assignment.actions.assign_short')}
+                                    </span>
+                                </Button>
+                            )}
+                        </MobileCardActions>
+                    </MobileCard>
                 ))}
             </div>
 
