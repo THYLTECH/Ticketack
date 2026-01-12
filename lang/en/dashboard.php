@@ -49,7 +49,7 @@ return [
                 ]
             ],
             'user_statistics' => [
-                'assigned_tickets' => 'Users who Assigned the Most Tickets',
+                'assigned_tickets' => 'Users Who Assigned the Most Tickets',
                 'created_tickets' => 'Users Who Created the Most Tickets',
                 'resolved_tickets' => 'Users Who Resolved the Most Tickets',
                 'time_to_resolve' => 'Users Who Spend the Most Time on Tickets',
