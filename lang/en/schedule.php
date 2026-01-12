@@ -14,6 +14,8 @@ return [
         'technicians' => 'Solvers',
         'search_placeholder' => 'Search...',
         'no_results' => 'No solvers found.',
+        'selected' => 'selected',
+        'available' => 'available',
     ],
     'drawer' => [
         'action' => 'Filter',

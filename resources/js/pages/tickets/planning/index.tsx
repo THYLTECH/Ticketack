@@ -509,6 +509,7 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                                         : [...prev, id],
                                                 )
                                             }
+                                            embedded
                                         />
                                     </div>
                                 </SheetContent>
