@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 # LanceDB configuration (path defined in Docker Compose)
 LANCEDB_PATH = os.getenv('LANCEDB_PATH', '/data/lancedb')
+TABLE_NAME = "tickets"
 
 # S3 client (MinIO)
 s3_client = boto3.client(
@@ -38,6 +39,53 @@ def get_db_connection():
     """Open connection to LanceDB."""
     return lancedb.connect(LANCEDB_PATH)
 
+
+@app.task(name='tasks.delete_ticket_data')
+def delete_ticket_data(ticket_id):
+    """
+    Deletes all vector entries associated with a specific ticket ID.
+    Used when a ticket is unreferenced or hard deleted.
+    """
+    print(f"🗑️ [CELERY] Deleting all data for Ticket ID: {ticket_id}")
+
+    db = get_db_connection()
+    table = db.open_table(TABLE_NAME)
+    if not table:
+        print("⚠️ [CELERY] Table not found, skipping delete.")
+        return
+
+    try:
+        # SQL-like delete syntax for LanceDB
+        table.delete(f"ticket_id = {int(ticket_id)}")
+        print(f"✅ [CELERY] Successfully deleted Ticket ID: {ticket_id}")
+    except ValueError:
+        print(f"❌ [CELERY] Invalid Ticket ID format"
+              f"(not a number): {ticket_id}")
+    except Exception as e:
+        print(f"❌ [CELERY] Delete failed: {str(e)}")
+
+
+@app.task(name='tasks.delete_file_vector')
+def delete_file_vector(filename):
+    """
+    Deletes specific vector entries based on the source filename.
+    Used when a file (JSON or Attachment) is updated or deleted.
+    """
+    print(f"✂️ [CELERY] Deleting vectors for file: {filename}")
+
+    db = get_db_connection()
+    table = db.open_table(TABLE_NAME)
+    if not table:
+        print("⚠️ [CELERY] Table not found, skipping delete.")
+        return
+
+    try:
+        # Escape quotes just in case
+        safe_filename = filename.replace("'", "''")
+        table.delete(f"filename = '{safe_filename}'")
+        print(f"✅ [CELERY] Successfully deleted vectors for: {filename}")
+    except Exception as e:
+        print(f"❌ [CELERY] Delete file failed: {str(e)}")
 
 @app.task(name='tasks.process_file')
 def process_file(bucket_name, object_key):
@@ -120,15 +168,14 @@ def vectorize_and_store(text_chunk, metadata):
 
         # 3. Insert into LanceDB
         db = get_db_connection()
-        table_name = "tickets"
 
-        if table_name not in db.table_names():
+        if TABLE_NAME not in db.table_names():
             # Create table if it doesn't exist
             # (schema inferred from first record)
-            tbl = db.create_table(table_name, data=record)
-            print(f"🆕 [LANCEDB] Created table '{table_name}'")
+            tbl = db.create_table(TABLE_NAME, data=record)
+            print(f"🆕 [LANCEDB] Created table '{TABLE_NAME}'")
         else:
-            tbl = db.open_table(table_name)
+            tbl = db.open_table(TABLE_NAME)
             tbl.add(record)
 
     except Exception as e:

@@ -9,8 +9,9 @@ use App\Models\TicketPriority;
 use App\Models\TicketStatus;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\Log;
 
 class TicketObserver
 {
@@ -24,6 +25,7 @@ class TicketObserver
         'asset_id'    => 'equipment',
         'title'       => 'title',
         'description' => 'description',
+        'is_public'   => 'visibility',
         'archived_at' => 'archive_status',
     ];
 
@@ -62,31 +64,42 @@ class TicketObserver
                 $this->logAction($ticket, 'updated', $label, $formattedOld, $formattedNew);
             }
         }
-        $jsonFields = ['title', 'description', 'detailed_solution', 'author_id', 'status_id'];
 
-        $shouldExport = false;
-
-        foreach ($jsonFields as $field) {
-            if ($ticket->wasChanged($field)) {
-                $shouldExport = true;
-                break;
+        if ($ticket->wasChanged('is_referenced') && $ticket->is_referenced) {
+            if ($ticket->status?->is_closed && !empty($ticket->detailed_solution)) {
+                DB::afterCommit(function() use ($ticket) {
+                    $this->exportToMinio($ticket);
+                    $this->uploadAttachments($ticket);
+                });
             }
+            return;
         }
 
-        $dirty = $ticket->getDirty();
-        if (!$shouldExport && count($dirty) === 1 && isset($dirty['updated_at'])) {
-            $shouldExport = true;
+        if ($ticket->wasChanged('is_referenced') && !$ticket->is_referenced) {
+            $this->dispatchDeleteEvent('delete_ticket', ['ticket_id' => $ticket->id]);
+            return;
         }
-        if ($ticket->status?->is_closed && !empty($ticket->detailed_solution)) {
-            if ($shouldExport) {
-                DB::afterCommit(fn() => $this->exportToMinio($ticket));
+
+        if ($ticket->is_referenced) {
+            $jsonFields = ['title', 'description', 'detailed_solution', 'author_id', 'status_id'];
+            foreach ($jsonFields as $field) {
+                if ($ticket->wasChanged($field)) {
+                    $filename = "{$ticket->id}.json";
+
+                    $this->dispatchDeleteEvent('delete_file', [
+                        'filename' => $filename,
+                        'ticket_id' => $ticket->id
+                    ]);
+
+                    $this->exportToMinio($ticket);
+                    break;
+                }
             }
-    }
+        }
     }
 
     private function exportToMinio(Ticket $ticket): void
     {
-        $ticket->loadMissing(['attachments', 'user']);
         $data = [
             'ticket_id'   => $ticket->id,
             'title'       => $ticket->title,
@@ -98,16 +111,40 @@ class TicketObserver
 
         $fileName = "{$ticket->id}.json";
         Storage::disk('s3')->put($fileName, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    }
+
+    private function uploadAttachments(Ticket $ticket): void
+    {
+        $ticket->load('attachments');
 
         foreach ($ticket->attachments as $attachment) {
             if (Storage::disk('public')->exists($attachment->file_path)) {
                 $fileContent = Storage::disk('public')->get($attachment->file_path);
-                if (!is_null($fileContent)) {
-                    $newFileName = "{$ticket->id}_{$attachment->file_name}";
-                    $filePath = "{$newFileName}";
-                    Storage::disk('s3')->put($filePath, $fileContent);
-                }
+                $minioPath = "tickets-raw/{$ticket->id}_{$attachment->file_name}";
+
+                Storage::disk('s3')->put($minioPath, $fileContent);
+                Log::info("Synced attachment to MinIO: {$minioPath}");
+            } else {
+                Log::warning("Attachment file missing locally for attachment ID: {$attachment->id}");
             }
+        }
+    }
+
+    private function dispatchDeleteEvent(string $action, array $payload): void
+    {
+        try {
+            $message = json_encode([
+                'source' => 'laravel_app',
+                'action' => $action,
+                'payload' => $payload,
+                'timestamp' => time()
+            ]);
+
+            Redis::rpush('minio_events', $message);
+
+            Log::info("ETL Delete Event Dispatched: {$action}", $payload);
+        } catch (\Exception $e) {
+            Log::error("Failed to push to Redis: " . $e->getMessage());
         }
     }
 
@@ -127,6 +164,7 @@ class TicketObserver
             'status_id'   => TicketStatus::find($value)?->title ?? "ID: $value",
             'category_id' => TicketCategory::find($value)?->title ?? "ID: $value",
             'asset_id'    => Asset::find($value)?->title ?? "ID: $value",
+            'is_public'   => $value ? 'Public' : 'Private',
             'archived_at' => $value ? 'Archived' : 'Active',
             default       => (string) $value,
         };
@@ -150,5 +188,4 @@ class TicketObserver
             'new_value' => $new,
         ]);
     }
-
 }
