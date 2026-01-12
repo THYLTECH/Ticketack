@@ -13,7 +13,7 @@ return [
         'date' => 'Date Range',
         'author' => 'Author / Solver',
         'category' => 'Category',
-        'asset' => 'Equipment',
+        'asset' => 'Asset',
         'type' => 'File Type',
         'clear' => 'Clear filters',
         'empty' => 'No results found.',
