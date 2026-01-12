@@ -7,12 +7,18 @@ use App\Models\TicketStatus;
 use Carbon\Carbon;
 use Inertia\Testing\AssertableInertia as Assert;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Database\Seeders\RolesAndPermissionsSeeder;
 
 // Utilise RefreshDatabase pour nettoyer la base de données avant chaque test
 uses(RefreshDatabase::class);
 
+beforeEach(function () {
+    $this->seed(RolesAndPermissionsSeeder::class);
+});
+
 test('le dashboard affiche les statistiques correctes pour un utilisateur authentifié', function () {
     $user = User::factory()->create();
+    $user->assignRole('admin');
     
     $status = TicketStatus::create([
         'title' => 'Open',
@@ -54,6 +60,7 @@ test('le dashboard affiche les statistiques correctes pour un utilisateur authen
 
 test('le dashboard filtre les données par plage de dates', function () {
     $user = User::factory()->create();
+    $user->assignRole('admin');
     
     $status = TicketStatus::create([
         'title' => 'Open',
