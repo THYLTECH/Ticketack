@@ -215,7 +215,7 @@ class Crud extends Controller
             'categories' => TicketCategory::orderBy('sort_order')->get(),
             'statuses' => TicketStatus::orderBy('sort_order')->get(),
             'assets' => Asset::getTreeOrderedAssets(),
-            'users' => User::with(['roles', 'avatar'])->get(),
+            'users' => User::permission('be assigned tickets')->with(['roles', 'avatar'])->get(),
         ]);
     }
 
@@ -301,7 +301,7 @@ class Crud extends Controller
         return Inertia::render('tickets/show', [
             'ticket' => $ticket,
             'events' => $events,
-            'solvers' => User::role(['admin', 'solver'])->with('avatar')->get()->map(fn ($user) => [
+            'solvers' => User::permission('be assigned tickets')->with('avatar')->get()->map(fn ($user) => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
@@ -371,7 +371,7 @@ class Crud extends Controller
             'categories' => TicketCategory::orderBy('sort_order')->get(),
             'statuses' => TicketStatus::orderBy('sort_order')->get(),
             'assets' => Asset::getTreeOrderedAssets(),
-            'users' => User::with(['roles', 'avatar'])->get(),
+            'users' => User::permission('be assigned tickets')->with(['roles', 'avatar'])->get(),
         ]);
     }
 
