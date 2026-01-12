@@ -69,13 +69,16 @@ export function AppSidebar() {
             title: __('app.layout.sidebar.menugroups.platform.items.home'),
             href: route('home'),
             icon: Home,
-        },
-        {
+        }
+    ];
+
+    if (userHasPermission({ user: auth.user, permission: 'view dashboard' })) {
+        mainNavItems.push({
             title: __('app.layout.sidebar.menugroups.platform.items.dashboard'),
             href: route('dashboard'),
             icon: LayoutGrid,
-        },
-    ];
+        });
+    }
 
     if (userHasPermission({ user: auth.user, permission: 'view planning' })) {
         mainNavItems.push({

@@ -20,6 +20,10 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
+
+        if (!$request->user()->can('view dashboard')) {
+        abort(403);
+    }
         // Date range for filtering
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());

@@ -35,7 +35,10 @@ class RolesAndPermissionsSeeder extends Seeder
             'view trash', 'edit trash', 'restore trash', 'force delete trash', 'manage trash settings',
 
             // Planning
-            'view planning', 'manage planning'
+            'view planning', 'manage planning', 
+            
+            //Dashboard
+            'view dashboard',
         ];
 
         foreach ($permissions as $permission) {
@@ -51,6 +54,7 @@ class RolesAndPermissionsSeeder extends Seeder
         $roleSolveur->syncPermissions([
             'view tickets', 'show tickets', 'update tickets','be assigned tickets', 'create tickets', 'archive tickets', 'unarchive tickets', 'view all archived tickets',
             'view planning', 'manage planning',
+            'view dashboard',
             'view ticket entries', 'create ticket entries', 'update ticket entries', 'delete ticket entries',
             'view knowledge explorer'
         ]);

@@ -99,4 +99,11 @@ return [
             'manage' => ['title' => 'Manage Planning', 'description' => 'Create and edit schedule events.'],
         ],
     ],
+    'dashboard' => [
+        'title' => 'Dashboard',
+        'description' => 'Access the dashboard overview.',
+        'items' => [
+            'view' => ['title' => 'View Dashboard', 'description' => 'Allow access to the dashboard page.'],
+        ],
+    ],
 ];
