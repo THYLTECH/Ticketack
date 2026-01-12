@@ -56,7 +56,7 @@ export default function Create({
                 href: route('tickets.index'),
             },
             {
-                title: __('tickets.pages.index.buttons.manage'),
+                title: __('tickets.pages.manage.title'),
                 href: route('tickets.manage'),
             },
             {

@@ -204,7 +204,7 @@ return [
         ],
         'index' => [
             'head_title' => 'Tickets',
-            'title' => 'Tickets Management',
+            'title' => 'All Tickets',
             'description' => 'View, filter and manage all support tickets.',
             'toolbar' => [
                 'search' => 'Search tickets...',
@@ -224,7 +224,7 @@ return [
             ],
             'buttons' => [
                 'create' => 'Create Ticket',
-                'manage' => 'Manage Tickets',
+                'manage' => 'Manage My Tickets',
                 'archived' => 'Archived Tickets',
             ],
 
@@ -233,6 +233,11 @@ return [
                 'description' => 'No tickets found matching your current filters or search criteria.',
                 'button' => 'Clear Filters',
             ],
+        ],
+        'manage' => [
+            'head_title' => 'My Tickets',
+            'title' => 'My Tickets',
+            'description' => 'View tickets you created or are assigned to.',
         ],
         'archived' => [
             'head_title' => 'Archived Tickets',

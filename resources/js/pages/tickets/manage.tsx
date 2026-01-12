@@ -50,7 +50,7 @@ export default function Manage({
             href: route('tickets.index'),
         },
         {
-            title: __('tickets.pages.index.buttons.manage'),
+            title: __('tickets.pages.manage.title'),
             href: '#',
         },
     ];
@@ -80,10 +80,10 @@ export default function Manage({
 
     return (
         <TicketPageLayout
-            headTitle={__('tickets.pages.index.buttons.manage')}
+            headTitle={__('tickets.pages.manage.head_title')}
             breadcrumbs={breadcrumbs}
-            title={__('tickets.pages.index.buttons.manage')}
-            description={__('tickets.pages.index.description')}
+            title={__('tickets.pages.manage.title')}
+            description={__('tickets.pages.manage.description')}
             headerActions={<HeaderActions actions={actions} />}
             statsComponent={<TicketStats stats={stats} />}
             toolbar={

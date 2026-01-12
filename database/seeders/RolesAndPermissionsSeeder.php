@@ -49,7 +49,7 @@ class RolesAndPermissionsSeeder extends Seeder
         // Solveur
         $roleSolveur = Role::firstOrCreate(['name' => 'solver']);
         $roleSolveur->syncPermissions([
-            'view tickets', 'show tickets', 'update tickets','be assigned tickets', 'create tickets', 'archive tickets', 'unarchive tickets',
+            'view tickets', 'show tickets', 'update tickets','be assigned tickets', 'create tickets', 'archive tickets', 'unarchive tickets', 'view all archived tickets',
             'view planning', 'manage planning',
             'view ticket entries', 'create ticket entries', 'update ticket entries', 'delete ticket entries',
             'view knowledge explorer'

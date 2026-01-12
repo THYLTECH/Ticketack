@@ -57,19 +57,22 @@ class Crud extends Controller
         return $this->renderTicketList($request, 'tickets/manage');
     }
 
-    private function applyUserVisibilityFilter(Builder $query, User $user, bool $onlyAssigned = false): Builder
+    private function applyUserVisibilityFilter(Builder $query, User $user, bool $onlyMyTickets = false): Builder
     {
         if ($user->hasRole('admin')) {
             return $query;
         }
 
-        if ($user->hasRole('solver') && $onlyAssigned) {
-            return $query->where(function (Builder $q) use ($user) {
-                $q->where('author_id', $user->id)
-                    ->orWhereHas('assignees', function (Builder $subQ) use ($user) {
-                        $subQ->where('user_id', $user->id);
-                    });
-            });
+        if ($user->hasRole('solver')) {
+            if ($onlyMyTickets) {
+                return $query->where(function (Builder $q) use ($user) {
+                    $q->where('author_id', $user->id)
+                        ->orWhereHas('assignees', function (Builder $subQ) use ($user) {
+                            $subQ->where('user_id', $user->id);
+                        });
+                });
+            }
+            return $query;
         }
 
         return $query->where('author_id', $user->id);
@@ -91,15 +94,15 @@ class Crud extends Controller
             'assignees.user.avatar'
         ])->whereNull('archived_at');
 
-        $onlyAssigned = $view === 'tickets/manage';
-        $query = $this->applyUserVisibilityFilter($query, $user, $onlyAssigned);
+        $onlyMyTickets = $view === 'tickets/manage';
+        $query = $this->applyUserVisibilityFilter($query, $user, $onlyMyTickets);
 
         $query = $this->applyFilters($query, $request);
 
         $tickets = $query->paginate(10)->withQueryString();
 
         $statsQuery = Ticket::query();
-        $statsQuery = $this->applyUserVisibilityFilter($statsQuery, $user, $onlyAssigned);
+        $statsQuery = $this->applyUserVisibilityFilter($statsQuery, $user, $onlyMyTickets);
 
         $total = $statsQuery->count();
 
