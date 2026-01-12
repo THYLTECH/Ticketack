@@ -21,8 +21,15 @@ class TicketFactory extends Factory
             'priority_id' => TicketPriority::inRandomOrder()->first()?->id ?? TicketPriority::factory(),
             'status_id' => TicketStatus::inRandomOrder()->first()?->id ?? TicketStatus::factory(),
             'category_id' => TicketCategory::inRandomOrder()->first()?->id ?? TicketCategory::factory(),
-            'archived_at' => $this->faker->boolean(10) ? now()->subDays(rand(1, 30)) : null,
+            'archived_at' => null,
         ];
+    }
+
+    public function archived(): static
+    {
+        return $this->state(fn () => [
+            'archived_at' => now()->subDays(rand(1, 30)),
+        ]);
     }
 
     public function withContext(string $icon): static

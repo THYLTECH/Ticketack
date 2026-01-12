@@ -116,10 +116,12 @@ function AnimatedGroup({
   const itemVariants = variants?.item || selectedVariants.item;
 
   const MotionComponent = React.useMemo(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     () => motion.create(as as any),
     [as]
   );
   const MotionChild = React.useMemo(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     () => motion.create(asChild as any),
     [asChild]
   );

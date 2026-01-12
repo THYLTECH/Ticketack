@@ -100,6 +100,11 @@ class TicketObserver
 
     private function exportToMinio(Ticket $ticket): void
     {
+        // Skip S3 export in testing environment
+        if (app()->environment('testing')) {
+            return;
+        }
+
         $data = [
             'ticket_id'   => $ticket->id,
             'title'       => $ticket->title,
@@ -115,6 +120,11 @@ class TicketObserver
 
     private function uploadAttachments(Ticket $ticket): void
     {
+        // Skip S3 upload in testing environment
+        if (app()->environment('testing')) {
+            return;
+        }
+
         $ticket->load('attachments');
 
         foreach ($ticket->attachments as $attachment) {
@@ -132,6 +142,12 @@ class TicketObserver
 
     private function dispatchDeleteEvent(string $action, array $payload): void
     {
+        // Skip Redis in testing environment
+        if (app()->environment('testing')) {
+            Log::info("ETL Delete Event Skipped (testing): {$action}", $payload);
+            return;
+        }
+
         try {
             $message = json_encode([
                 'source' => 'laravel_app',
@@ -143,7 +159,7 @@ class TicketObserver
             Redis::rpush('minio_events', $message);
 
             Log::info("ETL Delete Event Dispatched: {$action}", $payload);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error("Failed to push to Redis: " . $e->getMessage());
         }
     }

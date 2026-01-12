@@ -268,6 +268,7 @@ class Crud extends Controller
         }
 
         $schedules = TicketSchedule::with(['user.avatar', 'ticket.priority', 'ticket.status', 'ticket.category'])
+            ->where('ticket_id', $ticket->id)
             ->get()
             ->map(function ($schedule) {
                 return [
@@ -286,13 +287,14 @@ class Crud extends Controller
             });
 
         $entries = TicketEntry::with(['user.avatar', 'ticket.priority', 'ticket.status', 'ticket.category'])
+            ->where('ticket_id', $ticket->id)
             ->whereNotNull('start_at')
             ->whereNotNull('end_at')
             ->get()
             ->map(fn($entry) => $entry->toCalendarEvent())
-            ->filter();
+            ->filter(fn($event) => !empty($event));
 
-        $events = collect($schedules->concat((array)$entries))->values()->all();
+        $events = $schedules->concat($entries)->values()->all();
 
         return Inertia::render('tickets/show', [
             'ticket' => $ticket,

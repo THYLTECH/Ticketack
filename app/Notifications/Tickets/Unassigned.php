@@ -15,9 +15,9 @@ class Unassigned extends BaseNotification implements ShouldQueue
 {
     use Queueable;
 
-    protected string $type;
-    protected Ticket $ticket;
-    protected User $unassignedUser;
+    public string $type;
+    public Ticket $ticket;
+    public User $unassignedUser;
 
     public function __construct(Ticket $ticket, User $unassignedUser)
     {

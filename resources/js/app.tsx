@@ -7,17 +7,19 @@ import { configureEcho } from '@laravel/echo-react';
 
 // Polyfill pour crypto.randomUUID dans les contextes non sécurisés (HTTP)
 if (typeof window.crypto === 'undefined') {
-    // @ts-ignore
-    window.crypto = {};
+    Object.defineProperty(window, 'crypto', {
+        value: {},
+        writable: true,
+        configurable: true,
+    });
 }
 if (typeof window.crypto.randomUUID === 'undefined') {
-    // @ts-ignore
-    window.crypto.randomUUID = function () {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-            var r = (Math.random() * 16) | 0,
-                v = c == 'x' ? r : (r & 0x3) | 0x8;
-            return v.toString(16);
-        });
+    // UUID v4 format pattern
+    window.crypto.randomUUID = function (): `${string}-${string}-${string}-${string}-${string}` {
+        return '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, (c) => {
+            const n = Number(c);
+            return (n ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (n / 4)))).toString(16);
+        }) as `${string}-${string}-${string}-${string}-${string}`;
     };
 }
 
@@ -29,7 +31,7 @@ configureEcho({
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
-createInertiaApp({
+void createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
     resolve: (name) =>
         resolvePageComponent(
@@ -46,6 +48,6 @@ createInertiaApp({
     },
 });
 
-// This will set light / dark mode on load...
+// This will set light/dark mode on page load
 // initializeTheme();
 // initializeColorScheme();

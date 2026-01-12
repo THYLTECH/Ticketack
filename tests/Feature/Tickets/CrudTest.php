@@ -761,10 +761,12 @@ test('store and update handle is_archived and is_referenced flags', function () 
     expect($ticket->archived_at)->toBeNull()
         ->and($ticket->is_referenced)->toBeTrue();
 
-    put(route('tickets.update', $ticket), array_merge($data, [
+    $response = put(route('tickets.update', $ticket), array_merge($data, [
         'is_archived' => true,
         'is_referenced' => false,
     ]));
+
+    $response->assertRedirect();
 
     $ticket->refresh();
 
