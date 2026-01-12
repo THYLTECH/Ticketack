@@ -1,15 +1,19 @@
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { useTrans } from '@/lib/translation';
 import { userHasPermission } from '@/lib/utils';
 import { BreadcrumbItem, SharedData } from '@/types';
-import { Link, usePage } from '@inertiajs/react';
+import { usePage } from '@inertiajs/react';
 import { Archive, ArrowLeft, Plus } from 'lucide-react';
 import { TicketTable } from './components/ticket-table';
 import { TicketToolbar } from './components/ticket-toolbar';
 import { TicketStats } from './components/ticket-stats';
 import { useTicketFilters } from './hooks/use-ticket-filters';
-import { BaseTicketPageProps, TicketPageLayout, TicketStats as TicketStatsType } from './shared';
+import {
+    BaseTicketPageProps,
+    HeaderActions,
+    HeaderActionProps,
+    TicketPageLayout,
+    TicketStats as TicketStatsType,
+} from './shared';
 
 interface Props extends BaseTicketPageProps {
     stats: TicketStatsType;
@@ -51,46 +55,28 @@ export default function Manage({
         },
     ];
 
-    const headerActions = (
-        <>
-            {userHasPermission({
-                user: auth.user,
-                permission: 'view tickets',
-            }) && (
-                <Button asChild variant="outline" size="sm" className="relative flex-1 sm:flex-initial">
-                    <Link href={route('tickets.archived')}>
-                        <Archive className="mr-2 h-4 w-4" />
-                        {__('tickets.pages.index.buttons.archived')}
-                        {stats.archived > 0 && (
-                            <Badge
-                                variant="secondary"
-                                className="ml-2 h-5 min-w-5 px-1.5 text-xs"
-                            >
-                                {stats.archived}
-                            </Badge>
-                        )}
-                    </Link>
-                </Button>
-            )}
-            <Button asChild variant="secondary" size="sm" className="flex-1 sm:flex-initial">
-                <Link href={route('tickets.index')}>
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    {__('tickets.pages.form.buttons.back')}
-                </Link>
-            </Button>
-            {userHasPermission({
-                user: auth.user,
-                permission: 'create tickets',
-            }) && (
-                <Button asChild size="sm" className="flex-1 sm:flex-initial">
-                    <Link href={route('tickets.create')}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        {__('tickets.pages.index.buttons.create')}
-                    </Link>
-                </Button>
-            )}
-        </>
-    );
+    const actions: HeaderActionProps[] = [
+        {
+            label: __('tickets.pages.index.buttons.archived'),
+            icon: Archive,
+            href: route('tickets.archived'),
+            variant: 'outline',
+            badge: stats.archived,
+            show: userHasPermission({ user: auth.user, permission: 'view tickets' }),
+        },
+        {
+            label: __('tickets.pages.form.buttons.back'),
+            icon: ArrowLeft,
+            href: route('tickets.index'),
+            variant: 'secondary',
+        },
+        {
+            label: __('tickets.pages.index.buttons.create'),
+            icon: Plus,
+            href: route('tickets.create'),
+            show: userHasPermission({ user: auth.user, permission: 'create tickets' }),
+        },
+    ];
 
     return (
         <TicketPageLayout
@@ -98,7 +84,7 @@ export default function Manage({
             breadcrumbs={breadcrumbs}
             title={__('tickets.pages.index.buttons.manage')}
             description={__('tickets.pages.index.description')}
-            headerActions={headerActions}
+            headerActions={<HeaderActions actions={actions} />}
             statsComponent={<TicketStats stats={stats} />}
             toolbar={
                 <TicketToolbar

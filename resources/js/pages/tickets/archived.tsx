@@ -1,14 +1,19 @@
-import { Button } from '@/components/ui/button';
 import { useTrans } from '@/lib/translation';
 import { userHasPermission } from '@/lib/utils';
 import { BreadcrumbItem, SharedData } from '@/types';
-import { Link, usePage } from '@inertiajs/react';
+import { usePage } from '@inertiajs/react';
 import { ArchiveRestore, Plus } from 'lucide-react';
 import { TicketTable } from './components/ticket-table';
 import { TicketToolbar } from './components/ticket-toolbar';
 import { ArchivedStats } from './components/archived-stats';
 import { useTicketFilters } from './hooks/use-ticket-filters';
-import { ArchivedTicketStats, BaseTicketPageProps, TicketPageLayout } from './shared';
+import {
+    ArchivedTicketStats,
+    BaseTicketPageProps,
+    HeaderActions,
+    HeaderActionProps,
+    TicketPageLayout,
+} from './shared';
 
 interface Props extends BaseTicketPageProps {
     stats: ArchivedTicketStats;
@@ -50,27 +55,20 @@ export default function Archived({
         },
     ];
 
-    const headerActions = (
-        <>
-            <Button asChild size="sm" variant="outline">
-                <Link href={route('tickets.index')}>
-                    <ArchiveRestore className="mr-2 h-4 w-4" />
-                    {__('tickets.pages.archived.back_to_active')}
-                </Link>
-            </Button>
-            {userHasPermission({
-                user: auth.user,
-                permission: 'create tickets',
-            }) && (
-                <Button asChild size="sm">
-                    <Link href={route('tickets.create')}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        {__('tickets.pages.index.buttons.create')}
-                    </Link>
-                </Button>
-            )}
-        </>
-    );
+    const actions: HeaderActionProps[] = [
+        {
+            label: __('tickets.pages.archived.back_to_active'),
+            icon: ArchiveRestore,
+            href: route('tickets.index'),
+            variant: 'outline',
+        },
+        {
+            label: __('tickets.pages.index.buttons.create'),
+            icon: Plus,
+            href: route('tickets.create'),
+            show: userHasPermission({ user: auth.user, permission: 'create tickets' }),
+        },
+    ];
 
     return (
         <TicketPageLayout
@@ -78,7 +76,7 @@ export default function Archived({
             breadcrumbs={breadcrumbs}
             title={__('tickets.pages.archived.title')}
             description={__('tickets.pages.archived.description')}
-            headerActions={headerActions}
+            headerActions={<HeaderActions actions={actions} />}
             statsComponent={<ArchivedStats stats={stats} />}
             toolbar={
                 <TicketToolbar
