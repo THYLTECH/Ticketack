@@ -136,7 +136,7 @@ class Assignment extends Controller
                 ->orderBy('name')
                 ->get();
 
-            $priorities = TicketPriority::orderBy('order', 'desc')->get();
+            $priorities = TicketPriority::orderBy('sort_order', 'desc')->get();
             $statuses = TicketStatus::all();
             $categories = TicketCategory::all();
 
