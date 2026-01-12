@@ -238,8 +238,11 @@ export function PlanningGrid({
                                 key={dayKey}
                                 className="flex flex-1 items-center justify-center border-r border-border bg-muted/40 text-center text-xs font-semibold tracking-wider text-muted-foreground uppercase last:border-r-0"
                             >
-                                <span className="hidden sm:inline">
+                                <span className="hidden 2xl:inline">
                                     {__(`schedule.days.${dayKey}`)}
+                                </span>
+                                <span className="hidden sm:inline 2xl:hidden">
+                                    {__(`schedule.days_short.${dayKey.substring(0, 3)}`)}
                                 </span>
                                 <span className="sm:hidden">
                                     {__(`schedule.days.${dayKey}`).charAt(0)}
@@ -394,7 +397,12 @@ export function PlanningGrid({
                                             : 'text-muted-foreground',
                                     )}
                                 >
-                                    {__(`schedule.days.${dayKey}`)}
+                                    <span className="hidden 2xl:inline">
+                                        {__(`schedule.days.${dayKey}`)}
+                                    </span>
+                                    <span className="2xl:hidden">
+                                        {__(`schedule.days_short.${dayKey.substring(0, 3)}`)}
+                                    </span>
                                 </span>
                                 <div
                                     className={cn(

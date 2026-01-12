@@ -62,11 +62,14 @@ return [
 
         'stats' => [
             'total_unassigned' => 'Total Unassigned',
+            'total_unassigned_description' => 'Total number of tickets that have not been assigned to any user yet.',
             'critical_unassigned' => 'Critical Priority',
             'high_unassigned' => 'High Priority',
             'medium_unassigned' => 'Medium Priority',
             'low_unassigned' => 'Low Priority',
             'oldest_unassigned' => 'Oldest Unassigned',
+            'oldest_unassigned_description' => 'Number of days since the oldest unassigned ticket was created.',
+            'priority_description' => 'Number of unassigned tickets with :priority priority.',
             'days' => 'days',
             'total' => 'Total Tickets',
             'open' => 'Open',

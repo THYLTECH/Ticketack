@@ -37,16 +37,28 @@ export function SolverFilters({ solvers, selectedIds, onToggle }: Props) {
             isOpen ? "w-72" : "w-12"
         )}>
             {!isOpen && (
-                <div className="flex h-full items-center justify-center">
+                <div className="flex h-full flex-col items-center justify-between py-3">
+                    <div className="flex flex-col items-center gap-1">
+                        <Filter className="h-4 w-4 text-muted-foreground" />
+                        {activeCount > 0 && (
+                            <Badge
+                                variant="secondary"
+                                className="h-5 min-w-5 px-1.5 text-[10px]"
+                            >
+                                {activeCount}
+                            </Badge>
+                        )}
+                    </div>
                     <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => setIsOpen(true)}
-                        className="h-10 w-10"
+                        className="h-8 w-8"
                         title={__('schedule.filters.technicians')}
                     >
-                        <ChevronLeft className="h-5 w-5" />
+                        <ChevronLeft className="h-4 w-4" />
                     </Button>
+                    <div />
                 </div>
             )}
 
