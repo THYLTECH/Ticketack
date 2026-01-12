@@ -165,6 +165,14 @@ return [
         'message' => 'This ticket will be archived you can restore it at any time.',
         'confirm' => 'Are you sure you want to archive this ticket ?',
     ],
+    'unarchive' => [
+        'message' => 'This ticket will be restored to active tickets.',
+        'confirm' => 'Are you sure you want to unarchive this ticket?',
+    ],
+    'delete' => [
+        'message' => 'This ticket will be moved to trash. You can restore it later.',
+        'confirm' => 'Are you sure you want to delete this ticket?',
+    ],
     'column' => [
         'title' => 'Title',
         'description' => 'Description',
@@ -176,6 +184,7 @@ return [
         'archive_status' => 'Archive Status',
         'updated_at' => 'Updated',
         'created_at' => 'Created',
+        'actions' => 'Actions',
     ],
 
     /*
@@ -266,7 +275,9 @@ return [
                 'back' => 'Go back to tickets',
                 'store' => 'Store Ticket',
                 'update' => 'Update Ticket',
-                'delete' => 'Archive Ticket',
+                'delete' => 'Delete Ticket',
+                'archive' => 'Archive Ticket',
+                'unarchive' => 'Unarchive Ticket',
                 'edit' => 'Edit Ticket',
                 'back_to_ticket' => 'Back to Ticket',
                 'add' => 'Add Assignee'

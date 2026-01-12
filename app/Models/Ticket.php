@@ -31,6 +31,15 @@ class   Ticket extends Model
         'is_referenced' => 'boolean',
     ];
 
+    protected $appends = [
+        'is_archived',
+    ];
+
+    public function getIsArchivedAttribute(): bool
+    {
+        return !is_null($this->archived_at);
+    }
+
     /**
      * @return BelongsTo
      */

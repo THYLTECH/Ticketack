@@ -29,7 +29,7 @@ import {
     User,
 } from '@/types';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import { AlertCircle, ArrowLeft, Check, Trash } from 'lucide-react';
+import { AlertCircle, Archive, ArchiveRestore, ArrowLeft, Check, Trash } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 
 interface EditProps {
@@ -117,7 +117,11 @@ function EditForm({
 }: EditProps) {
     const __ = useTrans();
     const { auth } = usePage<SharedData>().props;
+    const [archiveConfirmOpen, setArchiveConfirmOpen] = useState(false);
+    const [unarchiveConfirmOpen, setUnarchiveConfirmOpen] = useState(false);
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+
+    const isArchived = Boolean(ticket.is_archived || ticket.archived_at);
 
     const ticketWithFK = ticket as TicketWithForeignKeys;
 
@@ -158,6 +162,18 @@ function EditForm({
         });
     };
 
+    const confirmArchive = () => {
+        router.post(route('tickets.archive', ticket.id), {}, {
+            onFinish: () => setArchiveConfirmOpen(false),
+        });
+    };
+
+    const confirmUnarchive = () => {
+        router.post(route('tickets.unarchive', ticket.id), {}, {
+            onFinish: () => setUnarchiveConfirmOpen(false),
+        });
+    };
+
     const confirmDelete = () => {
         router.delete(route('tickets.destroy', ticket.id), {
             onFinish: () => setDeleteConfirmOpen(false),
@@ -187,6 +203,33 @@ function EditForm({
                             {__('tickets.pages.form.buttons.back_to_ticket')}
                         </Link>
                     </Button>
+
+                    {userHasPermission({
+                        user: auth.user,
+                        permission: 'archive tickets',
+                    }) && (
+                        isArchived ? (
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setUnarchiveConfirmOpen(true)}
+                            >
+                                <ArchiveRestore className="mr-2 h-4 w-4" />
+                                {__('tickets.pages.form.buttons.unarchive')}
+                            </Button>
+                        ) : (
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => setArchiveConfirmOpen(true)}
+                            >
+                                <Archive className="mr-2 h-4 w-4" />
+                                {__('tickets.pages.form.buttons.archive')}
+                            </Button>
+                        )
+                    )}
 
                     {userHasPermission({
                         user: auth.user,
@@ -270,8 +313,8 @@ function EditForm({
             </Card>
 
             <AlertDialog
-                open={deleteConfirmOpen}
-                onOpenChange={setDeleteConfirmOpen}
+                open={archiveConfirmOpen}
+                onOpenChange={setArchiveConfirmOpen}
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
@@ -280,6 +323,57 @@ function EditForm({
                         </AlertDialogTitle>
                         <AlertDialogDescription>
                             {__('tickets.archive.message')}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>
+                            {__('tickets.pages.delete.buttons.cancel')}
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={confirmArchive}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                            {__('tickets.pages.form.buttons.archive')}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog
+                open={unarchiveConfirmOpen}
+                onOpenChange={setUnarchiveConfirmOpen}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            {__('tickets.unarchive.confirm')}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {__('tickets.unarchive.message')}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>
+                            {__('tickets.pages.delete.buttons.cancel')}
+                        </AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmUnarchive}>
+                            {__('tickets.pages.form.buttons.unarchive')}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog
+                open={deleteConfirmOpen}
+                onOpenChange={setDeleteConfirmOpen}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            {__('tickets.delete.confirm')}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {__('tickets.delete.message')}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
