@@ -80,7 +80,7 @@ class Schedules extends Controller
         $startDate = Carbon::parse($data['start_date']);
         $endDate = $startDate->copy()->addMinutes($data['duration_minutes']);
 
-        TicketSchedule::create([
+        $schedule = TicketSchedule::create([
             'ticket_id' => $data['ticket_id'],
             'user_id' => $data['user_id'],
             'start_date' => $startDate,
@@ -95,8 +95,8 @@ class Schedules extends Controller
                 'id',
                 $ticket->assignees()->pluck('user_id')
             )->get();
-    
-            Notification::send($assignees, new NotificationsTicketScheduleCreated($ticket));
+
+            Notification::send($assignees, new NotificationsTicketScheduleCreated($ticket, $schedule));
         }
 
         return back()->with('success', __('schedule.flash.created'));
@@ -127,8 +127,8 @@ class Schedules extends Controller
                 'id',
                 $ticket->assignees()->pluck('user_id')
             )->get();
-    
-            Notification::send($assignees, new NotificationsTicketScheduleUpdated($ticket));
+
+            Notification::send($assignees, new NotificationsTicketScheduleUpdated($ticket, $schedule));
         }
 
         return back()->with('success', __('schedule.flash.updated'));
@@ -144,8 +144,8 @@ class Schedules extends Controller
                 'id',
                 $ticket->assignees()->pluck('user_id')
             )->get();
-    
-            Notification::send($assignees, new NotificationsTicketScheduleDeleted($ticket));
+
+            Notification::send($assignees, new NotificationsTicketScheduleDeleted($ticket, $schedule));
         }
 
         $schedule->delete();

@@ -1,103 +1,29 @@
 <?php
 
-// app/Notifications/EntryCreated.php
-
 namespace App\Notifications\Tickets;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Notification;
-use Illuminate\Mail\Mailable;
-use Illuminate\Notifications\Messages\VonageMessage;
-use App\Helpers\NotificationPreferences;
-
-// Models
 use App\Models\Ticket;
+use App\Models\TicketEntry;
+use App\Models\User;
+use Illuminate\Mail\Mailable;
 
-class EntryCreated extends Notification implements shouldQueue
+class EntryCreated extends BaseTicketNotification
 {
-    use Queueable;
+    public TicketEntry $entry;
 
-    protected $type;
-    protected $ticket;
-
-    /**
-     * Create a new notification instance.
-     */
-    public function __construct(Ticket $ticket)
+    public function __construct(Ticket $ticket, TicketEntry $entry)
     {
-        $this->type = 'ticket_entry_created';
-        $this->ticket = $ticket;
+        parent::__construct($ticket);
+        $this->entry = $entry;
     }
 
-
-    /**
-    * Get the notification's database type.
-    */
-    public function databaseType(object $notifiable): string
+    protected function getType(): string
     {
-        return $this->type;
+        return 'ticket_entry_created';
     }
 
-    /**
-     * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
-     */
-    public function via(object $notifiable): array
-    {
-        // Fetch preferences
-        $preferences = $notifiable->notificationPreferences()
-            ->where('type', $this->type)
-            ->where('enabled', true)
-            ->pluck('channel')
-            ->toArray();
-
-        // Fallback if preferences are not defined
-        $channels = !empty($preferences) ? $preferences : ['mail'];
-
-        // Always add the notification to the database.
-        // if (!in_array('database', $channels)) {
-        //     $channels[] = 'database';
-        // }
-
-        return $channels;
-    }
-
-    /**
-     * Get the mail representation of the notification.
-     */
-    public function toMail(object $notifiable): Mailable
+    protected function getMailable(User $notifiable): Mailable
     {
         return new \App\Mail\Tickets\EntryCreated($notifiable, $this->ticket, $this->type);
-    }
-
-    /**
-     * Get the database representation of the notification
-     */
-    public function toDatabase(object $notifiable): array
-    {
-        return [
-            'type' => $this->type,
-            'category' => NotificationPreferences::getCategoryForType($this->type) ?? 'tickets',
-            'title' => __('notifications.database.' . $this->type . '.title'),
-            'message' => __("notifications.database." . $this->type . ".message", ['title' => $this->ticket->title]),
-            'action' => __("notifications.database." . $this->type . ".action"),
-            'action_url' => route('tickets.show', $this->ticket->id),
-        ];
-    }
-
-    /**
-    * Get the Vonage / SMS representation of the notification.
-    */
-    public function toVonage(object $notifiable): VonageMessage | bool
-    {
-        return (new VonageMessage)
-            ->clientReference((string) $notifiable->id)
-            ->content(__('notifications.sms.' . $this->type . '.message', [
-                'title' => $this->ticket->title,
-                'app' => config('app.name'),
-                'url' => route('tickets.show', $this->ticket->id),
-            ]));
     }
 }

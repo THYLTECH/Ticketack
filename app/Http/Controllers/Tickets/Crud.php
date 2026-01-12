@@ -292,7 +292,9 @@ class Crud extends Controller
             ->whereNotNull('end_at')
             ->get()
             ->map(fn($entry) => $entry->toCalendarEvent())
-            ->filter(fn($event) => !empty($event));
+            ->filter(fn($event) => !empty($event))
+            ->values()
+            ->toArray();
 
         $events = $schedules->concat($entries)->values()->all();
 

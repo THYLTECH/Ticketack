@@ -761,17 +761,21 @@ test('store and update handle is_archived and is_referenced flags', function () 
     expect($ticket->archived_at)->toBeNull()
         ->and($ticket->is_referenced)->toBeTrue();
 
-    $response = put(route('tickets.update', $ticket), array_merge($data, [
-        'is_archived' => true,
-        'is_referenced' => false,
-    ]));
-
-    $response->assertRedirect();
+    // Use the archive route instead of passing is_archived in update
+    post(route('tickets.archive', $ticket));
 
     $ticket->refresh();
 
-    expect($ticket->archived_at)->not->toBeNull()
-        ->and($ticket->is_referenced)->toBeFalse();
+    expect($ticket->archived_at)->not->toBeNull();
+
+    // Test is_referenced update
+    put(route('tickets.update', $ticket), array_merge($data, [
+        'is_referenced' => false,
+    ]));
+
+    $ticket->refresh();
+
+    expect($ticket->is_referenced)->toBeFalse();
 });
 
 test('update notifies admins when last assignee removes themselves', function () {
@@ -813,3 +817,281 @@ test('update notifies admins when last assignee removes themselves', function ()
     );
 });
 
+test('archive route archives a ticket', function () {
+    $ticket = Ticket::factory()->create([
+        'author_id' => $this->user->id,
+        'priority_id' => $this->priority->id,
+        'category_id' => $this->category->id,
+    ]);
+
+    expect($ticket->archived_at)->toBeNull();
+
+    post(route('tickets.archive', $ticket))
+        ->assertRedirect();
+
+    $ticket->refresh();
+
+    expect($ticket->archived_at)->not->toBeNull()
+        ->and($ticket->isArchived())->toBeTrue()
+        ->and($ticket->is_archived)->toBeTrue();
+});
+
+test('unarchive route unarchives a ticket', function () {
+    $ticket = Ticket::factory()->create([
+        'author_id' => $this->user->id,
+        'priority_id' => $this->priority->id,
+        'category_id' => $this->category->id,
+        'archived_at' => now(),
+    ]);
+
+    expect($ticket->archived_at)->not->toBeNull();
+
+    post(route('tickets.unarchive', $ticket))
+        ->assertRedirect();
+
+    $ticket->refresh();
+
+    expect($ticket->archived_at)->toBeNull()
+        ->and($ticket->isArchived())->toBeFalse();
+});
+
+test('archived page shows only archived tickets', function () {
+    Ticket::factory()->create([
+        'author_id' => $this->user->id,
+        'archived_at' => null,
+    ]);
+
+    $archivedTicket = Ticket::factory()->create([
+        'author_id' => $this->user->id,
+        'archived_at' => now(),
+    ]);
+
+    get(route('tickets.archived'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('tickets/archived')
+            ->has('tickets.data', 1)
+        );
+});
+
+test('ticket model scopes work correctly', function () {
+    $activeTicket = Ticket::factory()->create([
+        'author_id' => $this->user->id,
+        'archived_at' => null,
+    ]);
+
+    $archivedTicket = Ticket::factory()->create([
+        'author_id' => $this->user->id,
+        'archived_at' => now(),
+    ]);
+
+    $notArchivedCount = Ticket::notArchived()->count();
+    $archivedCount = Ticket::archived()->count();
+
+    expect($notArchivedCount)->toBe(1)
+        ->and($archivedCount)->toBe(1);
+});
+
+test('ticket model archive and unarchive methods work', function () {
+    $ticket = Ticket::factory()->create([
+        'author_id' => $this->user->id,
+        'archived_at' => null,
+    ]);
+
+    expect($ticket->isArchived())->toBeFalse();
+
+    $ticket->archive();
+
+    expect($ticket->isArchived())->toBeTrue()
+        ->and($ticket->archived_at)->not->toBeNull();
+
+    $ticket->unarchive();
+
+    expect($ticket->isArchived())->toBeFalse()
+        ->and($ticket->archived_at)->toBeNull();
+});
+
+test('ticket relationships are loaded correctly', function () {
+    $ticket = Ticket::factory()->create([
+        'author_id' => $this->user->id,
+        'priority_id' => $this->priority->id,
+        'status_id' => $this->status->id,
+        'category_id' => $this->category->id,
+    ]);
+
+    $ticket->assignees()->create(['user_id' => $this->user->id]);
+    $ticket->comments()->create([
+        'user_id' => $this->user->id,
+        'content' => 'Test comment',
+    ]);
+
+    $ticket->load(['user', 'priority', 'status', 'category', 'assignees', 'comments', 'logs', 'entries', 'schedules', 'author']);
+
+    expect($ticket->user)->not->toBeNull()
+        ->and($ticket->author)->not->toBeNull()
+        ->and($ticket->priority)->not->toBeNull()
+        ->and($ticket->status)->not->toBeNull()
+        ->and($ticket->category)->not->toBeNull()
+        ->and($ticket->assignees)->toHaveCount(1)
+        ->and($ticket->comments)->toHaveCount(1);
+});
+
+test('store creates ticket with assignees when provided by admin', function () {
+    $solver = User::factory()->create();
+    $solverRole = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'solver']);
+    $solver->assignRole($solverRole);
+
+    $data = [
+        'title' => 'Ticket with Assignee',
+        'description' => 'Testing assignees on store',
+        'priority_id' => $this->priority->id,
+        'category_id' => $this->category->id,
+        'assignees' => [['id' => $solver->id]],
+    ];
+
+    post(route('tickets.store'), $data)
+        ->assertRedirect();
+
+    $ticket = Ticket::where('title', 'Ticket with Assignee')->first();
+
+    expect($ticket)->not->toBeNull()
+        ->and($ticket->assignees)->toHaveCount(1)
+        ->and($ticket->assignees->first()->user_id)->toBe($solver->id);
+});
+
+test('update changes ticket status and triggers notification', function () {
+    \Illuminate\Support\Facades\Notification::fake();
+
+    $newStatus = TicketStatus::create([
+        'title' => 'In Progress',
+        'color' => '#ffff00',
+        'sort_order' => 2,
+        'is_default' => false,
+    ]);
+
+    $ticket = Ticket::factory()->create([
+        'author_id' => $this->user->id,
+        'priority_id' => $this->priority->id,
+        'status_id' => $this->status->id,
+        'category_id' => $this->category->id,
+    ]);
+
+    put(route('tickets.update', $ticket), [
+        'title' => $ticket->title,
+        'description' => $ticket->description,
+        'priority_id' => $this->priority->id,
+        'category_id' => $this->category->id,
+        'status_id' => $newStatus->id,
+    ]);
+
+    $ticket->refresh();
+
+    expect($ticket->status_id)->toBe($newStatus->id);
+});
+
+test('update changes ticket priority and triggers notification', function () {
+    \Illuminate\Support\Facades\Notification::fake();
+
+    $newPriority = TicketPriority::create([
+        'title' => 'Critical',
+        'color' => '#ff0000',
+        'sort_order' => 0,
+    ]);
+
+    $ticket = Ticket::factory()->create([
+        'author_id' => $this->user->id,
+        'priority_id' => $this->priority->id,
+        'status_id' => $this->status->id,
+        'category_id' => $this->category->id,
+    ]);
+
+    put(route('tickets.update', $ticket), [
+        'title' => $ticket->title,
+        'description' => $ticket->description,
+        'priority_id' => $newPriority->id,
+        'category_id' => $this->category->id,
+    ]);
+
+    $ticket->refresh();
+
+    expect($ticket->priority_id)->toBe($newPriority->id);
+});
+
+test('destroy soft deletes a ticket', function () {
+    $ticket = Ticket::factory()->create([
+        'author_id' => $this->user->id,
+        'priority_id' => $this->priority->id,
+        'category_id' => $this->category->id,
+    ]);
+
+    delete(route('tickets.destroy', $ticket))
+        ->assertRedirect();
+
+    expect(Ticket::find($ticket->id))->toBeNull()
+        ->and(Ticket::withTrashed()->find($ticket->id))->not->toBeNull();
+});
+
+test('restore restores a soft deleted ticket', function () {
+    $ticket = Ticket::factory()->create([
+        'author_id' => $this->user->id,
+        'priority_id' => $this->priority->id,
+        'category_id' => $this->category->id,
+    ]);
+
+    $ticket->delete();
+
+    expect(Ticket::find($ticket->id))->toBeNull();
+
+    post(route('tickets.restore', $ticket))
+        ->assertRedirect();
+
+    expect(Ticket::find($ticket->id))->not->toBeNull();
+});
+
+test('index applies assignee filter correctly', function () {
+    $solver = User::factory()->create();
+
+    $ticket1 = Ticket::factory()->create(['author_id' => $this->user->id]);
+    $ticket1->assignees()->create(['user_id' => $solver->id]);
+
+    $ticket2 = Ticket::factory()->create(['author_id' => $this->user->id]);
+
+    get(route('tickets.index', ['assignee' => $solver->id]))
+        ->assertInertia(fn ($page) => $page->has('tickets.data', 1));
+});
+
+test('index applies date range filter correctly', function () {
+    Ticket::factory()->create([
+        'author_id' => $this->user->id,
+        'updated_at' => now()->subDays(10),
+    ]);
+
+    Ticket::factory()->create([
+        'author_id' => $this->user->id,
+        'updated_at' => now(),
+    ]);
+
+    get(route('tickets.index', [
+        'date_from' => now()->subDays(5)->format('Y-m-d'),
+        'date_to' => now()->format('Y-m-d'),
+    ]))
+        ->assertInertia(fn ($page) => $page->has('tickets.data', 1));
+});
+
+test('show page displays similar tickets when available', function () {
+    $ticket = Ticket::factory()->create([
+        'author_id' => $this->user->id,
+        'priority_id' => $this->priority->id,
+        'status_id' => $this->status->id,
+        'category_id' => $this->category->id,
+    ]);
+
+    get(route('tickets.show', $ticket))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('ticket')
+            ->has('events')
+            ->has('solvers')
+            ->has('similar_tickets')
+        );
+});

@@ -52,8 +52,8 @@ class Comments extends Controller
                     'id',
                     $ticket->assignees()->pluck('user_id')
                 )->get();
-        
-                Notification::send($assignees, new NotificationsTicketCommentCreated($ticket));
+
+                Notification::send($assignees, new NotificationsTicketCommentCreated($ticket, $comment));
             }
 
             return redirect()->back();
