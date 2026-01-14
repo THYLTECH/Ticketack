@@ -18,13 +18,22 @@ import {
     EmptyTitle 
 } from '@/components/ui/empty';
 import { Ticket as TicketIcon } from 'lucide-react';
-import LaravelPagination from '@/components/LaravelPagination';
+// Remplacement de LaravelPagination par PaginationControl
+import { PaginationControl } from '@/components/pagination-control';
+
+// Interface mise à jour pour correspondre à PaginationMeta de PaginationControl
+interface PaginatedTickets {
+    data: Ticket[];
+    current_page: number;
+    from: number | null;
+    to: number | null;
+    total: number;
+    per_page: number;
+    links: { url: string | null; label: string; active: boolean }[];
+}
 
 interface TicketTableProps {
-    data: {
-        data: Ticket[];
-        links: { url: string | null; label: string; active: boolean }[];
-    } | null;
+    data: PaginatedTickets | null;
     emptyMessage?: string;
     showAuthor?: boolean;
 }
@@ -37,13 +46,10 @@ export function TicketTable({ data, emptyMessage, showAuthor = false }: TicketTa
     const tickets = data.data;
 
     return (
-        /* - min-h-[750px] : Hauteur stable adaptée à 15 tickets (réduite par rapport à 850px).
-           - flex-col + justify-between : Maintient la pagination tout en bas si elle existe.
-        */
-        <div className="flex flex-col h-full min-h-[750px] justify-between">
+        <div className="flex flex-col h-full min-h-[400px] justify-between border rounded-md bg-card overflow-hidden">
             <div className="flex-1 overflow-x-auto">
                 {tickets.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-[650px]">
+                    <div className="flex flex-col items-center justify-center h-[300px]">
                         <Empty className="border-none">
                             <EmptyHeader>
                                 <EmptyMedia variant="icon">
@@ -56,30 +62,27 @@ export function TicketTable({ data, emptyMessage, showAuthor = false }: TicketTa
                         </Empty>
                     </div>
                 ) : (
-                    /* - table-fixed : Force le respect des largeurs de colonnes.
-                       - truncate : Empêche les débordements des textes longs.
-                    */
                     <Table className="table-fixed w-full">
-                        <TableHeader>
+                        <TableHeader className="bg-muted/50">
                             <TableRow>
-                                <TableHead className="w-[60px] text-[10px] text-muted-foreground uppercase font-bold tracking-widest">
+                                <TableHead className="w-[80px] pl-6 font-semibold text-foreground">
                                     {__('tickets.fields.id', 'ID')}
                                 </TableHead>
-                                <TableHead className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">
+                                <TableHead className="font-semibold text-foreground">
                                     {__('tickets.fields.title')}
                                 </TableHead>
-                                <TableHead className="w-[100px] text-[10px] text-muted-foreground uppercase font-bold tracking-widest text-center">
+                                <TableHead className="w-[120px] font-semibold text-foreground text-center">
                                     {__('tickets.fields.status')}
                                 </TableHead>
-                                <TableHead className="w-[90px] text-[10px] text-muted-foreground uppercase font-bold tracking-widest text-center">
+                                <TableHead className="w-[110px] font-semibold text-foreground text-center">
                                     {__('tickets.fields.priority')}
                                 </TableHead>
                                 {showAuthor && (
-                                    <TableHead className="w-[120px] text-[10px] text-muted-foreground uppercase font-bold tracking-widest">
+                                    <TableHead className="w-[140px] font-semibold text-foreground">
                                         {__('tickets.fields.author')}
                                     </TableHead>
                                 )}
-                                <TableHead className="w-[110px] text-right text-[10px] text-muted-foreground uppercase font-bold tracking-widest">
+                                <TableHead className="w-[130px] pr-6 text-right font-semibold text-foreground">
                                     {__('tickets.fields.updated_at')}
                                 </TableHead>
                             </TableRow>
@@ -88,10 +91,10 @@ export function TicketTable({ data, emptyMessage, showAuthor = false }: TicketTa
                             {tickets.map((ticket) => (
                                 <TableRow 
                                     key={ticket.id} 
-                                    className="relative cursor-pointer hover:bg-muted/50 transition-colors group"
+                                    className="group cursor-pointer transition-colors hover:bg-muted/40"
                                     onClick={() => router.get(route('tickets.show', ticket.id))}
                                 >
-                                    <TableCell className="text-xs text-muted-foreground font-mono truncate">
+                                    <TableCell className="pl-6 text-xs text-muted-foreground font-mono truncate">
                                         #{ticket.id}
                                     </TableCell>
                                     
@@ -137,7 +140,7 @@ export function TicketTable({ data, emptyMessage, showAuthor = false }: TicketTa
                                         </TableCell>
                                     )}
                                     
-                                    <TableCell className="text-right text-xs text-muted-foreground font-medium truncate">
+                                    <TableCell className="pr-6 text-right text-xs text-muted-foreground font-medium truncate tabular-nums">
                                         {formatDate(ticket.updated_at)}
                                     </TableCell>
                                 </TableRow>
@@ -147,14 +150,10 @@ export function TicketTable({ data, emptyMessage, showAuthor = false }: TicketTa
                 )}
             </div>
             
-            {/* La barre de navigation n'est rendue que s'il y a plus d'une page 
-                (Laravel génère 3 liens par défaut pour une seule page).
-            */}
-            {data.links && data.links.length > 3 && (
-                <div className="px-6 py-4 border-t bg-muted/5 mt-auto">
-                    <LaravelPagination links={data.links} />
-                </div>
-            )}
+            {/* Intégration de PaginationControl en bas du tableau */}
+            <div className="px-6 py-4 border-t bg-muted/5 mt-auto">
+                <PaginationControl meta={data} />
+            </div>
         </div>
     );
 }

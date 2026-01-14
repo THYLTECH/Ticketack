@@ -83,6 +83,8 @@ class Crud extends Controller
         /** @var User $user */
         $user = Auth::user();
 
+        $perPage = $request->input('per_page', 10);
+
         $query = Ticket::with([
             'user:id,name,attachment_avatar,email',
             'user.avatar',
@@ -99,7 +101,7 @@ class Crud extends Controller
 
         $query = $this->applyFilters($query, $request);
 
-        $tickets = $query->paginate(10)->withQueryString();
+        $tickets = $query->paginate($perPage)->withQueryString();
 
         $statsQuery = Ticket::query();
         $statsQuery = $this->applyUserVisibilityFilter($statsQuery, $user, $onlyMyTickets);
@@ -525,6 +527,8 @@ class Crud extends Controller
         /** @var User $user */
         $user = Auth::user();
 
+        $perPage = $request->input('per_page', 10);
+
         $query = Ticket::with([
             'user:id,name,attachment_avatar,email',
             'user.avatar',
@@ -542,7 +546,7 @@ class Crud extends Controller
 
         $query = $this->applyFilters($query, $request);
 
-        $tickets = $query->paginate(10)->withQueryString();
+        $tickets = $query->paginate($perPage)->withQueryString();
 
         $statsQuery = Ticket::whereNotNull('archived_at');
 
