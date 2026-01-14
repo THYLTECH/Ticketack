@@ -35,7 +35,7 @@ export function SolverFilters({ solvers, selectedIds, onToggle, embedded = false
     if (embedded) {
         return (
             <div className="flex h-full flex-col overflow-hidden">
-                <div className="sticky top-0 z-10 border-b bg-background/95 p-3 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                <div className="shrink-0 border-b bg-background/95 p-3 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                     <div className="relative">
                         <Search className="absolute top-2.5 left-2.5 h-3.5 w-3.5 text-muted-foreground" />
                         <Input
@@ -62,7 +62,7 @@ export function SolverFilters({ solvers, selectedIds, onToggle, embedded = false
                 </div>
 
                 <ScrollArea className="flex-1">
-                    <div className="space-y-1 p-2">
+                    <div className="space-y-1 p-2 pb-30">
                         {filtered.length > 0 ? (
                             filtered.map((solver) => {
                                 const isSelected = selectedIds.includes(solver.id);
@@ -148,7 +148,7 @@ export function SolverFilters({ solvers, selectedIds, onToggle, embedded = false
 
             {isOpen && (
                 <>
-                    <div className="flex flex-col gap-4 border-b bg-muted/10 p-4">
+                    <div className="shrink-0 flex flex-col gap-4 border-b bg-muted/10 p-4">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2 text-sm font-bold text-foreground">
                                 <Filter className="h-4 w-4 text-primary" />
@@ -193,8 +193,8 @@ export function SolverFilters({ solvers, selectedIds, onToggle, embedded = false
                         </div>
                     </div>
 
-                    <ScrollArea className="flex-1">
-                        <div className="space-y-2 p-3">
+                    <ScrollArea className="flex-1 h-full">
+                        <div className="space-y-2 p-3 pb-30">
                             {filtered.length > 0 ? (
                                 filtered.map((solver) => {
                                     const isSelected = selectedIds.includes(solver.id);

@@ -32,6 +32,7 @@ export function TicketSidebar({
     const [search, setSearch] = useState('');
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
+    // Filtrage des tickets basé sur la recherche
     const availableTickets = tickets
         .filter(
             (t) =>
@@ -62,7 +63,8 @@ export function TicketSidebar({
 
     return (
         <div className="flex h-full flex-col overflow-hidden">
-            <div className="flex flex-col gap-4 border-b bg-muted/10 p-4">
+            {/* Header fixe (Recherche et Titre) */}
+            <div className="flex flex-col gap-4 border-b bg-muted/10 p-4 shrink-0">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-sm font-bold text-foreground">
                         <Inbox className="h-4 w-4 text-primary" />
@@ -97,12 +99,14 @@ export function TicketSidebar({
                 </div>
             </div>
 
+            {/* Zone de défilement flexible */}
             <ScrollArea
-                className="relative flex-1"
+                className="relative flex-1 h-full w-full"
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
             >
+                {/* Overlay de suppression lors du drag & drop */}
                 {isDraggingOver && (
                     <div className="absolute inset-0 z-50 m-2 flex animate-in flex-col items-center justify-center rounded-xl border-2 border-dashed border-destructive bg-destructive/5 backdrop-blur-[1px] transition-all zoom-in-95 fade-in">
                         <div className="mb-2 rounded-full bg-background p-3 shadow-sm ring-1 ring-destructive/20">
@@ -114,7 +118,7 @@ export function TicketSidebar({
                     </div>
                 )}
 
-                <div className="flex flex-col gap-3 p-3">
+                <div className="flex flex-col gap-3 p-3 pb-30">
                     {availableTickets.map((ticket) => {
                         const isSelected = selectedId === ticket.id;
                         return (
@@ -174,6 +178,7 @@ export function TicketSidebar({
                         );
                     })}
 
+                    {/* État vide */}
                     {availableTickets.length === 0 && (
                         <div className="flex flex-col items-center justify-center gap-2 py-10 text-center opacity-60">
                             {search ? (
