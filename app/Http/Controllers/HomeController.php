@@ -44,7 +44,7 @@ class HomeController extends Controller
         $assignedClosedTickets = null;
 
         // 4. Pagination des tickets assignés (si autorisé)
-        if ($user->hasAnyRole(['admin', 'solver'])) {
+        if ($user->can('be assigned tickets')) {
             $assignedTickets = Ticket::whereHas('assignees', fn($q) => $q->where('user_id', $user->id))
                 ->with(['status', 'priority', 'category', 'user'])
                 ->whereHas('status', fn($q) => $q->where('is_closed', false))
