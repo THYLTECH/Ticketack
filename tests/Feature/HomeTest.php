@@ -6,9 +6,14 @@ use App\Models\User;
 use Carbon\Carbon;
 use Inertia\Testing\AssertableInertia as Assert;
 use App\Models\Role;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
 
 beforeEach(function () {
-    // Création manuelle des statuts sans utiliser de Factory
+    // Indispensable pour que les nouveaux rôles/permissions créés dans les tests soient reconnus immédiatement
+    app()[PermissionRegistrar::class]->forgetCachedPermissions();
+
+    // Création manuelle des statuts nécessaires aux tests
     $this->openStatus = TicketStatus::create([
         'title' => 'Open',
         'color' => '#000000',
@@ -25,7 +30,6 @@ beforeEach(function () {
 });
 
 test('les invités sont redirigés vers la page de connexion', function () {
-    // Utilise le nom de route défini dans auth.php ou web.php (souvent 'login')
     $this->get(route('home'))->assertRedirect(); 
 });
 
@@ -46,14 +50,14 @@ test('la page home affiche uniquement les tickets ouverts de l\'utilisateur', fu
     $user = User::factory()->create();
     $otherUser = User::factory()->create();
 
-    // Ticket de l'utilisateur (on passe l'ID du statut créé dans beforeEach)
+    // Ticket appartenant à l'utilisateur
     Ticket::factory()->create([
         'author_id' => $user->id,
         'status_id' => $this->openStatus->id,
         'title' => 'Mon ticket ouvert'
     ]);
 
-    // Ticket d'un autre utilisateur
+    // Ticket appartenant à quelqu'un d'autre
     Ticket::factory()->create([
         'author_id' => $otherUser->id,
         'status_id' => $this->openStatus->id,
@@ -71,7 +75,7 @@ test('la page home affiche uniquement les tickets ouverts de l\'utilisateur', fu
 test('les tickets fermés depuis plus de 30 jours ne sont pas affichés', function () {
     $user = User::factory()->create();
 
-    // Ticket fermé récent (10 jours)
+    // Ticket fermé récemment (10 jours)
     Ticket::factory()->create([
         'author_id' => $user->id,
         'status_id' => $this->closedStatus->id,
@@ -93,18 +97,20 @@ test('les tickets fermés depuis plus de 30 jours ne sont pas affichés', functi
 });
 
 test('un solver voit les tickets qui lui sont attribués', function () {
-    // Création du rôle 'solver' manuellement pour le test
-    Role::create(['name' => 'solver']);
+    // Création du rôle et de la permission pour passer le contrôle can() ou hasRole() du HomeController
+    $role = Role::create(['name' => 'solver']);
+    Permission::firstOrCreate(['name' => 'be assigned tickets']);
+    $role->givePermissionTo('be assigned tickets');
 
     $solver = User::factory()->create();
-    $solver->assignRole('solver'); 
+    $solver->assignRole($role); 
 
     $ticket = Ticket::factory()->create([
         'status_id' => $this->openStatus->id,
         'title' => 'Ticket assigné'
     ]);
 
-    // On assigne le ticket au solver
+    // Assigne explicitement le ticket au solver via la table de pivot
     $ticket->assignees()->create(['user_id' => $solver->id]);
 
     $this->actingAs($solver)
