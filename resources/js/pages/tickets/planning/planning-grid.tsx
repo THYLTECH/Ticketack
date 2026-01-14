@@ -372,178 +372,109 @@ export function PlanningGrid({
               );
     const colWidth = `${100 / days.length}%`;
 
-    return (
+return (
         <div className="flex h-full flex-col overflow-hidden bg-background">
-            <div className="z-50 flex h-28 shrink-0 border-b bg-card shadow-sm ring-1 ring-border/5">
-                <div className="w-17 shrink-0 border-r border-border bg-card"></div>
-                <div className="flex h-full flex-1">
-                    {days.map((day) => {
-                        const dayKey = format(day, 'eeee').toLowerCase();
-                        return (
-                            <div
-                                key={day.toString()}
-                                style={{ width: colWidth }}
-                                className={cn(
-                                    'flex h-full flex-col items-center justify-center border-r border-border bg-card text-center last:border-r-0 cursor-pointer transition-colors hover:bg-muted/50',
-                                    isToday(day) && 'bg-primary/5 hover:bg-primary/10',
-                                )}
-                                onClick={() => onDayHeaderClick?.(day)}
-                            >
-                                <span
-                                    className={cn(
-                                        'mb-1 text-xs font-bold tracking-wider uppercase',
-                                        isToday(day)
-                                            ? 'text-primary'
-                                            : 'text-muted-foreground',
-                                    )}
-                                >
-                                    <span className="hidden 2xl:inline">
-                                        {__(`schedule.days.${dayKey}`)}
-                                    </span>
-                                    <span className="2xl:hidden">
-                                        {__(`schedule.days_short.${dayKey.substring(0, 3)}`)}
-                                    </span>
-                                </span>
-                                <div
-                                    className={cn(
-                                        'flex h-8 w-8 items-center justify-center rounded-full text-lg font-bold transition-all',
-                                        isToday(day)
-                                            ? 'scale-110 bg-primary text-primary-foreground shadow-md'
-                                            : 'text-foreground',
-                                    )}
-                                >
-                                    {format(day, 'd')}
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            </div>
-
+            {/* 1. Le conteneur scrollable unique (scrollbar tout en haut) */}
             <div
                 ref={scrollAreaRef}
-                className="scrollbar-thin relative z-0 flex-1 overflow-y-auto"
+                className="relative z-0 flex flex-1 flex-col overflow-y-auto"
             >
+                {/* 2. L'en-tête (sticky pour rester fixe au scroll) */}
+                <div className="sticky top-0 z-[70] flex h-28 shrink-0 border-b bg-card shadow-sm ring-1 ring-border/5">
+                    <div className="w-17 shrink-0 border-r border-border bg-card"></div>
+                    <div className="flex h-full flex-1">
+                        {days.map((day) => {
+                            const dayKey = format(day, 'eeee').toLowerCase();
+                            return (
+                                <div
+                                    key={day.toString()}
+                                    style={{ width: colWidth }}
+                                    className={cn(
+                                        'flex h-full flex-col items-center justify-center border-r border-border bg-card text-center last:border-r-0 cursor-pointer transition-colors hover:bg-muted/50',
+                                        isToday(day) && 'bg-primary/5 hover:bg-primary/10',
+                                    )}
+                                    onClick={() => onDayHeaderClick?.(day)}
+                                >
+                                    <span className={cn('mb-1 text-xs font-bold tracking-wider uppercase', isToday(day) ? 'text-primary' : 'text-muted-foreground')}>
+                                        <span className="hidden 2xl:inline">{__(`schedule.days.${dayKey}`)}</span>
+                                        <span className="2xl:hidden">{__(`schedule.days_short.${dayKey.substring(0, 3)}`)}</span>
+                                    </span>
+                                    <div className={cn('flex h-8 w-8 items-center justify-center rounded-full text-lg font-bold transition-all', isToday(day) ? 'scale-110 bg-primary text-primary-foreground shadow-md' : 'text-foreground')}>
+                                        {format(day, 'd')}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* 3. La grille (Le contenu du planning) */}
                 <div
-                    className="relative flex min-h-full"
+                    className="relative flex shrink-0"
                     style={{ height: HOURS.length * CELL_HEIGHT }}
                 >
+                    {/* Colonne des heures */}
                     <div className="z-30 flex w-17 shrink-0 flex-col border-r bg-card shadow-[4px_0_24px_rgba(0,0,0,0.02)] select-none">
                         {HOURS.map((hour) => (
-                            <div
-                                key={hour}
-                                className="relative h-15 border-b border-transparent"
-                            >
-                                <span
-                                    className={cn(
-                                        'absolute right-3 bg-card px-1 font-mono text-xs font-medium text-muted-foreground',
-                                        hour === START_HOUR
-                                            ? 'top-1'
-                                            : '-top-2.5',
-                                    )}
-                                >
+                            <div key={hour} className="relative h-15 border-b border-transparent">
+                                <span className={cn('absolute right-3 bg-card px-1 font-mono text-xs font-medium text-muted-foreground', hour === START_HOUR ? 'top-1' : '-top-2.5')}>
                                     {hour}:00
                                 </span>
                             </div>
                         ))}
                     </div>
 
+                    {/* Colonnes des jours et événements */}
                     <div className="relative flex flex-1">
                         <div className="pointer-events-none absolute inset-0 z-0 w-full">
                             {HOURS.map((hour) => (
-                                <div
-                                    key={hour}
-                                    className="h-15 w-full border-b border-border/40"
-                                />
+                                <div key={hour} className="h-15 w-full border-b border-border/40" />
                             ))}
                         </div>
 
                         {days.map((day) => {
                             const displayEvents = filterEventsForDay(day);
-
                             const layoutMap = calculateEventLayout(displayEvents);
 
-
                             return (
-                                <div
-                                    key={day.toString()}
-                                    style={{ width: colWidth }}
-                                    className={cn(
-                                        'group relative border-r border-border transition-all last:border-r-0',
-                                        isToday(day) ? 'z-40' : 'z-10',
-                                        'hover:z-50',
-                                    )}
-                                >
+                                <div key={day.toString()} style={{ width: colWidth }} className={cn('group relative border-r border-border transition-all last:border-r-0', isToday(day) ? 'z-40' : 'z-10', 'hover:z-50')}>
                                     {HOURS.map((hour) => (
-                                        <div
-                                            key={hour}
-                                            style={{ height: CELL_HEIGHT }}
-                                            className={cn(
-                                                'w-full transition-colors',
-                                                isEditMode &&
-                                                    'cursor-pointer hover:bg-primary/5 active:bg-primary/10',
-                                            )}
-                                            onDragOver={handleDragOver}
-                                            onDrop={(e) =>
-                                                handleDrop(e, day, hour)
-                                            }
-                                            onClick={() =>
-                                                handleSlotClick(day, hour)
-                                            }
-                                        />
+                                        <div key={hour} style={{ height: CELL_HEIGHT }} className={cn('w-full transition-colors', isEditMode && 'cursor-pointer hover:bg-primary/5 active:bg-primary/10')} onDragOver={handleDragOver} onDrop={(e) => handleDrop(e, day, hour)} onClick={() => handleSlotClick(day, hour)} />
                                     ))}
 
                                     {isToday(day) && (
-                                        <div
-                                            className="pointer-events-none absolute z-50 flex w-full -translate-y-1/2 transform items-center"
-                                            style={{
-                                                top: `${(((getHours(new Date()) - START_HOUR) * 60 + getMinutes(new Date())) / 60) * CELL_HEIGHT}px`,
-                                            }}
-                                        >
+                                        <div className="pointer-events-none absolute z-50 flex w-full -translate-y-1/2 transform items-center" style={{ top: `${(((getHours(new Date()) - START_HOUR) * 60 + getMinutes(new Date())) / 60) * CELL_HEIGHT}px` }}>
                                             <div className="-ml-1.5 h-3 w-3 shrink-0 rounded-full bg-red-500 shadow-sm ring-2 ring-background" />
                                             <div className="h-0.5 w-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]" />
                                         </div>
                                     )}
 
                                     {displayEvents.map((event) => {
-                                        const isEntry = event.is_entry === true;
-                                        const isResizing = resizingEvent?.id === event.id;
                                         const layout = layoutMap.get(event.id);
-                                        const startDate = parseISO(event.start_date);
-
                                         return (
                                             <PlanningEvent
                                                 key={`${event.id}-${event.updated_at}`}
                                                 event={event}
                                                 layout={layout}
                                                 isEditMode={isEditMode}
-                                                isResizing={isResizing}
+                                                isResizing={resizingEvent?.id === event.id}
                                                 highlightedEventId={highlightedEventId}
                                                 currentUserId={currentUserId}
                                                 view={view}
                                                 onDragStart={(e) => {
-                                                    if (!canDragEvent(event)) {
-                                                        e.preventDefault();
-                                                        return;
-                                                    }
+                                                    if (!canDragEvent(event)) { e.preventDefault(); return; }
                                                     e.dataTransfer.setData('eventId', event.id.toString());
                                                 }}
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    if (isResizingRef.current || isEntry) return;
+                                                    if (isResizingRef.current || event.is_entry) return;
                                                     onEventClick(event);
                                                 }}
                                                 onResizeStart={(e) => {
                                                     e.stopPropagation();
                                                     e.preventDefault();
                                                     isResizingRef.current = true;
-                                                    setResizingEvent({
-                                                        id: event.id as number,
-                                                        initialY: e.clientY,
-                                                        initialDuration: event.duration_minutes,
-                                                        currentDuration: event.duration_minutes,
-                                                        startData: formatISO(startDate),
-                                                    });
+                                                    setResizingEvent({ id: event.id as number, initialY: e.clientY, initialDuration: event.duration_minutes, currentDuration: event.duration_minutes, startData: formatISO(parseISO(event.start_date)) });
                                                 }}
                                                 style={getEventStyle(event, layout)}
                                             />

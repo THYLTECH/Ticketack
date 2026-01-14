@@ -650,7 +650,7 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                         />
                     </main>
 
-                    <aside className="relative hidden shrink-0 flex-col overflow-visible lg:flex">
+                    <aside className="relative hidden shrink-0 flex-col overflow-hidden lg:flex h-[calc(100vh-10rem)]">
                         <SolverFilters
                             solvers={solvers}
                             selectedIds={selectedSolvers}
