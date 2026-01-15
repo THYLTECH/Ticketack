@@ -1,10 +1,5 @@
 model_list:
-  - model_name: mistral-nemo
-    litellm_params:
-      model: ollama/gemma:2b
-      api_base: http://ollama:11434
-
-  - model_name: gemma-local
+  - model_name: gemma:2b
     litellm_params:
       model: ollama/gemma:2b
       api_base: http://ollama:11434

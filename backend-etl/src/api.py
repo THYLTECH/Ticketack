@@ -27,6 +27,10 @@ class SearchResult(BaseModel):
     filename: str  # Useful for debugging
 
 
+class SearchResultWithContent(SearchResult):
+    content: str   # The text content for RAG
+
+
 @app.on_event("startup")
 async def startup_event():
     """
@@ -123,3 +127,52 @@ async def search_tickets(search: SearchQuery):
     except Exception as e:
         print(f"❌ [API] Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/retrieve_context", response_model=List[SearchResultWithContent])
+async def retrieve_context(search: SearchQuery):
+    """
+    Similary to /search but returns the content as well (heavier, for RAG).
+    """
+    start_time = time.time()
+    if not search.query.strip():
+        raise HTTPException(status_code=400, detail="Query cannot be empty")
+
+    try:
+        # 1. Vectorize
+        model = get_model()
+        output = model.encode(search.query, return_dense=True, return_sparse=False, return_colbert_vecs=False)
+        query_vec = output['dense_vecs']
+
+        # 2. Search
+        table = get_db_table()
+        fetch_limit = search.limit * 5
+        df_results = table.search(query_vec).limit(fetch_limit).to_pandas()
+
+        if df_results.empty:
+            return []
+
+        # 3. Deduplicate
+        df_results = df_results.sort_values(by='_distance', ascending=True)
+        df_unique = df_results.drop_duplicates(subset=['ticket_id'], keep='first')
+        df_final = df_unique.head(search.limit)
+
+        # 4. Format response
+        response = []
+        for _, row in df_final.iterrows():
+            response.append(SearchResultWithContent(
+                ticket_id=int(row['ticket_id']),
+                score=round(float(row['_distance']), 4),
+                filename=row.get('filename', 'unknown'),
+                content=row.get('text', '')
+            ))
+
+        print(f"📖 [API] Context retrieved for '{search.query}' ({len(response)} docs).")
+        return response
+
+    except Exception as e:
+        print(f"❌ [API] Error in retrieve_context: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
