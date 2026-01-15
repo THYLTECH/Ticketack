@@ -210,6 +210,27 @@ services:
       - sail
     restart: always
 
+  vllm:
+    image: vllm/vllm-openai:latest
+    profiles: [ "vllm" ]
+    ports:
+      - "8002:8000"
+    volumes:
+      - huggingface_cache:/root/.cache/huggingface
+    environment:
+      HUGGING_FACE_HUB_TOKEN: "${HUGGING_FACE_HUB_TOKEN}"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+    command: "--model google/gemma-2b --dtype half --max-model-len 1024"
+    networks:
+      - sail
+    restart: unless-stopped
+
   ollama:
     image: ollama/ollama:latest
     ports:
