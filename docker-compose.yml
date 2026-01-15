@@ -47,137 +47,174 @@ services:
       - ticketack-network
 
   minio:
-      image: 'minio/minio:latest'
-      ports:
-          - '${FORWARD_MINIO_PORT:-9000}:9000'
-          - '${FORWARD_MINIO_CONSOLE_PORT:-8900}:8900'
-      environment:
-          MINIO_ROOT_USER: 'sail'
-          MINIO_ROOT_PASSWORD: 'password'
-          # Configuration Redis directe via variables d'environnement
-          MINIO_NOTIFY_REDIS_ENABLE_1: "on"
-          MINIO_NOTIFY_REDIS_ADDRESS_1: "redis:6379"
-          MINIO_NOTIFY_REDIS_KEY_1: "minio_events"
-          MINIO_NOTIFY_REDIS_FORMAT_1: "access"
-      volumes:
-          - 'sail-minio:/data'
-      command: minio server /data --console-address ":8900"
-      networks:
-          - sail
-      healthcheck:
-          test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
-          retries: 3
-          timeout: 5s
+    image: 'minio/minio:latest'
+    ports:
+      - '${FORWARD_MINIO_PORT:-9000}:9000'
+      - '${FORWARD_MINIO_CONSOLE_PORT:-8900}:8900'
+    environment:
+      MINIO_ROOT_USER: 'sail'
+      MINIO_ROOT_PASSWORD: 'password'
+      # Configuration Redis directe via variables d'environnement
+      MINIO_NOTIFY_REDIS_ENABLE_1: "on"
+      MINIO_NOTIFY_REDIS_ADDRESS_1: "redis:6379"
+      MINIO_NOTIFY_REDIS_KEY_1: "minio_events"
+      MINIO_NOTIFY_REDIS_FORMAT_1: "access"
+    volumes:
+      - 'sail-minio:/data'
+    command: minio server /data --console-address ":8900"
+    networks:
+      - sail
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      retries: 3
+      timeout: 5s
 
   minio-setup:
-      image: minio/mc
-      depends_on:
-          minio:
-              condition: service_healthy
-          redis:
-              condition: service_healthy
-      networks:
-          - sail
-      entrypoint:
-          - /bin/sh
-          - -c
-          - |
-              # 1. Configuration de l'alias
-              until mc alias set local http://minio:9000 sail password; do
-                echo "En attente de MinIO..."
-                sleep 1
-              done
+    image: minio/mc
+    depends_on:
+      minio:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - sail
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        # 1. Configuration de l'alias
+        until mc alias set local http://minio:9000 sail password; do
+          echo "En attente de MinIO..."
+          sleep 1
+        done
 
-              # 2. Création du bucket
-              mc mb --ignore-existing local/tickets-raw
+        # 2. Création du bucket
+        mc mb --ignore-existing local/tickets-raw
 
-              # 3. Activation de l'événement (boucle de sécurité)
-              echo "Activation de l'événement sur le bucket..."
-              # L'index '_1' dans les variables d'env correspond au nom '1' dans l'ARN
-              for i in 1 2 3 4 5 6 7 8 9 10; do
-                if mc event add local/tickets-raw arn:minio:sqs::1:redis --event put; then
-                  echo "Configuration des événements réussie."
-                  break
-                else
-                  echo "ARN non prêt, nouvelle tentative dans 5s ($i/10)..."
-                  sleep 5
-                fi
-              done
+        # 3. Activation de l'événement (boucle de sécurité)
+        echo "Activation de l'événement sur le bucket..."
+        # L'index '_1' dans les variables d'env correspond au nom '1' dans l'ARN
+        for i in 1 2 3 4 5 6 7 8 9 10; do
+          if mc event add local/tickets-raw arn:minio:sqs::1:redis --event put; then
+            echo "Configuration des événements réussie."
+            break
+          else
+            echo "ARN non prêt, nouvelle tentative dans 5s ($i/10)..."
+            sleep 5
+          fi
+        done
 
-              echo 'Configuration MinIO terminée.'
-              exit 0
+        echo 'Configuration MinIO terminée.'
+        exit 0
   redis:
-      image: 'redis:alpine'
-      ports:
-          - '${FORWARD_REDIS_PORT:-6379}:6379'
-      volumes:
-          - 'sail-redis:/data'
-      networks:
-          - sail
-      healthcheck:
-          test: [ "CMD", "redis-cli", "ping" ]
-          retries: 3
-          timeout: 5s
+    image: 'redis:alpine'
+    ports:
+      - '${FORWARD_REDIS_PORT:-6379}:6379'
+    volumes:
+      - 'sail-redis:/data'
+    networks:
+      - sail
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      retries: 3
+      timeout: 5s
 
   etl-worker:
-      build:
-          context: ./backend-etl
-          dockerfile: Dockerfile
-      image: ticketack-etl
-      restart: unless-stopped
-      depends_on:
-          - redis
-          - minio
-      env_file:
-          - ./.env
-      volumes:
-          - ./backend-etl:/app
-          - huggingface_cache:/root/.cache/huggingface
-          - lancedb_data:/data/lancedb
-      environment:
-          - PYTHONUNBUFFERED=1
-          - REDIS_HOST=redis
-          - MINIO_ENDPOINT=minio:9000
-          - LANCEDB_PATH=/data/lancedb
-      networks:
-          - sail
-      command: sh -c "celery -A src.celery_app worker --loglevel=info -P solo & python -m src.listener"
+    build:
+      context: ./backend-etl
+      dockerfile: Dockerfile
+    image: ticketack-etl
+    restart: unless-stopped
+    depends_on:
+      - redis
+      - minio
+    env_file:
+      - ./.env
+    volumes:
+      - ./backend-etl:/app
+      - huggingface_cache:/root/.cache/huggingface
+      - lancedb_data:/data/lancedb
+    environment:
+      - PYTHONUNBUFFERED=1
+      - REDIS_HOST=redis
+      - MINIO_ENDPOINT=minio:9000
+      - LANCEDB_PATH=/data/lancedb
+    networks:
+      - sail
+    command: sh -c "celery -A src.celery_app worker --loglevel=info -P solo & python -m src.listener"
 
   etl-api:
-      build:
-          context: ./backend-etl
-          dockerfile: Dockerfile
-      image: ticketack-etl
-      restart: unless-stopped
-      ports:
-          - "${FORWARD_ETL_API_PORT:-8001}:8000" # API exposed on port 8001
-      volumes:
-          - ./backend-etl:/app
-          - huggingface_cache:/root/.cache/huggingface
-          - lancedb_data:/data/lancedb # Same volume as worker to share the DB
-      environment:
-          - PYTHONUNBUFFERED=1
-          - LANCEDB_PATH=/data/lancedb
-      networks:
-          - sail
-      # API web server by Uvicorn (FastAPI)
-      command: uvicorn src.api:app --host 0.0.0.0 --port 8000 --reload
+    build:
+      context: ./backend-etl
+      dockerfile: Dockerfile
+    image: ticketack-etl
+    restart: unless-stopped
+    ports:
+      - "${FORWARD_ETL_API_PORT:-8001}:8000" # API exposed on port 8001
+    volumes:
+      - ./backend-etl:/app
+      - huggingface_cache:/root/.cache/huggingface
+      - lancedb_data:/data/lancedb # Same volume as worker to share the DB
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LANCEDB_PATH=/data/lancedb
+    networks:
+      - sail
+    # API web server by Uvicorn (FastAPI)
+    command: uvicorn src.api:app --host 0.0.0.0 --port 8000 --reload
 
   ai-worker:
-      build:
-          context: ./backend-ai
-          dockerfile: Dockerfile
-      image: ticketack-ai-worker
-      container_name: ticketack-ai-worker
-      restart: unless-stopped
-      environment:
-          REDIS_HOST: redis
-          REDIS_PORT: 6379
-          REDIS_QUEUE_NAME: ticket_processing_queue
-      networks:
-          - sail
-      depends_on:
-          - redis
+    build:
+      context: ./backend-ai
+      dockerfile: Dockerfile
+    image: ticketack-ai-worker
+    container_name: ticketack-ai-worker
+    restart: unless-stopped
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_QUEUE_NAME: ticket_processing_queue
+    networks:
+      - sail
+    depends_on:
+      - redis
+      - litellm
+
+  litellm:
+    image: ghcr.io/berriai/litellm:main-latest
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./litellm_config.yaml:/app/config.yaml
+    command: "--config /app/config.yaml --port 4000"
+    networks:
+      - sail
+    restart: always
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - sail
+    profiles: [ "local" ]
+    restart: always
+
+  ollama-init:
+    image: ollama/ollama:latest
+    depends_on:
+      - ollama
+    profiles: [ "local" ]
+    networks:
+      - sail
+    environment:
+      - OLLAMA_HOST=ollama:11434
+    entrypoint: /bin/sh
+    command:
+      - "-c"
+      - "sleep 5; ollama pull mistral-nemo; ollama pull gemma:2b"
 
 networks:
   ticketack-network:
@@ -188,8 +225,9 @@ networks:
 volumes:
   dbdata:
   sail-minio:
-      driver: local
+    driver: local
   sail-redis:
-      driver: local
+    driver: local
   huggingface_cache:
   lancedb_data:
+  ollama_data:
