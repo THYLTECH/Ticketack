@@ -19,11 +19,18 @@ class Store extends FormRequest
             'title'             => ['required', 'string', 'max:255'],
             'description'       => ['required', 'string', 'max:10000'],
 
-            'is_public'         => ['boolean'],
+            'is_archived'       => ['boolean'],
             'is_referenced'     => ['boolean'],
             'detailed_solution' => ['nullable', 'string'],
             'status_id'         => ['nullable', 'integer', 'exists:ticket_statuses,id'],
-            'assignees'         => ['nullable', 'array'],
+            'assignees'         => ['nullable', function ($attribute, $value, $fail) {
+                if (($value === '[]' || $value === '')) {
+                    return;
+                }
+                if (!is_array($value)) {
+                    $fail('Le champ assignees doit être un tableau.');
+                }
+            }],
             'assignees.*.id'    => ['required', 'integer', 'exists:users,id'],
 
             'priority_id'       => ['required', 'integer', 'exists:ticket_priorities,id'],

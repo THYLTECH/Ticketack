@@ -36,22 +36,37 @@ class Statuses extends Controller
         $existingIds = TicketStatus::pluck('id')->toArray();
         $idsToChange = array_diff($existingIds, $submittedIds);
 
-        // require only one default status and one closed status
         $defaultCount = collect($data['statuses'])->where('is_default', true)->count();
         $closedCount = collect($data['statuses'])->where('is_closed', true)->count();
 
         if ($defaultCount !== 1) {
             return redirect()->back()->withErrors([
-                'statuses' => __('There must be exactly one default status.'),
+                'statuses' => __('tickets.flash.statuses_default_error'),
             ]);
         }
 
         if ($closedCount !== 1) {
             return redirect()->back()->withErrors([
-                'statuses' => __('There must be exactly one closed status.'),
+                'statuses' => __('tickets.flash.statuses_closed_error'),
             ]);
         }
 
+        $idsToDelete = array_diff($existingIds, $submittedIds);
+
+        if (!empty($idsToDelete)) {
+            $lockedStatuses = TicketStatus::whereIn('id', $idsToDelete)
+                ->where('locked', true)
+                ->pluck('title')
+                ->toArray();
+
+            if (!empty($lockedStatuses)) {
+                return redirect()->back()->withErrors([
+                    'statuses' => __('tickets.flash.statuses_locked_error', [
+                        'statuses' => implode(', ', $lockedStatuses),
+                    ]),
+                ]);
+            }
+        }
 
         DB::transaction(function () use ($data, $idsToChange) {
             $statusesMap = [];
@@ -95,7 +110,6 @@ class Statuses extends Controller
                     $attributesToSave
                 );
 
-                // Stocker l'ID réel et le nouvel index désiré
                 $statusesMap[$status->id] = $index;
             }
 
@@ -105,6 +119,6 @@ class Statuses extends Controller
             }
         });
 
-        return redirect()->back()->with('success', __('Ticket statuses saved successfully.'));
+        return redirect()->back()->with('success', __('tickets.flash.statuses_success'));
     }
 }

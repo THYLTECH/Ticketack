@@ -55,6 +55,7 @@ interface DashboardProps {
         start_date: string;
         total_assets: number;
         total_users: number;
+        unassigned_tickets: number;
         avg_resolution_time: number;
         activity: {
             created : number;
@@ -85,7 +86,6 @@ interface DashboardProps {
 
 export default function Dashboard({ statsGeneral, statsTickets, statsAssets, statsUsers, users, filters }: DashboardProps) {
     const __ = useTrans();
-    console.log(statsUsers);
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: __('dashboard.pages.breadcrumbs.dashboard'),
@@ -209,7 +209,7 @@ export default function Dashboard({ statsGeneral, statsTickets, statsAssets, sta
                                 </TabsTrigger>
                             </TabsList>
 
-                            {/* Global Stats */}
+                            {/* General Stats */}
                             <TabsContent value="global" className="space-y-4 pt-4">
                                 <GeneralTab stats={statsGeneral} chartConfig={ChartConfig} />
                             </TabsContent>

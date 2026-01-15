@@ -12,15 +12,12 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Spinner } from '@/components/ui/spinner';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app/layout';
 import { useTrans } from '@/lib/translation';
 import { userHasPermission } from '@/lib/utils';
-import {
-    InformationsTab,
-    TicketFormData,
-    UsersTab,
-} from '@/pages/tickets/form';
+import { InformationsTab, TicketFormData } from '@/pages/tickets/form';
+import { prepareTicketFormData } from '@/pages/tickets/form/utils';
+import { FileWithPreview } from '@/hooks/use-file-upload';
 import {
     Asset,
     BreadcrumbItem,
@@ -32,14 +29,7 @@ import {
     User,
 } from '@/types';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import {
-    AlertCircle,
-    ArrowLeft,
-    Check,
-    FileText,
-    Trash,
-    Users,
-} from 'lucide-react';
+import { AlertCircle, Archive, ArchiveRestore, ArrowLeft, Check, Trash } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 
 interface EditProps {
@@ -51,17 +41,21 @@ interface EditProps {
     users: User[];
 }
 
+interface TicketFormSchema extends Omit<
+    TicketFormData,
+    'assignees' | 'attachments'
+> {
+    assignees: number[];
+    attachments: (File | FileWithPreview)[];
+}
+
 type TicketWithForeignKeys = Ticket & {
     priority_id?: number | string | null;
     status_id?: number | string | null;
     category_id?: number | string | null;
     asset_id?: number | string | null;
+    assignees?: Array<{ user_id: number; user: { id: number } }>;
 };
-
-interface FileWrapper {
-    file?: File;
-    [key: string]: unknown;
-}
 
 export default function Edit({
     ticket,
@@ -76,8 +70,8 @@ export default function Edit({
     const breadcrumbs: BreadcrumbItem[] = useMemo(
         () => [
             {
-                title: __('dashboard.pages.breadcrumbs.dashboard'),
-                href: route('dashboard'),
+                title: __('home.pages.breadcrumbs.home'),
+                href: route('home'),
             },
             {
                 title: __('tickets.pages.breadcrumbs.index'),
@@ -99,7 +93,7 @@ export default function Edit({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`${__('tickets.pages.edit.title')} #${ticket.id}`} />
 
-            <div className="container mx-auto max-w-400 px-4 py-8 sm:px-6 lg:px-8">
+            <div className="container mx-auto max-w-full px-4 py-8 sm:px-6 lg:px-8">
                 <EditForm
                     ticket={ticket}
                     priorities={priorities}
@@ -123,15 +117,19 @@ function EditForm({
 }: EditProps) {
     const __ = useTrans();
     const { auth } = usePage<SharedData>().props;
+    const [archiveConfirmOpen, setArchiveConfirmOpen] = useState(false);
+    const [unarchiveConfirmOpen, setUnarchiveConfirmOpen] = useState(false);
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+
+    const isArchived = Boolean(ticket.is_archived || ticket.archived_at);
 
     const ticketWithFK = ticket as TicketWithForeignKeys;
 
     const { data, setData, processing, errors, hasErrors, clearErrors } =
-        useForm<TicketFormData>({
+        useForm<TicketFormSchema>({
             title: ticket.title || '',
             description: ticket.description || '',
-            is_public: Boolean(ticket.is_public),
+            is_archived: Boolean(ticket.archived_at),
             is_referenced: Boolean(ticket.is_referenced),
             detailed_solution: ticket.detailed_solution || '',
             priority_id: ticketWithFK.priority_id
@@ -150,34 +148,29 @@ function EditForm({
                   : null,
             attachments: [],
             assignees: ticket.assignees
-                ? ticket.assignees.map((assignee) => assignee.user)
+                ? ticket.assignees.map((assignee) => assignee.user.id)
                 : [],
         });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        const payload = {
-            _method: 'PUT',
-            ...data,
-            assignees: data.assignees.map((u) => ({ id: u.id })),
-            attachments: data.attachments
-                ? data.attachments
-                      .filter((a) => {
-                          if (a instanceof File) return true;
-                          const wrapper = a as FileWrapper;
-                          return wrapper.file instanceof File;
-                      })
-                      .map((a) => {
-                          if (a instanceof File) return a;
-                          return (a as FileWrapper).file as File;
-                      })
-                : [],
-        };
+        const formData = prepareTicketFormData(data, 'PUT');
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        router.post(route('tickets.update', ticket.id), payload as any, {
+        router.post(route('tickets.update', ticket.id), formData, {
             forceFormData: true,
+        });
+    };
+
+    const confirmArchive = () => {
+        router.post(route('tickets.archive', ticket.id), {}, {
+            onFinish: () => setArchiveConfirmOpen(false),
+        });
+    };
+
+    const confirmUnarchive = () => {
+        router.post(route('tickets.unarchive', ticket.id), {}, {
+            onFinish: () => setUnarchiveConfirmOpen(false),
         });
     };
 
@@ -187,8 +180,8 @@ function EditForm({
         });
     };
 
-    const handleClearErrors = (field?: keyof TicketFormData) => {
-        clearErrors(field as Parameters<typeof clearErrors>[0]);
+    const handleClearErrors = (field?: keyof TicketFormSchema) => {
+        clearErrors(field as keyof TicketFormSchema);
     };
 
     return (
@@ -210,6 +203,33 @@ function EditForm({
                             {__('tickets.pages.form.buttons.back_to_ticket')}
                         </Link>
                     </Button>
+
+                    {userHasPermission({
+                        user: auth.user,
+                        permission: 'archive tickets',
+                    }) && (
+                        isArchived ? (
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setUnarchiveConfirmOpen(true)}
+                            >
+                                <ArchiveRestore className="mr-2 h-4 w-4" />
+                                {__('tickets.pages.form.buttons.unarchive')}
+                            </Button>
+                        ) : (
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => setArchiveConfirmOpen(true)}
+                            >
+                                <Archive className="mr-2 h-4 w-4" />
+                                {__('tickets.pages.form.buttons.archive')}
+                            </Button>
+                        )
+                    )}
 
                     {userHasPermission({
                         user: auth.user,
@@ -247,56 +267,19 @@ function EditForm({
 
             <Card className="overflow-hidden border shadow-sm">
                 <CardContent className="p-6">
-                    <Tabs defaultValue="informations" className="w-full">
-                        <TabsList className="grid w-full grid-cols-2 bg-muted p-1 md:w-100">
-                            <TabsTrigger
-                                value="informations"
-                                className="gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm"
-                            >
-                                <FileText className="h-4 w-4" />
-                                {__('tickets.pages.form.tabs.informations')}
-                            </TabsTrigger>
-                            <TabsTrigger
-                                value="users"
-                                className="gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm"
-                            >
-                                <Users className="h-4 w-4" />
-                                {__('tickets.pages.form.tabs.assignees')}
-                            </TabsTrigger>
-                        </TabsList>
-
-                        <div className="mt-6">
-                            <TabsContent
-                                value="informations"
-                                className="m-0 space-y-4 focus-visible:outline-none"
-                            >
-                                <InformationsTab
-                                    data={data}
-                                    setData={setData}
-                                    errors={errors}
-                                    clearErrors={handleClearErrors}
-                                    disabled={processing}
-                                    priorities={priorities}
-                                    statuses={statuses}
-                                    categories={categories}
-                                    assets={assets}
-                                    existingAttachments={ticket.attachments}
-                                />
-                            </TabsContent>
-
-                            <TabsContent
-                                value="users"
-                                className="m-0 focus-visible:outline-none"
-                            >
-                                <UsersTab
-                                    data={data}
-                                    setData={setData}
-                                    users={users}
-                                    disabled={processing}
-                                />
-                            </TabsContent>
-                        </div>
-                    </Tabs>
+                    <InformationsTab
+                        data={data as unknown as never}
+                        setData={setData}
+                        errors={errors}
+                        clearErrors={handleClearErrors}
+                        disabled={processing}
+                        priorities={priorities}
+                        statuses={statuses}
+                        categories={categories}
+                        assets={assets}
+                        users={users}
+                        existingAttachments={ticket.attachments}
+                    />
                 </CardContent>
 
                 {userHasPermission({
@@ -330,8 +313,8 @@ function EditForm({
             </Card>
 
             <AlertDialog
-                open={deleteConfirmOpen}
-                onOpenChange={setDeleteConfirmOpen}
+                open={archiveConfirmOpen}
+                onOpenChange={setArchiveConfirmOpen}
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
@@ -340,6 +323,57 @@ function EditForm({
                         </AlertDialogTitle>
                         <AlertDialogDescription>
                             {__('tickets.archive.message')}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>
+                            {__('tickets.pages.delete.buttons.cancel')}
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={confirmArchive}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                            {__('tickets.pages.form.buttons.archive')}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog
+                open={unarchiveConfirmOpen}
+                onOpenChange={setUnarchiveConfirmOpen}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            {__('tickets.unarchive.confirm')}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {__('tickets.unarchive.message')}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>
+                            {__('tickets.pages.delete.buttons.cancel')}
+                        </AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmUnarchive}>
+                            {__('tickets.pages.form.buttons.unarchive')}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog
+                open={deleteConfirmOpen}
+                onOpenChange={setDeleteConfirmOpen}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            {__('tickets.delete.confirm')}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {__('tickets.delete.message')}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

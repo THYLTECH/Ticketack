@@ -2,15 +2,11 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Spinner } from '@/components/ui/spinner';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app/layout';
 import { useTrans } from '@/lib/translation';
 import { userHasPermission } from '@/lib/utils';
-import {
-    InformationsTab,
-    TicketFormData,
-    UsersTab,
-} from '@/pages/tickets/form';
+import { InformationsTab, TicketFormData } from '@/pages/tickets/form';
+import { prepareTicketFormData } from '@/pages/tickets/form/utils';
 import {
     Asset,
     BreadcrumbItem,
@@ -21,7 +17,7 @@ import {
     User,
 } from '@/types';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import { AlertCircle, ArrowLeft, Check, FileText, Users } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Check } from 'lucide-react';
 import React, { useMemo } from 'react';
 
 interface CreateProps {
@@ -32,9 +28,12 @@ interface CreateProps {
     users: User[];
 }
 
-interface FileWrapper {
-    file?: File;
-    [key: string]: unknown;
+interface TicketFormSchema extends Omit<
+    TicketFormData,
+    'assignees' | 'attachments'
+> {
+    assignees: number[];
+    attachments: never[];
 }
 
 export default function Create({
@@ -49,15 +48,15 @@ export default function Create({
     const breadcrumbs: BreadcrumbItem[] = useMemo(
         () => [
             {
-                title: __('dashboard.pages.breadcrumbs.dashboard'),
-                href: route('dashboard'),
+                title: __('home.pages.breadcrumbs.home'),
+                href: route('home'),
             },
             {
                 title: __('tickets.pages.breadcrumbs.index'),
                 href: route('tickets.index'),
             },
             {
-                title: __('tickets.pages.index.buttons.manage'),
+                title: __('tickets.pages.manage.title'),
                 href: route('tickets.manage'),
             },
             {
@@ -72,7 +71,7 @@ export default function Create({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={__('tickets.pages.create.head_title')} />
 
-            <div className="container mx-auto max-w-400 px-4 py-8 sm:px-6 lg:px-8">
+            <div className="container mx-auto max-w-full px-4 py-8 sm:px-6 lg:px-8">
                 <CreateForm
                     priorities={priorities}
                     categories={categories}
@@ -96,10 +95,10 @@ function CreateForm({
     const { auth } = usePage<SharedData>().props;
 
     const { data, setData, processing, errors, hasErrors, clearErrors } =
-        useForm<TicketFormData>({
+        useForm<TicketFormSchema>({
             title: '',
             description: '',
-            is_public: false,
+            is_archived: false,
             is_referenced: false,
             detailed_solution: '',
             priority_id: null,
@@ -113,33 +112,16 @@ function CreateForm({
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        const formattedAttachments = data.attachments
-            ? data.attachments
-                  .filter((a) => {
-                      if (a instanceof File) return true;
-                      const wrapper = a as FileWrapper;
-                      return wrapper.file instanceof File;
-                  })
-                  .map((a) => {
-                      if (a instanceof File) return a;
-                      return (a as FileWrapper).file as File;
-                  })
-            : [];
+        const formData = prepareTicketFormData(data);
 
-        const payload = {
-            ...data,
-            assignees: data.assignees.map((u) => ({ id: u.id })),
-            attachments: formattedAttachments,
-        };
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        router.post(route('tickets.store'), payload as any, {
+        router.post(route('tickets.store'), formData, {
             forceFormData: true,
         });
     };
 
-    const handleClearErrors = (field?: keyof TicketFormData) => {
-        clearErrors(field as Parameters<typeof clearErrors>[0]);
+    const handleClearErrors = (field?: keyof TicketFormSchema) => {
+        // @ts-expect-error - Compatibilité types useForm
+        clearErrors(field);
     };
 
     return (
@@ -183,56 +165,19 @@ function CreateForm({
 
             <Card className="overflow-hidden border shadow-sm">
                 <CardContent className="p-6">
-                    <Tabs defaultValue="informations" className="w-full">
-                        <TabsList className="grid w-full grid-cols-2 bg-muted p-1 md:w-100">
-                            <TabsTrigger
-                                value="informations"
-                                className="gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm"
-                            >
-                                <FileText className="h-4 w-4" />
-                                {__('tickets.pages.form.tabs.informations')}
-                            </TabsTrigger>
-                            <TabsTrigger
-                                value="users"
-                                className="gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm"
-                            >
-                                <Users className="h-4 w-4" />
-                                {__('tickets.pages.form.tabs.assignees')}
-                            </TabsTrigger>
-                        </TabsList>
-
-                        <div className="mt-6">
-                            <TabsContent
-                                value="informations"
-                                className="m-0 space-y-4 focus-visible:outline-none"
-                            >
-                                <InformationsTab
-                                    data={data}
-                                    setData={setData}
-                                    errors={errors}
-                                    clearErrors={handleClearErrors}
-                                    disabled={processing}
-                                    priorities={priorities}
-                                    statuses={statuses}
-                                    categories={categories}
-                                    assets={assets}
-                                    existingAttachments={[]}
-                                />
-                            </TabsContent>
-
-                            <TabsContent
-                                value="users"
-                                className="m-0 focus-visible:outline-none"
-                            >
-                                <UsersTab
-                                    data={data}
-                                    setData={setData}
-                                    users={users}
-                                    disabled={processing}
-                                />
-                            </TabsContent>
-                        </div>
-                    </Tabs>
+                    <InformationsTab
+                        data={data as never}
+                        setData={setData}
+                        errors={errors}
+                        clearErrors={handleClearErrors}
+                        disabled={processing}
+                        priorities={priorities}
+                        statuses={statuses}
+                        categories={categories}
+                        assets={assets}
+                        users={users}
+                        existingAttachments={[]}
+                    />
                 </CardContent>
 
                 {userHasPermission({

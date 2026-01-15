@@ -69,6 +69,7 @@ import { TicketPriority } from '@/types';
 // Icons
 import { ColorPicker } from '@/components/ui/color-picker';
 import { GripVertical, Pen, Plus, Save, Trash2 } from 'lucide-react';
+import { useTrans } from '@/lib/translation';
 
 interface PrioritiesSheetProps {
     children: React.ReactNode;
@@ -81,6 +82,7 @@ export function PrioritiesSheet({
 }: PrioritiesSheetProps) {
     const [sheetOpen, setSheetOpen] = React.useState(false);
 
+    const __ = useTrans();
     const { data, setData, processing, patch } = useForm<{
         priorities: TicketPriority[];
     }>({
@@ -139,12 +141,12 @@ export function PrioritiesSheet({
 
             // Error verification
             if (title.trim() === '') {
-                setErrors({ title: 'Title is required.' });
+                setErrors({ title: __('tickets.pages.relations.priorities.validation.title_required') });
                 return;
             }
 
             if (!color) {
-                setErrors({ color: 'Color is required.' });
+                setErrors({ color: __('tickets.pages.relations.priorities.validation.color_required') });
                 return;
             }
 
@@ -191,12 +193,12 @@ export function PrioritiesSheet({
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>
-                            {priority ? 'Edit Priority' : 'Create Priority'}
+                            {priority ? __('tickets.pages.relations.priorities.dialog.edit_title') : __('tickets.pages.relations.priorities.dialog.create_title')}
                         </DialogTitle>
                         <DialogDescription>
                             {priority
-                                ? `Modify the details of the priority "${priority.title}".`
-                                : 'Fill in the details to create a new priority.'}
+                                ? __('tickets.pages.relations.priorities.dialog.edit_description')
+                                : __('tickets.pages.relations.priorities.dialog.create_description')}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -205,12 +207,12 @@ export function PrioritiesSheet({
                         {/* Title */}
                         <div className="grid gap-2">
                             <Label htmlFor="title" indicator={'required'}>
-                                Title
+                                {__('tickets.pages.relations.priorities.dialog.form.title_label')}
                             </Label>
                             <Input
                                 id="title"
                                 value={title}
-                                placeholder="eg: High, Medium, Low"
+                                placeholder={__('tickets.pages.relations.priorities.dialog.form.title_placeholder')}
                                 onChange={(e) => setTitle(e.target.value)}
                                 disabled={processing}
                                 aria-invalid={errors.title ? 'true' : 'false'}
@@ -220,12 +222,12 @@ export function PrioritiesSheet({
                         {/* Description */}
                         <div className="grid gap-2">
                             <Label htmlFor="description" indicator={'optional'}>
-                                Description
+                                {__('tickets.pages.relations.priorities.dialog.form.description_label')}
                             </Label>
                             <Textarea
                                 id="description"
                                 value={description}
-                                placeholder="A brief description of the priority."
+                                placeholder={__('tickets.pages.relations.priorities.dialog.form.description_placeholder')}
                                 onChange={(e) => setDescription(e.target.value)}
                                 disabled={processing}
                                 aria-invalid={
@@ -236,7 +238,7 @@ export function PrioritiesSheet({
                         {/* Color */}
                         <div className="grid gap-2">
                             <Label htmlFor="color" indicator={'required'}>
-                                Color
+                                {__('tickets.pages.relations.priorities.dialog.form.color_label')}
                             </Label>
                             <ColorPicker
                                 id="color"
@@ -250,13 +252,13 @@ export function PrioritiesSheet({
 
                         <DialogFooter>
                             <DialogClose asChild>
-                                <Button variant={'secondary'}>Close</Button>
+                                <Button variant={'secondary'}>{__('tickets.pages.relations.priorities.dialog.form.buttons.close')}</Button>
                             </DialogClose>
                             <Button type="submit" disabled={processing}>
                                 {priority ? <Pen /> : <Plus />}
                                 {priority
-                                    ? 'Update Priority'
-                                    : 'Store Priority'}
+                                    ? __('tickets.pages.relations.priorities.dialog.form.buttons.update')
+                                    : __('tickets.pages.relations.priorities.dialog.form.buttons.store')}
                             </Button>
                         </DialogFooter>
                     </form>
@@ -276,6 +278,8 @@ export function PrioritiesSheet({
     }: PrioritiesDeleteDialogProps) {
         const [open, setOpen] = React.useState(false);
 
+
+
         function handleSubmit(e: React.FormEvent) {
             e.stopPropagation();
             e.preventDefault();
@@ -293,19 +297,22 @@ export function PrioritiesSheet({
                 <DialogTrigger asChild>{children}</DialogTrigger>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Delete Priority</DialogTitle>
+                        <DialogTitle>
+                            {__('tickets.pages.relations.priorities.dialog.delete_title')}
+                        </DialogTitle>
                         <DialogDescription>
-                            Are you sure you want to delete the priority "
-                            {priority.title}"? This action cannot be undone.
+                            {__('tickets.pages.relations.priorities.dialog.delete_description')}
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
                         <DialogClose asChild>
-                            <Button variant={'secondary'}>Cancel</Button>
+                            <Button variant={'secondary'}>
+                                {__('tickets.pages.relations.priorities.dialog.form.buttons.cancel')}
+                            </Button>
                         </DialogClose>
-                        <Button variant={'destructive'} onClick={handleSubmit}>
+                        <Button variant={'destructive'} onClick={handleSubmit} disabled={priority.locked}>
                             <Trash2 />
-                            Delete Priority
+                            {__('tickets.pages.relations.priorities.dialog.form.buttons.delete')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -394,7 +401,7 @@ export function PrioritiesSheet({
                     </PrioritiesDialog>
 
                     <PrioritiesDeleteDialog priority={priority}>
-                        <Button variant="outline" size={'icon-sm'}>
+                        <Button variant="outline" size={'icon-sm'} disabled={priority.locked}>
                             <Trash2 />
                         </Button>
                     </PrioritiesDeleteDialog>
@@ -421,9 +428,11 @@ export function PrioritiesSheet({
             <SheetTrigger asChild>{children}</SheetTrigger>
             <SheetContent>
                 <SheetHeader>
-                    <SheetTitle>Manage Priorities</SheetTitle>
+                    <SheetTitle>
+                        {__('tickets.pages.relations.priorities.sheet.title')}
+                    </SheetTitle>
                     <SheetDescription>
-                        Modify the list of ticket priorities.
+                        {__('tickets.pages.relations.priorities.sheet.description')}
                     </SheetDescription>
                 </SheetHeader>
                 <Separator />
@@ -431,7 +440,7 @@ export function PrioritiesSheet({
                     <PrioritiesDialog>
                         <Button className="w-max" size={'sm'}>
                             <Plus />
-                            Add Priority
+                            {__('tickets.pages.relations.priorities.sheet.buttons.create')}
                         </Button>
                     </PrioritiesDialog>
 
@@ -447,7 +456,7 @@ export function PrioritiesSheet({
                                 <TableRow>
                                     <TableHead></TableHead>
                                     <TableHead className="text-xs text-muted-foreground">
-                                        Priority
+                                        {__('tickets.pages.relations.priorities.sheet.table.column')}
                                     </TableHead>
                                     <TableHead></TableHead>
                                 </TableRow>
@@ -476,7 +485,7 @@ export function PrioritiesSheet({
                                             colSpan={3}
                                             className="py-4 text-center"
                                         >
-                                            No priorities found.
+                                            {__('tickets.pages.relations.priorities.sheet.table.empty')}
                                         </TableCell>
                                     </TableRow>
                                 )}
@@ -486,7 +495,9 @@ export function PrioritiesSheet({
                 </div>
                 <SheetFooter>
                     <SheetClose asChild>
-                        <Button variant="secondary">Close</Button>
+                        <Button variant="secondary">
+                            {__('tickets.pages.relations.priorities.sheet.buttons.close')}
+                        </Button>
                     </SheetClose>
                     <Button
                         type="button"
@@ -494,7 +505,7 @@ export function PrioritiesSheet({
                         disabled={processing}
                     >
                         {processing ? <Spinner /> : <Save />}
-                        Save Changes
+                        {__('tickets.pages.relations.priorities.sheet.buttons.save')}
                     </Button>
                 </SheetFooter>
             </SheetContent>

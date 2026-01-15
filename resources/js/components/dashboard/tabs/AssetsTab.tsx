@@ -30,7 +30,7 @@ export const AssetsTab = ({ statsAssets, chartFilters, onFilterChange, chartConf
 
     const sections = [
         {
-            title: __('dashboard.pages.tabs.asset_statistics'),
+            title: __('dashboard.pages.stats.asset_statistics.description'),
             data: statsAssets.by_asset,
             dataKey: "tickets_count",
             labelKey: "title",

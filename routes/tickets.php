@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Tickets\Assignment as ControllersAssignment;
 use App\Http\Controllers\Tickets\Categories as ControllersCategories;
 use App\Http\Controllers\Tickets\Comments as ControllersComments;
 use App\Http\Controllers\Tickets\Crud as ControllersCrud;
@@ -34,14 +35,23 @@ Route::prefix('tickets')->name('tickets.')->middleware(['auth', 'verified:auth.v
         Route::post('/planning/{schedule}/convert', 'convert')->name('planning.convert');
     });
 
+    Route::controller(ControllersAssignment::class)->prefix('assignment')->name('assignment.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/{ticket}/assign', 'assign')->name('assign');
+        Route::post('/{ticket}/self-assign', 'selfAssign')->name('self-assign');
+    });
+
     Route::controller(ControllersCrud::class)->group(function () {
         Route::get('/', 'index')->name('index');
+        Route::get('/archived', 'archived')->name('archived');
         Route::get('/manage', 'manage')->name('manage');
         Route::get('/create', 'create')->name('create');
         Route::get('/{ticket}', 'show')->name('show');
         Route::get('/{ticket}/edit', 'edit')->name('edit');
         Route::post('/', 'store')->name('store');
         Route::put('/{ticket}', 'update')->name('update');
+        Route::post('/{ticket}/archive', 'archive')->name('archive');
+        Route::post('/{ticket}/unarchive', 'unarchive')->name('unarchive');
         Route::delete('/{ticket}', 'destroy')->name('destroy');
         Route::post('/{ticket}/restore', 'restore')->name('restore')->withTrashed();
         Route::delete('/{ticket}/force', 'forceDelete')->name('force_delete')->withTrashed();

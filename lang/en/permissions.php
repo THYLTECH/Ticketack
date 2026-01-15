@@ -46,10 +46,18 @@ return [
             'view' => ['title' => 'View Tickets', 'description' => 'Allow access to the index page of tickets.'],
             'show' => ['title' => 'Show Ticket Details', 'description' => 'Allow viewing detailed information of a ticket.'],
             'create' => ['title' => 'Create Tickets', 'description' => 'Allow creating new tickets.'],
+            'be assigned' => ['title' => 'Be Assigned Tickets', 'description' => 'Allow being assigned to tickets and self-assign.'],
+            'assign' => ['title' => 'Assign Tickets', 'description' => 'Allow assigning tickets to other users.'],
             'update' => ['title' => 'Update Tickets', 'description' => 'Allow updating existing tickets.'],
             'delete' => ['title' => 'Delete Tickets', 'description' => 'Allow deleting tickets.'],
             'restore' => ['title' => 'Restore Tickets', 'description' => 'Allow restoring deleted tickets.'],
             'force delete' => ['title' => 'Permanently Delete', 'description' => 'Allow permanently deleting tickets.'],
+            'archive' => ['title' => 'Archive Tickets', 'description' => 'Allow archiving tickets.'],
+            'unarchive' => ['title' => 'Unarchive Tickets', 'description' => 'Allow unarchiving tickets.'],
+            'view all archived' => ['title' => 'View All Archived Tickets', 'description' => 'Allow viewing all archived tickets from all users.'],
+            'manage priority' => ['title' => 'Manage Ticket Priorities', 'description' => 'Allow managing ticket priorities.'],
+            'manage status' => ['title' => 'Manage Ticket Statuses', 'description' => 'Allow managing ticket statuses.'],
+            'manage category' => ['title' => 'Manage Ticket Categories', 'description' => 'Allow managing ticket categories.'],
         ],
     ],
 
@@ -89,6 +97,13 @@ return [
         'items' => [
             'view' => ['title' => 'View Planning', 'description' => 'Access the planning view.'],
             'manage' => ['title' => 'Manage Planning', 'description' => 'Create and edit schedule events.'],
+        ],
+    ],
+    'dashboard' => [
+        'title' => 'Dashboard',
+        'description' => 'Access the dashboard overview.',
+        'items' => [
+            'view' => ['title' => 'View Dashboard', 'description' => 'Allow access to the dashboard page.'],
         ],
     ],
 ];

@@ -7,6 +7,7 @@ use App\Models\Ticket;
 use App\Models\AssetAttribute;
 use App\Models\User;
 use App\Models\TicketStatus;
+use App\Models\TicketAssignee;
 use App\Models\TicketPriority;
 use App\Models\TicketCategory;
 use Illuminate\Http\Request;
@@ -19,6 +20,10 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
+
+        if (!$request->user()->can('view dashboard')) {
+        abort(403);
+    }
         // Date range for filtering
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
@@ -58,13 +63,21 @@ class DashboardController extends Controller
         ->groupBy('ticket_id')
         ->get()
         ->avg('total_per_ticket') ?? 0;
-        //Convert time in seconds to hours 
+        //Convertion time in seconds to hours 
         $avgTime = round($avgTime / 3600, 1);
+        
+        
+        $unassignedTicketsCount = Ticket::whereDoesntHave('assignees')
+        ->whereHas('status', function ($query) {
+            $query->where('is_closed', false);
+        })
+        ->count();
         //General Statistics
         $statsGeneral = [
             'total_assets' => Asset::count(),
             'total_users' => User::count(),
-            'avg_resolution_time' => $avgTime, 
+            'avg_resolution_time' => $avgTime,
+            'unassigned_tickets' => $unassignedTicketsCount,
             'activity' => $activityData
         ];
 

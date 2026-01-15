@@ -13,6 +13,7 @@ return [
         'updated' => 'Role updated successfully.',
         'delete_error' => 'Cannot delete role assigned to users.',
         'deleted' => 'Role deleted successfully.',
+        'delete_locked' => 'This role is locked and cannot be deleted.',
     ],
 
     /*

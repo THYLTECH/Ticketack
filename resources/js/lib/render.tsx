@@ -1,23 +1,30 @@
 import { Asset, TicketCategory, TicketPriority, TicketStatus } from '@/types';
-import type { LucideIcon } from 'lucide-react';
-import * as LucideIcons from 'lucide-react';
-import { ReactNode } from 'react';
 
-export function getIcon(
-    icon: string,
-    props?: Record<string, unknown>,
-): React.JSX.Element | null {
-    const normalized = icon
-        .split('-')
-        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-        .join('');
+import { lazy, Suspense, useMemo, ReactNode } from 'react';
+import dynamicIconImports from 'lucide-react/dynamicIconImports';
+import type { LucideProps } from 'lucide-react';
+import { Flag } from 'lucide-react';
 
-    const icons = LucideIcons as unknown as Record<string, LucideIcon>;
-    const Icon = icons[normalized];
+interface IconProps {
+    icon: string;
+    props?: LucideProps;
+}
 
-    if (!Icon) return null;
+export function GetIcon({ icon, props }: IconProps) {
+    const validIcon = icon as keyof typeof dynamicIconImports;
 
-    return <Icon {...props} />;
+    const LucideIcon = useMemo(() => {
+        const dynamicImport = dynamicIconImports[validIcon];
+        return dynamicImport ? lazy(dynamicImport) : null;
+    }, [validIcon]);
+
+    if (!LucideIcon) return null;
+
+    return (
+        <Suspense fallback={null}>
+            <LucideIcon {...props} />
+        </Suspense>
+    );
 }
 
 export function renderAsset(
@@ -42,10 +49,8 @@ export function renderAsset(
     return (
         <span className="flex items-center gap-2">
             {asset.icon &&
-                getIcon(asset.icon, {
-                    className: 'text-muted-foreground',
-                    size: 16,
-                })}
+                <GetIcon icon={asset.icon} props={{ className: 'text-muted-foreground', size: 16 }} />
+            }
             {renderOption(asset, show_indentation ?? true)}
         </span>
     );
@@ -54,7 +59,7 @@ export function renderAsset(
 export function renderTicketPriority(priority: TicketPriority): ReactNode {
     return (
         <span className="flex items-center gap-2">
-            <LucideIcons.Flag color={priority.color} size={16} />
+            <Flag color={priority.color} size={16} />
             {priority.title}
         </span>
     );
@@ -99,7 +104,9 @@ export function renderTicketCategory(category: TicketCategory): ReactNode {
     return (
         <span className="flex items-center gap-2">
             {category.icon &&
-                getIcon(category.icon, { color: category.color, size: 16 })}
+                <GetIcon icon={category.icon} props={{ color: category.color, size: 16 }} />
+            }
+
             {category.title}
         </span>
     );

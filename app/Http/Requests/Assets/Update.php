@@ -57,11 +57,9 @@ class Update extends FormRequest
      */
     private function validateAttachmentCount(array $value, Closure $fail): void
     {
-        // On compte les fichiers existants déjà attachés
         $currentCount = $this->route('asset')->attachments()->count();
         $newUploadsCount = 0;
 
-        // On compte les nouveaux uploads dans la requête
         foreach ($value as $item) {
             if (isset($item['file']) && $item['file'] instanceof UploadedFile) {
                 $newUploadsCount++;

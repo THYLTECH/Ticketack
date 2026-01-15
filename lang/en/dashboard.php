@@ -33,6 +33,7 @@ return [
                 'total_assets' => 'Number of Assets',
                 'total_users' => 'Number of Users',
                 'avg_resolution_time' => 'Average Resolution Time',
+                'unassigned_tickets' => 'Number of Unassigned Tickets',
                 'activity_title' => 'Ticket Activity',
             ],
             'ticket_statistics' => [
@@ -48,14 +49,14 @@ return [
                 ]
             ],
             'user_statistics' => [
-                'assigned_tickets' => 'Top 5 Users by Assigned Tickets',
-                'created_tickets' => 'Top 5 Users by Created Tickets',
-                'resolved_tickets' => 'Top 5 Users by Resolved Tickets',
-                'time_to_resolve' => 'Top 5 Users by Time to Resolve Tickets',
+                'assigned_tickets' => 'Users Who Assigned the Most Tickets',
+                'created_tickets' => 'Users Who Created the Most Tickets',
+                'resolved_tickets' => 'Users Who Resolved the Most Tickets',
+                'time_to_resolve' => 'Users Who Spend the Most Time on Tickets',
             ],
             'asset_statistics' => [
-                'description' =>'Ranking of assets by number of linked tickets',
-                'by_attribute' => 'Affected Assets by Attribute',
+                'description' =>'Most Used Assets Across Tickets',
+                'by_attribute' => 'Most Used Attributes Across Assets',
             ],
             'no_data' => 'No data available',
         ],

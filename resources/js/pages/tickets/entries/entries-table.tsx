@@ -1,3 +1,4 @@
+import { SortableTableHead } from '@/components/sortable-table-head';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -10,6 +11,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -39,10 +41,7 @@ import { Link, router } from '@inertiajs/react';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import {
-    ArrowDown,
-    ArrowUp,
     Check,
-    ChevronsUpDown,
     Clock,
     ExternalLink,
     FileText,
@@ -54,6 +53,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { EmptyState } from '../shared';
 
 interface Props {
     entries: TicketEntry[];
@@ -71,10 +71,10 @@ export function EntriesTable({ entries, showTicketColumn = true }: Props) {
     const [sortField, setSortField] = useState<SortField>('start_at');
     const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
-    const handleSort = (field: SortField) => {
+    const handleSort = (field: string) => {
         const newDirection =
             sortField === field && sortDirection === 'desc' ? 'asc' : 'desc';
-        setSortField(field);
+        setSortField(field as SortField);
         setSortDirection(newDirection);
 
         const params = new URLSearchParams(window.location.search);
@@ -121,56 +121,183 @@ export function EntriesTable({ entries, showTicketColumn = true }: Props) {
 
     if (entries.length === 0) {
         return (
-            <div className="flex min-h-[400px] flex-col items-center justify-center gap-3 text-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted/50 ring-1 ring-border">
-                    <Timer className="h-6 w-6 text-muted-foreground" />
-                </div>
-                <div className="space-y-1">
-                    <h3 className="text-lg font-semibold tracking-tight text-foreground">
-                        {__('entries.table.empty.title')}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                        {__('entries.table.empty.description')}
-                    </p>
-                </div>
-            </div>
+            <EmptyState
+                icon={Timer}
+                title={__('entries.table.empty.title')}
+                description={__('entries.table.empty.description')}
+            />
         );
     }
 
     return (
         <>
-            <div className="w-full overflow-hidden rounded-lg border bg-background shadow-sm">
+            <div className="block space-y-3 lg:hidden">
+                {entries.map((entry) => (
+                    <Card
+                        key={entry.id}
+                        className="group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 border-border/60 bg-linear-to-br from-card to-card/80"
+                    >
+                        <div className="absolute inset-0 bg-linear-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                        <CardContent className="relative p-4 space-y-3">
+                            <div className="flex items-start justify-between gap-2">
+                                <div className="space-y-1 flex-1">
+                                    <div className="flex items-center gap-2 text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
+                                        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-muted/60 group-hover:bg-muted transition-colors">
+                                            <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                                        </div>
+                                        {format(
+                                            parseISO(entry.start_at),
+                                            'dd/MM/yyyy',
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-2 text-xs text-muted-foreground ml-9">
+                                        {format(
+                                            parseISO(entry.start_at),
+                                            'HH:mm',
+                                        )}
+                                        <span className="text-muted-foreground/50">•</span>
+                                        <span className="font-medium">
+                                            {formatDuration(entry.duration_seconds)}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {entry.billable ? (
+                                    <Badge
+                                        variant="outline"
+                                        className="border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs shrink-0 shadow-sm"
+                                    >
+                                        <Check className="mr-1 h-3 w-3" />
+                                        {__('entries.table.badges.yes')}
+                                    </Badge>
+                                ) : (
+                                    <Badge
+                                        variant="outline"
+                                        className="border-border/60 text-muted-foreground text-xs shrink-0 shadow-sm"
+                                    >
+                                        <X className="mr-1 h-3 w-3" />
+                                        {__('entries.table.badges.no')}
+                                    </Badge>
+                                )}
+                            </div>
+
+                            {showTicketColumn && entry.ticket && (
+                                <div className="space-y-1.5 rounded-lg bg-muted/30 p-3 group-hover:bg-muted/50 transition-colors border border-border/40">
+                                    <div className="flex items-start justify-between gap-2">
+                                        <button
+                                            onClick={() => setPreviewEntry(entry)}
+                                            className="flex-1 text-left group/title"
+                                        >
+                                            <div className="font-semibold text-sm text-foreground line-clamp-2 group-hover/title:text-primary transition-colors">
+                                                {entry.ticket.title}
+                                            </div>
+                                        </button>
+                                        <Link
+                                            href={route(
+                                                'tickets.show',
+                                                entry.ticket_id,
+                                            )}
+                                            className="shrink-0"
+                                        >
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-7 w-7"
+                                            >
+                                                <ExternalLink className="h-3.5 w-3.5" />
+                                            </Button>
+                                        </Link>
+                                    </div>
+
+                                    <div className="flex items-center gap-2">
+                                        <Badge
+                                            variant="outline"
+                                            className="h-5 rounded-sm border-border bg-background px-1.5 font-mono text-[10px]"
+                                        >
+                                            ID {entry.ticket_id}
+                                        </Badge>
+
+                                        {entry.ticket.status && (
+                                            <div className="flex items-center gap-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px]">
+                                                <div
+                                                    className="h-1.5 w-1.5 rounded-full"
+                                                    style={{
+                                                        backgroundColor:
+                                                            entry.ticket.status
+                                                                .color,
+                                                    }}
+                                                />
+                                                <span className="font-medium">
+                                                    {entry.ticket.status.title}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {entry.note && (
+                                <div className="flex items-start gap-2 text-sm">
+                                    <FileText className="h-3.5 w-3.5 shrink-0 mt-0.5 text-muted-foreground opacity-50" />
+                                    <p className="text-muted-foreground line-clamp-2">
+                                        {entry.note}
+                                    </p>
+                                </div>
+                            )}
+
+                            <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                                <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/40 text-xs text-muted-foreground">
+                                    <User className="h-3.5 w-3.5" />
+                                    <span className="font-medium">{entry.user.name}</span>
+                                </div>
+
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 transition-all"
+                                    onClick={() => setEntryToDelete(entry.id)}
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+
+            <div className="hidden w-full lg:block overflow-hidden rounded-lg border bg-background shadow-sm">
                 <Table>
                     <TableHeader className="bg-muted/30">
                         <TableRow className="hover:bg-transparent">
-                            <SortableHead
+                            <SortableTableHead
                                 label={__('entries.table.headers.date')}
-                                sortKey="start_at"
+                                column="start_at"
                                 currentSort={sortField}
-                                direction={sortDirection}
+                                currentDirection={sortDirection}
                                 onSort={handleSort}
-                                className="w-[150px] pl-6"
+                                className="w-37.5 pl-6"
                             />
                             {showTicketColumn && (
                                 <TableHead className="w-[320px]">
                                     {__('entries.table.headers.ticket_context')}
                                 </TableHead>
                             )}
-                            <SortableHead
+                            <SortableTableHead
                                 label={__('entries.table.headers.duration')}
-                                sortKey="duration_seconds"
+                                column="duration_seconds"
                                 currentSort={sortField}
-                                direction={sortDirection}
+                                currentDirection={sortDirection}
                                 onSort={handleSort}
-                                className="w-[120px]"
+                                className="w-30"
                             />
-                            <TableHead className="min-w-[200px]">
+                            <TableHead className="min-w-50">
                                 {__('entries.table.headers.description')}
                             </TableHead>
-                            <TableHead className="w-[100px]">
+                            <TableHead className="w-25">
                                 {__('entries.table.headers.billable')}
                             </TableHead>
-                            <TableHead className="w-[60px]"></TableHead>
+                            <TableHead className="w-15"></TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -204,7 +331,7 @@ export function EntriesTable({ entries, showTicketColumn = true }: Props) {
                                                 onClick={() =>
                                                     setPreviewEntry(entry)
                                                 }
-                                                className="group/link flex max-w-[280px] flex-col items-start gap-0.5 rounded-md text-left transition-colors focus:outline-none"
+                                                className="group/link flex max-w-70 flex-col items-start gap-0.5 rounded-md text-left transition-colors focus:outline-none"
                                             >
                                                 <div className="flex items-center gap-2">
                                                     <span className="truncate text-sm font-semibold text-foreground decoration-primary/50 underline-offset-4 group-hover/link:text-primary group-hover/link:underline">
@@ -258,7 +385,7 @@ export function EntriesTable({ entries, showTicketColumn = true }: Props) {
                                         <TooltipProvider>
                                             <Tooltip delayDuration={200}>
                                                 <TooltipTrigger asChild>
-                                                    <div className="flex max-w-[300px] cursor-default items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground">
+                                                    <div className="flex max-w-75 cursor-default items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground">
                                                         <FileText className="h-3.5 w-3.5 shrink-0 opacity-50" />
                                                         <span className="truncate">
                                                             {entry.note}
@@ -349,7 +476,7 @@ export function EntriesTable({ entries, showTicketColumn = true }: Props) {
                 open={!!previewEntry}
                 onOpenChange={(open) => !open && setPreviewEntry(null)}
             >
-                <DialogContent className="sm:max-w-[500px]">
+                <DialogContent className="sm:max-w-125">
                     <DialogHeader>
                         <div className="flex items-center gap-3">
                             <Badge
@@ -516,52 +643,5 @@ export function EntriesTable({ entries, showTicketColumn = true }: Props) {
                 </DialogContent>
             </Dialog>
         </>
-    );
-}
-
-function SortableHead({
-    label,
-    currentSort,
-    sortKey,
-    direction,
-    onSort,
-    className,
-}: {
-    label: string;
-    currentSort: string;
-    sortKey: SortField;
-    direction: SortDirection;
-    onSort: (key: SortField) => void;
-    className?: string;
-}) {
-    const isActive = currentSort === sortKey;
-
-    return (
-        <TableHead className={className}>
-            <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onSort(sortKey)}
-                className={cn(
-                    '-ml-3 h-8 text-xs font-semibold tracking-wider uppercase transition-colors',
-                    isActive
-                        ? 'font-bold text-foreground'
-                        : 'text-muted-foreground/70 hover:text-foreground',
-                )}
-            >
-                {label}
-                <div className="ml-2 flex flex-col">
-                    {isActive ? (
-                        direction === 'asc' ? (
-                            <ArrowUp className="h-3.5 w-3.5 text-primary" />
-                        ) : (
-                            <ArrowDown className="h-3.5 w-3.5 text-primary" />
-                        )
-                    ) : (
-                        <ChevronsUpDown className="h-3.5 w-3.5 opacity-30" />
-                    )}
-                </div>
-            </Button>
-        </TableHead>
     );
 }

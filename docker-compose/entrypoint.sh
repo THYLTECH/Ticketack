@@ -3,9 +3,17 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
+# Mark the repository as safe for git operations
+git config --global --add safe.directory /var/www/html
+
 # dependency check
-echo "Vérification des dépendances Composer..."
-composer install --no-progress --no-interaction
+if [ -f .env ] && grep -q "APP_ENV=production" .env; then
+    echo "Production détectée : Installation optimisée (sans dev)..."
+    composer install --no-dev --optimize-autoloader --no-progress --no-interaction
+else
+    echo "Installation standard des dépendances..."
+    composer install --no-progress --no-interaction
+fi
 
 # 1. .env file management
 if [ ! -f ".env" ]; then
@@ -29,10 +37,17 @@ fi
 echo "Création du lien de stockage symbolique..."
 php artisan storage:link
 
+# 3a. Wait for Database to be ready
+echo "Attente de la base de données..."
+until php -r "try { new PDO('mysql:host=db;port=3306', 'ticketack', 'secret'); } catch (PDOException \$e) { exit(1); }"; do
+  echo "Base de données indisponible - nouvelle tentative dans 2s..."
+  sleep 2
+done
+
 # 3b. Run Migrations
-echo "Lancement des migrations de base de données..."
+#echo "Lancement des migrations de base de données..."
 # On utilise --force pour éviter que Laravel ne demande confirmation
-php artisan migrate --force
+#php artisan migrate --force
 
 # 4. Lancement du serveur de websocket Reverb
 echo "Démarrage du serveur de websocket Reverb en arrière-plan..."

@@ -19,6 +19,7 @@ use Dedoc\Scramble\Support\Generator\SecurityScheme;
 // Models
 use App\Models\Asset;
 use App\Models\Ticket;
+use App\Models\TicketAttachment;
 use App\Models\TicketSchedule;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
@@ -32,6 +33,7 @@ use App\Policies\User as UserPolicy;
 
 // Observers
 use App\Observers\TicketObserver;
+use App\Observers\TicketAttachmentObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -86,14 +88,17 @@ class AppServiceProvider extends ServiceProvider
         Authenticate::redirectUsing(function () {
             return redirect()
                 ->route('auth.login')
-                ->with(['error' => [
-                    'title' => __('common.flash.error'),
-                    'description' => __('auth.flash.middleware.auth_required')
-                ]])
+                ->with([
+                    'error' => [
+                        'title' => __('common.flash.error'),
+                        'description' => __('auth.flash.middleware.auth_required')
+                    ]
+                ])
                 ->getTargetUrl();
         });
 
         // --- 6. Observers ---
         Ticket::observe(TicketObserver::class);
+        TicketAttachment::observe(\App\Observers\TicketAttachmentObserver::class);
     }
 }

@@ -4,13 +4,13 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Lang;
 use Inertia\Middleware;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Middleware to handle Inertia requests and share common data.
@@ -105,6 +105,10 @@ class HandleInertiaRequests extends Middleware
             'timezone' => date_default_timezone_get(),
 
             'unread_notifications' => $request->user() ? $request->user()->notifications()->whereNull('read_at')->count() : 0,
+
+            'unassigned_tickets_count' => $request->user() && $request->user()->can('be assigned tickets')
+                ? Ticket::whereDoesntHave('assignees')->whereNull('deleted_at')->count()
+                : 0,
         ]);
 
         // 'translations' => fn () => Cache::rememberForever('translations_'.App::getLocale(), function () {

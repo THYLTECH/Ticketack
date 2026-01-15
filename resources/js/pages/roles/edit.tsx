@@ -36,8 +36,8 @@ export default function Edit({
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
-            title: __('dashboard.pages.breadcrumbs.dashboard'),
-            href: route('dashboard'),
+            title: __('home.pages.breadcrumbs.home'),
+            href: route('home'),
         },
         {
             title: __('roles.pages.breadcrumbs.index'),
@@ -194,7 +194,7 @@ function EditForm({
                                     data={data}
                                     setData={setData}
                                     permissions={permissions}
-                                    disabled={processing}
+                                    disabled={processing || isSystemRole}
                                 />
                                 <UsersTab
                                     data={data}

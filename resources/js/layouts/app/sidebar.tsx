@@ -2,6 +2,7 @@ import AppLogoIcon from '@/components/app-logo-icon';
 import { Icon } from '@/components/icon';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -22,6 +23,7 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    SidebarSeparator,
     useSidebar,
 } from '@/components/ui/sidebar';
 import { useInitials } from '@/hooks/use-initials';
@@ -48,6 +50,7 @@ import {
     Sparkles,
     Ticket,
     Trash2,
+    UserCheck,
     Users,
 } from 'lucide-react';
 import { type ComponentPropsWithoutRef } from 'react';
@@ -59,20 +62,23 @@ interface UserMenuContentProps {
 
 export function AppSidebar() {
     const __ = useTrans();
-    const { auth } = usePage<SharedData>().props;
+    const { auth, unassigned_tickets_count } = usePage<SharedData>().props;
 
     const mainNavItems: NavItem[] = [
         {
             title: __('app.layout.sidebar.menugroups.platform.items.home'),
             href: route('home'),
             icon: Home,
-        },
-        {
+        }
+    ];
+
+    if (userHasPermission({ user: auth.user, permission: 'view dashboard' })) {
+        mainNavItems.push({
             title: __('app.layout.sidebar.menugroups.platform.items.dashboard'),
             href: route('dashboard'),
             icon: LayoutGrid,
-        },
-    ];
+        });
+    }
 
     if (userHasPermission({ user: auth.user, permission: 'view planning' })) {
         mainNavItems.push({
@@ -95,13 +101,25 @@ export function AppSidebar() {
         });
     }
 
-    if (userHasPermission({ user: auth.user, permission: 'view knowledge explorer' })) {
+    if (userHasPermission({ user: auth.user, permission: 'view tickets' })) {
         mainNavItems.push({
             title: __('app.layout.sidebar.menugroups.platform.items.tickets'),
             href: route('tickets.index'),
             icon: Ticket,
         });
+    }
 
+    if (userHasPermission({ user: auth.user, permission: 'be assigned tickets' })) {
+        mainNavItems.push({
+            title: __('app.layout.sidebar.menugroups.platform.items.assignment'),
+            href: route('tickets.assignment.index'),
+            icon: UserCheck,
+            badge: unassigned_tickets_count > 0 ? unassigned_tickets_count : undefined,
+        });
+    }
+
+
+    if (userHasPermission({ user: auth.user, permission: 'view knowledge explorer' })) {
         mainNavItems.push({
             title: __('knowledge.pages.search.title'),
             href: route('knowledge.search'),
@@ -164,17 +182,17 @@ export function AppSidebar() {
                     <SidebarMenuItem className="mt-2 px-2 pb-2 group-data-[collapsible=icon]:px-0">
                         <SidebarMenuButton
                             asChild
-                            variant="default"
-                            className="w-full justify-center gap-2 bg-primary text-primary-foreground shadow-sm transition-all group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:p-0 hover:bg-primary/90"
                         >
-                            <Link href={route('tickets.create')}>
-                                <Plus className="size-4 shrink-0" />
-                                <span className="font-semibold group-data-[collapsible=icon]:hidden">
-                                    {__(
-                                        'app.layout.sidebar.actions.create_ticket',
-                                    )}
-                                </span>
-                            </Link>
+                            <Button asChild variant={'default'} className='transition-all hover:bg-primary/90 hover:text-primary-foreground group-data-[collapsible=icon]:rounded-full'>
+                                <Link href={route('tickets.create')}>
+                                    <Plus className="size-4 shrink-0" />
+                                    <span className="font-semibold group-data-[collapsible=icon]:hidden">
+                                        {__(
+                                            'app.layout.sidebar.actions.create_ticket',
+                                        )}
+                                    </span>
+                                </Link>
+                            </Button>
                         </SidebarMenuButton>
                     </SidebarMenuItem>{' '}
                 </SidebarMenu>
@@ -186,7 +204,6 @@ export function AppSidebar() {
 
             <SidebarFooter>
                 <NavFooter items={footerNavItems} className="mt-auto" />
-                <NavTrash />
                 <NavUser />
             </SidebarFooter>
         </Sidebar>
@@ -280,6 +297,8 @@ function NavFooter({
                         );
                     })}
                 </SidebarMenu>
+                <SidebarSeparator className='my-2 w-full relative mx-0'/>
+                <NavTrash />
             </SidebarGroupContent>
         </SidebarGroup>
     );
@@ -291,24 +310,79 @@ function NavMain({ items = [] }: { items: NavItem[] }) {
         <SidebarGroup className="px-2 py-0">
             <SidebarGroupLabel>Platform</SidebarGroupLabel>
             <SidebarMenu>
-                {items.map((item) => (
-                    <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton
-                            asChild
-                            isActive={page.url.startsWith(
+                {items.map((item) => {
+                    const currentPath = new URL(
+                        page.url,
+                        window.location.origin,
+                    ).pathname;
+
+                    const normalize = (url: string) =>
+                        new URL(url, window.location.origin).pathname;
+
+                    const matchingItems = items
+                        .map((item) => {
+                            const rawHref =
                                 typeof item.href === 'string'
                                     ? item.href
-                                    : item.href.url,
-                            )}
-                            tooltip={{ children: item.title }}
-                        >
-                            <Link href={item.href} prefetch>
-                                {item.icon && <item.icon />}
-                                <span>{item.title}</span>
-                            </Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                ))}
+                                    : item.href.url;
+
+                            const href = normalize(rawHref);
+
+                            return {
+                                href,
+                                length: href.length,
+                                matches:
+                                    currentPath === href ||
+                                    currentPath.startsWith(href + '/'),
+                            };
+                        })
+                        .filter((i) => i.matches);
+
+                    const activeHref =
+                        matchingItems.length > 0
+                            ? matchingItems.sort(
+                                  (a, b) => b.length - a.length,
+                              )[0].href
+                            : null;
+
+                    const linkUrl = normalize(
+                        typeof item.href === 'string'
+                            ? item.href
+                            : item.href.url,
+                    );
+
+                    const isActive = linkUrl === activeHref;
+
+                    return (
+                        <SidebarMenuItem key={item.title}>
+                            <SidebarMenuButton
+                                asChild
+                                isActive={isActive}
+                                tooltip={{ children: item.title }}
+                            >
+                                <Link
+                                    href={item.href}
+                                    prefetch
+                                    className="relative"
+                                >
+                                    {item.icon && <item.icon />}
+                                    <span>{item.title}</span>
+
+                                    {item.badge && (
+                                        <Badge
+                                            variant="default"
+                                            className="/* --- Styles pour le mode fermé (Sidebar Collapsed) --- */ ml-auto h-5 min-w-5 rounded-full px-1.5 text-xs font-medium transition-all group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:top-0.5 group-data-[collapsible=icon]:right-0.5 group-data-[collapsible=icon]:z-50 group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:h-4 group-data-[collapsible=icon]:w-4 group-data-[collapsible=icon]:min-w-0 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:text-[10px] group-data-[collapsible=icon]:shadow-sm"
+                                        >
+                                            {Number(item.badge) > 99
+                                                ? '99+'
+                                                : item.badge}
+                                        </Badge>
+                                    )}
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    );
+                })}
             </SidebarMenu>
         </SidebarGroup>
     );

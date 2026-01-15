@@ -2,7 +2,8 @@ name: Deploy to VPS
 
 on:
   push:
-    branches: [ "develop" ]
+    branches: [ "develop" ]    
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -22,20 +23,33 @@ jobs:
             set -e
             cd /var/www/ticketack
 
-            echo "Fixing permissions for deployment..."
+            echo "Fixing permissions for deployment... "
             sudo chown -R $USER:$USER .
 
-            echo "Pulling latest code..."
-            git fetch origin develop
-            git reset --hard origin/develop
+            echo "Pulling latest code from branch ${{ github.ref_name }}..."
+            git fetch origin ${{ github.ref_name }}
+            git reset --hard origin/${{ github.ref_name }}
+
+            echo "Pre-setting Laravel permissions... "
+            sudo chown -R www-data:www-data storage bootstrap/cache
+            sudo chmod -R 775 storage bootstrap/cache
 
             echo "Rebuilding containers..."
             docker compose up -d --build --force-recreate
 
+            echo "Waiting for container stability..."
             sleep 10
+
+            # Check if app is actually running before trying exec
+            if [ -z "$(docker compose ps -q app)" ]; then
+              echo "ERROR: App container failed to start. Printing logs:"
+              docker compose logs app
+              exit 1
+            fi
 
             echo "Running Laravel commands..."
             docker compose exec -T app sh -c "
+              git config --global --add safe.directory /var/www/html &&
               composer install --optimize-autoloader --no-dev &&
               npm install &&
               npm run build &&
@@ -47,8 +61,5 @@ jobs:
               php artisan route:cache &&
               php artisan view:cache
             "
-
-            echo "Restoring permissions for Laravel..."
-            sudo chown -R www-data:www-data storage bootstrap/cache
 
             echo "Deployment finished successfully!"

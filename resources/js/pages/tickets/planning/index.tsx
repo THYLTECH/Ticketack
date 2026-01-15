@@ -43,6 +43,7 @@ import {
     addWeeks,
     endOfWeek,
     format,
+    formatISO,
     parseISO,
     startOfWeek,
 } from 'date-fns';
@@ -101,12 +102,14 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
     const [convertingEvent, setConvertingEvent] =
         useState<TicketSchedule | null>(null);
 
-    const [selectedSolvers, setSelectedSolvers] = useState<number[]>(
-        solvers.map((s) => s.id),
-    );
+    const [selectedSolvers, setSelectedSolvers] = useState<number[]>(() => {
+        const currentUserInSolvers = solvers.find((s) => s.id === auth.user.id);
+        return currentUserInSolvers ? [auth.user.id] : [];
+    });
 
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [highlightedEventId, setHighlightedEventId] = useState<number | string | null>(null);
 
     const searchResults = useMemo(() => {
         if (!searchQuery) return [];
@@ -132,6 +135,11 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
         setIsSearchOpen(false);
         setSearchQuery('');
 
+        setHighlightedEventId(event.id);
+        setTimeout(() => {
+            setHighlightedEventId(null);
+        }, 3000);
+
         const message = __('schedule.page.search_found').replace(
             ':id',
             event.ticket.id.toString(),
@@ -153,7 +161,7 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                 {
                     ticket_id: ticketId,
                     user_id: auth.user.id,
-                    start_date: format(targetDate, 'yyyy-MM-dd HH:mm:ss'),
+                    start_date: formatISO(targetDate),
                     duration_minutes: 60,
                 },
                 {
@@ -161,7 +169,6 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                     onSuccess: () => {
                         setSelectedTicketId(null);
                         setSelectedEvent(null);
-                        toast.success(__('schedule.page.toast_created'));
                     },
                 },
             );
@@ -171,7 +178,7 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
             router.put(
                 route('tickets.planning.update', eventId),
                 {
-                    start_date: format(targetDate, 'yyyy-MM-dd HH:mm:ss'),
+                    start_date: formatISO(targetDate),
                     duration_minutes: original.duration_minutes,
                 },
                 { preserveScroll: true },
@@ -183,6 +190,11 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
         if (selectedTicketId) {
             handleDropEvent(targetDate, selectedTicketId);
         }
+    };
+
+    const handleDayHeaderClick = (targetDate: Date) => {
+        setDate(targetDate);
+        setView('day');
     };
 
     const handleUpdateEvent = (id: number, data: UpdatePayload) => {
@@ -222,23 +234,26 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
     };
 
     const prefillData: PreFillData | undefined = useMemo(() => {
-        return convertingEvent
-            ? {
-                  date: parseISO(convertingEvent.start_date),
-                  hours: Math.floor(convertingEvent.duration_minutes / 60),
-                  minutes: convertingEvent.duration_minutes % 60,
-                  description: '',
-                  schedule_id: convertingEvent.id,
-              }
-            : undefined;
+        if (!convertingEvent) return undefined;
+
+        const baseData = {
+            date: parseISO(convertingEvent.start_date),
+            hours: Math.floor(convertingEvent.duration_minutes / 60),
+            minutes: convertingEvent.duration_minutes % 60,
+            description: '',
+        };
+
+        return typeof convertingEvent.id === 'number'
+            ? { ...baseData, schedule_id: convertingEvent.id }
+            : baseData;
     }, [convertingEvent]);
 
     return (
         <AppLayout
             breadcrumbs={[
                 {
-                    title: __('schedule.page.breadcrumbs.dashboard'),
-                    href: route('dashboard'),
+                    title: __('home.pages.breadcrumbs.home'),
+                    href: route('home'),
                 },
                 { title: __('schedule.page.breadcrumbs.planning'), href: '#' },
             ]}
@@ -246,8 +261,7 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
             <Head title={__('schedule.page.title')} />
 
             <div className="flex h-[calc(100vh-4rem)] flex-col overflow-hidden bg-background">
-                {/* --- Toolbar --- */}
-                <div className="z-30 flex shrink-0 flex-col gap-3 border-b bg-background/95 px-4 py-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/60 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:gap-0">
+                <div className="z-30 flex shrink-0 flex-col gap-3 border-b bg-background/95 px-4 py-3 shadow-sm backdrop-blur supports-backdrop-filter:bg-background/60 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:gap-0">
                     <div className="flex items-center justify-between gap-2 lg:justify-start lg:gap-4">
                         <div className="flex items-center rounded-lg border bg-card p-0.5 shadow-sm">
                             <Button
@@ -262,10 +276,10 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                 <PopoverTrigger asChild>
                                     <Button
                                         variant="ghost"
-                                        className="flex h-8 min-w-[120px] items-center justify-center px-2 text-xs font-semibold sm:min-w-[140px] sm:px-3 sm:text-sm"
+                                        className="flex h-8 min-w-30 items-center justify-center px-2 text-xs font-semibold sm:min-w-35 sm:px-3 sm:text-sm"
                                     >
                                         <CalendarIcon className="mr-2 h-3.5 w-3.5 text-muted-foreground sm:h-4 sm:w-4" />
-                                        <span className="max-w-[120px] truncate leading-none capitalize sm:max-w-none">
+                                        <span className="max-w-30 truncate leading-none capitalize sm:max-w-none">
                                             {getPeriodTitle()}
                                         </span>
                                     </Button>
@@ -314,7 +328,7 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                             <Search className="h-4 w-4 text-muted-foreground" />
                                         </Button>
 
-                                        <div className="hidden lg:block lg:w-[220px] xl:w-[280px]">
+                                        <div className="hidden lg:block lg:w-55 xl:w-70">
                                             <Search className="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary" />
                                             <div className="flex h-9 w-full items-center rounded-md border border-input bg-muted/30 pr-3 pl-9 text-xs text-muted-foreground shadow-sm transition-all group-hover:border-primary/50 group-hover:bg-background">
                                                 {__(
@@ -325,7 +339,7 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                     </div>
                                 </PopoverTrigger>
                                 <PopoverContent
-                                    className="w-[280px] p-0"
+                                    className="w-70 p-0"
                                     align="end"
                                     sideOffset={5}
                                 >
@@ -343,7 +357,7 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                             autoFocus
                                         />
                                     </div>
-                                    <ScrollArea className="h-[240px]">
+                                    <ScrollArea className="h-60">
                                         <div className="p-1">
                                             {searchResults.length === 0 ? (
                                                 <div className="py-8 text-center text-xs text-muted-foreground">
@@ -398,7 +412,7 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                                                 )}
                                                             </span>
                                                             <span>•</span>
-                                                            <span className="max-w-[100px] truncate">
+                                                            <span className="max-w-25 truncate">
                                                                 {evt.user.name}
                                                             </span>
                                                         </div>
@@ -414,7 +428,6 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
 
                     <div className="flex flex-wrap items-center justify-between gap-3 lg:justify-end">
                         <div className="flex items-center gap-2">
-                            {/* Mobile: Tickets Drawer */}
                             {isEditMode && (
                                 <Sheet
                                     open={isTicketsSheetOpen}
@@ -432,7 +445,7 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                     </SheetTrigger>
                                     <SheetContent
                                         side="left"
-                                        className="flex w-[85vw] flex-col gap-0 border-r bg-background p-0 sm:w-[380px]"
+                                        className="flex w-[85vw] flex-col gap-0 border-r bg-background p-0 sm:w-95"
                                     >
                                         <SheetHeader className="border-b px-4 py-3 text-left">
                                             <SheetTitle>
@@ -442,9 +455,6 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                         <div className="flex-1 overflow-hidden">
                                             <TicketSidebar
                                                 tickets={myTickets}
-                                                scheduledTicketIds={events.map(
-                                                    (e) => e.ticket_id,
-                                                )}
                                                 selectedId={selectedTicketId}
                                                 onSelect={(id) => {
                                                     setSelectedTicketId(id);
@@ -453,10 +463,10 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                                             false,
                                                         );
                                                         toast.info(
-                                                            'Ticket sélectionné',
+                                                            __('schedule.flash.select_title'),
                                                             {
                                                                 description:
-                                                                    'Appuyez sur une case du planning pour le planifier.',
+                                                                    __('schedule.flash.select_description'),
                                                             },
                                                         );
                                                     }
@@ -468,7 +478,6 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                 </Sheet>
                             )}
 
-                            {/* Mobile: Filters Drawer */}
                             <Sheet>
                                 <SheetTrigger asChild>
                                     <Button
@@ -477,7 +486,7 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                         className="h-9 lg:hidden"
                                     >
                                         <Filter className="mr-2 h-4 w-4" />
-                                        Filtrer
+                                        {__('schedule.drawer.action')}
                                     </Button>
                                 </SheetTrigger>
                                 <SheetContent
@@ -485,7 +494,7 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                     className="flex w-[85vw] flex-col gap-0 border-l bg-background p-0 sm:w-[320px]"
                                 >
                                     <SheetHeader className="border-b px-4 py-3 text-left">
-                                        <SheetTitle>Filtres</SheetTitle>
+                                        <SheetTitle>{__('schedule.drawer.title')}</SheetTitle>
                                     </SheetHeader>
                                     <div className="flex-1 overflow-hidden">
                                         <SolverFilters
@@ -500,6 +509,7 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                                         : [...prev, id],
                                                 )
                                             }
+                                            embedded
                                         />
                                     </div>
                                 </SheetContent>
@@ -594,29 +604,25 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                     htmlFor="mode-switch"
                                     className="cursor-pointer text-xs font-medium sm:hidden"
                                 >
-                                    Edit
+                                    {__('schedule.toolbar.edit_label')}
                                 </Label>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* --- Main Content Area --- */}
                 <div className="flex flex-1 flex-row gap-4 overflow-hidden bg-muted/10 p-2 sm:p-4">
                     <aside
                         className={cn(
                             'relative hidden shrink-0 flex-col overflow-hidden transition-all duration-300 ease-in-out lg:flex',
                             isEditMode
-                                ? 'w-80 translate-x-0 opacity-100'
+                                ? 'w-64 translate-x-0 opacity-100'
                                 : '-ml-4 w-0 -translate-x-4 opacity-0',
                         )}
                     >
-                        <div className="h-full w-80 overflow-hidden rounded-xl border bg-card shadow-sm">
+                        <div className="h-full w-64 overflow-hidden rounded-xl border bg-card shadow-sm">
                             <TicketSidebar
                                 tickets={myTickets}
-                                scheduledTicketIds={events.map(
-                                    (e) => e.ticket_id,
-                                )}
                                 selectedId={selectedTicketId}
                                 onSelect={setSelectedTicketId}
                                 onUnschedule={handleDeleteEvent}
@@ -632,6 +638,7 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                             isEditMode={isEditMode}
                             currentUserId={auth.user.id}
                             selectedSolvers={selectedSolvers}
+                            highlightedEventId={highlightedEventId}
                             onDrop={handleDropEvent}
                             onUpdate={handleUpdateEvent}
                             onEventClick={(evt) => {
@@ -639,30 +646,22 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                 setIsModalOpen(true);
                             }}
                             onSlotClick={handleSlotClick}
+                            onDayHeaderClick={handleDayHeaderClick}
                         />
                     </main>
 
-                    <aside
-                        className={cn(
-                            'relative hidden shrink-0 flex-col overflow-hidden transition-all duration-300 ease-in-out lg:flex',
-                            !isEditMode
-                                ? 'w-72 translate-x-0 opacity-100'
-                                : '-mr-4 w-0 translate-x-4 opacity-0',
-                        )}
-                    >
-                        <div className="h-full w-72 overflow-hidden rounded-xl border bg-card shadow-sm">
-                            <SolverFilters
-                                solvers={solvers}
-                                selectedIds={selectedSolvers}
-                                onToggle={(id) =>
-                                    setSelectedSolvers((prev) =>
-                                        prev.includes(id)
-                                            ? prev.filter((s) => s !== id)
-                                            : [...prev, id],
-                                    )
-                                }
-                            />
-                        </div>
+                    <aside className="relative hidden shrink-0 flex-col overflow-hidden lg:flex h-[calc(100vh-10rem)]">
+                        <SolverFilters
+                            solvers={solvers}
+                            selectedIds={selectedSolvers}
+                            onToggle={(id) =>
+                                setSelectedSolvers((prev) =>
+                                    prev.includes(id)
+                                        ? prev.filter((s) => s !== id)
+                                        : [...prev, id],
+                                )
+                            }
+                        />
                     </aside>
                 </div>
             </div>
@@ -762,14 +761,14 @@ function PlanningStatsDialog({
 
     const priorityCounts = aggregateBy(
         events,
-        (e) => e.ticket.priority?.title,
-        (e) => e.ticket.priority?.color,
+        (e) => e.ticket?.priority?.title,
+        (e) => e.ticket?.priority?.color,
     );
 
     const statusCounts = aggregateBy(
         events,
-        (e) => e.ticket.status?.title || 'Inconnu',
-        (e) => e.ticket.status?.color,
+        (e) => e.ticket?.status?.title || 'Inconnu',
+        (e) => e.ticket?.status?.color,
     );
 
     const renderBars = (
@@ -815,7 +814,7 @@ function PlanningStatsDialog({
                     </span>
                 </Button>
             </DialogTrigger>
-            <DialogContent className="max-h-[90vh] w-[90vw] overflow-y-auto sm:max-w-[600px]">
+                <DialogContent className="max-h-[90vh] w-[90vw] overflow-y-auto sm:max-w-150">
                 <DialogHeader className="border-b pb-4">
                     <DialogTitle>{__('schedule.stats.title')}</DialogTitle>
                     <DialogDescription>

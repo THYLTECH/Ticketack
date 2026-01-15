@@ -19,8 +19,8 @@ class Update extends FormRequest
             'title'             => ['required', 'string', 'max:255'],
             'description'       => ['required', 'string', 'max:10000'],
 
-            'is_public'         => ['boolean'],
-            'is_referenced'     => ['boolean'],
+            'is_archived'       => ['nullable', 'boolean'],
+            'is_referenced'     => ['nullable', 'boolean'],
             'detailed_solution' => ['nullable', 'string'],
             'status_id'         => ['nullable', 'integer', 'exists:ticket_statuses,id'],
 
@@ -28,7 +28,14 @@ class Update extends FormRequest
             'category_id'       => ['required', 'integer', 'exists:ticket_categories,id'],
             'asset_id'          => ['nullable', 'integer', 'exists:assets,id'],
 
-            'assignees'         => ['nullable', 'array'],
+            'assignees'         => ['nullable', function ($attribute, $value, $fail) {
+                if (is_string($value) && ($value === '[]' || $value === '')) {
+                    return;
+                }
+                if (!is_array($value)) {
+                    $fail('Le champ assignees doit être un tableau.');
+                }
+            }],
             'assignees.*.id'    => ['required', 'integer', 'exists:users,id'],
 
             'attachments'       => ['nullable', 'array', 'max:10'],

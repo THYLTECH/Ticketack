@@ -1,4 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useTrans } from '@/lib/translation';
 import { cn } from '@/lib/utils';
 import { Activity, CalendarRange, Clock, LucideIcon } from 'lucide-react';
@@ -14,25 +20,27 @@ export function EntriesStats({ stats }: { stats: StatsProps }) {
 
     return (
         <div className="grid gap-4 md:grid-cols-3">
-            <StatsCard
-                title={__('entries.stats.total_hours.title')}
-                value={`${stats.total_hours} ${__('entries.stats.unit')}`}
-                icon={Clock}
-                description={__('entries.stats.total_hours.description')}
-                variant="primary"
-            />
-            <StatsCard
-                title={__('entries.stats.count.title')}
-                value={stats.count}
-                icon={Activity}
-                description={__('entries.stats.count.description')}
-            />
-            <StatsCard
-                title={__('entries.stats.period.title')}
-                value={stats.period}
-                icon={CalendarRange}
-                description={__('entries.stats.period.description')}
-            />
+            <TooltipProvider delayDuration={200}>
+                <StatsCard
+                    title={__('entries.stats.total_hours.title')}
+                    value={`${stats.total_hours} ${__('entries.stats.unit')}`}
+                    icon={Clock}
+                    description={__('entries.stats.total_hours.description')}
+                    variant="primary"
+                />
+                <StatsCard
+                    title={__('entries.stats.count.title')}
+                    value={stats.count}
+                    icon={Activity}
+                    description={__('entries.stats.count.description')}
+                />
+                <StatsCard
+                    title={__('entries.stats.period.title')}
+                    value={stats.period}
+                    icon={CalendarRange}
+                    description={__('entries.stats.period.description')}
+                />
+            </TooltipProvider>
         </div>
     );
 }
@@ -57,47 +65,54 @@ function StatsCard({
     const isPrimary = variant === 'primary';
 
     return (
-        <Card
-            className={cn(
-                'relative overflow-hidden transition-all hover:shadow-md',
-                isPrimary
-                    ? 'border-primary/20 bg-primary/5 shadow-sm'
-                    : 'border-border/60 shadow-sm',
-                className,
-            )}
-        >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                    {title}
-                </CardTitle>
-                <div
+        <Tooltip>
+            <TooltipTrigger asChild>
+                <Card
                     className={cn(
-                        'flex h-9 w-9 items-center justify-center rounded-lg border',
+                        'relative overflow-hidden transition-all hover:shadow-md',
                         isPrimary
-                            ? 'border-primary/20 bg-background text-primary'
-                            : 'border-border/50 bg-muted/20 text-muted-foreground',
+                            ? 'border-primary/20 bg-primary/5 shadow-sm'
+                            : 'border-border/60 shadow-sm',
+                        className,
                     )}
                 >
-                    <Icon className="h-5 w-5" />
-                </div>
-            </CardHeader>
-            <CardContent>
-                <div className="flex flex-col gap-1">
-                    <div
-                        className={cn(
-                            'truncate text-2xl font-bold tracking-tight',
-                            isPrimary ? 'text-primary' : 'text-foreground',
-                        )}
-                    >
-                        {value}
-                    </div>
-                    {description && (
-                        <p className="truncate text-xs text-muted-foreground">
-                            {description}
-                        </p>
-                    )}
-                </div>
-            </CardContent>
-        </Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">
+                            {title}
+                        </CardTitle>
+                        <div
+                            className={cn(
+                                'flex h-9 w-9 items-center justify-center rounded-lg border shrink-0',
+                                isPrimary
+                                    ? 'border-primary/20 bg-background text-primary'
+                                    : 'border-border/50 bg-muted/20 text-muted-foreground',
+                            )}
+                        >
+                            <Icon className="h-5 w-5" />
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex flex-col gap-1">
+                            <div
+                                className={cn(
+                                    'truncate text-2xl font-bold tracking-tight',
+                                    isPrimary ? 'text-primary' : 'text-foreground',
+                                )}
+                            >
+                                {value}
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </TooltipTrigger>
+            {description && (
+                <TooltipContent
+                    side="bottom"
+                    className="max-w-xs bg-popover text-popover-foreground backdrop-blur-sm border shadow-lg p-3"
+                >
+                    <p className="text-sm leading-normal text-pretty">{description}</p>
+                </TooltipContent>
+            )}
+        </Tooltip>
     );
 }

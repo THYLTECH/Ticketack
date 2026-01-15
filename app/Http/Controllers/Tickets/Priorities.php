@@ -15,9 +15,9 @@ use App\Http\Requests\Tickets\Priorities\Save as RequestsSave;
 
 /**
  * Ticket Priorities operations controller.
- * 
+ *
  * Handles creation, reading, updating, and deletion of ticket priorities.
- * 
+ *
  * @package App\Http\Controllers\Tickets
  */
 class Priorities extends Controller
@@ -41,8 +41,21 @@ class Priorities extends Controller
 
             if (!empty($attachedPriorities)) {
                 return redirect()->back()->withErrors([
-                    'priorities' => __('Some priorities cannot be deleted because they are attached to existing tickets: :priorities', [
+                    'priorities' => __('tickets.flash.priorities_error', [
                         'priorities' => implode(', ', $attachedPriorities),
+                    ]),
+                ]);
+            }
+
+            $lockedPriorities = TicketPriority::whereIn('id', $idsToDelete)
+                ->where('locked', true)
+                ->pluck('title')
+                ->toArray();
+
+            if (!empty($lockedPriorities)) {
+                return redirect()->back()->withErrors([
+                    'priorities' => __('tickets.flash.priorities_locked_error', [
+                        'priorities' => implode(', ', $lockedPriorities),
                     ]),
                 ]);
             }
@@ -65,8 +78,7 @@ class Priorities extends Controller
                     ['id' => $priorityData['id'] ?? null],
                     $attributesToSave
                 );
-                
-                // Stocker l'ID réel et le nouvel index désiré
+
                 $prioritiesMap[$priority->id] = $index;
             }
 
@@ -75,6 +87,6 @@ class Priorities extends Controller
             }
         });
 
-        return redirect()->back()->with('success', __('Ticket priorities saved successfully.'));
+        return redirect()->back()->with('success', __('tickets.flash.priorities_success'));
     }
 }

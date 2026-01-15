@@ -13,8 +13,8 @@ export interface SearchResult {
         avatar?: string | null;
     };
     category?: string;
-    solution?: string | null;
-    has_solution: boolean;
+    solution?: string;
+    has_solution?: boolean;
 }
 export interface SearchProps {
     users: User[];

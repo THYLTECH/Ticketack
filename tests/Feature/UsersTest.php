@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use JsonException;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Http\UploadedFile;
@@ -10,6 +11,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\UserRegistered;
+use Spatie\Permission\PermissionRegistrar;
 use function Pest\Laravel\{actingAs, delete, get, post, put};
 
 uses(RefreshDatabase::class);
@@ -17,7 +19,6 @@ uses(RefreshDatabase::class);
 beforeEach(function () {
 
     Storage::fake('public');
-    Notification::fake();
 
     Permission::firstOrCreate(['name' => 'view users']);
     Permission::firstOrCreate(['name' => 'show users']);
@@ -29,7 +30,7 @@ beforeEach(function () {
 
 
     $this->roleAdmin = Role::create(['name' => 'Admin']);
-    $this->roleBasic = Role::create(['name' => 'Basic User']);
+    $this->roleBasic = Role::create(['name' => 'simple_user']);
 
     $this->testUser1 = User::factory()->create();
     $this->testUser1->assignRole($this->roleBasic);
@@ -38,7 +39,7 @@ beforeEach(function () {
     $this->user->givePermissionTo(Permission::all());
     actingAs($this->user);
 
-    app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+    app()[PermissionRegistrar::class]->forgetCachedPermissions();
 });
 
 test('index loads', function () {
@@ -59,7 +60,12 @@ test('create loads roles', function () {
         );
 });
 
-test('store minimal user', function () {
+test(/**
+ * @throws JsonException
+ */ /**
+ * @throws JsonException
+ */ 'store minimal user', function () {
+    Notification::fake();
 
     $response = post(route('users.store'), [
         'name' => 'New User',
@@ -73,7 +79,7 @@ test('store minimal user', function () {
     $response->assertSessionHasNoErrors();
 
     $user = User::where('email','user@test.com')->firstOrFail();
-    $this->assertTrue($user->hasRole('Basic User'));
+    $this->assertTrue($user->hasRole('simple_user'));
 
     Notification::assertSentTo($user, UserRegistered::class);
 });
@@ -467,7 +473,7 @@ test('update replaces roles', function () {
     ])->assertSessionHasNoErrors();
 
     expect($this->testUser1->fresh()->roles)->toHaveCount(1)
-        ->and($this->testUser1->hasRole('Basic User'))->toBeTrue()
+        ->and($this->testUser1->hasRole('simple_user'))->toBeTrue()
         ->and($this->testUser1->hasRole('Admin'))->toBeFalse();
 });
 
@@ -564,7 +570,6 @@ test('restore user returns success message', function () {
     ]);
 });
 
-
 test('store hashes password automatically', function () {
     post(route('users.store'), [
         'name' => 'Password Test',
@@ -579,6 +584,7 @@ test('store hashes password automatically', function () {
 });
 
 test('store sends registration notification', function () {
+    Notification::fake();
     post(route('users.store'), [
         'name' => 'Notification Test',
         'email' => 'notification@test.com',
@@ -610,4 +616,174 @@ test('avatar upload creates attachment with correct metadata', function () {
         'mime_type' => 'image/jpeg',
         'file_extension' => 'jpg'
     ]);
+});
+
+test('index applies search filter on name', function () {
+    User::factory()->create(['name' => 'John Specific']);
+    User::factory()->create(['name' => 'Jane Generic']);
+
+    get(route('users.index', ['search' => 'Specific']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('users.data', 1)
+            ->where('users.data.0.name', 'John Specific')
+        );
+});
+
+test('index applies search filter on email', function () {
+    User::factory()->create(['email' => 'unique@example.com']);
+    User::factory()->create(['email' => 'other@example.com']);
+
+    get(route('users.index', ['search' => 'unique']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('users.data', 1)
+            ->where('users.data.0.email', 'unique@example.com')
+        );
+});
+
+test('index respects per_page parameter', function () {
+    User::factory(25)->create();
+
+    get(route('users.index', ['per_page' => 5]))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('users.data', 5)
+        );
+});
+
+test('update without avatar keeps existing avatar', function () {
+    $file = UploadedFile::fake()->image('keep.png');
+    post(route('users.store'), [
+        'name' => 'Keep Avatar',
+        'email' => 'keep@test.com',
+        'email_verified' => true,
+        'roles' => [$this->roleBasic->id],
+        'avatar' => $file
+    ])->assertSessionHasNoErrors();
+
+    $user = User::where('email', 'keep@test.com')->first();
+    $avatarId = $user->avatar->id;
+
+    post(route('users.update', $user), [
+        'name' => 'Updated Name',
+        'email' => $user->email,
+        'email_verified' => true,
+        'roles' => [$this->roleBasic->id]
+    ])->assertSessionHasNoErrors();
+
+    expect($user->fresh()->avatar->id)->toBe($avatarId);
+});
+
+test('user without restore permission cannot restore user', function () {
+    $this->testUser1->delete();
+
+    $user = User::factory()->create();
+    actingAs($user);
+
+    put(route('users.restore', $this->testUser1->id))
+        ->assertForbidden();
+});
+
+test('user without force delete permission cannot force delete user', function () {
+    $this->testUser1->delete();
+
+    $user = User::factory()->create();
+    actingAs($user);
+
+    delete(route('users.force-delete', $this->testUser1->id))
+        ->assertForbidden();
+});
+
+test('force delete without avatar does not throw error', function () {
+    $user = User::factory()->create();
+    $user->delete();
+
+    $this->user->givePermissionTo('force delete users');
+
+    delete(route('users.force-delete', $user->id))
+        ->assertRedirect()
+        ->assertSessionHas('success');
+});
+
+test('index returns filters in response', function () {
+    get(route('users.index', ['search' => 'test']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('filters.search', 'test')
+        );
+});
+
+test('user can be updated without roles change', function () {
+    $user = User::factory()->create(['name' => 'Original Name']);
+    $role = Role::create(['name' => 'Test Role']);
+    $user->assignRole($role);
+
+    post(route('users.update', $user), [
+        'name' => 'Updated Name',
+        'email' => $user->email,
+        'email_verified' => true,
+        'roles' => [$role->id]
+    ])->assertRedirect(route('users.index'));
+
+    $user->refresh();
+    expect($user->name)->toBe('Updated Name');
+    expect($user->hasRole('Test Role'))->toBeTrue();
+});
+
+
+test('create page loads deleted roles excluded', function () {
+    $deletedRole = Role::create(['name' => 'Deleted Role']);
+    $deletedRole->delete();
+
+    get(route('users.create'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('roles', 2)
+        );
+});
+
+test('store creates user without phone', function () {
+    post(route('users.store'), [
+        'name' => 'No Phone',
+        'email' => 'nophone@test.com',
+        'email_verified' => true,
+        'roles' => [$this->roleBasic->id]
+    ])->assertSessionHasNoErrors();
+
+    $user = User::where('email', 'nophone@test.com')->first();
+    expect($user->phone)->toBeNull();
+});
+
+test('update can set phone number', function () {
+    post(route('users.update', $this->testUser1), [
+        'name' => $this->testUser1->name,
+        'email' => $this->testUser1->email,
+        'phone' => '+33612345678',
+        'email_verified' => true,
+        'roles' => [$this->roleBasic->id]
+    ])->assertSessionHasNoErrors();
+
+    expect($this->testUser1->fresh()->phone)->toBe('+33612345678');
+});
+
+test('show loads all roles', function () {
+    get(route('users.show', $this->testUser1))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('roles')
+        );
+});
+
+test('update reverts email verification when set to false', function () {
+    $this->testUser1->update(['email_verified_at' => now()]);
+
+    post(route('users.update', $this->testUser1), [
+        'name' => $this->testUser1->name,
+        'email' => $this->testUser1->email,
+        'email_verified' => false,
+        'roles' => [$this->roleBasic->id]
+    ])->assertSessionHasNoErrors();
+
+    expect($this->testUser1->fresh()->email_verified_at)->toBeNull();
 });

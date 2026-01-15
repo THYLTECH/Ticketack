@@ -69,6 +69,7 @@ return [
             'description' => 'Enter your email and password below to log in',
             'email_label' => 'Email Address',
             'password_label' => 'Password',
+            'password_placeholder' => 'Enter your password',
             'remember_label' => 'Remember me',
             'forgot_password' => 'Forgot your password?',
             'submit_button' => 'Log in',

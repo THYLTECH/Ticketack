@@ -117,6 +117,7 @@ export function CategoriesSheet({
 
     function CategoriesDialog({ category, children }: CategoriesDialogProps) {
         const [open, setOpen] = React.useState(false);
+        const __ = useTrans();
 
         const [title, setTitle] = React.useState(
             category ? category.title : '',
@@ -153,12 +154,12 @@ export function CategoriesSheet({
 
             // Error verification
             if (title.trim() === '') {
-                setErrors({ title: 'Title is required.' });
+                setErrors({ title: __('tickets.pages.relations.categories.validation.title_required') });
                 return;
             }
 
             if (!color) {
-                setErrors({ color: 'Color is required.' });
+                setErrors({ color: __('tickets.pages.relations.categories.validation.color_required') });
                 return;
             }
 
@@ -207,12 +208,12 @@ export function CategoriesSheet({
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>
-                            {category ? 'Edit Category' : 'Create Category'}
+                            {category ? __('tickets.pages.relations.categories.dialog.edit_title') : __('tickets.pages.relations.categories.dialog.create_title')}
                         </DialogTitle>
                         <DialogDescription>
                             {category
-                                ? `Modify the details of the category "${category.title}".`
-                                : 'Fill in the details to create a new category.'}
+                                ? __('tickets.pages.relations.categories.dialog.edit_description')
+                                : __('tickets.pages.relations.categories.dialog.create_description')}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -221,12 +222,12 @@ export function CategoriesSheet({
                         {/* Title */}
                         <div className="grid gap-2">
                             <Label htmlFor="title" indicator={'required'}>
-                                Title
+                                {__('tickets.pages.relations.categories.dialog.form.title_label')}
                             </Label>
                             <Input
                                 id="title"
                                 value={title}
-                                placeholder="eg: Network Issues"
+                                placeholder={__('tickets.pages.relations.categories.dialog.form.title_placeholder')}
                                 onChange={(e) => setTitle(e.target.value)}
                                 disabled={processing}
                                 aria-invalid={errors.title ? 'true' : 'false'}
@@ -236,12 +237,12 @@ export function CategoriesSheet({
                         {/* Description */}
                         <div className="grid gap-2">
                             <Label htmlFor="description" indicator={'optional'}>
-                                Description
+                                {__('tickets.pages.relations.categories.dialog.form.description_label')}
                             </Label>
                             <Textarea
                                 id="description"
                                 value={description}
-                                placeholder="A brief description of the category."
+                                placeholder={__('tickets.pages.relations.categories.dialog.form.description_placeholder')}
                                 onChange={(e) => setDescription(e.target.value)}
                                 disabled={processing}
                                 aria-invalid={
@@ -252,7 +253,7 @@ export function CategoriesSheet({
                         {/* Icon */}
                         <div className="grid gap-2">
                             <Label htmlFor="icon" indicator={'optional'}>
-                                Icon
+                                {__('tickets.pages.relations.categories.dialog.form.icon_label')}
                             </Label>
                             <IconPicker
                                 id="icon"
@@ -275,7 +276,7 @@ export function CategoriesSheet({
                         {/* Color */}
                         <div className="grid gap-2">
                             <Label htmlFor="color" indicator={'required'}>
-                                Color
+                                {__('tickets.pages.relations.categories.dialog.form.color_label')}
                             </Label>
                             <ColorPicker
                                 id="color"
@@ -289,13 +290,15 @@ export function CategoriesSheet({
 
                         <DialogFooter>
                             <DialogClose asChild>
-                                <Button variant={'secondary'}>Close</Button>
+                                <Button variant={'secondary'}>
+                                    {__('tickets.pages.relations.categories.dialog.form.buttons.close')}
+                                </Button>
                             </DialogClose>
                             <Button type="submit" disabled={processing}>
                                 {category ? <Pen /> : <Plus />}
                                 {category
-                                    ? 'Update Category'
-                                    : 'Store Category'}
+                                    ? __('tickets.pages.relations.categories.dialog.form.buttons.update')
+                                    : __('tickets.pages.relations.categories.dialog.form.buttons.store')}
                             </Button>
                         </DialogFooter>
                     </form>
@@ -332,19 +335,22 @@ export function CategoriesSheet({
                 <DialogTrigger asChild>{children}</DialogTrigger>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Delete Category</DialogTitle>
+                        <DialogTitle>
+                            {__('tickets.pages.relations.categories.dialog.delete_title')}
+                        </DialogTitle>
                         <DialogDescription>
-                            Are you sure you want to delete the category "
-                            {category.title}"? This action cannot be undone.
+                            {__('tickets.pages.relations.categories.dialog.delete_description')}
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
                         <DialogClose asChild>
-                            <Button variant={'secondary'}>Cancel</Button>
+                            <Button variant={'secondary'}>
+                                {__('tickets.pages.relations.categories.dialog.form.buttons.cancel')}
+                            </Button>
                         </DialogClose>
                         <Button variant={'destructive'} onClick={handleSubmit}>
                             <Trash2 />
-                            Delete Category
+                            {__('tickets.pages.relations.categories.dialog.form.buttons.delete')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -460,9 +466,11 @@ export function CategoriesSheet({
             <SheetTrigger asChild>{children}</SheetTrigger>
             <SheetContent>
                 <SheetHeader>
-                    <SheetTitle>Manage Categories</SheetTitle>
+                    <SheetTitle>
+                        {__('tickets.pages.relations.categories.sheet.title')}
+                    </SheetTitle>
                     <SheetDescription>
-                        Modify the list of ticket categories.
+                        {__('tickets.pages.relations.categories.sheet.description')}
                     </SheetDescription>
                 </SheetHeader>
                 <Separator />
@@ -470,7 +478,7 @@ export function CategoriesSheet({
                     <CategoriesDialog>
                         <Button className="w-max" size={'sm'}>
                             <Plus />
-                            Add Category
+                            {__('tickets.pages.relations.categories.sheet.buttons.create')}
                         </Button>
                     </CategoriesDialog>
 
@@ -486,7 +494,7 @@ export function CategoriesSheet({
                                 <TableRow>
                                     <TableHead></TableHead>
                                     <TableHead className="text-xs text-muted-foreground">
-                                        Category
+                                        {__('tickets.pages.relations.categories.sheet.table.column')}
                                     </TableHead>
                                     <TableHead></TableHead>
                                 </TableRow>
@@ -515,7 +523,7 @@ export function CategoriesSheet({
                                             colSpan={3}
                                             className="py-4 text-center"
                                         >
-                                            No categories found.
+                                            {__('tickets.pages.relations.categories.sheet.table.empty')}
                                         </TableCell>
                                     </TableRow>
                                 )}
@@ -525,7 +533,9 @@ export function CategoriesSheet({
                 </div>
                 <SheetFooter>
                     <SheetClose asChild>
-                        <Button variant="secondary">Close</Button>
+                        <Button variant="secondary">
+                            {__('tickets.pages.relations.categories.sheet.buttons.close')}
+                        </Button>
                     </SheetClose>
                     <Button
                         type="button"
@@ -533,7 +543,7 @@ export function CategoriesSheet({
                         disabled={processing}
                     >
                         {processing ? <Spinner /> : <Save />}
-                        Save Changes
+                        {__('tickets.pages.relations.categories.sheet.buttons.save')}
                     </Button>
                 </SheetFooter>
             </SheetContent>

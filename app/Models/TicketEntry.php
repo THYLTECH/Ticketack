@@ -92,4 +92,34 @@ class TicketEntry extends Model
             ]);
         });
     }
+
+    /**
+     * Transform the entry to a calendar event format
+     * Used in Crud.php and Schedules.php to avoid code duplication
+     *
+     * @return array
+     */
+    public function toCalendarEvent(): array
+    {
+        if (!$this->start_at) {
+            return [];
+        }
+
+        $startDate = Carbon::parse($this->start_at);
+        $endDate = Carbon::parse($this->end_at);
+
+        return [
+            'id' => 'entry-' . $this->id,
+            'ticket_id' => $this->ticket_id,
+            'user_id' => $this->user_id,
+            'start_date' => $startDate->toIso8601String(),
+            'end_date' => $endDate->toIso8601String(),
+            'duration_minutes' => round($this->duration_seconds / 60),
+            'is_entry' => true,
+            'ticket' => $this->ticket,
+            'user' => $this->user,
+            'created_at' => $this->created_at->toIso8601String(),
+            'updated_at' => $this->updated_at->toIso8601String(),
+        ];
+    }
 }

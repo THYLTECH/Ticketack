@@ -16,9 +16,9 @@ use App\Http\Requests\Tickets\Categories\Save as RequestsSave;
 
 /**
  * Ticket Categories operations controller.
- * 
+ *
  * Handles creation, reading, updating, and deletion of ticket categories.
- * 
+ *
  * @package App\Http\Controllers\Tickets
  */
 class Categories extends Controller
@@ -42,7 +42,7 @@ class Categories extends Controller
 
             if (!empty($attachedCategories)) {
                 return redirect()->back()->withErrors([
-                    'categories' => __('Some categories cannot be deleted because they are attached to existing tickets: :categories', [
+                    'categories' => __('tickets.flash.categories_error', [
                         'categories' => implode(', ', $attachedCategories),
                     ]),
                 ]);
@@ -67,8 +67,7 @@ class Categories extends Controller
                     ['id' => $categoryData['id'] ?? null],
                     $attributesToSave
                 );
-                
-                // Stocker l'ID réel et le nouvel index désiré
+
                 $categoriesMap[$category->id] = $index;
             }
 
@@ -77,6 +76,6 @@ class Categories extends Controller
             }
         });
 
-        return redirect()->back()->with('success', __('Ticket categories saved successfully.'));
+        return redirect()->back()->with('success', __('tickets.flash.categories_success'));
     }
 }

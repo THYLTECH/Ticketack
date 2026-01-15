@@ -3,6 +3,12 @@
 return [
     'entries' => 'Entries',
     'entry' => 'Entry',
+    'flash' => [
+        'created' => 'Time entry created successfully.',
+        'overlap_error' => 'This entry overlaps with another one.',
+        'overlap_details' => 'Overlap with ticket #:id: :title (:start - :end)',
+        'future_error' => 'Cannot log time in the future.',
+    ],
     'header' => [
         'title' => 'Time Tracking',
         'description' => 'Analyze your performance and export your data.',
@@ -80,15 +86,15 @@ return [
         'unit' => 'h',
         'total_hours' => [
             'title' => 'Total Hours',
-            'description' => 'Accumulated time',
+            'description' => 'Total work time logged during the filtered period. Includes all entries, billable and non-billable.',
         ],
         'count' => [
             'title' => 'Interventions',
-            'description' => 'Number of sessions',
+            'description' => 'Total number of recorded work sessions. Each entry represents a distinct intervention.',
         ],
         'period' => [
             'title' => 'Active Period',
-            'description' => 'Active date range',
+            'description' => 'Date range covered by displayed entries. Corresponds to applied filters or entire history.',
         ],
     ],
     'table' => [
@@ -166,6 +172,8 @@ return [
             'dashboard' => 'Dashboard',
             'current' => 'Entries',
         ],
+        'timezone' => 'Timezone',
+        'description' => 'View and manage your time entries.'
     ],
     'pagination' => [
         'showing' => 'Showing',
