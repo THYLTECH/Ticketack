@@ -8,10 +8,20 @@ from openai import OpenAI
 from pydantic import BaseModel, Field, ValidationError
 from typing import List, Optional
 
+import pymysql
+import hashlib
+
 # Configuration via environment variables (Best Practice: 12-factor app)
 REDIS_HOST = os.getenv('REDIS_HOST', 'redis')
 REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))
 QUEUE_NAME = os.getenv('REDIS_QUEUE_NAME', 'ticket_processing_queue')
+
+# DB Configuration
+DB_HOST = os.getenv('DB_HOST', 'db')
+DB_PORT = int(os.getenv('DB_PORT', 3306))
+DB_USER = os.getenv('DB_USER', 'ticketack')
+DB_PASSWORD = os.getenv('DB_PASSWORD', 'secret')
+DB_DATABASE = os.getenv('DB_DATABASE', 'ticketack')
 
 # LiteLLM Configuration
 LITELLM_HOST = os.getenv('LITELLM_HOST', 'http://litellm:4000')
@@ -32,14 +42,73 @@ client = OpenAI(
 ETL_API_URL = os.getenv('ETL_API_URL', 'http://etl-api:8000')
 
 # Pydantic model to validate the AI output
+
+class AnalysisStep(BaseModel):
+    description: str = Field(description="Titre ou action principale de l'étape")
+    details: Optional[str] = Field(description="Détails techniques ou commande à exécuter", default="")
+    confidence_score: Optional[float] = Field(description="Confiance spécifique pour cette étape", default=None)
+
 class TicketAnalysis(BaseModel):
     summary: str = Field(description="Résumé du problème identifié en 1 phrase")
     analysis: str = Field(description="Analyse technique de la cause probable")
-    steps: List[str] = Field(description="Liste des étapes de résolution")
+    steps: List[AnalysisStep] = Field(description="Liste structurée des étapes de résolution")
     missing_info: Optional[str] = Field(description="Questions à poser au client si incomplet")
-    confidence_score: float = Field(description="Score de confiance entre 0.0 et 1.0")
+    confidence_score: float = Field(description="Score de confiance global entre 0.0 et 1.0")
     citations: List[str] = Field(description="IDs des documents utilisés", default_factory=list)
 
+
+def get_db_connection():
+    return pymysql.connect(
+        host=DB_HOST,
+        user=DB_USER,
+        password=DB_PASSWORD,
+        database=DB_DATABASE,
+        port=DB_PORT,
+        cursorclass=pymysql.cursors.DictCursor,
+        autocommit=True
+    )
+
+def save_suggestion_to_db(ticket_id, analysis_json, prompt_text, documents, model_name, temp=0.2):
+    try:
+        # Calculate prompt hash
+        prompt_hash = hashlib.sha256(prompt_text.encode('utf-8')).hexdigest()
+        
+        # Prepare snapshot
+        model_snapshot = json.dumps({
+            "model": model_name,
+            "temperature": temp
+        })
+        
+        # Prepare retrieved chunks
+        chunks_snapshot = json.dumps(documents)
+        
+        # Parse analysis to get confidence and time (simulation for time)
+        # Note: analysis_json is already a JSON string from model_dump_json
+        analysis_data = json.loads(analysis_json)
+        confidence = analysis_data.get('confidence_score', 0.5)
+        
+        connection = get_db_connection()
+        with connection.cursor() as cursor:
+            sql = """
+            INSERT INTO ai_suggestions 
+            (ticket_id, model_config_snapshot, prompt_hash, generated_content, retrieved_chunks, confidence_score, processing_time_ms, created_at, updated_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
+            """
+            cursor.execute(sql, (
+                ticket_id,
+                model_snapshot,
+                prompt_hash,
+                analysis_json,
+                chunks_snapshot,
+                confidence,
+                0 # Processing time not tracked strictly yet
+            ))
+        connection.close()
+        print(f"💾 [IA] Suggestion sauvegardée en BDD pour le ticket #{ticket_id}.")
+        return True
+    except Exception as e:
+        print(f"❌ [IA] Erreur sauvegarde BDD : {str(e)}")
+        return False
 
 def retrieve_context(query, limit=3):
     """
@@ -67,7 +136,7 @@ def retrieve_context(query, limit=3):
         print(f"⚠️ [RAG] Erreur lors de la récupération du contexte : {str(e)}")
         return []
 
-def generate_ai_opinion(ticket_id, title, context_text):
+def generate_ai_opinion(ticket_id, title, context_text, user_feedback=None, previous_suggestion=None):
     """
     Generates an AI opinion via LiteLLM and validates with Pydantic.
     """
@@ -80,10 +149,14 @@ def generate_ai_opinion(ticket_id, title, context_text):
         prompt = template.render(
             title=title, 
             description=context_text,
-            documents=documents
+            documents=documents,
+            user_feedback=user_feedback,
+            previous_suggestion=previous_suggestion
         )
         
         print(f"🧠 [IA] Envoi du prompt à LiteLLM ({MODEL_NAME})...")
+        
+        temperature = 0.2
         
         # 3. LLM call
         response = client.chat.completions.create(
@@ -92,7 +165,7 @@ def generate_ai_opinion(ticket_id, title, context_text):
                 {"role": "user", "content": prompt}
             ],
             stream=False,
-            temperature=0.2 # More deterministic for JSON
+            temperature=temperature
         )
         
         raw_content = response.choices[0].message.content
@@ -109,7 +182,13 @@ def generate_ai_opinion(ticket_id, title, context_text):
             analysis = TicketAnalysis(**data)
             
             print("✅ [IA] JSON validé par Pydantic.")
-            return analysis.model_dump_json(indent=2)
+            
+            final_json = analysis.model_dump_json(indent=2)
+            
+            # 5. Save to DB
+            save_suggestion_to_db(ticket_id, final_json, prompt, documents, MODEL_NAME, temperature)
+            
+            return final_json
             
         except json.JSONDecodeError:
              print(f"⚠️ [IA] Echec du parsing JSON. Raw: {raw_content[:200]}...")
@@ -131,9 +210,12 @@ def process_ticket(payload):
     title = payload.get('title')
     description = payload.get('description', 'Pas de description fournie.')
 
+    user_feedback = payload.get('user_feedback')
+    previous_suggestion = payload.get('previous_suggestion')
+
     print(f"🤖 [IA] Analyse du ticket #{ticket_id} : {title}")
     
-    opinion = generate_ai_opinion(ticket_id, title, description)
+    opinion = generate_ai_opinion(ticket_id, title, description, user_feedback, previous_suggestion)
 
     print("="*60)
     print(f"📝 OPINION IA pour le ticket #{ticket_id}")

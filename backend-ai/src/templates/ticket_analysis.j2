@@ -11,22 +11,44 @@ Contexte (Documents récupérés de la base de connaissance):
 Aucun document pertinent trouvé dans la base de connaissance.
 {% endif %}
 
-Demande du Client:
-Titre: {{ title }}
-Description: {{ description }}
+Vous êtes un expert technique de support informatique niveau 3.
+Analysez le ticket suivant pour proposer une solution structurée.
 
-Instructions de Sécurité et Qualité:
-1. Base-toi EXCLUSIVEMENT sur les documents fournis dans le contexte. Si les documents ne contiennent pas la réponse, indique-le clairement et propose des pistes de diagnostic générales.
-2. Ne jamais inventer de commandes, de chemins de fichiers ou de procédures qui ne sont pas dans le contexte.
-3. Adopte un ton professionnel, technique mais pédagogique.
+Titre du ticket : {{ title }}
+Description :
+{{ description }}
 
-Format de Sortie Attendu (JSON Strict):
-Réponds UNIQUEMENT avec un objet JSON respectant ce schéma :
+{% if previous_suggestion %}
+---
+CONTEXTE CONVERSATIONNEL :
+Le système a déjà proposé une solution, mais l'utilisateur souhaite une précision ou une correction.
+
+Dernière suggestion faite par l'IA :
+{{ previous_suggestion }}
+
+Retour de l'utilisateur (Feedback) :
+"{{ user_feedback }}"
+
+INSTRUCTION SUPPLELMENTAIRE :
+Veuillez réviser votre analyse en tenant compte spécifiquement du retour de l'utilisateur ci-dessus. Si l'utilisateur demande une clarification, détaillez ce point. Si l'utilisateur signale une erreur, corrigez-la.
+---
+{% endif %}
+
+Documents de contexte (RAG) :
+{% for doc in documents %}
+- [{{ doc.source }}] : {{ doc.content }}
+{% endfor %}
+
+Répondez UNIQUEMENT au format JSON strict suivant :
 {
-"summary": "Résumé du problème identifié en 1 phrase",
-"analysis": "Analyse technique de la cause probable",
-"steps": ["Étape 1", "Étape 2",...],
-"missing_info": "Questions à poser au client si le ticket est incomplet",
-"confidence_score": 0.0 à 1.0,
-"citations": ["id du document utilisé"]
+  "summary": "Résumé du problème identifié en 1 phrase",
+  "analysis": "Analyse technique de la cause probable (prenant en compte le feedback si présent)",
+  "steps": [
+      {
+        "description": "Titre de l'action",
+        "details": "Détails techniques, commandes ou explication approfondie"
+      }
+  ],
+  "missing_info": "Questions à poser au client si incomplet (facultatif)",
+  "confidence_score": 0.9
 }

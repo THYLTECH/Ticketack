@@ -57,6 +57,38 @@ class Crud extends Controller
         return $this->renderTicketList($request, 'tickets/manage');
     }
 
+    public function aiFollowUp(Request $request, Ticket $ticket): RedirectResponse
+    {
+        $validated = $request->validate([
+            'feedback' => 'required|string|max:1000',
+        ]);
+
+        $latestSuggestion = $ticket->aiSuggestions()->latest()->first();
+
+        try {
+            $payload = [
+                'ticket_id' => $ticket->id,
+                'title' => $ticket->title,
+                'description' => $ticket->description,
+                'status' => 'pending_analysis',
+                'previous_suggestion' => $latestSuggestion ? json_encode($latestSuggestion->generated_content) : null,
+                'user_feedback' => $validated['feedback']
+            ];
+
+            // Direct Redis push (matching Listener logic)
+            // Using 'ai_worker' connection as per DispatchTicketToAiQueue listener
+            \Illuminate\Support\Facades\Redis::connection('ai_worker')->rpush('ticket_processing_queue', json_encode($payload));
+
+            // Optional: You might want to create a placeholder AiSuggestion with status 'generating' if you were tracking status in DB,
+            // but for now we just push to queue.
+
+            return back()->with('flash.created', 'AI refinement requested.');
+
+        } catch (\Exception $e) {
+            return back()->with('flash.error', 'Failed to request AI refinement: ' . $e->getMessage());
+        }
+    }
+
     private function applyUserVisibilityFilter(Builder $query, User $user, bool $onlyMyTickets = false): Builder
     {
         if ($user->hasRole('admin')) {
@@ -110,7 +142,7 @@ class Crud extends Controller
 
         $open = (clone $statsQuery)
             ->where(function (Builder $q) {
-                $q->whereHas('status', fn (Builder $subQ) => $subQ->where('is_closed', false))
+                $q->whereHas('status', fn(Builder $subQ) => $subQ->where('is_closed', false))
                     ->orWhereNull('status_id');
             })
             ->count();
@@ -120,7 +152,7 @@ class Crud extends Controller
             ->count();
 
         $resolved = (clone $statsQuery)
-            ->whereHas('status', fn (Builder $q) => $q->where('is_closed', true))
+            ->whereHas('status', fn(Builder $q) => $q->where('is_closed', true))
             ->count();
 
         $driver = config('database.default');
@@ -128,13 +160,13 @@ class Crud extends Controller
 
         if ($connection === 'sqlite') {
             $avgResolutionDays = (clone $statsQuery)
-                ->whereHas('status', fn (Builder $q) => $q->where('is_closed', true))
+                ->whereHas('status', fn(Builder $q) => $q->where('is_closed', true))
                 ->whereNotNull('updated_at')
                 ->selectRaw('AVG(JULIANDAY(updated_at) - JULIANDAY(created_at)) as avg_days')
                 ->value('avg_days') ?? 0;
         } else {
             $avgResolutionDays = (clone $statsQuery)
-                ->whereHas('status', fn (Builder $q) => $q->where('is_closed', true))
+                ->whereHas('status', fn(Builder $q) => $q->where('is_closed', true))
                 ->whereNotNull('updated_at')
                 ->selectRaw('AVG(TIMESTAMPDIFF(DAY, created_at, updated_at)) as avg_days')
                 ->value('avg_days') ?? 0;
@@ -224,9 +256,18 @@ class Crud extends Controller
     public function show(Ticket $ticket): Response
     {
         $ticket->load([
-            'user.avatar', 'priority', 'status', 'category', 'asset',
-            'assignees.user.avatar', 'comments.user.avatar', 'comments.attachments',
-            'logs.user.avatar', 'schedules.user.avatar', 'attachments',
+            'user.avatar',
+            'priority',
+            'status',
+            'category',
+            'asset',
+            'assignees.user.avatar',
+            'comments.user.avatar',
+            'comments.attachments',
+            'logs.user.avatar',
+            'schedules.user.avatar',
+            'attachments',
+            'aiSuggestions' => fn($q) => $q->latest(),
         ]);
 
         $searchContext = implode(' ', array_filter([
@@ -256,7 +297,8 @@ class Crud extends Controller
 
                     $similarTickets = $filteredResults->map(function ($result) use ($ticketsInfo) {
                         $info = $ticketsInfo->get($result['ticket_id']);
-                        if (!$info) return null;
+                        if (!$info)
+                            return null;
 
                         return [
                             'id' => $info->id,
@@ -303,7 +345,7 @@ class Crud extends Controller
         return Inertia::render('tickets/show', [
             'ticket' => $ticket,
             'events' => $events,
-            'solvers' => User::permission('be assigned tickets')->with('avatar')->get()->map(fn ($user) => [
+            'solvers' => User::permission('be assigned tickets')->with('avatar')->get()->map(fn($user) => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
@@ -540,7 +582,7 @@ class Crud extends Controller
             'assignees.user.avatar'
         ])->whereNotNull('archived_at');
 
-        if (! $user->can('view all archived tickets')) {
+        if (!$user->can('view all archived tickets')) {
             $query = $this->applyUserVisibilityFilter($query, $user, true);
         }
 
@@ -550,7 +592,7 @@ class Crud extends Controller
 
         $statsQuery = Ticket::whereNotNull('archived_at');
 
-        if (! $user->can('view all archived tickets')) {
+        if (!$user->can('view all archived tickets')) {
             $statsQuery = $this->applyUserVisibilityFilter($statsQuery, $user, true);
         }
 
@@ -561,10 +603,10 @@ class Crud extends Controller
             ->whereNotNull('status_id')
             ->groupBy('status_id')
             ->get()
-            ->mapWithKeys(fn ($item) => [$item->status_id => (int) $item->count]);
+            ->mapWithKeys(fn($item) => [$item->status_id => (int) $item->count]);
 
         $resolved = (clone $statsQuery)
-            ->whereHas('status', fn (Builder $q) => $q->where('is_closed', true))
+            ->whereHas('status', fn(Builder $q) => $q->where('is_closed', true))
             ->count();
 
         $driver = config('database.default');

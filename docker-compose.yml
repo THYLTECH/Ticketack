@@ -193,8 +193,15 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_QUEUE_NAME: ticket_processing_queue
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: ticketack
+      DB_USERNAME: ticketack
+      DB_PASSWORD: secret
     networks:
       - sail
+      - ticketack-network
     depends_on:
       - redis
       - litellm
