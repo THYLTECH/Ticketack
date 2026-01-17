@@ -15,7 +15,7 @@ import type {
     User,
 } from '@/types';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { ArrowLeft, Info, Pen, Shield, Trash2, Users } from 'lucide-react';
+import { ArrowLeft, Briefcase, Info, Pen, Shield, Trash2, Users } from 'lucide-react';
 
 export default function Show({
     role,
@@ -135,15 +135,27 @@ function ShowForm({
 
                     {userHasPermission({
                         user: auth.user,
+                        permission: 'create roles',
+                    }) && (
+                            <Button asChild variant="outline" size="sm">
+                                <Link href={route('roles.clone', { role: role.id })}>
+                                    <Briefcase className="mr-2 h-4 w-4" />
+                                    {__('roles.pages.index.table.actions.clone')}
+                                </Link>
+                            </Button>
+                        )}
+
+                    {userHasPermission({
+                        user: auth.user,
                         permission: 'update roles',
                     }) && (
-                        <Button asChild variant="default" size="sm">
-                            <Link href={route('roles.edit', { role: role.id })}>
-                                <Pen className="mr-2 h-4 w-4" />
-                                {__('roles.pages.form.buttons.edit')}
-                            </Link>
-                        </Button>
-                    )}
+                            <Button asChild variant="default" size="sm">
+                                <Link href={route('roles.edit', { role: role.id })}>
+                                    <Pen className="mr-2 h-4 w-4" />
+                                    {__('roles.pages.form.buttons.edit')}
+                                </Link>
+                            </Button>
+                        )}
                 </div>
             </div>
 

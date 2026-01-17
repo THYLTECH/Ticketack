@@ -63,6 +63,7 @@ return [
                     'view' => 'Voir',
                     'edit' => 'Modifier',
                     'delete' => 'Supprimer',
+                    'clone' => 'Dupliquer',
                 ],
             ],
         ],
@@ -95,6 +96,7 @@ return [
             'tabs' => [
                 'informations' => 'Informations',
                 'permissions' => 'Permissions',
+                'permissions_search_placeholder' => 'Rechercher une permission...',
                 'users' => 'Utilisateurs',
             ],
             'fields' => [

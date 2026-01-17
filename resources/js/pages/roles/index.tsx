@@ -111,13 +111,13 @@ export default function Index({ roles, filters = {} }: Props) {
                         user: auth.user,
                         permission: 'create roles',
                     }) && (
-                        <Button asChild className="shadow-sm">
-                            <Link href={route('roles.create')}>
-                                <Plus className="mr-2 h-4 w-4" />
-                                {__('roles.pages.index.buttons.create')}
-                            </Link>
-                        </Button>
-                    )}
+                            <Button asChild className="shadow-sm">
+                                <Link href={route('roles.create')}>
+                                    <Plus className="mr-2 h-4 w-4" />
+                                    {__('roles.pages.index.buttons.create')}
+                                </Link>
+                            </Button>
+                        )}
                 </div>
 
                 <div className="flex flex-col gap-4">
@@ -302,22 +302,44 @@ export default function Index({ roles, filters = {} }: Props) {
                                                                                 'show roles',
                                                                         },
                                                                     ) && (
-                                                                        <DropdownMenuItem
-                                                                            onClick={() =>
-                                                                                router.get(
-                                                                                    route(
-                                                                                        'roles.show',
-                                                                                        role.id,
-                                                                                    ),
-                                                                                )
-                                                                            }
-                                                                        >
-                                                                            <Eye className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
-                                                                            {__(
-                                                                                'roles.pages.index.table.actions.view',
-                                                                            )}
-                                                                        </DropdownMenuItem>
-                                                                    )}
+                                                                            <DropdownMenuItem
+                                                                                onClick={() =>
+                                                                                    router.get(
+                                                                                        route(
+                                                                                            'roles.show',
+                                                                                            role.id,
+                                                                                        ),
+                                                                                    )
+                                                                                }
+                                                                            >
+                                                                                <Eye className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
+                                                                                {__(
+                                                                                    'roles.pages.index.table.actions.view',
+                                                                                )}
+                                                                            </DropdownMenuItem>
+                                                                        )}
+
+                                                                    {userHasPermission(
+                                                                        {
+                                                                            user: auth.user,
+                                                                            permission:
+                                                                                'create roles',
+                                                                        },
+                                                                    ) && (
+                                                                            <DropdownMenuItem
+                                                                                onClick={() =>
+                                                                                    router.get(
+                                                                                        route(
+                                                                                            'roles.clone',
+                                                                                            role.id,
+                                                                                        ),
+                                                                                    )
+                                                                                }
+                                                                            >
+                                                                                <Briefcase className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
+                                                                                {__('roles.pages.index.table.actions.clone')}
+                                                                            </DropdownMenuItem>
+                                                                        )}
 
                                                                     {userHasPermission(
                                                                         {
@@ -326,22 +348,22 @@ export default function Index({ roles, filters = {} }: Props) {
                                                                                 'update roles',
                                                                         },
                                                                     ) && (
-                                                                        <DropdownMenuItem
-                                                                            onClick={() =>
-                                                                                router.get(
-                                                                                    route(
-                                                                                        'roles.edit',
-                                                                                        role.id,
-                                                                                    ),
-                                                                                )
-                                                                            }
-                                                                        >
-                                                                            <Pencil className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
-                                                                            {__(
-                                                                                'roles.pages.index.table.actions.edit',
-                                                                            )}
-                                                                        </DropdownMenuItem>
-                                                                    )}
+                                                                            <DropdownMenuItem
+                                                                                onClick={() =>
+                                                                                    router.get(
+                                                                                        route(
+                                                                                            'roles.edit',
+                                                                                            role.id,
+                                                                                        ),
+                                                                                    )
+                                                                                }
+                                                                            >
+                                                                                <Pencil className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
+                                                                                {__(
+                                                                                    'roles.pages.index.table.actions.edit',
+                                                                                )}
+                                                                            </DropdownMenuItem>
+                                                                        )}
 
                                                                     {!isSystemRole &&
                                                                         userHasPermission(

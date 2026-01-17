@@ -70,6 +70,21 @@ class Roles extends Controller
     }
 
     /**
+     * Show the form for cloning the specified role.
+     *
+     * @param Role $role
+     * @return Response
+     */
+    public function clone(Role $role): Response
+    {
+        return Inertia::render('roles/create', [
+            'permissions' => Permission::all(),
+            'usersWithoutRole' => User::with('avatar')->get(),
+            'sourceRole' => $role->load('permissions')
+        ]);
+    }
+
+    /**
      * Show the form for editing the specified role.
      *
      * @param Role $role
