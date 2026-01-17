@@ -292,10 +292,16 @@ export function TicketTable({ tickets, auth }: Props) {
                                             )}
                                             {(isAdmin || isAuthor || isAssigned) &&
                                                 userHasPermission({ user: auth.user, permission: 'update tickets' }) && (
-                                                    <DropdownMenuItem onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        router.get(route('tickets.edit', ticket.id));
-                                                    }}>
+                                                    <DropdownMenuItem
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            if (!ticket.is_archived) {
+                                                                router.get(route('tickets.edit', ticket.id));
+                                                            }
+                                                        }}
+                                                        disabled={!!ticket.is_archived}
+                                                        className={!!ticket.is_archived ? "opacity-50 cursor-not-allowed" : ""}
+                                                    >
                                                         <Pencil className="mr-2 h-4 w-4" />
                                                         {__('tickets.pages.form.buttons.edit')}
                                                     </DropdownMenuItem>
@@ -613,15 +619,15 @@ export function TicketTable({ tickets, auth }: Props) {
                                                                     </TooltipContent>
                                                                 </Tooltip>
                                                             </TooltipProvider>
-                                                       ))}
+                                                        ))}
                                                     {validAssignees.length >
                                                         3 && (
-                                                        <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-background bg-muted text-[9px] font-medium text-muted-foreground ring-1 ring-border/10">
-                                                            \+
-                                                            {validAssignees.length -
-                                                                3}
-                                                        </div>
-                                                    )}
+                                                            <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-background bg-muted text-[9px] font-medium text-muted-foreground ring-1 ring-border/10">
+                                                                \+
+                                                                {validAssignees.length -
+                                                                    3}
+                                                            </div>
+                                                        )}
                                                 </div>
                                             ) : (
                                                 <span className="text-xs text-muted-foreground/30 italic">
@@ -701,22 +707,22 @@ export function TicketTable({ tickets, auth }: Props) {
                                                         permission:
                                                             'update tickets',
                                                     }) && (
-                                                        <DropdownMenuItem
-                                                            onClick={() =>
-                                                                router.get(
-                                                                    route(
-                                                                        'tickets.edit',
-                                                                        ticket.id,
-                                                                    ),
-                                                                )
-                                                            }
-                                                        >
-                                                            <Pencil className="mr-2 h-4 w-4" />
-                                                            {__(
-                                                                'tickets.pages.form.buttons.edit',
-                                                            )}
-                                                        </DropdownMenuItem>
-                                                    )}
+                                                            <DropdownMenuItem
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    if (!ticket.is_archived) {
+                                                                        router.get(route('tickets.edit', ticket.id));
+                                                                    }
+                                                                }}
+                                                                disabled={!!ticket.is_archived}
+                                                                className={!!ticket.is_archived ? "opacity-50 cursor-not-allowed" : ""}
+                                                            >
+                                                                <Pencil className="mr-2 h-4 w-4" />
+                                                                {__(
+                                                                    'tickets.pages.form.buttons.edit',
+                                                                )}
+                                                            </DropdownMenuItem>
+                                                        )}
 
                                                     {canArchive && userHasPermission({ user: auth.user, permission: 'archive tickets' }) && (
                                                         <>

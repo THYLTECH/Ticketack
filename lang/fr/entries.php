@@ -46,6 +46,7 @@ return [
         'store' => [
             'duration_error' => 'La durée doit être supérieure à 0.',
             'success' => 'Saisie de temps enregistrée avec succès.',
+            'archived_error' => 'Ce ticket est archivé, vous ne pouvez pas ajouter de pointage.',
         ],
         'destroy' => [
             'success' => 'Saisie de temps supprimée.',

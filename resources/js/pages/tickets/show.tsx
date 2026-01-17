@@ -53,8 +53,12 @@ export default function Show({
             href: route('home'),
         },
         {
-            title: __('tickets.pages.breadcrumbs.index'),
-            href: route('tickets.index'),
+            title: ticket.archived_at
+                ? __('tickets.pages.index.buttons.archived')
+                : __('tickets.pages.breadcrumbs.index'),
+            href: ticket.archived_at
+                ? route('tickets.archived')
+                : route('tickets.index'),
         },
         {
             title: `#${ticket.id} - ${ticket.title}`,
@@ -95,17 +99,23 @@ export default function Show({
                         {userHasPermission({
                             user: auth.user,
                             permission: 'update tickets',
-                        }) && (
-                            <Button asChild size="sm" variant="outline">
-                                <Link href={route('tickets.edit', ticket.id)}>
-                                    <Pencil className="mr-2 h-4 w-4" />
-                                    {__('tickets.pages.form.buttons.edit')}
-                                </Link>
-                            </Button>
-                        )}
+                        }) && !ticket.archived_at && (
+                                <Button asChild size="sm" variant="outline">
+                                    <Link href={route('tickets.edit', ticket.id)}>
+                                        <Pencil className="mr-2 h-4 w-4" />
+                                        {__('tickets.pages.form.buttons.edit')}
+                                    </Link>
+                                </Button>
+                            )}
 
                         <Button asChild variant="secondary" size="sm">
-                            <Link href={route('tickets.index')}>
+                            <Link
+                                href={
+                                    ticket.archived_at
+                                        ? route('tickets.archived')
+                                        : route('tickets.index')
+                                }
+                            >
                                 <ArrowLeft className="mr-2 h-4 w-4" />
                                 {__('tickets.pages.form.buttons.back')}
                             </Link>

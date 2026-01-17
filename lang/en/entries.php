@@ -46,6 +46,7 @@ return [
         'store' => [
             'duration_error' => 'Duration must be greater than 0.',
             'success' => 'Time entry saved successfully.',
+            'archived_error' => 'This ticket is archived, you cannot add time entries.',
         ],
         'destroy' => [
             'success' => 'Time entry deleted.',

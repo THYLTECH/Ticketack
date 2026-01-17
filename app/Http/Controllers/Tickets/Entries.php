@@ -118,6 +118,12 @@ class Entries extends Controller
             'schedule_id' => 'nullable|exists:ticket_schedules,id',
         ]);
 
+        $ticket = Ticket::findOrFail($data['ticket_id']);
+
+        if ($ticket->archived_at) {
+            abort(403, __('entries.controller.store.archived_error'));
+        }
+
         $durationSeconds = ($data['hours'] * 3600) + ($data['minutes'] * 60);
 
         if ($durationSeconds <= 0) {
