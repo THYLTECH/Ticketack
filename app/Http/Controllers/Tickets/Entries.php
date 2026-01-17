@@ -49,6 +49,7 @@ class Entries extends Controller
                 $q->where('user_id', $user->id);
             })
             ->orWhere('author_id', $user->id)
+            ->whereNull('archived_at')
             ->orderByDesc('created_at')
             ->limit(50)
             ->get();

@@ -54,6 +54,7 @@ class Schedules extends Controller
             'myTickets' => Ticket::whereHas('assignees', fn ($query) => $query->where('user_id', auth()->id()))
                 ->with(['priority', 'category', 'status'])
                 ->whereHas('status', fn ($query) => $query->where('is_closed', false))
+                ->whereNull('archived_at')
                 ->get(),
 
             'solvers' => User::role(['admin', 'solver'])->with('avatar')->get()->map(fn ($user) => [
