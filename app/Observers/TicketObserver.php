@@ -98,6 +98,9 @@ class TicketObserver
         }
     }
 
+    /**
+     * @codeCoverageIgnore External S3/Minio integration
+     */
     private function exportToMinio(Ticket $ticket): void
     {
         // Skip S3 export in testing environment
@@ -123,6 +126,9 @@ class TicketObserver
         }
     }
 
+    /**
+     * @codeCoverageIgnore External S3/Minio integration
+     */
     private function uploadAttachments(Ticket $ticket): void
     {
         // Skip S3 upload in testing environment
