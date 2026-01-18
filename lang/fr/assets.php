@@ -64,7 +64,8 @@ return [
             ],
             'filter' => [
                 'placeholder' => 'Rechercher des assets...',
-            ]
+            ],
+            'children' => 'enfants',
         ],
         'create' => [
             'head_title' => 'Créer un Asset',

@@ -103,40 +103,41 @@ export function ResultCard({ result, isFeatured = false }: Props) {
                     </span>
                 </Link>
 
-                <div className="absolute top-0 right-0 p-4">
-                    <Badge className="gap-1.5 border-none bg-primary text-primary-foreground shadow-sm hover:bg-primary/90">
-                        <Trophy className="h-3.5 w-3.5" />
-                        {__('knowledge.results.best_match')}
-                    </Badge>
-                </div>
-
                 <div className="flex flex-col p-6 sm:p-8">
+                    <div className="mb-4 flex items-center justify-end gap-2">
+                        <ScoreBadge
+                            score={result.score}
+                            isFeatured={true}
+                        />
+                        <Badge className="gap-1.5 border-none bg-primary text-primary-foreground shadow-sm hover:bg-primary/90">
+                            <Trophy className="h-3.5 w-3.5" />
+                            {__('knowledge.results.best_match')}
+                        </Badge>
+                    </div>
+
                     <div className="mb-4 flex items-start gap-4">
                         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary">
                             <TypeIcon type={result.type} />
                         </div>
                         <div className="min-w-0 flex-1 pt-1">
-                            <h3 className="line-clamp-1 text-xl font-bold text-foreground transition-colors group-hover:text-primary">
+                            <h3 className="line-clamp-2 text-xl font-bold text-foreground transition-colors group-hover:text-primary">
                                 {result.title}
                             </h3>
-                            <div className="mt-1.5 flex items-center gap-2 text-sm text-muted-foreground">
-                                <AuthorAvatar className="h-5 w-5" />
-                                <span className="font-medium text-foreground">
-                                    {result.author.name}
-                                </span>
-                                <span>•</span>
-                                <span>
+                            <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+                                <div className="flex items-center gap-1.5">
+                                    <AuthorAvatar className="h-5 w-5" />
+                                    <span className="font-medium text-foreground">
+                                        {result.author.name}
+                                    </span>
+                                </div>
+                                <span className="hidden sm:inline">•</span>
+                                <span className="text-xs sm:text-sm">
                                     {new Date(
                                         result.created_at,
                                     ).toLocaleDateString('fr-FR', {
                                         dateStyle: 'long',
                                     })}
                                 </span>
-                                <span>•</span>
-                                <ScoreBadge
-                                    score={result.score}
-                                    isFeatured={true}
-                                />
                             </div>
                         </div>
                     </div>
@@ -194,7 +195,7 @@ export function ResultCard({ result, isFeatured = false }: Props) {
                 </span>
             </Link>
             <div className="flex h-full flex-col p-5">
-                <div className="mb-3 flex items-start justify-between gap-4">
+                <div className="mb-3 flex flex-wrap items-start justify-between gap-2 sm:gap-4">
                     <div className="flex min-w-0 flex-1 gap-3">
                         <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border bg-muted/40 transition-colors group-hover:bg-primary/10 group-hover:text-primary">
                             <TypeIcon type={result.type} />
@@ -203,14 +204,14 @@ export function ResultCard({ result, isFeatured = false }: Props) {
                             <h3 className="truncate text-base font-semibold text-foreground transition-colors group-hover:text-primary">
                                 {result.title}
                             </h3>
-                            <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
                                 <div className="flex min-w-0 items-center gap-1.5">
                                     <AuthorAvatar className="h-4 w-4" />
-                                    <span className="truncate">
+                                    <span className="truncate max-w-[100px] sm:max-w-none">
                                         {result.author.name}
                                     </span>
                                 </div>
-                                <span>•</span>
+                                <span className="hidden xs:inline">•</span>
                                 <span className="shrink-0">
                                     {new Date(
                                         result.created_at,

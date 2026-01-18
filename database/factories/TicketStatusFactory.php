@@ -14,7 +14,7 @@ class TicketStatusFactory extends Factory
         return [
             'title' => $this->faker->unique()->word(),
             'color' => $this->faker->hexColor(),
-            'sort_order' => $this->faker->numberBetween(0, 100),
+            'sort_order' => TicketStatus::max('sort_order') + 1 ?? 1,
             'is_default' => false,
         ];
     }
