@@ -17,6 +17,19 @@ return [
     'all' => 'All',
     'cancel' => 'Cancel',
 
+    'labels' => [
+        'created_at' => 'Created at',
+        'updated_at' => 'Updated at',
+        'deleted_at' => 'Deleted at',
+        'author' => 'Author',
+        'assignees' => 'Assignees',
+        'technician' => 'Technician',
+        'user' => 'User',
+        'actions' => 'Actions',
+        'date' => 'Date',
+        'duration' => 'Duration',
+    ],
+
     'filters' => [
         'title' => 'Filters',
         'reset' => 'Reset',

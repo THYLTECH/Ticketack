@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -183,9 +184,215 @@ export function AssetsTable({
         ));
     };
 
+    const highlightText = (text: string | null, highlight: string) => {
+        if (!text) return null;
+        if (!highlight || !highlight.trim()) return text;
+
+        const escapedHighlight = highlight.replace(
+            /[.*+?^${}()|[\]\\]/g,
+            '\\$&',
+        );
+        const parts = text.split(new RegExp(`(${escapedHighlight})`, 'gi'));
+
+        return parts.map((part, i) =>
+            part.toLowerCase() === highlight.toLowerCase() ? (
+                <span
+                    key={i}
+                    className="rounded-[2px] bg-yellow-200 px-0.5 font-medium text-yellow-900 dark:bg-yellow-900/50 dark:text-yellow-200"
+                >
+                    {part}
+                </span>
+            ) : (
+                part
+            ),
+        );
+    };
+
+    const renderMobileCards = (parentId: string): React.ReactNode => {
+        const children = assetsByParent[parentId];
+        if (!children || children.length === 0) return null;
+
+        const sortedChildren = sortNodes(children);
+
+        return sortedChildren.map((asset) => {
+            const assetIdStr = String(asset.id);
+            const hasChildren = assetsByParent[assetIdStr]?.length > 0;
+            const childrenCount = assetsByParent[assetIdStr]?.length || 0;
+            const isOpen = openState[assetIdStr] || false;
+            const Icon = asset.icon ? getIcon(asset.icon) : null;
+            const depthLevel = asset.depth_level || 0;
+
+            const lowerSearch = searchTerm.toLowerCase();
+            const titleMatch = asset.title.toLowerCase().includes(lowerSearch);
+            const descMatch = asset.description && asset.description.toLowerCase().includes(lowerSearch);
+            const attrMatch = asset.attributes.some(
+                (a) => a.key.toLowerCase().includes(lowerSearch) || a.value.toLowerCase().includes(lowerSearch)
+            );
+            const isMatch = searchTerm && (titleMatch || descMatch || attrMatch);
+
+            return (
+                <div key={asset.id} className="space-y-2">
+                    <Card
+                        className={cn(
+                            "group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 border-border/60 bg-linear-to-br from-card to-card/80 cursor-pointer",
+                            depthLevel > 0 && "ml-4 border-l-4 border-l-primary/30",
+                            isMatch && "bg-blue-50/50 border-blue-200 hover:bg-blue-50/80 dark:bg-blue-900/10 dark:border-blue-800 dark:hover:bg-blue-900/20"
+                        )}
+                        onClick={() => {
+                            if (userHasPermission({ user: auth.user, permission: 'show assets' })) {
+                                router.get(route('assets.show', { asset: asset.id }));
+                            }
+                        }}
+                    >
+                        <div className="absolute inset-0 bg-linear-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        <CardContent className="relative p-4 space-y-3">
+                            <div className="flex items-start justify-between gap-2">
+                                <div className="flex items-center gap-3 min-w-0 flex-1">
+                                    {hasChildren && (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                toggleNode(asset.id);
+                                            }}
+                                            className={cn(
+                                                "h-8 w-8 shrink-0 rounded-md text-muted-foreground transition-transform duration-200 hover:bg-background/80 hover:text-foreground",
+                                                isOpen ? "rotate-180" : "-rotate-90"
+                                            )}
+                                        >
+                                            <ChevronDown className="h-4 w-4" />
+                                        </Button>
+                                    )}
+                                    <div
+                                        className={cn(
+                                            "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border bg-background/50 shadow-sm transition-colors",
+                                            isMatch
+                                                ? "border-blue-200 bg-blue-50 text-blue-600 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-400"
+                                                : "text-muted-foreground group-hover:border-primary/30 group-hover:text-primary"
+                                        )}
+                                    >
+                                        {Icon ? (
+                                            <Icon className="h-5 w-5" />
+                                        ) : (
+                                            <ListTree className="h-5 w-5" />
+                                        )}
+                                    </div>
+                                    <div className="flex flex-col min-w-0">
+                                        <span className={cn(
+                                            "text-sm font-semibold truncate transition-colors",
+                                            isMatch ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"
+                                        )}>
+                                            {highlightText(asset.title, searchTerm)}
+                                        </span>
+                                        {(asset.description || descMatch) && (
+                                            <span className="text-xs text-muted-foreground truncate">
+                                                {highlightText(asset.description, searchTerm)}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8 text-muted-foreground/60 transition-all hover:bg-muted hover:text-foreground"
+                                        >
+                                            <MoreHorizontal className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                                        <DropdownMenuItem
+                                            onClick={() => router.get(route('assets.show', { asset: asset.id }))}
+                                        >
+                                            <Eye className="mr-2 h-4 w-4" />
+                                            {__('assets.pages.show.head_title') || 'View'}
+                                        </DropdownMenuItem>
+
+                                        {userHasPermission({ user: auth.user, permission: 'update assets' }) && (
+                                            <DropdownMenuItem
+                                                onClick={() => router.get(route('assets.edit', { asset: asset.id }))}
+                                            >
+                                                <Pencil className="mr-2 h-4 w-4" />
+                                                {__('assets.pages.form.buttons.edit') || 'Edit'}
+                                            </DropdownMenuItem>
+                                        )}
+
+                                        {userHasPermission({ user: auth.user, permission: 'delete assets' }) && (
+                                            <>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem
+                                                    onClick={() => setDeleteConfirm({ isOpen: true, id: asset.id })}
+                                                    className="text-destructive focus:text-destructive"
+                                                >
+                                                    <Trash className="mr-2 h-4 w-4" />
+                                                    {__('assets.pages.form.buttons.delete') || 'Delete'}
+                                                </DropdownMenuItem>
+                                            </>
+                                        )}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
+
+                            {asset.attributes.length > 0 && (
+                                <div className="flex flex-wrap gap-1.5">
+                                    {asset.attributes.slice(0, 3).map((attr, index) => (
+                                        <Badge
+                                            key={index}
+                                            variant="outline"
+                                            className="border-dashed border-border/60 bg-background/50 px-1.5 py-0 font-mono text-[10px] font-normal text-muted-foreground"
+                                        >
+                                            <span className="font-semibold text-foreground/70">
+                                                {highlightText(attr.key, searchTerm)}
+                                            </span>
+                                            <span className="mx-1 opacity-50">:</span>
+                                            <span>{highlightText(attr.value, searchTerm)}</span>
+                                        </Badge>
+                                    ))}
+                                    {asset.attributes.length > 3 && (
+                                        <Badge variant="secondary" className="h-5 px-1.5 text-[10px] font-medium">
+                                            +{asset.attributes.length - 3}
+                                        </Badge>
+                                    )}
+                                </div>
+                            )}
+
+                            <div className="flex items-center justify-between pt-2 border-t border-border/50 text-xs text-muted-foreground">
+                                <span className="flex items-center gap-1">
+                                    <span className="font-semibold">{__('common.labels.updated_at')}:</span>
+                                    {formatDate(asset.updated_at)}
+                                </span>
+                                {hasChildren && (
+                                    <Badge variant="secondary" className="gap-1 text-[10px]">
+                                        <ListTree className="h-3 w-3" />
+                                        {childrenCount} {__('assets.pages.index.children') || 'children'}
+                                    </Badge>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {isOpen && hasChildren && (
+                        <div className="space-y-2">
+                            {renderMobileCards(assetIdStr)}
+                        </div>
+                    )}
+                </div>
+            );
+        });
+    };
+
+    const { auth } = usePage<SharedData>().props;
+
     return (
         <>
-            <div className="w-full overflow-hidden rounded-lg border bg-background shadow-sm">
+            <div className="block space-y-3 lg:hidden">
+                {renderMobileCards('root')}
+            </div>
+
+            <div className="hidden lg:block w-full overflow-hidden rounded-lg border bg-background shadow-sm">
                 <div className="relative overflow-x-auto">
                     <Table className="min-w-full">
                         <TableHeader className="bg-muted/30">
@@ -198,9 +405,9 @@ export function AssetsTable({
                                     currentSort={sortField}
                                     currentDirection={sortDirection}
                                     onSort={handleSort}
-                                    className="w-full min-w-50 pl-6 md:w-[40%]"
+                                    className="w-[45%] min-w-[200px] pl-6"
                                 />
-                                <TableHead className="hidden w-[25%] text-center font-semibold text-foreground md:table-cell">
+                                <TableHead className="w-[25%] text-center font-semibold text-foreground">
                                     {__(
                                         'assets.pages.index.table.headers.attributes',
                                     )}
@@ -213,7 +420,7 @@ export function AssetsTable({
                                     currentSort={sortField}
                                     currentDirection={sortDirection}
                                     onSort={handleSort}
-                                    className="hidden w-[15%] text-right lg:table-cell"
+                                    className="w-[12%] text-right"
                                 />
                                 <SortableTableHead
                                     label={__(
@@ -223,9 +430,9 @@ export function AssetsTable({
                                     currentSort={sortField}
                                     currentDirection={sortDirection}
                                     onSort={handleSort}
-                                    className="hidden w-[15%] pr-6 text-right lg:table-cell"
+                                    className="w-[12%] pr-6 text-right"
                                 />
-                                <TableHead className="w-12"></TableHead>
+                                <TableHead className="w-[6%]"></TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>{renderRows('root')}</TableBody>
@@ -358,7 +565,7 @@ function AssetRow({
                 className={cn(
                     'group h-12 cursor-pointer border-b border-border/40 transition-all hover:bg-muted/40',
                     isMatch &&
-                        'bg-blue-50/50 hover:bg-blue-50/80 dark:bg-blue-900/10 dark:hover:bg-blue-900/20',
+                    'bg-blue-50/50 hover:bg-blue-50/80 dark:bg-blue-900/10 dark:hover:bg-blue-900/20',
                 )}
                 onClick={handleRowClick}
             >
@@ -440,7 +647,7 @@ function AssetRow({
                     </div>
                 </TableCell>
 
-                <TableCell className="hidden align-middle md:table-cell">
+                <TableCell className="align-middle">
                     <div className="flex flex-wrap items-center justify-center gap-1.5">
                         {asset.attributes.slice(0, 2).map((attr, index) => (
                             <Badge
@@ -468,10 +675,10 @@ function AssetRow({
                     </div>
                 </TableCell>
 
-                <TableCell className="hidden text-right align-middle text-xs text-muted-foreground tabular-nums lg:table-cell">
+                <TableCell className="text-right align-middle text-xs text-muted-foreground tabular-nums">
                     {formatDate(asset.updated_at)}
                 </TableCell>
-                <TableCell className="hidden pr-6 text-right align-middle text-xs text-muted-foreground tabular-nums lg:table-cell">
+                <TableCell className="pr-6 text-right align-middle text-xs text-muted-foreground tabular-nums">
                     {formatDate(asset.created_at)}
                 </TableCell>
 
@@ -510,38 +717,38 @@ function AssetRow({
                                 user: auth.user,
                                 permission: 'update assets',
                             }) && (
-                                <DropdownMenuItem
-                                    onClick={() =>
-                                        router.get(
-                                            route('assets.edit', {
-                                                asset: asset.id,
-                                            }),
-                                        )
-                                    }
-                                >
-                                    <Pencil className="mr-2 h-4 w-4" />
-                                    {__('assets.pages.form.buttons.edit') ||
-                                        'Edit'}
-                                </DropdownMenuItem>
-                            )}
+                                    <DropdownMenuItem
+                                        onClick={() =>
+                                            router.get(
+                                                route('assets.edit', {
+                                                    asset: asset.id,
+                                                }),
+                                            )
+                                        }
+                                    >
+                                        <Pencil className="mr-2 h-4 w-4" />
+                                        {__('assets.pages.form.buttons.edit') ||
+                                            'Edit'}
+                                    </DropdownMenuItem>
+                                )}
 
                             {userHasPermission({
                                 user: auth.user,
                                 permission: 'delete assets',
                             }) && (
-                                <>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem
-                                        onClick={() => onDeleteClick(asset.id)}
-                                        className="text-destructive focus:text-destructive"
-                                    >
-                                        <Trash className="mr-2 h-4 w-4" />
-                                        {__(
-                                            'assets.pages.form.buttons.delete',
-                                        ) || 'Delete'}
-                                    </DropdownMenuItem>
-                                </>
-                            )}
+                                    <>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem
+                                            onClick={() => onDeleteClick(asset.id)}
+                                            className="text-destructive focus:text-destructive"
+                                        >
+                                            <Trash className="mr-2 h-4 w-4" />
+                                            {__(
+                                                'assets.pages.form.buttons.delete',
+                                            ) || 'Delete'}
+                                        </DropdownMenuItem>
+                                    </>
+                                )}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </TableCell>

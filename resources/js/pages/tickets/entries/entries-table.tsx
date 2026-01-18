@@ -142,23 +142,34 @@ export function EntriesTable({ entries, showTicketColumn = true }: Props) {
                         <CardContent className="relative p-4 space-y-3">
                             <div className="flex items-start justify-between gap-2">
                                 <div className="space-y-1 flex-1">
-                                    <div className="flex items-center gap-2 text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
-                                        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-muted/60 group-hover:bg-muted transition-colors">
-                                            <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                                        </div>
-                                        {format(
-                                            parseISO(entry.start_at),
-                                            'dd/MM/yyyy',
-                                        )}
-                                    </div>
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger className="flex items-center gap-2 text-sm font-semibold text-foreground group-hover:text-primary transition-colors cursor-help text-left">
+                                                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-muted/60 group-hover:bg-muted transition-colors shrink-0">
+                                                    <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-[10px] uppercase font-bold text-muted-foreground/70 tracking-wider leading-none mb-0.5">
+                                                        {__('common.labels.date')}
+                                                    </span>
+                                                    <span>
+                                                        {format(parseISO(entry.start_at), 'dd/MM/yyyy')}
+                                                    </span>
+                                                </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>{__('common.labels.date')}: {format(parseISO(entry.start_at), 'PPP', { locale: fr })}</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+
                                     <div className="flex items-center gap-2 text-xs text-muted-foreground ml-9">
-                                        {format(
-                                            parseISO(entry.start_at),
-                                            'HH:mm',
-                                        )}
+                                        <span className="font-mono">
+                                            {format(parseISO(entry.start_at), 'HH:mm')}
+                                        </span>
                                         <span className="text-muted-foreground/50">•</span>
-                                        <span className="font-medium">
-                                            {formatDuration(entry.duration_seconds)}
+                                        <span className="font-medium flex items-center gap-1">
+                                            {__('common.labels.duration')}: {formatDuration(entry.duration_seconds)}
                                         </span>
                                     </div>
                                 </div>
@@ -248,6 +259,9 @@ export function EntriesTable({ entries, showTicketColumn = true }: Props) {
 
                             <div className="flex items-center justify-between pt-2 border-t border-border/50">
                                 <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/40 text-xs text-muted-foreground">
+                                    <span className="text-[10px] uppercase font-bold text-muted-foreground/70 tracking-wider hidden sm:inline-block">
+                                        {__('common.labels.technician')}:
+                                    </span>
                                     <User className="h-3.5 w-3.5" />
                                     <span className="font-medium">{entry.user.name}</span>
                                 </div>
@@ -627,9 +641,9 @@ export function EntriesTable({ entries, showTicketColumn = true }: Props) {
                                 href={
                                     previewEntry?.ticket
                                         ? route(
-                                              'tickets.show',
-                                              previewEntry.ticket.id,
-                                          )
+                                            'tickets.show',
+                                            previewEntry.ticket.id,
+                                        )
                                         : '#'
                                 }
                             >
