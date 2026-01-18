@@ -15,9 +15,14 @@ import React from 'react';
 export default function Create({
     permissions,
     usersWithoutRole,
+    sourceRole,
 }: {
     permissions: Permission[];
     usersWithoutRole: User[];
+    sourceRole?: {
+        name: string;
+        permissions: Permission[];
+    };
 }) {
     const __ = useTrans();
 
@@ -43,6 +48,7 @@ export default function Create({
             <CreateForm
                 permissions={permissions}
                 usersWithoutRole={usersWithoutRole}
+                sourceRole={sourceRole}
             />
         </AppLayout>
     );
@@ -51,9 +57,14 @@ export default function Create({
 function CreateForm({
     permissions,
     usersWithoutRole,
+    sourceRole,
 }: {
     permissions: Permission[];
     usersWithoutRole: User[];
+    sourceRole?: {
+        name: string;
+        permissions: Permission[];
+    };
 }) {
     const __ = useTrans();
     const { auth } = usePage<SharedData>().props;
@@ -63,8 +74,8 @@ function CreateForm({
         permissions: Permission[];
         users: User[];
     }>({
-        name: '',
-        permissions: [],
+        name: sourceRole ? `${sourceRole.name} (Clone)` : '',
+        permissions: sourceRole ? sourceRole.permissions : [],
         users: [],
     });
 
@@ -164,21 +175,21 @@ function CreateForm({
                         user: auth.user,
                         permission: 'create roles',
                     }) && (
-                        <CardFooter className="flex justify-end border-t bg-muted/10 py-4">
-                            <Button
-                                type="submit"
-                                disabled={processing}
-                                className="min-w-37.5"
-                            >
-                                {processing ? (
-                                    <Spinner className="mr-2 h-4 w-4" />
-                                ) : (
-                                    <Plus className="mr-2 h-4 w-4" />
-                                )}
-                                {__('roles.pages.form.buttons.store')}
-                            </Button>
-                        </CardFooter>
-                    )}
+                            <CardFooter className="flex justify-end border-t bg-muted/10 py-4">
+                                <Button
+                                    type="submit"
+                                    disabled={processing}
+                                    className="min-w-37.5"
+                                >
+                                    {processing ? (
+                                        <Spinner className="mr-2 h-4 w-4" />
+                                    ) : (
+                                        <Plus className="mr-2 h-4 w-4" />
+                                    )}
+                                    {__('roles.pages.form.buttons.store')}
+                                </Button>
+                            </CardFooter>
+                        )}
                 </Card>
             </form>
         </div>

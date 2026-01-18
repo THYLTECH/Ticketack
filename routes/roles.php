@@ -15,6 +15,7 @@ Route::prefix('roles/')->name('roles.')->middleware(['auth', 'verified:auth.veri
         Route::get('/create', 'create')->name('create');
         Route::get('/{role}', 'show')->name('show');
         Route::get('/{role}/edit', 'edit')->name('edit');
+        Route::get('/{role}/clone', 'clone')->name('clone');
 
         Route::post('/', 'store')->name('store');
 

@@ -30,12 +30,23 @@ return [
             'show' => 'View Role',
             'edit' => 'Edit Role',
         ],
+
         'index' => [
             'head_title' => 'Roles',
             'title' => 'Roles',
             'description' => 'Manage and view all your roles in one place.',
             'search_placeholder' => 'Search a role...',
             'empty_search' => 'No roles found matching your search.',
+
+            'filters' => [
+                'type_placeholder' => 'Filter by type',
+                'usage_placeholder' => 'Filter by usage',
+                'usage_options' => [
+                    'used' => 'Used (Has users)',
+                    'unused' => 'Unused (Empty)',
+                ],
+                'system_roles' => 'System Roles',
+            ],
 
             'buttons' => [
                 'create' => 'Create a Role',
@@ -63,6 +74,7 @@ return [
                     'view' => 'View',
                     'edit' => 'Edit',
                     'delete' => 'Delete',
+                    'clone' => 'Clone',
                 ],
             ],
         ],
@@ -95,6 +107,7 @@ return [
             'tabs' => [
                 'informations' => 'Informations',
                 'permissions' => 'Permissions',
+                'permissions_search_placeholder' => 'Search for a permission...',
                 'users' => 'Users',
             ],
             'fields' => [
@@ -168,5 +181,9 @@ return [
                 'confirm' => 'Yes, delete role',
             ],
         ],
+    ],
+
+    'filters' => [
+        'system_roles' => 'System Roles',
     ],
 ];

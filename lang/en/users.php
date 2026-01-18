@@ -35,6 +35,10 @@ return [
         'index' => [
             'head_title' => 'Users',
             'search_placeholder' => 'Search users...',
+            'filter_role_placeholder' => 'Filter by role',
+            'filters' => [
+                'role_placeholder' => 'Filter by role',
+            ],
             'title' => 'Users',
             'description' => 'Manage and view every user in one place.',
 

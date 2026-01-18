@@ -311,6 +311,7 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                                 checked={isEditMode}
                                 onCheckedChange={setIsEditMode}
                                 className="scale-75"
+                                disabled={!!ticket.archived_at}
                             />
                             <Label
                                 htmlFor="edit-mode-tab"
@@ -367,6 +368,7 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                                 id="edit-mode-tab-desktop"
                                 checked={isEditMode}
                                 onCheckedChange={setIsEditMode}
+                                disabled={!!ticket.archived_at}
                             />
                             <Label
                                 htmlFor="edit-mode-tab-desktop"
@@ -442,11 +444,11 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                                         solvers.find(
                                             (s) => s.id === evt.user_id,
                                         ) || {
-                                            id: evt.user_id,
-                                            name: 'Technicien',
-                                            email: '',
-                                            avatar: null,
-                                        },
+                                        id: evt.user_id,
+                                        name: 'Technicien',
+                                        email: '',
+                                        avatar: null,
+                                    },
                                     ticket: evt.ticket || ticket,
                                 };
                                 setSelectedEvent(fullEvent);
