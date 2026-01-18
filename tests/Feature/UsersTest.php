@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Notification;
 use App\Notifications\UserRegistered;
 use Spatie\Permission\PermissionRegistrar;
 use function Pest\Laravel\{actingAs, delete, get, post, put};
+use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
 
@@ -801,4 +802,51 @@ test('update reverts email verification when set to false', function () {
     ])->assertSessionHasNoErrors();
 
     expect($this->testUser1->fresh()->email_verified_at)->toBeNull();
+});
+
+
+test('index sorts by roles count', function () {
+    $r1 = Role::create(['name' => 'r1']);
+    $r2 = Role::create(['name' => 'r2']);
+    $r3 = Role::create(['name' => 'r3']);
+
+    $user1 = User::factory()->create(['created_at' => now()->subDays(1)]);
+    $user2 = User::factory()->create(['created_at' => now()->subDays(2)]);
+    $user3 = User::factory()->create(['created_at' => now()->subDays(3)]);
+
+    $user3->syncRoles([$this->roleAdmin, $this->roleBasic, $r1, $r2]);
+    
+    $user2->syncRoles([$this->roleBasic, $r1, $r2]);
+
+    $user1->syncRoles([$r1, $r2]);
+
+    get(route('users.index', ['sort' => 'roles_count', 'direction' => 'desc']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('users', function ($users) use ($user1, $user2, $user3) {
+                $data = $users->toArray()['data'];
+                $ids = collect($data)->pluck('id');
+
+                expect($ids->search($user3->id))->not->toBeFalse();
+                expect($ids->search($user2->id))->not->toBeFalse();
+                expect($ids->search($user3->id))->toBeLessThan($ids->search($user2->id));
+                expect($ids->search($user2->id))->toBeLessThan($ids->search($user1->id));
+                return true;
+            })
+        );
+
+    get(route('users.index', ['sort' => 'roles_count', 'direction' => 'asc']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('users', function ($users) use ($user1, $user2, $user3) {
+                $data = $users->toArray()['data'];
+                $ids = collect($data)->pluck('id');
+
+                expect($ids->search($user1->id))->not->toBeFalse();
+                expect($ids->search($user2->id))->not->toBeFalse();
+                expect($ids->search($user1->id))->toBeLessThan($ids->search($user2->id));
+                expect($ids->search($user2->id))->toBeLessThan($ids->search($user3->id));
+                return true;
+            })
+        );
 });

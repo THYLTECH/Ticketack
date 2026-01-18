@@ -54,9 +54,10 @@ class Users extends Controller
         }
 
         $perPage = $request->input('per_page', 10);
+        $users = $query->paginate($perPage)->withQueryString();
 
         return Inertia::render('users/index', [
-            'users' => $query->paginate($perPage)->withQueryString(),
+            'users' => $users,
             'filters' => $request->only(['search', 'role']),
             'roles' => Role::orderBy('name')->get(),
         ]);

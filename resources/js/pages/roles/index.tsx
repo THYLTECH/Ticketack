@@ -81,7 +81,6 @@ export default function Index({ roles, filters = {} }: Props) {
                         filters={{ usage: usageFilter }}
                         onFilterChange={(_, value) => setUsageFilter(value)}
                         onResetFilters={handleResetFilters}
-                        hasData={hasData}
                     />
 
                     {!hasData &&

@@ -15,7 +15,6 @@ interface Props {
     filters: { usage?: string[] };
     onFilterChange: (key: string, value: string[]) => void;
     onResetFilters: () => void;
-    hasData: boolean;
 }
 
 export function RolesToolbar({
@@ -24,7 +23,6 @@ export function RolesToolbar({
     filters,
     onFilterChange,
     onResetFilters,
-    hasData,
 }: Props) {
     const __ = useTrans();
 

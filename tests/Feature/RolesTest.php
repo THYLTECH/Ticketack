@@ -601,3 +601,30 @@ test('edit page returns all permissions including those not assigned', function 
             ->has('permissions', Permission::count())
         );
 });
+
+test('index applies usage filter', function () {
+    $usedRole = Role::create(['name' => 'Used Role']);
+    $unusedRole = Role::create(['name' => 'Unused Role']);
+
+    $usedRole->users()->attach($this->testUser1->id);
+
+    get(route('roles.index', ['usage' => 'used']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+             ->where('roles.data', fn ($roles) => 
+                 count($roles) === 1 &&
+                 collect($roles)->contains('name', 'Used Role') &&
+                 collect($roles)->doesntContain('name', 'Unused Role')
+             )
+        );
+
+    get(route('roles.index', ['usage' => 'unused']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('roles.data', fn ($roles) => 
+                 collect($roles)->contains('name', 'Unused Role') &&
+                 collect($roles)->doesntContain('name', 'Used Role')
+            )
+        );
+});
+

@@ -78,13 +78,12 @@ export default function Index({ users, roles, filters = {} }: Props) {
                     <UsersToolbar
                         searchTerm={search}
                         onSearchChange={setSearch}
-                        filters={{ role: roleFilter }}
-                        onFilterChange={(_, value) =>
-                            setRoleFilter(value || '')
-                        }
+                        filters={filters}
+                        onFilterChange={(key, value) => {
+                            if (key === 'role') setRoleFilter(value || '');
+                        }}
                         onResetFilters={handleResetFilters}
                         roles={roles}
-                        hasData={hasData}
                     />
 
                     {!hasData &&
