@@ -28,6 +28,14 @@ return [
         'actions' => 'Actions',
         'date' => 'Date',
         'duration' => 'Durée',
+        'in_progress' => 'En cours',
+        'closed' => 'Fermés',
+    ],
+
+    'actions' => [
+        'view_all' => 'Voir tout',
+        'read_more' => 'Voir plus',
+        'read_less' => 'Voir moins',
     ],
 
     /*

@@ -1,142 +1,244 @@
 import { Head, usePage } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app/layout';
 
-import { TicketTable } from '@/components/tickets/ticket-table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { StatsCard } from '@/pages/home/components/stats-card';
+import { QuickActions } from '@/pages/home/components/quick-actions';
+import { RecentTickets } from '@/pages/home/components/recent-tickets';
+import { TimeSummary } from '@/pages/home/components/time-summary';
+import { UpcomingSchedules } from '@/pages/home/components/upcoming-schedules';
+import { ActivityFeed } from '@/pages/home/components/activity-feed';
 
 import { useTrans } from '@/lib/translation';
-import { type BreadcrumbItem, SharedData, Ticket } from '@/types';
 import { userHasPermission } from '@/lib/utils';
+import { type BreadcrumbItem, SharedData, Ticket, TicketEntry, TicketSchedule } from '@/types';
 
-import { Ticket as TicketIcon, Clock, CheckCircle2, LayoutDashboard } from 'lucide-react';
+import {
+    Ticket as TicketIcon,
+    CheckCircle2,
+    Users,
+    AlertCircle,
+    LayoutDashboard,
+    Timer,
+} from 'lucide-react';
 
-interface PaginatedData<T> {
-    data: T[];
-    current_page: number;
-    from: number | null;
-    to: number | null;
-    total: number;
-    per_page: number;
-    links: { url: string | null; label: string; active: boolean }[];
+interface HomeStats {
+    user: {
+        open: number;
+        closed: number;
+    };
+    assigned: {
+        open: number;
+        closed: number;
+    } | null;
+    weekly_hours: number | null;
+    admin: {
+        total_tickets: number;
+        total_open: number;
+        closed_today: number;
+        total_users: number;
+        unassigned: number;
+    } | null;
 }
 
 interface HomeProps {
-    userTickets: {
-        open: PaginatedData<Ticket>;
-        closed: PaginatedData<Ticket>;
-    };
-    assignedTickets: {
-        open: PaginatedData<Ticket>;
-        closed: PaginatedData<Ticket>;
-    };
+    stats: HomeStats;
+    recentUserTickets: Ticket[];
+    recentUserClosedTickets: Ticket[];
+    assignedTickets: Ticket[] | null;
+    assignedClosedTickets: Ticket[] | null;
+    recentEntries: TicketEntry[] | null;
+    upcomingSchedules: TicketSchedule[] | null;
+    recentActivity: Ticket[] | null;
 }
 
-export default function Home({ userTickets, assignedTickets }: HomeProps) {
+function getGreeting(): string {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'morning';
+    if (hour < 18) return 'afternoon';
+    return 'evening';
+}
+
+export default function Home({
+    stats,
+    recentUserTickets,
+    recentUserClosedTickets,
+    assignedTickets,
+    assignedClosedTickets,
+    recentEntries,
+    upcomingSchedules,
+    recentActivity,
+}: HomeProps) {
     const __ = useTrans();
     const { auth } = usePage<SharedData>().props;
 
-    const canSeeAssigned = userHasPermission({ 
-        user: auth.user, 
-        permission: 'be assigned tickets' 
+    const canSeeAssigned = userHasPermission({
+        user: auth.user,
+        permission: 'be assigned tickets',
+    });
+    const canSeeEntries = userHasPermission({
+        user: auth.user,
+        permission: 'view ticket entries',
+    });
+    const canSeePlanning = userHasPermission({
+        user: auth.user,
+        permission: 'view planning',
+    });
+    const canSeeDashboard = userHasPermission({
+        user: auth.user,
+        permission: 'view dashboard',
     });
 
     const breadcrumbs: BreadcrumbItem[] = [
-        { 
-            title: __('app.layout.sidebar.menugroups.platform.items.home'), 
-            href: route('home') 
-        }
+        {
+            title: __('app.layout.sidebar.menugroups.platform.items.home'),
+            href: route('home'),
+        },
     ];
+
+    const greeting = getGreeting();
+    const greetingText = __(`home.greeting.${greeting}`, undefined, { name: auth.user.name });
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={__('app.layout.sidebar.menugroups.platform.items.home')} />
 
-            {/* Structure de conteneur identique à la page User (resources/js/pages/users/index.tsx) */}
-            <div className="container mx-auto max-w-full space-y-6 px-4 py-8 sm:px-6 lg:px-8">
-                
-                {/* En-tête de page sans Card, formaté comme sur la page User */}
-                <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-                    <div>
-                        <h2 className="text-2xl font-bold tracking-tight">
-                            {__('home.pages.breadcrumbs.home')}
-                        </h2>
+            <div className="container mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div className="space-y-1.5">
+                        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+                            {greetingText}
+                        </h1>
                         <p className="text-muted-foreground">
-                            {__('home.pages.description', undefined, { name: auth.user.name })}
+                            {__('home.pages.description')}
                         </p>
                     </div>
+                    <QuickActions user={auth.user} />
                 </div>
 
-                <Tabs defaultValue="my_tickets" className="w-full space-y-6">
-                    <TabsList className={`grid w-full ${canSeeAssigned ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                        <TabsTrigger value="my_tickets">
-                            <TicketIcon className="mr-2 h-4 w-4" />
-                            {__('home.sections.my_tickets')}
-                        </TabsTrigger>
-                        {canSeeAssigned && (
-                            <TabsTrigger value="assigned_tickets">
-                                <LayoutDashboard className="mr-2 h-4 w-4" />
-                                {__('home.sections.assigned_tickets')}
-                            </TabsTrigger>
-                        )}
-                    </TabsList>
+                <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+                    <StatsCard
+                        title={__('home.stats.my_open_tickets')}
+                        value={stats.user.open}
+                        icon={TicketIcon}
+                        description={__('home.stats.my_open_tickets_desc')}
+                        tooltip={__('home.descriptions.my_open_tickets')}
+                        onClick={() => router.visit(route('tickets.index', { status: 'open', author: 'me' }))}
+                    />
+                    <StatsCard
+                        title={__('home.stats.my_closed_tickets')}
+                        value={stats.user.closed}
+                        icon={CheckCircle2}
+                        colorClass="text-green-500"
+                        description={__('home.stats.last_30_days')}
+                        tooltip={__('home.descriptions.my_closed_tickets')}
+                    />
 
-                    <TabsContent value="my_tickets" className="space-y-6 border-none p-0 outline-none">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <div className="flex flex-col space-y-4">
-                                <div className="flex items-center gap-2 px-1">
-                                    <Clock className="h-4 w-4 text-orange-500" />
-                                    <h3 className="text-sm font-semibold">{__('home.tabs.unresolved')}</h3>
-                                </div>
-                                {/* Le composant TicketTable est maintenant affiché directement (les Cards ont été retirées) */}
-                                <TicketTable 
-                                    data={userTickets.open} 
-                                    emptyMessage={__('home.messages.no_open_tickets')} 
+                    {canSeeAssigned && stats.assigned && (
+                        <>
+                            <StatsCard
+                                title={__('home.stats.assigned_open')}
+                                value={stats.assigned.open}
+                                icon={AlertCircle}
+                                colorClass="text-orange-500"
+                                description={__('home.stats.needs_attention')}
+                                tooltip={__('home.descriptions.assigned_open_tickets')}
+                                onClick={() => router.visit(route('tickets.index', { status: 'open', assigned: 'me' }))}
+                            />
+                            {canSeeEntries && (
+                                <StatsCard
+                                    title={__('home.stats.weekly_hours')}
+                                    value={`${stats.weekly_hours ?? 0}h`}
+                                    icon={Timer}
+                                    colorClass="text-blue-500"
+                                    description={__('home.stats.this_week')}
+                                    tooltip={__('home.descriptions.weekly_hours')}
+                                    onClick={() => router.visit(route('tickets.entries.index'))}
                                 />
-                            </div>
-
-                            <div className="flex flex-col space-y-4">
-                                <div className="flex items-center gap-2 px-1">
-                                    <CheckCircle2 className="h-4 w-4 text-green-500" />
-                                    <h3 className="text-sm font-semibold">{__('home.tabs.closed_30_days')}</h3>
-                                </div>
-                                <TicketTable 
-                                    data={userTickets.closed}
-                                    emptyMessage={__('home.messages.no_recent_closed_tickets')}
-                                />
-                            </div>
-                        </div>
-                    </TabsContent>
-
-                    {canSeeAssigned && (
-                        <TabsContent value="assigned_tickets" className="space-y-6 border-none p-0 outline-none">
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                <div className="flex flex-col space-y-4">
-                                    <div className="flex items-center gap-2 px-1">
-                                        <Clock className="h-4 w-4 text-orange-500" />
-                                        <h3 className="text-sm font-semibold text-primary">{__('home.tabs.assigned_unresolved')}</h3>
-                                    </div>
-                                    <TicketTable 
-                                        data={assignedTickets.open} 
-                                        showAuthor={true}
-                                        emptyMessage={__('home.messages.no_open_tickets')} 
-                                    />
-                                </div>
-
-                                <div className="flex flex-col space-y-4">
-                                    <div className="flex items-center gap-2 px-1">
-                                        <CheckCircle2 className="h-4 w-4 text-green-500" />
-                                        <h3 className="text-sm font-semibold text-primary">{__('home.tabs.assigned_closed_30_days')}</h3>
-                                    </div>
-                                    <TicketTable 
-                                        data={assignedTickets.closed} 
-                                        showAuthor={true} 
-                                        emptyMessage={__('home.messages.no_recent_closed_tickets')} 
-                                    />
-                                </div>
-                            </div>
-                        </TabsContent>
+                            )}
+                        </>
                     )}
-                </Tabs>
+
+                    {canSeeDashboard && stats.admin && (
+                        <>
+                            <StatsCard
+                                title={__('home.stats.total_open')}
+                                value={stats.admin.total_open}
+                                icon={LayoutDashboard}
+                                colorClass="text-purple-500"
+                                description={__('home.stats.system_wide')}
+                                tooltip={__('home.descriptions.total_open')}
+                            />
+                            <StatsCard
+                                title={__('home.stats.unassigned')}
+                                value={stats.admin.unassigned}
+                                icon={AlertCircle}
+                                colorClass="text-red-500"
+                                description={__('home.stats.needs_assignment')}
+                                tooltip={__('home.descriptions.unassigned')}
+                            />
+                            <StatsCard
+                                title={__('home.stats.closed_today')}
+                                value={stats.admin.closed_today}
+                                icon={CheckCircle2}
+                                colorClass="text-emerald-500"
+                                description={__('home.stats.today')}
+                                tooltip={__('home.descriptions.closed_today')}
+                            />
+                            <StatsCard
+                                title={__('home.stats.total_users')}
+                                value={stats.admin.total_users}
+                                icon={Users}
+                                colorClass="text-indigo-500"
+                                onClick={() => router.visit(route('users.index'))}
+                                description={__('home.stats.total_users_desc')}
+                                tooltip={__('home.descriptions.total_users')}
+                            />
+                        </>
+                    )}
+                </div>
+
+                <div className="grid gap-6 lg:grid-cols-2">
+                    <div className="space-y-6">
+                        <RecentTickets
+                            tickets={recentUserTickets}
+                            closedTickets={recentUserClosedTickets}
+                            title={__('home.sections.my_recent_tickets')}
+                            emptyMessage={__('home.messages.no_open_tickets')}
+                        />
+
+                        {canSeeEntries && (
+                            <TimeSummary
+                                weeklyHours={stats.weekly_hours}
+                                recentEntries={recentEntries || []}
+                            />
+                        )}
+                    </div>
+
+                    <div className="space-y-6">
+                        {canSeeAssigned && (
+                            <RecentTickets
+                                tickets={assignedTickets || []}
+                                closedTickets={assignedClosedTickets || []}
+                                title={__('home.sections.assigned_to_me')}
+                                emptyMessage={__('home.messages.no_assigned_tickets')}
+                                showAuthor
+                            />
+                        )}
+
+                        {canSeePlanning && (
+                            <UpcomingSchedules
+                                schedules={upcomingSchedules || []}
+                            />
+                        )}
+
+                        {canSeeDashboard && (
+                            <ActivityFeed
+                                recentActivity={recentActivity || []}
+                            />
+                        )}
+                    </div>
+                </div>
             </div>
         </AppLayout>
     );

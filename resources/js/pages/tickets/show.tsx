@@ -66,6 +66,11 @@ export default function Show({
         },
     ];
 
+    const params = new URLSearchParams(window.location.search);
+    const defaultTab = params.get('tab') || 'informations';
+    const validTabs = ['informations', 'comments', 'calendar', 'logs'];
+    const activeTab = validTabs.includes(defaultTab) ? defaultTab : 'informations';
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head
@@ -125,7 +130,7 @@ export default function Show({
 
                 <div className="space-y-4">
                     <Tabs
-                        defaultValue="informations"
+                        defaultValue={activeTab}
                         className="w-full space-y-6"
                     >
                         <TabsList className="grid w-full grid-cols-4 bg-muted/80 p-1">

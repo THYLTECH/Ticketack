@@ -55,13 +55,18 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
     const __ = useTrans();
     const { auth } = usePage<SharedData>().props;
 
-    const initialDate =
-        ticket.schedules && ticket.schedules.length > 0
-            ? parseISO(ticket.schedules[0].start_date)
-            : new Date();
+    const initialDate = useMemo(() => {
+        if (!events || events.length === 0) return new Date();
+
+        const latestEvent = events.reduce((max, current) => {
+            return new Date(current.start_date) > new Date(max.start_date) ? current : max;
+        });
+
+        return parseISO(latestEvent.start_date);
+    }, []);
 
     const [date, setDate] = useState(initialDate);
-    const [view, setView] = useState<ViewType>('week');
+    const [view, setView] = useState<ViewType>('day');
     const [isEditMode, setIsEditMode] = useState(false);
     const [showListView, setShowListView] = useState(false);
     const [selectedEvent, setSelectedEvent] = useState<TicketSchedule | null>(
