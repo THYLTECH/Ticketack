@@ -34,14 +34,35 @@ class Roles extends Controller
      */
     public function index(Request $request): Response
     {
-        $query = Role::with('permissions')->withCount('users');
+        $query = Role::with('permissions')->withCount(['users', 'permissions']);
 
         if ($request->filled('search')) {
             $query->where('name', 'like', '%' . $request->input('search') . '%');
         }
 
-        $query->orderByRaw("CASE WHEN name IN ('admin', 'solver', 'simple_user') THEN 0 ELSE 1 END")
-            ->orderBy('name');
+        if ($request->filled('usage')) {
+            $usage = $request->input('usage'); // array or string
+            $usage = is_array($usage) ? $usage : explode(',', $usage);
+
+            $query->where(function ($q) use ($usage) {
+                if (in_array('used', $usage)) {
+                    $q->orHas('users');
+                }
+                if (in_array('unused', $usage)) {
+                    $q->orDoesntHave('users');
+                }
+            });
+        }
+
+        $sort = $request->input('sort');
+        $direction = $request->input('direction', 'asc');
+
+        if ($sort) {
+            $query->orderBy($sort, $direction);
+        } else {
+            $query->orderByRaw("CASE WHEN name IN ('admin', 'solver', 'simple_user') THEN 0 ELSE 1 END")
+                ->orderBy('name');
+        }
 
         $roles = $query->paginate($request->input('per_page', 10))->withQueryString();
 

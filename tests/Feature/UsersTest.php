@@ -642,6 +642,21 @@ test('index applies search filter on email', function () {
         );
 });
 
+test('index applies role filter', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole($this->roleAdmin);
+
+    $simple = User::factory()->create();
+    $simple->assignRole($this->roleBasic);
+
+    get(route('users.index', ['role' => $this->roleAdmin->id]))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('users.data', 1)
+            ->where('users.data.0.id', $admin->id)
+        );
+});
+
 test('index respects per_page parameter', function () {
     User::factory(25)->create();
 

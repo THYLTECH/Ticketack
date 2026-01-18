@@ -1,4 +1,13 @@
-import { FilterButtonContent, getToolbarButtonStyle } from '@/components/data-toolbar';
+import {
+    FilterButtonContent,
+    getToolbarButtonStyle,
+    Toolbar,
+    ToolbarLabel,
+    ToolbarReset,
+    ToolbarSearch,
+    ToolbarSeparator,
+} from '@/components/data-toolbar';
+import { FilterSimpleSelect } from '@/components/filter-simple-select';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -9,8 +18,6 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
     Select,
     SelectContent,
@@ -19,20 +26,10 @@ import {
     SelectLabel,
     SelectTrigger,
 } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
 import { useTrans } from '@/lib/translation';
 import { cn } from '@/lib/utils';
 import { router } from '@inertiajs/react';
-import {
-    Box,
-    Clock,
-    Search,
-    Shield,
-    Ticket,
-    Trash2,
-    User,
-    X,
-} from 'lucide-react';
+import { Clock, Filter } from 'lucide-react';
 import { useState } from 'react';
 
 interface Props {
@@ -56,14 +53,16 @@ export function TrashToolbar({
 }: Props) {
     const __ = useTrans();
     const [isRetentionAlertOpen, setIsRetentionAlertOpen] = useState(false);
-    const [pendingRetention, setPendingRetention] = useState<string | null>(null);
+    const [pendingRetention, setPendingRetention] = useState<string | null>(
+        null,
+    );
 
-    const tabs = [
-        { id: 'ticket', label: __('trash.tabs.tickets'), icon: Ticket },
-        { id: 'user', label: __('trash.tabs.users'), icon: User },
-        { id: 'asset', label: __('trash.tabs.assets'), icon: Box },
-        { id: 'role', label: __('trash.tabs.roles'), icon: Shield },
-    ] as const;
+    const typeOptions = [
+        { value: 'ticket', label: __('trash.tabs.tickets') },
+        { value: 'user', label: __('trash.tabs.users') },
+        { value: 'asset', label: __('trash.tabs.assets') },
+        { value: 'role', label: __('trash.tabs.roles') },
+    ];
 
     const handleRetentionSelect = (val: string) => {
         setPendingRetention(val);
@@ -93,109 +92,78 @@ export function TrashToolbar({
     const retentionOptions = [1, 5, 7, 10, 15, 30, 60, 90, 180, 365];
 
     return (
-        <div className="flex w-full flex-col gap-4 rounded-md border bg-background p-2 pl-3 shadow-sm xl:flex-row xl:items-center xl:justify-between">
-            <div className="flex flex-1 flex-wrap items-center gap-2">
-                <div className="mr-2 hidden items-center gap-2 text-sm font-medium text-muted-foreground md:flex">
-                    <Trash2 className="h-4 w-4" />
-                    <span>{__('trash.pages.index.toolbar.title')}</span>
-                </div>
+        <Toolbar>
+            <ToolbarLabel label={__('common.filters.title') || 'Filters'} />
 
-                <Separator
-                    orientation="vertical"
-                    className="mr-2 hidden h-6 md:block"
-                />
+            <ToolbarSearch
+                value={searchTerm}
+                onChange={onSearchChange}
+                placeholder={
+                    __('trash.pages.index.toolbar.search') || 'Search trash...'
+                }
+            />
 
-                <div className="relative flex items-center">
-                    <Search className="absolute left-2 h-3.5 w-3.5 text-muted-foreground" />
-                    <Input
-                        placeholder={__('trash.pages.index.toolbar.search')}
-                        className="h-8 w-50 border-dashed bg-transparent pl-8 text-xs shadow-none focus-visible:border-solid focus-visible:ring-1"
-                        value={searchTerm}
-                        onChange={(e) => onSearchChange(e.target.value)}
-                    />
-                </div>
+            <FilterSimpleSelect
+                title={__('trash.pages.index.toolbar.type') || 'Type'}
+                icon={<Filter className="h-3.5 w-3.5" />}
+                options={typeOptions}
+                value={activeTab}
+                onChange={(val) =>
+                    onTabChange(val as 'ticket' | 'user' | 'asset' | 'role')
+                }
+                placeholder={__('trash.pages.index.toolbar.type') || 'Type'}
+            />
 
-                {searchTerm && (
-                    <Button
-                        variant="ghost"
-                        onClick={onClearSearch}
-                        size="sm"
-                        className="h-8 border-solid px-2 text-xs font-medium text-muted-foreground hover:border-destructive hover:bg-destructive/10 hover:text-destructive"
+            <ToolbarSeparator />
+
+            <div className="flex items-center">
+                <Select
+                    value={String(retentionDays)}
+                    onValueChange={handleRetentionSelect}
+                    disabled={!canManageSettings}
+                >
+                    <SelectTrigger
+                        className={cn(
+                            getToolbarButtonStyle(true),
+                            !canManageSettings &&
+                            'cursor-not-allowed opacity-50',
+                        )}
                     >
-                        {__('tickets.pages.index.toolbar.clear')}
-                        <X className="ml-2 h-3.5 w-3.5" />
-                    </Button>
-                )}
-
-                <Separator
-                    orientation="vertical"
-                    className="mx-2 hidden h-6 md:block"
-                />
-
-                <div className="flex items-center gap-2">
-                    <Select
-                        value={String(retentionDays)}
-                        onValueChange={handleRetentionSelect}
-                        disabled={!canManageSettings}
-                    >
-                        <SelectTrigger
-                            className={cn(
-                                getToolbarButtonStyle(true),
-                                'h-8 px-3',
-                                !canManageSettings &&
-                                    'cursor-not-allowed opacity-50',
-                            )}
+                        <FilterButtonContent
+                            icon={<Clock className="h-3.5 w-3.5 opacity-70" />}
+                            title={
+                                __('trash.toolbar.retention') || 'Retention'
+                            }
+                            isSelected={true}
                         >
-                            <FilterButtonContent
-                                icon={<Clock className="h-3.5 w-3.5 opacity-70" />}
-                                title={__('trash.toolbar.retention') || 'Retention'}
-                                isSelected={true}
-                            >
-                                <span className="whitespace-nowrap">
-                                    {retentionDays} {__('common.time.days') || 'days'}
-                                </span>
-                            </FilterButtonContent>
-                        </SelectTrigger>
-                        <SelectContent align="start">
-                            <SelectGroup>
-                                <SelectLabel className="px-2 py-1.5 text-[10px] font-normal uppercase tracking-wider text-muted-foreground">
-                                    {__('trash.pages.index.toolbar.auto_delete_after') ||
-                                        'Auto-delete items older than'}
-                                </SelectLabel>
-                                {retentionOptions.map((days) => (
-                                    <SelectItem key={days} value={String(days)}>
-                                        {days}{' '}
-                                        {__('common.time.days') || 'days'}
-                                    </SelectItem>
-                                ))}
-                            </SelectGroup>
-                        </SelectContent>
-                    </Select>
-                </div>
+                            <span className="whitespace-nowrap">
+                                {retentionDays}{' '}
+                                {__('common.time.days') || 'days'}
+                            </span>
+                        </FilterButtonContent>
+                    </SelectTrigger>
+                    <SelectContent align="start">
+                        <SelectGroup>
+                            <SelectLabel className="px-2 py-1.5 text-[10px] font-normal uppercase tracking-wider text-muted-foreground">
+                                {__('trash.pages.index.toolbar.auto_delete_after') ||
+                                    'Auto-delete items older than'}
+                            </SelectLabel>
+                            {retentionOptions.map((days) => (
+                                <SelectItem key={days} value={String(days)}>
+                                    {days} {__('common.time.days') || 'days'}
+                                </SelectItem>
+                            ))}
+                        </SelectGroup>
+                    </SelectContent>
+                </Select>
             </div>
 
-            <div className="flex items-center gap-1 overflow-x-auto pb-2 md:pb-0">
-                {tabs.map((tab) => {
-                    const Icon = tab.icon;
-                    const isActive = activeTab === tab.id;
-                    return (
-                        <Button
-                            key={tab.id}
-                            variant={isActive ? 'secondary' : 'ghost'}
-                            size="sm"
-                            onClick={() => onTabChange(tab.id)}
-                            className={cn(
-                                'h-8 text-xs font-medium',
-                                isActive &&
-                                    'bg-secondary text-secondary-foreground shadow-sm',
-                            )}
-                        >
-                            <Icon className="mr-2 h-3.5 w-3.5" />
-                            {tab.label}
-                        </Button>
-                    );
-                })}
-            </div>
+            {searchTerm.length > 0 && (
+                <ToolbarReset
+                    onClick={onClearSearch}
+                    label={__('common.filters.reset') || 'Reset'}
+                />
+            )}
 
             <AlertDialog
                 open={isRetentionAlertOpen}
@@ -204,7 +172,8 @@ export function TrashToolbar({
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
-                            {__('trash.modals.retention.title') || 'Change Retention Period?'}
+                            {__('trash.modals.retention.title') ||
+                                'Change Retention Period?'}
                         </AlertDialogTitle>
                         <AlertDialogDescription>
                             {(
@@ -217,14 +186,16 @@ export function TrashToolbar({
                         <AlertDialogCancel
                             onClick={() => setPendingRetention(null)}
                         >
-                            {__('trash.modals.retention.buttons.cancel') || 'Cancel'}
+                            {__('trash.modals.retention.buttons.cancel') ||
+                                'Cancel'}
                         </AlertDialogCancel>
                         <AlertDialogAction onClick={confirmRetentionChange}>
-                            {__('trash.modals.retention.buttons.confirm') || 'Confirm Change'}
+                            {__('trash.modals.retention.buttons.confirm') ||
+                                'Confirm Change'}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </div>
+        </Toolbar>
     );
 }

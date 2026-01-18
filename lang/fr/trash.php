@@ -42,6 +42,7 @@ return [
             'toolbar' => [
                 'title' => 'Supprimer/Restaurer',
                 'search' => 'Rechercher des éléments supprimés...',
+                'type' => 'Type',
                 'retention' => 'Suppression définitive après :',
                 'auto_delete_after' => 'jours',
             ]

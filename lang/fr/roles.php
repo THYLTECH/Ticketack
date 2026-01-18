@@ -30,12 +30,23 @@ return [
             'show' => 'Voir le rôle',
             'edit' => 'Modifier le rôle',
         ],
+
         'index' => [
             'head_title' => 'Rôles',
             'title' => 'Rôles',
             'description' => 'Gérez et visualisez tous vos rôles au même endroit.',
             'search_placeholder' => 'Rechercher un rôle...',
             'empty_search' => 'Aucun rôle ne correspond à votre recherche.',
+
+            'filters' => [
+                'type_placeholder' => 'Filtrer par type',
+                'usage_placeholder' => 'Filtrer par utilisation',
+                'usage_options' => [
+                    'used' => 'Utilisé (A des utilisateurs)',
+                    'unused' => 'Inutilisé (Vide)',
+                ],
+                'system_roles' => 'Rôles systèmes',
+            ],
 
             'buttons' => [
                 'create' => 'Créer un rôle',
@@ -170,5 +181,9 @@ return [
                 'confirm' => 'Oui, supprimer le rôle',
             ],
         ],
+    ],
+
+    'filters' => [
+        'system_roles' => 'Rôles Système',
     ],
 ];

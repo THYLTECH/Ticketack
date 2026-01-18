@@ -13,6 +13,7 @@ return [
         'error' => 'An error occurred',
     ],
 
+    'all_roles' => 'All Roles',
     'all' => 'All',
     'cancel' => 'Cancel',
 

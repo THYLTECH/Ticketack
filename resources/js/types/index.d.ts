@@ -24,6 +24,7 @@ export interface User {
     phone?: string;
     permissions: Permission[];
     roles?: Role[];
+    roles_count?: number;
     created_at: string;
     updated_at: string;
 }

@@ -27,7 +27,7 @@ class Users extends Controller
 
     public function index(Request $request): Response
     {
-        $query = User::with(['roles', 'avatar']);
+        $query = User::with(['roles', 'avatar'])->withCount('roles');
 
         if ($request->filled('search')) {
             $search = $request->input('search');
@@ -37,11 +37,28 @@ class Users extends Controller
             });
         }
 
+        if ($request->filled('role')) {
+            $roleId = $request->input('role');
+            $query->whereHas('roles', function ($q) use ($roleId) {
+                $q->where('id', $roleId);
+            });
+        }
+
+        $sort = $request->input('sort');
+        $direction = $request->input('direction', 'desc');
+
+        if ($sort) {
+            $query->orderBy($sort, $direction);
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
         $perPage = $request->input('per_page', 10);
 
         return Inertia::render('users/index', [
             'users' => $query->paginate($perPage)->withQueryString(),
-            'filters' => $request->only(['search']),
+            'filters' => $request->only(['search', 'role']),
+            'roles' => Role::orderBy('name')->get(),
         ]);
     }
 

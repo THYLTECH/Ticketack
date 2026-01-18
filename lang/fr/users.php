@@ -34,6 +34,10 @@ return [
         'index' => [
             'head_title' => 'Utilisateurs',
             'search_placeholder' => 'Rechercher des utilisateurs...',
+            'filter_role_placeholder' => 'Filtrer par rôle',
+            'filters' => [
+                'role_placeholder' => 'Filtrer par rôle',
+            ],
             'title' => 'Utilisateurs',
             'description' => 'Gérez et visualisez tous les utilisateurs au même endroit.',
 

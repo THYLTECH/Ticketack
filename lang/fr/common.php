@@ -13,6 +13,8 @@ return [
         'error' => 'Une erreur est survenue',
     ],
 
+    'all_roles' => 'Tous les rôles',
+
     /*
     |--------------------------------------------------------------------------
     | Pages content

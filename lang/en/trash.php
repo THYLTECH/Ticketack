@@ -42,6 +42,7 @@ return [
             'toolbar' => [
                 'title' => 'Delete/Restore',
                 'search' => 'Search deleted items...',
+                'type' => 'Type',
                 'retention' => 'Permanently deleted after : ',
                 'auto_delete_after' => 'days',
             ]
