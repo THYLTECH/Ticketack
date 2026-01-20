@@ -144,8 +144,8 @@ function EditForm({
             asset_id: ticketWithFK.asset_id
                 ? Number(ticketWithFK.asset_id)
                 : ticket.asset?.id
-                  ? Number(ticket.asset.id)
-                  : null,
+                    ? Number(ticket.asset.id)
+                    : null,
             attachments: [],
             assignees: ticket.assignees
                 ? ticket.assignees.map((assignee) => assignee.user.id)
@@ -196,7 +196,7 @@ function EditForm({
                     </p>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                     <Button asChild variant="outline" size="sm">
                         <Link href={route('tickets.show', ticket.id)}>
                             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -208,43 +208,43 @@ function EditForm({
                         user: auth.user,
                         permission: 'archive tickets',
                     }) && (
-                        isArchived ? (
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setUnarchiveConfirmOpen(true)}
-                            >
-                                <ArchiveRestore className="mr-2 h-4 w-4" />
-                                {__('tickets.pages.form.buttons.unarchive')}
-                            </Button>
-                        ) : (
-                            <Button
-                                type="button"
-                                variant="secondary"
-                                size="sm"
-                                onClick={() => setArchiveConfirmOpen(true)}
-                            >
-                                <Archive className="mr-2 h-4 w-4" />
-                                {__('tickets.pages.form.buttons.archive')}
-                            </Button>
-                        )
-                    )}
+                            isArchived ? (
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setUnarchiveConfirmOpen(true)}
+                                >
+                                    <ArchiveRestore className="mr-2 h-4 w-4" />
+                                    {__('tickets.pages.form.buttons.unarchive')}
+                                </Button>
+                            ) : (
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    size="sm"
+                                    onClick={() => setArchiveConfirmOpen(true)}
+                                >
+                                    <Archive className="mr-2 h-4 w-4" />
+                                    {__('tickets.pages.form.buttons.archive')}
+                                </Button>
+                            )
+                        )}
 
                     {userHasPermission({
                         user: auth.user,
                         permission: 'delete tickets',
                     }) && (
-                        <Button
-                            type="button"
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => setDeleteConfirmOpen(true)}
-                        >
-                            <Trash className="mr-2 h-4 w-4" />
-                            {__('tickets.pages.form.buttons.delete')}
-                        </Button>
-                    )}
+                            <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => setDeleteConfirmOpen(true)}
+                            >
+                                <Trash className="mr-2 h-4 w-4" />
+                                {__('tickets.pages.form.buttons.delete')}
+                            </Button>
+                        )}
                 </div>
             </div>
 
@@ -286,30 +286,30 @@ function EditForm({
                     user: auth.user,
                     permission: 'update tickets',
                 }) && (
-                    <CardFooter className="flex items-center justify-end gap-2 border-t px-6 py-4">
-                        <Button
-                            variant="ghost"
-                            asChild
-                            disabled={processing}
-                            type="button"
-                        >
-                            <Link href={route('tickets.show', ticket.id)}>
-                                {__('tickets.pages.delete.buttons.cancel')}
-                            </Link>
-                        </Button>
-                        <Button
-                            disabled={processing}
-                            className="min-w-37.5 gap-2"
-                        >
-                            {processing ? (
-                                <Spinner className="h-4 w-4 text-primary-foreground" />
-                            ) : (
-                                <Check className="h-4 w-4" />
-                            )}
-                            {__('tickets.pages.form.buttons.update')}
-                        </Button>
-                    </CardFooter>
-                )}
+                        <CardFooter className="flex items-center justify-end gap-2 border-t px-6 py-4">
+                            <Button
+                                variant="ghost"
+                                asChild
+                                disabled={processing}
+                                type="button"
+                            >
+                                <Link href={route('tickets.show', ticket.id)}>
+                                    {__('tickets.pages.delete.buttons.cancel')}
+                                </Link>
+                            </Button>
+                            <Button
+                                disabled={processing}
+                                className="min-w-37.5 gap-2"
+                            >
+                                {processing ? (
+                                    <Spinner className="h-4 w-4 text-primary-foreground" />
+                                ) : (
+                                    <Check className="h-4 w-4" />
+                                )}
+                                {__('tickets.pages.form.buttons.update')}
+                            </Button>
+                        </CardFooter>
+                    )}
             </Card>
 
             <AlertDialog
