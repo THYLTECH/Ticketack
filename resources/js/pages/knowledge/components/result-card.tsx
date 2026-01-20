@@ -145,7 +145,7 @@ export function ResultCard({ result, isFeatured = false }: Props) {
                     <div
                         className={cn(
                             'grid gap-6',
-                            hasSolution ? 'md:grid-cols-2' : 'grid-cols-1',
+                            result.solution ? 'md:grid-cols-2' : 'grid-cols-1',
                         )}
                     >
                         <div className="relative overflow-hidden rounded-lg border border-border/50 bg-background/50 p-4">
@@ -157,17 +157,14 @@ export function ResultCard({ result, isFeatured = false }: Props) {
                             />
                         </div>
 
-                        {hasSolution && (
+                        {result.solution && (
                             <div className="relative overflow-hidden rounded-lg border border-primary/20 bg-primary/5 p-4">
                                 <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-primary">
                                     <CheckCircle2 className="h-4 w-4" />
                                     {__('knowledge.results.solution_available')}
                                 </div>
                                 <p className="line-clamp-3 text-sm text-muted-foreground italic">
-                                    {result.solution ||
-                                        __(
-                                            'knowledge.results.solution_preview_text',
-                                        )}
+                                    {result.solution}
                                 </p>
                             </div>
                         )}
