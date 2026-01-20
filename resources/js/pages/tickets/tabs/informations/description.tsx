@@ -1,3 +1,4 @@
+import { MarkdownViewer } from '@/components/markdown/markdown-viewer';
 import { useTrans } from '@/lib/translation';
 import { Ticket } from '@/types';
 import { AlignLeft } from 'lucide-react';
@@ -17,13 +18,13 @@ export function TicketDescription({ ticket }: { ticket: Ticket }) {
             </div>
 
             <div className="rounded-xl border bg-card p-5 shadow-sm">
-                <div className="prose prose-sm max-w-none leading-relaxed whitespace-pre-wrap text-foreground/90">
-                    {ticket.description || (
-                        <span className="text-muted-foreground italic opacity-70">
-                            {__('tickets.pages.show.tabs.info_content.no_desc')}
-                        </span>
-                    )}
-                </div>
+                {ticket.description ? (
+                    <MarkdownViewer content={ticket.description} />
+                ) : (
+                    <span className="text-muted-foreground italic opacity-70">
+                        {__('tickets.pages.show.tabs.info_content.no_desc')}
+                    </span>
+                )}
             </div>
         </div>
     );

@@ -16,6 +16,7 @@ import {
     Trophy,
 } from 'lucide-react';
 import { SearchResult } from '../types';
+import { MarkdownViewer } from '@/components/markdown/markdown-viewer';
 
 const TypeIcon = ({ type }: { type: string }) => {
     switch (type) {
@@ -149,12 +150,13 @@ export function ResultCard({ result, isFeatured = false }: Props) {
                         )}
                     >
                         <div className="relative overflow-hidden rounded-lg border border-border/50 bg-background/50 p-4">
-                            <p
-                                className="line-clamp-4 text-sm leading-relaxed text-muted-foreground"
-                                dangerouslySetInnerHTML={{
-                                    __html: result.snippet,
-                                }}
-                            />
+                            <div className="line-clamp-4 text-sm leading-relaxed text-muted-foreground">
+                                <MarkdownViewer
+                                    content={result.snippet}
+                                    proseClass="prose-sm text-muted-foreground"
+                                    className="!my-0"
+                                />
+                            </div>
                         </div>
 
                         {result.solution && (
@@ -163,9 +165,13 @@ export function ResultCard({ result, isFeatured = false }: Props) {
                                     <CheckCircle2 className="h-4 w-4" />
                                     {__('knowledge.results.solution_available')}
                                 </div>
-                                <p className="line-clamp-3 text-sm text-muted-foreground italic">
-                                    {result.solution}
-                                </p>
+                                <div className="max-h-60 overflow-hidden">
+                                    <MarkdownViewer
+                                        content={result.solution}
+                                        proseClass="prose-sm text-muted-foreground italic line-clamp-3"
+                                        className="!my-0"
+                                    />
+                                </div>
                             </div>
                         )}
                     </div>
@@ -222,10 +228,13 @@ export function ResultCard({ result, isFeatured = false }: Props) {
 
                 <div className="relative mb-auto overflow-hidden rounded-md bg-muted/30 p-3 text-sm text-muted-foreground transition-colors group-hover:bg-muted/50">
                     <div className="absolute top-0 left-0 h-full w-[3px] bg-primary/40 opacity-0 transition-opacity group-hover:opacity-100"></div>
-                    <p
-                        className="line-clamp-3 leading-relaxed"
-                        dangerouslySetInnerHTML={{ __html: result.snippet }}
-                    />
+                    <div className="line-clamp-3 leading-relaxed">
+                        <MarkdownViewer
+                            content={result.snippet}
+                            proseClass="prose-sm text-muted-foreground"
+                            className="!my-0"
+                        />
+                    </div>
                 </div>
 
                 {hasSolution && (
