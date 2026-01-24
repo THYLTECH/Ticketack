@@ -394,7 +394,17 @@ export function InformationsTab({
                                 value={
                                     data.status_id ? String(data.status_id) : ''
                                 }
-                                disabled={disabled}
+                                disabled={
+                                    disabled ||
+                                    (!userHasPermission({
+                                        user: auth.user,
+                                        permission: 'update tickets',
+                                    }) &&
+                                        !userHasPermission({
+                                            user: auth.user,
+                                            permission: 'be assigned tickets',
+                                        }))
+                                }
                                 onValueChange={(val) =>
                                     setData(
                                         'status_id',

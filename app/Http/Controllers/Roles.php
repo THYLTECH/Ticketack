@@ -41,7 +41,7 @@ class Roles extends Controller
         }
 
         if ($request->filled('usage')) {
-            $usage = $request->input('usage'); // array or string
+            $usage = $request->input('usage');
             $usage = is_array($usage) ? $usage : explode(',', $usage);
 
             $query->where(function ($q) use ($usage) {
@@ -187,6 +187,13 @@ class Roles extends Controller
         }
 
         $users = collect(data_get($data, 'users', []))->pluck('id')->toArray();
+
+        if ($role->name === 'admin' && count($users) === 0) {
+            return redirect()->back()->with(['error' => [
+                'title' => __('common.flash.error'),
+                'description' => __('roles.flash.delete_last_admin')
+            ]]);
+        }
 
         if ($role->name === 'simple_user') {
             $existingUsers = $role->users()->pluck('id')->toArray();

@@ -14,6 +14,7 @@ return [
         'delete_error' => 'Impossible de supprimer un rôle assigné à des utilisateurs.',
         'deleted' => 'Rôle supprimé avec succès.',
         'delete_locked' => 'Ce rôle est verrouillé et ne peut pas être supprimé.',
+        'delete_last_admin' => 'Vous ne pouvez pas supprimer le dernier administrateur.',
     ],
 
     /*
@@ -147,6 +148,7 @@ return [
 
                     'buttons' => [
                         'close' => 'Fermer',
+                        'add_selected' => 'Ajouter la sélection (:count)',
                     ],
                 ],
                 'table' => [
@@ -169,6 +171,7 @@ return [
 
                 'flash' => [
                     'added' => 'Utilisateurs ajoutés au rôle avec succès.',
+                    'added_count' => ':count utilisateurs ajoutés au rôle avec succès.',
                     'removed' => 'Utilisateur retiré du rôle avec succès.',
                 ],
             ],

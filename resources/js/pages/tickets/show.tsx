@@ -9,7 +9,10 @@ import {
     BreadcrumbItem,
     SharedData,
     Ticket,
+    TicketCategory,
+    TicketPriority,
     TicketSchedule,
+    TicketStatus,
     User,
 } from '@/types';
 import { PageTutorial } from '@/components/onboarding';
@@ -38,6 +41,9 @@ interface ShowProps {
     events: TicketSchedule[];
     solvers: User[];
     similar_tickets?: SimilarTicket[];
+    statuses: TicketStatus[];
+    priorities: TicketPriority[];
+    categories: TicketCategory[];
 }
 
 export default function Show({
@@ -45,6 +51,9 @@ export default function Show({
     events,
     solvers,
     similar_tickets = [],
+    statuses,
+    priorities,
+    categories,
 }: ShowProps) {
     const __ = useTrans();
     const { auth } = usePage<SharedData>().props;
@@ -170,7 +179,13 @@ export default function Show({
                                 events={events}
                                 solvers={solvers}
                             />
-                            <LogsTab logs={ticket.logs} />
+                            <LogsTab
+                                logs={ticket.logs}
+                                statuses={statuses}
+                                priorities={priorities}
+                                categories={categories}
+                                solvers={solvers}
+                            />
                         </div>
                     </Tabs>
                 </div>

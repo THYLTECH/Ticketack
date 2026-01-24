@@ -151,28 +151,21 @@ function InformationForm({ auth }: { auth: SharedData['auth'] }) {
             encType="multipart/form-data"
             className="grid md:grid-cols-3 gap-x-8 gap-y-4"
         >
-            <div className="md:col-span-2 flex flex-col gap-2">
-                <Label htmlFor="name">
-                    {__('settings.pages.profile.info_form.fields.name.label')}
-                </Label>
-            </div>
-
-            <div className="flex flex-col justify-end">
-                <Label htmlFor="avatar" className="text-left">
-                    {__('settings.pages.profile.info_form.fields.avatar.label')}
-                </Label>
-            </div>
-
             <div className="space-y-4 md:col-span-2">
-                <Input
-                    id="name"
-                    name="name"
-                    value={data.name}
-                    onChange={(e) => setData('name', e.target.value)}
-                    required
-                    placeholder={__('settings.pages.profile.info_form.fields.name.placeholder')}
-                    aria-invalid={errors.name ? 'true' : 'false'}
-                />
+                <div className="grid gap-2">
+                    <Label htmlFor="name">
+                        {__('settings.pages.profile.info_form.fields.name.label')}
+                    </Label>
+                    <Input
+                        id="name"
+                        name="name"
+                        value={data.name}
+                        onChange={(e) => setData('name', e.target.value)}
+                        required
+                        placeholder={__('settings.pages.profile.info_form.fields.name.placeholder')}
+                        aria-invalid={errors.name ? 'true' : 'false'}
+                    />
+                </div>
 
                 <div className="grid gap-2">
                     <Label htmlFor="email">
@@ -206,7 +199,10 @@ function InformationForm({ auth }: { auth: SharedData['auth'] }) {
                 </div>
             </div>
 
-            <div className="flex flex-col items-start gap-3 md:col-span-1">
+            <div className="flex flex-col items-center gap-3 md:col-span-1">
+                <Label htmlFor="avatar" className="text-left w-full text-center md:text-left">
+                    {__('settings.pages.profile.info_form.fields.avatar.label')}
+                </Label>
                 <AvatarUpload
                     defaultUrl={auth.user?.avatar?.url ?? null}
                     onFileChange={(file) => {

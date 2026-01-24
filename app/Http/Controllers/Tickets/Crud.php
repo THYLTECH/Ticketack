@@ -310,6 +310,9 @@ class Crud extends Controller
                 'avatar' => $user->avatar,
             ])->toArray(),
             'similar_tickets' => $similarTickets,
+            'priorities' => TicketPriority::orderBy('sort_order')->get(),
+            'categories' => TicketCategory::orderBy('sort_order')->get(),
+            'statuses' => TicketStatus::orderBy('sort_order')->get(),
         ]);
     }
 

@@ -1,7 +1,5 @@
 <?php
 
-// app/Http/Controllers/Settings/Profile.php
-
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
@@ -11,12 +9,10 @@ use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
-// Requests
 use App\Http\Requests\Settings\Profile as RequestsProfile;
 use App\Http\Requests\Settings\Lang as RequestsLang;
 use App\Http\Requests\Settings\DeleteAccount as RequestsDeleteAccount;
 
-// Models
 use App\Models\User;
 use App\Models\Attachment;
 
@@ -50,7 +46,7 @@ class Profile extends Controller
         $emailChanged = array_key_exists('email', $data) && $data['email'] !== $user->email;
 
         unset($data['avatar']);
-        // Normalize phone number by removing spaces
+        
         if($data['phone']) {
             $data['phone'] = preg_replace('/\s+/', '', $data['phone']);
         }
@@ -127,6 +123,16 @@ class Profile extends Controller
             return back()->withErrors([
                 'password' => __('settings.flash.incorrect_current_password'),
             ]);
+        }
+
+        if ($user->hasRole('admin')) {
+            $adminCount = User::role('admin')->count();
+            if ($adminCount <= 1) {
+                return back()->with(['error' => [
+                    'title' => __('common.flash.error'),
+                    'description' => __('settings.flash.delete_last_admin_account')
+                ]]);
+            }
         }
 
         Auth::logout();

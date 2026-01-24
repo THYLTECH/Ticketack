@@ -14,6 +14,8 @@ return [
         'deleted' => 'Utilisateur supprimé avec succès.',
         'restored' => 'Utilisateur restauré avec succès.',
         'forced_deleted' => 'Utilisateur supprimé définitivement avec succès.',
+        'delete_own_account' => 'Vous ne pouvez pas supprimer votre propre compte.',
+        'delete_last_admin' => 'Vous ne pouvez pas supprimer le dernier administrateur.',
     ],
 
     /*
