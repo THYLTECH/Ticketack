@@ -59,7 +59,7 @@ import { useState } from 'react';
 import { TrashEmpty } from './trash-empty';
 
 interface DeletedItem {
-    id: number;
+    id: number | string;
     deleted_at: string;
     title?: string;
     name?: string;
@@ -68,7 +68,7 @@ interface DeletedItem {
     priority?: { title: string; color: string };
     assignees?: {
         id: number;
-        user?: { name: string; avatar?: { url: string } };
+        user?: { name: string; avatar?: { url: string } | null };
     }[];
     roles?: { name: string }[];
     tickets_count?: number;
@@ -103,11 +103,11 @@ type SortDirection = 'asc' | 'desc';
 
 export function TrashTable({ data, type, retentionDays }: Props) {
     const __ = useTrans();
-    const [selectedIds, setSelectedIds] = useState<number[]>([]);
+    const [selectedIds, setSelectedIds] = useState<(number | string)[]>([]);
 
     const [deleteConfirm, setDeleteConfirm] = useState<{
         isOpen: boolean;
-        id?: number;
+        id?: number | string;
         isBulk: boolean;
     }>({ isOpen: false, isBulk: false });
 
@@ -136,7 +136,7 @@ export function TrashTable({ data, type, retentionDays }: Props) {
         setSelectedIds(checked ? data.data.map((item) => item.id) : []);
     };
 
-    const handleSelectRow = (checked: boolean, id: number) => {
+    const handleSelectRow = (checked: boolean, id: number | string) => {
         if (checked) {
             setSelectedIds((prev) => [...prev, id]);
         } else {
@@ -144,7 +144,7 @@ export function TrashTable({ data, type, retentionDays }: Props) {
         }
     };
 
-    const handleRestore = (id: number) => {
+    const handleRestore = (id: number | string) => {
         router.put(
             route('trash.restore', { type, id }),
             {},
@@ -152,7 +152,7 @@ export function TrashTable({ data, type, retentionDays }: Props) {
         );
     };
 
-    const initiateForceDelete = (id: number) => {
+    const initiateForceDelete = (id: number | string) => {
         setDeleteConfirm({ isOpen: true, id, isBulk: false });
     };
 
@@ -196,11 +196,16 @@ export function TrashTable({ data, type, retentionDays }: Props) {
     };
 
     const getDaysRemaining = (deletedAt: string) => {
-        if (!deletedAt) return 0;
-        const deletionDate = parseISO(deletedAt);
-        const purgeDate = addDays(deletionDate, retentionDays);
-        const remaining = differenceInDays(purgeDate, new Date());
-        return Math.max(0, remaining);
+        if (!deletedAt || !retentionDays) return 0;
+        try {
+            const deletionDate = parseISO(deletedAt);
+            const purgeDate = addDays(deletionDate, retentionDays);
+            const remaining = differenceInDays(purgeDate, new Date());
+            return Math.max(0, remaining);
+        } catch (e) {
+            console.error('Error calculating days remaining:', e);
+            return 0;
+        }
     };
 
     const getRetentionStatus = (days: number) => {
