@@ -1,19 +1,13 @@
-
-// Necessary imports
 import { Form, Head, useForm, usePage } from '@inertiajs/react';
 import { useCallback, useRef } from 'react';
 
-// Layout
 import AppLayout from '@/layouts/app/layout';
 import SettingsLayout from '@/layouts/settings/layout';
 
-// Translation Hook
 import { useTrans } from '@/lib/translation';
 
-// Custom components
 import HeadingSmall from '@/components/heading-small';
 
-// Shadcn UI Components
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -39,18 +33,17 @@ import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
 import { PhoneInput } from '@/components/ui/phone-input';
 
-// Types
 import type { BreadcrumbItem, Language, SharedData, Timezone } from '@/types';
 
-// Icons
 import { Save, Trash2 } from 'lucide-react';
 
 import AvatarUpload from '@/components/avatar-upload';
+import { PageTutorial } from '@/components/onboarding';
 
 export default function Profile({
-                                    languages,
-                                    timezones,
-                                }: {
+    languages,
+    timezones,
+}: {
     languages: Language[];
     timezones: Timezone[];
 }) {
@@ -73,7 +66,7 @@ export default function Profile({
             <Head title={__('settings.pages.profile.head_title')} />
 
             <SettingsLayout>
-                <div className="space-y-6">
+                <div className="space-y-6 scroll-mt-24" data-onboarding="profile-info">
                     <HeadingSmall
                         title={__('settings.pages.profile.info_form.title')}
                         description={__(
@@ -86,7 +79,7 @@ export default function Profile({
 
                 <Separator className="my-8" />
 
-                <div className="space-y-6">
+                <div className="space-y-6 scroll-mt-24" data-onboarding="profile-preferences">
                     <HeadingSmall
                         title={__('settings.pages.profile.lang_form.title')}
                         description={__(
@@ -101,6 +94,18 @@ export default function Profile({
 
                 <DeleteUser />
             </SettingsLayout>
+            <PageTutorial
+                page="settings"
+                steps={[
+                    {
+                        id: 'profile',
+                        title: __('onboarding.settings.profile.title'),
+                        description: __('onboarding.settings.profile.description'),
+                        targetSelector: '[data-onboarding="profile-info"]',
+                        position: 'bottom',
+                    },
+                ]}
+            />
         </AppLayout>
     );
 }
@@ -221,10 +226,10 @@ function InformationForm({ auth }: { auth: SharedData['auth'] }) {
 }
 
 function LangForm({
-                      auth,
-                      languages,
-                      timezones,
-                  }: {
+    auth,
+    languages,
+    timezones,
+}: {
     auth: SharedData['auth'];
     languages: Language[];
     timezones: Timezone[];

@@ -19,7 +19,7 @@ beforeEach(function () {
     Permission::firstOrCreate(['name' => 'force delete trash']);
     Permission::firstOrCreate(['name' => 'restore items']);
     Permission::firstOrCreate(['name' => 'force delete items']);
-    Permission::firstOrCreate(['name' => 'manage trash settings']);
+    Permission::firstOrCreate(['name' => 'manage trash']);
 
     $role = Role::firstOrCreate(['name' => 'admin']);
     $this->user = User::factory()->create();
@@ -497,6 +497,34 @@ test('index shows configured retention settings', function () {
             ->where('retentionSettings.role', 30)
             ->where('retentionSettings.asset', 30)
         );
+});
+
+test('retention settings are independent and persistent', function () {
+    // 1. Set Ticket to 45
+    post(route('trash.update-retention'), [
+        'type' => 'ticket',
+        'days' => 45
+    ])->assertSessionHasNoErrors();
+
+    // 2. Set User to 90
+    post(route('trash.update-retention'), [
+        'type' => 'user',
+        'days' => 90
+    ])->assertSessionHasNoErrors();
+
+    // 3. Verify values
+    $this->assertDatabaseHas('trash_retentions', ['type' => 'ticket', 'days' => 45]);
+    $this->assertDatabaseHas('trash_retentions', ['type' => 'user', 'days' => 90]);
+    
+    // 4. Update Ticket again to 30
+    post(route('trash.update-retention'), [
+        'type' => 'ticket',
+        'days' => 30
+    ])->assertSessionHasNoErrors();
+
+    // 5. Verify User is still 90 and Ticket is 30
+    $this->assertDatabaseHas('trash_retentions', ['type' => 'ticket', 'days' => 30]);
+    $this->assertDatabaseHas('trash_retentions', ['type' => 'user', 'days' => 90]);
 });
 
 test('bulk restore validates ids array', function () {

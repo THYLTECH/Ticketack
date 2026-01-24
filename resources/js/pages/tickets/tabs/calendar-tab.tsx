@@ -425,7 +425,7 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-hidden bg-background">
+                    <div className="flex-1 overflow-hidden bg-background" data-onboarding="planning-grid">
                         <PlanningGrid
                             events={filteredEvents}
                             view={view}

@@ -45,6 +45,8 @@ interface ToolbarSearchProps {
     onChange: (value: string) => void;
     placeholder?: string;
     className?: string;
+    id?: string;
+    name?: string;
 }
 
 export function ToolbarSearch({
@@ -52,11 +54,15 @@ export function ToolbarSearch({
     onChange,
     placeholder,
     className,
+    id,
+    name,
 }: ToolbarSearchProps) {
     return (
         <div className="relative flex items-center">
             <Search className="absolute left-2 h-3.5 w-3.5 text-muted-foreground" />
             <Input
+                id={id}
+                name={name}
                 placeholder={placeholder}
                 className={cn(
                     'h-8 w-37.5 border-dashed bg-transparent pl-8 text-xs shadow-none focus-visible:border-solid focus-visible:ring-1 lg:w-62.5',

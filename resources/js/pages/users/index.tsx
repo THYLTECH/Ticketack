@@ -3,12 +3,13 @@ import AppLayout from '@/layouts/app/layout';
 import { useTrans } from '@/lib/translation';
 import type { BreadcrumbItem, Role, User } from '@/types';
 import { Head, router } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useDebounce } from 'use-debounce';
 import { UsersEmpty } from './components/users-empty';
 import { UsersHeader } from './components/users-header';
 import { UsersTable } from './components/users-table';
 import { UsersToolbar } from './components/users-toolbar';
+import { PageTutorial } from '@/components/onboarding';
 
 interface PaginatedData<T> {
     data: T[];
@@ -37,6 +38,23 @@ export default function Index({ users, roles, filters = {} }: Props) {
     const [search, setSearch] = useState(filters.search || '');
     const [roleFilter, setRoleFilter] = useState(filters.role || '');
     const [debouncedSearch] = useDebounce(search, 300);
+    const [isTutorialActive, setIsTutorialActive] = useState(false);
+
+    const demoUser: User = {
+        id: 0,
+        name: __('onboarding.users.demo_user.name'),
+        email: 'demo@example.com',
+        avatar: null,
+        email_verified_at: new Date().toISOString(),
+        language: 'en',
+        timezone: 'UTC',
+        theme: 'system',
+        color_scheme: 'default',
+        permissions: [],
+        roles: [],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+    };
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -49,7 +67,14 @@ export default function Index({ users, roles, filters = {} }: Props) {
         },
     ];
 
+    const isMounted = useRef(false);
+
     useEffect(() => {
+        if (!isMounted.current) {
+            isMounted.current = true;
+            return;
+        }
+
         router.get(
             route('users.index'),
             {
@@ -66,6 +91,9 @@ export default function Index({ users, roles, filters = {} }: Props) {
     };
 
     const hasData = users.data.length > 0;
+    const showDemoData = isTutorialActive && !hasData;
+    const displayUsers = showDemoData ? [demoUser] : users.data;
+    const shouldShowTable = hasData || showDemoData;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -86,15 +114,22 @@ export default function Index({ users, roles, filters = {} }: Props) {
                         roles={roles}
                     />
 
-                    {!hasData &&
-                        (search.length > 0 || roleFilter.length > 0) ? (
+                    {!shouldShowTable &&
+                        (search.length > 0 || roleFilter.length > 0 || !showDemoData) ? (
                         <UsersEmpty />
                     ) : (
-                        <UsersTable users={users.data} />
+                        <div data-onboarding="users-table">
+                            <UsersTable users={displayUsers} />
+                        </div>
                     )}
 
                     {hasData && <PaginationControl meta={users} />}
                 </div>
+
+                <PageTutorial
+                    page="users"
+                    onActiveChange={setIsTutorialActive}
+                />
             </div>
         </AppLayout>
     );

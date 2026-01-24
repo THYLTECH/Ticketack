@@ -34,6 +34,8 @@ export function RolesToolbar({
             <ToolbarLabel label={__('common.filters.title') || 'Filters'} />
 
             <ToolbarSearch
+                id="roles-search"
+                name="search"
                 value={searchTerm}
                 onChange={onSearchChange}
                 placeholder={

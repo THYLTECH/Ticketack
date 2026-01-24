@@ -140,7 +140,7 @@ export function LogsTab({ logs }: Props) {
                 />
             </div>
 
-            <div className="relative min-h-[200px] space-y-4 before:absolute before:inset-y-0 before:left-5 before:w-px before:bg-border">
+            <div className="relative min-h-[200px] space-y-4 before:absolute before:inset-y-0 before:left-5 before:w-px before:bg-border" data-onboarding="logs-table">
                 {paginatedLogs.map((log) => {
                     const action = getActionData(log);
                     const isChange = log.action === 'updated';

@@ -119,7 +119,7 @@ export function TrashToolbar({
 
             <ToolbarSeparator />
 
-            <div className="flex items-center">
+            <div className="flex items-center" data-onboarding="trash-retention">
                 <Select
                     value={String(retentionDays || 30)}
                     onValueChange={handleRetentionSelect}

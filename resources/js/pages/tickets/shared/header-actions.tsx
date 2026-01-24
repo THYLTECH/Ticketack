@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Link } from '@inertiajs/react';
-import { LucideIcon } from 'lucide-react';
+import { LucideIcon, Plus } from 'lucide-react';
 
 export interface HeaderActionProps {
     label: string;
@@ -53,6 +53,7 @@ export function HeaderActions({ actions }: HeaderActionsProps) {
                             size="sm"
                             variant={action.variant || 'default'}
                             className="relative flex-1 sm:flex-initial"
+                            data-onboarding={action.icon === Plus ? 'create-ticket-button' : undefined}
                         >
                             <Link href={action.href}>{buttonContent}</Link>
                         </Button>

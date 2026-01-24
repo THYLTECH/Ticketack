@@ -24,6 +24,7 @@ interface FilterSimpleSelectProps {
     options: FilterOption[];
     icon?: React.ReactNode;
     placeholder?: string;
+    disableAllOption?: boolean;
 }
 
 export function FilterSimpleSelect({
@@ -33,6 +34,7 @@ export function FilterSimpleSelect({
     options,
     icon,
     placeholder = 'All',
+    disableAllOption = false,
 }: FilterSimpleSelectProps) {
     const __ = useTrans();
     const isSelected = value && value !== 'all';
@@ -54,11 +56,13 @@ export function FilterSimpleSelect({
                 </FilterButtonContent>
             </SelectTrigger>
             <SelectContent>
-                <SelectItem value="all">
-                    {placeholder === 'All'
-                        ? __('common.filters.all') || 'All'
-                        : placeholder}
-                </SelectItem>
+                {!disableAllOption && (
+                    <SelectItem value="all">
+                        {placeholder === 'All'
+                            ? __('common.filters.all') || 'All'
+                            : placeholder}
+                    </SelectItem>
+                )}
                 {options.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                         <div className="flex items-center gap-2">
