@@ -18,7 +18,7 @@ use Inertia\Testing\AssertableInertia as Assert;
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-
+    /** @var \Tests\TestCase $this */
     Storage::fake('public');
 
     Permission::firstOrCreate(['name' => 'view users']);
@@ -46,44 +46,48 @@ beforeEach(function () {
 test('index loads', function () {
     get(route('users.index'))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->component('users/index')
-            ->has('users')
-            ->has('users.data', 2)
+        ->assertInertia(
+            fn($page) => $page
+                ->component('users/index')
+                ->has('users')
+                ->has('users.data', 2)
         );
 });
 
 test('create loads roles', function () {
     get(route('users.create'))
         ->assertOk()
-        ->assertInertia(fn ($page) =>
-        $page->component('users/create')->has('roles', 2)
+        ->assertInertia(
+            fn($page) =>
+            $page->component('users/create')->has('roles', 2)
         );
 });
 
 test(/**
  * @throws JsonException
  */ /**
- * @throws JsonException
- */ 'store minimal user', function () {
-    Notification::fake();
+   * @throws JsonException
+   */ 'store minimal user',
+    function () {
+        Notification::fake();
 
-    $response = post(route('users.store'), [
-        'name' => 'New User',
-        'email' => 'user@test.com',
-        'phone' => null,
-        'email_verified' => true,
-        'roles' => [$this->roleBasic->id],
-        'avatar' => null
-    ]);
+        $response = post(route('users.store'), [
+            'name' => 'New User',
+            'email' => 'user@test.com',
+            'phone' => null,
+            'email_verified' => true,
+            'roles' => [$this->roleBasic->id],
+            'avatar' => null
+        ]);
 
-    $response->assertSessionHasNoErrors();
+        $response->assertSessionHasNoErrors();
 
-    $user = User::where('email','user@test.com')->firstOrFail();
-    $this->assertTrue($user->hasRole('simple_user'));
+        $user = User::where('email', 'user@test.com')->firstOrFail();
+        $this->assertTrue($user->hasRole('simple_user'));
 
-    Notification::assertSentTo($user, UserRegistered::class);
-});
+        Notification::assertSentTo($user, UserRegistered::class);
+    }
+);
 
 test('store user with avatar', function () {
 
@@ -100,7 +104,7 @@ test('store user with avatar', function () {
 
     $response->assertSessionHasNoErrors();
 
-    $user = User::where('email','avatar@test.com')->firstOrFail()->fresh('avatar');
+    $user = User::where('email', 'avatar@test.com')->firstOrFail()->fresh('avatar');
     $this->assertNotNull($user->avatar);
     Storage::disk('public')->assertExists($user->avatar->file_path);
 });
@@ -194,7 +198,7 @@ test('update avatar delete', function () {
     $response->assertSessionHasNoErrors();
 
     Storage::disk('public')->assertMissing($path);
-    $this->assertDatabaseMissing('attachments',['id'=>$id]);
+    $this->assertDatabaseMissing('attachments', ['id' => $id]);
     $this->assertNull($user->fresh()->avatar);
 });
 
@@ -214,7 +218,7 @@ test('delete user keeps avatar for restoration', function () {
 
     $store->assertSessionHasNoErrors();
 
-    $user = User::where('email','delete@test.com')->firstOrFail()->fresh('avatar');
+    $user = User::where('email', 'delete@test.com')->firstOrFail()->fresh('avatar');
 
     $this->assertNotNull($user->avatar, 'Avatar not found in DB');
     $path = $user->avatar->file_path;
@@ -435,19 +439,21 @@ test('user uses soft deletes', function () {
 test('show page loads user with roles and avatar', function () {
     get(route('users.show', $this->testUser1))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->has('user.roles', 1)
-            ->has('user.avatar')
+        ->assertInertia(
+            fn($page) => $page
+                ->has('user.roles', 1)
+                ->has('user.avatar')
         );
 });
 
 test('edit page loads user with roles and avatar', function () {
     get(route('users.edit', $this->testUser1))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->has('user.roles', 1)
-            ->has('user.avatar')
-            ->has('roles', 2)
+        ->assertInertia(
+            fn($page) => $page
+                ->has('user.roles', 1)
+                ->has('user.avatar')
+                ->has('roles', 2)
         );
 });
 
@@ -520,9 +526,10 @@ test('index page paginates users', function () {
 
     get(route('users.index'))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->has('users.data', 10)
-            ->has('users.links')
+        ->assertInertia(
+            fn($page) => $page
+                ->has('users.data', 10)
+                ->has('users.links')
         );
 });
 
@@ -625,9 +632,10 @@ test('index applies search filter on name', function () {
 
     get(route('users.index', ['search' => 'Specific']))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->has('users.data', 1)
-            ->where('users.data.0.name', 'John Specific')
+        ->assertInertia(
+            fn($page) => $page
+                ->has('users.data', 1)
+                ->where('users.data.0.name', 'John Specific')
         );
 });
 
@@ -637,9 +645,10 @@ test('index applies search filter on email', function () {
 
     get(route('users.index', ['search' => 'unique']))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->has('users.data', 1)
-            ->where('users.data.0.email', 'unique@example.com')
+        ->assertInertia(
+            fn($page) => $page
+                ->has('users.data', 1)
+                ->where('users.data.0.email', 'unique@example.com')
         );
 });
 
@@ -652,9 +661,10 @@ test('index applies role filter', function () {
 
     get(route('users.index', ['role' => $this->roleAdmin->id]))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->has('users.data', 1)
-            ->where('users.data.0.id', $admin->id)
+        ->assertInertia(
+            fn($page) => $page
+                ->has('users.data', 1)
+                ->where('users.data.0.id', $admin->id)
         );
 });
 
@@ -663,8 +673,9 @@ test('index respects per_page parameter', function () {
 
     get(route('users.index', ['per_page' => 5]))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->has('users.data', 5)
+        ->assertInertia(
+            fn($page) => $page
+                ->has('users.data', 5)
         );
 });
 
@@ -725,8 +736,9 @@ test('force delete without avatar does not throw error', function () {
 test('index returns filters in response', function () {
     get(route('users.index', ['search' => 'test']))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->where('filters.search', 'test')
+        ->assertInertia(
+            fn($page) => $page
+                ->where('filters.search', 'test')
         );
 });
 
@@ -754,8 +766,9 @@ test('create page loads deleted roles excluded', function () {
 
     get(route('users.create'))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->has('roles', 2)
+        ->assertInertia(
+            fn($page) => $page
+                ->has('roles', 2)
         );
 });
 
@@ -786,8 +799,9 @@ test('update can set phone number', function () {
 test('show loads all roles', function () {
     get(route('users.show', $this->testUser1))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->has('roles')
+        ->assertInertia(
+            fn($page) => $page
+                ->has('roles')
         );
 });
 
@@ -804,6 +818,26 @@ test('update reverts email verification when set to false', function () {
     expect($this->testUser1->fresh()->email_verified_at)->toBeNull();
 });
 
+test('index sorts users by name', function () {
+    User::factory()->create(['name' => 'AAA']);
+    User::factory()->create(['name' => 'ZZZ']);
+
+    get(route('users.index', ['sort' => 'name', 'direction' => 'asc']))
+        ->assertOk()
+        ->assertInertia(
+            fn($page) => $page
+                ->where('users.data.0.name', 'AAA')
+        );
+
+    get(route('users.index', ['sort' => 'name', 'direction' => 'desc']))
+        ->assertOk()
+        ->assertInertia(
+            fn($page) => $page
+                ->where('users.data.0.name', 'ZZZ')
+        );
+});
+
+
 
 test('index sorts by roles count', function () {
     $r1 = Role::create(['name' => 'r1']);
@@ -815,38 +849,40 @@ test('index sorts by roles count', function () {
     $user3 = User::factory()->create(['created_at' => now()->subDays(3)]);
 
     $user3->syncRoles([$this->roleAdmin, $this->roleBasic, $r1, $r2]);
-    
+
     $user2->syncRoles([$this->roleBasic, $r1, $r2]);
 
     $user1->syncRoles([$r1, $r2]);
 
     get(route('users.index', ['sort' => 'roles_count', 'direction' => 'desc']))
         ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->where('users', function ($users) use ($user1, $user2, $user3) {
-                $data = $users->toArray()['data'];
-                $ids = collect($data)->pluck('id');
+        ->assertInertia(
+            fn(Assert $page) => $page
+                ->where('users', function ($users) use ($user1, $user2, $user3) {
+                    $data = $users->toArray()['data'];
+                    $ids = collect($data)->pluck('id');
 
-                expect($ids->search($user3->id))->not->toBeFalse();
-                expect($ids->search($user2->id))->not->toBeFalse();
-                expect($ids->search($user3->id))->toBeLessThan($ids->search($user2->id));
-                expect($ids->search($user2->id))->toBeLessThan($ids->search($user1->id));
-                return true;
-            })
+                    expect($ids->search($user3->id))->not->toBeFalse();
+                    expect($ids->search($user2->id))->not->toBeFalse();
+                    expect($ids->search($user3->id))->toBeLessThan($ids->search($user2->id));
+                    expect($ids->search($user2->id))->toBeLessThan($ids->search($user1->id));
+                    return true;
+                })
         );
 
     get(route('users.index', ['sort' => 'roles_count', 'direction' => 'asc']))
         ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->where('users', function ($users) use ($user1, $user2, $user3) {
-                $data = $users->toArray()['data'];
-                $ids = collect($data)->pluck('id');
+        ->assertInertia(
+            fn(Assert $page) => $page
+                ->where('users', function ($users) use ($user1, $user2, $user3) {
+                    $data = $users->toArray()['data'];
+                    $ids = collect($data)->pluck('id');
 
-                expect($ids->search($user1->id))->not->toBeFalse();
-                expect($ids->search($user2->id))->not->toBeFalse();
-                expect($ids->search($user1->id))->toBeLessThan($ids->search($user2->id));
-                expect($ids->search($user2->id))->toBeLessThan($ids->search($user3->id));
-                return true;
-            })
+                    expect($ids->search($user1->id))->not->toBeFalse();
+                    expect($ids->search($user2->id))->not->toBeFalse();
+                    expect($ids->search($user1->id))->toBeLessThan($ids->search($user2->id));
+                    expect($ids->search($user2->id))->toBeLessThan($ids->search($user3->id));
+                    return true;
+                })
         );
 });

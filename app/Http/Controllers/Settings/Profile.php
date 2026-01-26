@@ -46,8 +46,8 @@ class Profile extends Controller
         $emailChanged = array_key_exists('email', $data) && $data['email'] !== $user->email;
 
         unset($data['avatar']);
-        
-        if($data['phone']) {
+
+        if (isset($data['phone']) && $data['phone']) {
             $data['phone'] = preg_replace('/\s+/', '', $data['phone']);
         }
 
@@ -72,11 +72,11 @@ class Profile extends Controller
             $path = Storage::disk('public')->putFile("users/{$user->id}/avatars", $file);
 
             $attachment = Attachment::create([
-                'file_name'      => $file->getClientOriginalName(),
-                'file_path'      => $path,
-                'mime_type'      => $file->getMimeType(),
+                'file_name' => $file->getClientOriginalName(),
+                'file_path' => $path,
+                'mime_type' => $file->getMimeType(),
                 'file_extension' => $file->getClientOriginalExtension(),
-                'file_size'      => $file->getSize(),
+                'file_size' => $file->getSize(),
             ]);
 
             $user->avatar()->associate($attachment);
@@ -119,7 +119,7 @@ class Profile extends Controller
         $data = $request->validated();
         $user = Auth::user();
 
-        if(!Auth::validate(['email' => $user->email, 'password' => $data['password']])) {
+        if (!Auth::validate(['email' => $user->email, 'password' => $data['password']])) {
             return back()->withErrors([
                 'password' => __('settings.flash.incorrect_current_password'),
             ]);
@@ -128,10 +128,12 @@ class Profile extends Controller
         if ($user->hasRole('admin')) {
             $adminCount = User::role('admin')->count();
             if ($adminCount <= 1) {
-                return back()->with(['error' => [
-                    'title' => __('common.flash.error'),
-                    'description' => __('settings.flash.delete_last_admin_account')
-                ]]);
+                return back()->with([
+                    'error' => [
+                        'title' => __('common.flash.error'),
+                        'description' => __('settings.flash.delete_last_admin_account')
+                    ]
+                ]);
             }
         }
 
