@@ -1,10 +1,17 @@
+import { MarkdownViewer } from '@/components/markdown/markdown-viewer';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { TabsContent } from '@/components/ui/tabs';
 import { useInitials } from '@/hooks/use-initials';
 import { useTrans } from '@/lib/translation';
-import { TicketLog } from '@/types';
+import {
+    TicketCategory,
+    TicketLog,
+    TicketPriority,
+    TicketStatus,
+    User,
+} from '@/types';
 import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 import {
@@ -23,9 +30,19 @@ import { useMemo, useState } from 'react';
 
 interface Props {
     logs: TicketLog[];
+    statuses: TicketStatus[];
+    priorities: TicketPriority[];
+    categories: TicketCategory[];
+    solvers: User[];
 }
 
-export function LogsTab({ logs }: Props) {
+export function LogsTab({
+    logs,
+    statuses,
+    priorities,
+    categories,
+    solvers,
+}: Props) {
     const __ = useTrans();
     const getInitials = useInitials();
     const [searchQuery, setSearchQuery] = useState('');
@@ -61,7 +78,7 @@ export function LogsTab({ logs }: Props) {
                 return { label: __(baseKey + '.created'), icon: null };
             case 'updated':
                 return {
-                    label: `${__(baseKey + '.updated')} : ${log.field}`,
+                    label: __(baseKey + '.updated'),
                     icon: <FileText className="h-3 w-3" />,
                 };
             case 'commented':
@@ -104,6 +121,70 @@ export function LogsTab({ logs }: Props) {
         }
     };
 
+    const getReadableFieldName = (field: string | null) => {
+        if (!field) return '';
+        switch (field) {
+            case 'status_id':
+                return __('tickets.fields.status');
+            case 'priority_id':
+                return __('tickets.fields.priority');
+            case 'category_id':
+                return __('tickets.filters.category');
+            case 'title':
+                return __('tickets.fields.title');
+            case 'description':
+                return __('tickets.column.description');
+            case 'is_archived':
+                return __('tickets.pages.index.buttons.archived');
+            case 'detailed_solution':
+                return __('tickets.pdf.solution');
+            case 'user_id':
+                return __('common.labels.assignees');
+            case 'asset_id':
+            case 'equipment':
+                return __('tickets.filters.equipment');
+            case 'is_referenced':
+                return __('tickets.pages.form.knowledge_base.status_on');
+            default:
+                return field;
+        }
+    };
+
+    const formatLogValue = (field: string | null, value: string | null) => {
+        if (value === null || value === undefined || value === '')
+            return __('tickets.pages.show.tabs.logs_content.empty_value');
+
+        switch (field) {
+            case 'status_id':
+                return (
+                    statuses.find((s) => s.id.toString() === value.toString())
+                        ?.title || value
+                );
+            case 'priority_id':
+                return (
+                    priorities.find((p) => p.id.toString() === value.toString())
+                        ?.title || value
+                );
+            case 'category_id':
+                return (
+                    categories.find((c) => c.id.toString() === value.toString())
+                        ?.title || value
+                );
+            case 'user_id':
+                return (
+                    solvers.find((u) => u.id.toString() === value.toString())
+                        ?.name || value
+                );
+            case 'is_archived':
+            case 'is_referenced':
+                return value == '1' || value == 'true'
+                    ? __('common.yes')
+                    : __('common.no');
+            default:
+                return value;
+        }
+    };
+
     if (!logs || logs.length === 0) {
         return (
             <TabsContent
@@ -140,10 +221,11 @@ export function LogsTab({ logs }: Props) {
                 />
             </div>
 
-            <div className="relative min-h-[200px] space-y-4 before:absolute before:inset-y-0 before:left-5 before:w-px before:bg-border">
+            <div className="relative min-h-[200px] space-y-4 before:absolute before:inset-y-0 before:left-5 before:w-px before:bg-border" data-onboarding="logs-table">
                 {paginatedLogs.map((log) => {
                     const action = getActionData(log);
                     const isChange = log.action === 'updated';
+                    const fieldName = getReadableFieldName(log.field);
 
                     return (
                         <div key={log.id} className="relative pl-12">
@@ -171,6 +253,14 @@ export function LogsTab({ logs }: Props) {
                                                 {log.user.name}
                                             </span>{' '}
                                             {action.label}
+                                            {isChange && log.field && (
+                                                <span className="font-normal text-muted-foreground">
+                                                    {' '}{__('common.on')}{' '}
+                                                    <span className="font-medium text-foreground">
+                                                        {fieldName}
+                                                    </span>
+                                                </span>
+                                            )}
                                         </p>
                                         <p className="mt-1 text-[10px] font-semibold text-muted-foreground uppercase">
                                             {format(
@@ -182,7 +272,40 @@ export function LogsTab({ logs }: Props) {
                                     </div>
                                 </div>
 
-                                {isChange && (
+                                {isChange && log.field && ['description', 'detailed_solution'].includes(log.field) ? (
+                                    <div className="mt-3 flex flex-col gap-4 rounded-lg bg-muted/50 p-3 text-[11px]">
+                                        {log.old_value && (
+                                            <div className="border-b border-border/50 pb-3 last:border-0 last:pb-0">
+                                                <span className="mb-2 block text-[9px] font-bold text-muted-foreground uppercase">
+                                                    {__(
+                                                        'tickets.pages.show.tabs.logs_content.old_value',
+                                                    )}
+                                                </span>
+                                                <div className="max-h-[200px] overflow-y-auto rounded-md border bg-background p-2">
+                                                    <MarkdownViewer
+                                                        content={log.old_value}
+                                                        className="text-xs"
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+                                        {log.new_value && (
+                                            <div>
+                                                <span className="mb-2 block text-[9px] font-bold text-primary uppercase">
+                                                    {__(
+                                                        'tickets.pages.show.tabs.logs_content.new_value',
+                                                    )}
+                                                </span>
+                                                <div className="max-h-[200px] overflow-y-auto rounded-md border bg-background p-2">
+                                                    <MarkdownViewer
+                                                        content={log.new_value}
+                                                        className="text-xs"
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : isChange && (
                                     <div className="mt-3 grid grid-cols-2 gap-2 rounded-lg bg-muted/50 p-2 text-[11px]">
                                         <div className="border-r border-border/50 pr-2">
                                             <span className="block text-[9px] font-bold text-muted-foreground uppercase">
@@ -191,10 +314,7 @@ export function LogsTab({ logs }: Props) {
                                                 )}
                                             </span>
                                             <span className="break-words line-through opacity-70">
-                                                {log.old_value ||
-                                                    __(
-                                                        'tickets.pages.show.tabs.logs_content.empty_value',
-                                                    )}
+                                                {formatLogValue(log.field, log.old_value)}
                                             </span>
                                         </div>
                                         <div className="pl-2">
@@ -204,10 +324,7 @@ export function LogsTab({ logs }: Props) {
                                                 )}
                                             </span>
                                             <span className="font-semibold break-words text-primary">
-                                                {log.new_value ||
-                                                    __(
-                                                        'tickets.pages.show.tabs.logs_content.empty_value',
-                                                    )}
+                                                {formatLogValue(log.field, log.new_value)}
                                             </span>
                                         </div>
                                     </div>

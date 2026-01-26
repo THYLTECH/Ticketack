@@ -46,6 +46,8 @@ export function AssetsToolbar({
             <ToolbarLabel label={__('common.filters.title') || 'Filters'} />
 
             <ToolbarSearch
+                id="assets-search"
+                name="search"
                 value={searchTerm}
                 onChange={onSearchChange}
                 placeholder={

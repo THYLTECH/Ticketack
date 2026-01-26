@@ -49,7 +49,6 @@ import {
     TicketIcon,
     Trash,
     Clock,
-    User,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -318,7 +317,7 @@ export function TicketTable({ tickets, auth }: Props) {
                                                             }
                                                         }}
                                                         disabled={!!ticket.is_archived}
-                                                        className={!!ticket.is_archived ? "opacity-50 cursor-not-allowed" : ""}
+                                                        className={ticket.is_archived ? "opacity-50 cursor-not-allowed" : ""}
                                                     >
                                                         <Pencil className="mr-2 h-4 w-4" />
                                                         {__('tickets.pages.form.buttons.edit')}
@@ -733,7 +732,7 @@ export function TicketTable({ tickets, auth }: Props) {
                                                                     }
                                                                 }}
                                                                 disabled={!!ticket.is_archived}
-                                                                className={!!ticket.is_archived ? "opacity-50 cursor-not-allowed" : ""}
+                                                                className={ticket.is_archived ? "opacity-50 cursor-not-allowed" : ""}
                                                             >
                                                                 <Pencil className="mr-2 h-4 w-4" />
                                                                 {__(

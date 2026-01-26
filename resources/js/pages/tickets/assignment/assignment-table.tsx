@@ -1,3 +1,4 @@
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -8,12 +9,19 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { GetIcon } from '@/lib/render';
 import { useTrans } from '@/lib/translation';
 import { userHasPermission } from '@/lib/utils';
 import { router, usePage } from '@inertiajs/react';
 import { formatDistanceToNow } from 'date-fns';
 import { enUS, fr } from 'date-fns/locale';
-import { AlertCircle, AlertTriangle, Info, UserPlus, Clock, User as UserIcon, Hash } from 'lucide-react';
+import { AlertCircle, AlertTriangle, Info, UserPlus, Clock, User as UserIcon, Hash, Flag } from 'lucide-react';
 import { useState } from 'react';
 import { AssignDialog } from './assign-dialog';
 import { SharedData, User, Ticket } from '@/types';
@@ -250,164 +258,172 @@ export function AssignmentTable({
             <div className="hidden w-full lg:block">
                 <div className="overflow-hidden rounded-lg border bg-background shadow-sm">
                     <div className="relative overflow-x-auto">
-                        <Table className="min-w-275">
-                            <TableHeader className="bg-muted/30">
-                            <TableRow className="hover:bg-transparent">
-                                <TableHead className="w-20 pl-6 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                                    {__('tickets.assignment.table.columns.id')}
-                                </TableHead>
-                                <TableHead className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                                    {__('tickets.assignment.table.columns.title')}
-                                </TableHead>
-                                <TableHead className="w-35 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                                    {__('tickets.assignment.table.columns.priority')}
-                                </TableHead>
-                                <TableHead className="w-35 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                                    {__('tickets.assignment.table.columns.status')}
-                                </TableHead>
-                                <TableHead className="w-35 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                                    {__('tickets.assignment.table.columns.category')}
-                                </TableHead>
-                                <TableHead className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                                    {__('tickets.assignment.table.columns.author')}
-                                </TableHead>
-                                <TableHead className="w-35 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                                    {__('tickets.assignment.table.columns.age')}
-                                </TableHead>
-                                <TableHead className="w-70 text-xs font-semibold tracking-wider text-muted-foreground uppercase text-right pr-6">
-                                    {__('tickets.assignment.table.columns.actions')}
-                                </TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {tickets.map((ticket) => (
-                                <TableRow
-                                    key={ticket.id}
-                                    className="group cursor-pointer transition-colors hover:bg-muted/30"
-                                    onClick={() => handleTicketClick(ticket.id)}
-                                >
-                                    <TableCell className="pl-6 font-mono text-xs font-medium text-muted-foreground">
-                                        #{ticket.id}
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="max-w-100">
-                                            <p className="truncate font-medium text-sm group-hover:text-primary transition-colors">
-                                                {ticket.title}
-                                            </p>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        {ticket.priority ? (
-                                            <Badge
-                                                variant="outline"
-                                                className="gap-1.5 text-xs"
-                                                style={{
-                                                    borderColor: ticket.priority.color,
-                                                }}
-                                            >
-                                                <span style={{ color: ticket.priority.color }}>
-                                                    {getPriorityIcon(ticket.priority.sort_order)}
-                                                </span>
-                                                <span
-                                                    style={{ color: ticket.priority.color }}
-                                                >
-                                                    {ticket.priority.title}
-                                                </span>
-                                            </Badge>
-                                        ) : (
-                                            <span className="text-xs text-muted-foreground">
-                                                -
-                                            </span>
-                                        )}
-                                    </TableCell>
-                                    <TableCell>
-                                        {ticket.status ? (
-                                            <Badge
-                                                variant="outline"
-                                                style={{
-                                                    borderColor: ticket.status.color,
-                                                    color: ticket.status.color,
-                                                }}
-                                                className="text-xs"
-                                            >
-                                                {ticket.status.title}
-                                            </Badge>
-                                        ) : (
-                                            <span className="text-xs text-muted-foreground">
-                                                -
-                                            </span>
-                                        )}
-                                    </TableCell>
-                                    <TableCell>
-                                        {ticket.category ? (
-                                            <Badge
-                                                variant="outline"
-                                                style={{
-                                                    borderColor: ticket.category.color,
-                                                    color: ticket.category.color,
-                                                }}
-                                                className="text-xs"
-                                            >
-                                                {ticket.category.title}
-                                            </Badge>
-                                        ) : (
-                                            <span className="text-xs text-muted-foreground">
-                                                -
-                                            </span>
-                                        )}
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="text-sm">
-                                            <p className="font-medium">{ticket.user.name}</p>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <span className="text-xs text-muted-foreground">
-                                            {getTicketAge(ticket.created_at)}
-                                        </span>
-                                    </TableCell>
-                                    <TableCell
-                                        className="pr-6"
-                                        onClick={(e) => e.stopPropagation()}
-                                    >
-                                        <div className="flex items-center justify-end gap-2">
-                                            {canBeAssigned && (
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    onClick={() =>
-                                                        handleSelfAssign(ticket.id)
-                                                    }
-                                                    className="h-8 text-xs"
-                                                >
-                                                    <UserPlus className="mr-1.5 h-3.5 w-3.5" />
-                                                    {__(
-                                                        'tickets.assignment.actions.self_assign',
-                                                    )}
-                                                </Button>
-                                            )}
-                                            {canAssign && (
-                                                <Button
-                                                    size="sm"
-                                                    onClick={() =>
-                                                        openAssignDialog(ticket.id)
-                                                    }
-                                                    className="h-8 text-xs"
-                                                >
-                                                    <UserPlus className="mr-1.5 h-3.5 w-3.5" />
-                                                    {__(
-                                                        'tickets.assignment.actions.assign',
-                                                    )}
-                                                </Button>
-                                            )}
-                                        </div>
-                                    </TableCell>
+                        <Table className="min-w-275 font-sans">
+                            <TableHeader className="bg-muted/50">
+                                <TableRow className="hover:bg-transparent">
+                                    <TableHead className="w-[80px] pl-6 font-semibold text-foreground">
+                                        {__('tickets.assignment.table.columns.id')}
+                                    </TableHead>
+                                    <TableHead className="font-semibold text-foreground">
+                                        {__('tickets.assignment.table.columns.title')}
+                                    </TableHead>
+                                    <TableHead className="w-32 font-semibold text-foreground">
+                                        {__('tickets.assignment.table.columns.priority')}
+                                    </TableHead>
+                                    <TableHead className="w-32 font-semibold text-foreground">
+                                        {__('tickets.assignment.table.columns.status')}
+                                    </TableHead>
+                                    <TableHead className="w-[140px] font-semibold text-foreground">
+                                        {__('tickets.assignment.table.columns.category')}
+                                    </TableHead>
+                                    <TableHead className="w-[140px] font-semibold text-foreground">
+                                        {__('tickets.assignment.table.columns.author')}
+                                    </TableHead>
+                                    <TableHead className="w-[130px] font-semibold text-foreground text-right pr-6">
+                                        {__('tickets.assignment.table.columns.age')}
+                                    </TableHead>
+                                    <TableHead className="w-[200px] font-semibold text-foreground text-right pr-6">
+                                        {__('tickets.assignment.table.columns.actions')}
+                                    </TableHead>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {tickets.map((ticket) => (
+                                    <TableRow
+                                        key={ticket.id}
+                                        className="group cursor-pointer transition-colors hover:bg-muted/40"
+                                        onClick={() => handleTicketClick(ticket.id)}
+                                    >
+                                        <TableCell className="pl-6 text-xs text-muted-foreground font-mono truncate align-middle">
+                                            #{ticket.id}
+                                        </TableCell>
+                                        <TableCell className="font-medium text-sm relative align-middle">
+                                            <div className="max-w-[400px]">
+                                                <p className="truncate group-hover:underline decoration-primary/30 transition-colors" title={ticket.title}>
+                                                    {ticket.title}
+                                                </p>
+                                            </div>
+                                        </TableCell>
+
+                                        <TableCell className="align-middle">
+                                            <div className="flex items-center gap-2">
+                                                {ticket.priority && (
+                                                    <Flag className="h-3.5 w-3.5" style={{ color: ticket.priority.color }} />
+                                                )}
+                                                <span className="text-xs font-medium text-muted-foreground">
+                                                    {ticket.priority?.title}
+                                                </span>
+                                            </div>
+                                        </TableCell>
+
+                                        <TableCell className="align-middle">
+                                            {ticket.status && (
+                                                <Badge
+                                                    variant="outline"
+                                                    className="rounded-md border-transparent px-2 py-0.5 text-[10px] font-bold tracking-wide uppercase"
+                                                    style={{
+                                                        backgroundColor: `${ticket.status.color}25`,
+                                                        color: ticket.status.color,
+                                                        border: `1px solid ${ticket.status.color}40`,
+                                                    }}
+                                                >
+                                                    {ticket.status.title}
+                                                </Badge>
+                                            )}
+                                        </TableCell>
+
+                                        <TableCell className="align-middle">
+                                            {ticket.category ? (
+                                                <TooltipProvider delayDuration={300}>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <div className="flex items-center gap-2 text-xs text-muted-foreground max-w-32">
+                                                                <GetIcon icon={ticket.category.icon ?? 'tag'} props={{ className: 'h-3.5 w-3.5 opacity-50 shrink-0' }} />
+                                                                <span className="truncate">{ticket.category.title}</span>
+                                                            </div>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent side="top">
+                                                            <p className="text-sm">{ticket.category.title}</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            ) : (
+                                                <span className="text-xs text-muted-foreground/50">-</span>
+                                            )}
+                                        </TableCell>
+
+                                        <TableCell className="align-middle">
+                                            {ticket.user ? (
+                                                <TooltipProvider delayDuration={300}>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <div className="flex items-center gap-2 max-w-28">
+                                                                <Avatar className="h-6 w-6 border-2 border-background ring-1 ring-border/10 shrink-0">
+                                                                    <AvatarImage src={ticket.user.avatar?.url ?? undefined} />
+                                                                    <AvatarFallback className="bg-muted text-[8px] font-bold">
+                                                                        {ticket.user.name.substring(0, 2).toUpperCase()}
+                                                                    </AvatarFallback>
+                                                                </Avatar>
+                                                                <span className="truncate text-xs font-medium text-muted-foreground">
+                                                                    {ticket.user.name}
+                                                                </span>
+                                                            </div>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent side="top">
+                                                            <p className="text-sm">{ticket.user.name}</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            ) : (
+                                                <span className="text-xs text-muted-foreground/50">-</span>
+                                            )}
+                                        </TableCell>
+
+                                        <TableCell className="pr-6 text-right text-xs text-muted-foreground font-medium truncate tabular-nums align-middle">
+                                            {getTicketAge(ticket.created_at)}
+                                        </TableCell>
+                                        <TableCell
+                                            className="pr-6"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            <div className="flex items-center justify-end gap-2">
+                                                {canBeAssigned && (
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        onClick={() =>
+                                                            handleSelfAssign(ticket.id)
+                                                        }
+                                                        className="h-7 text-xs px-2"
+                                                    >
+                                                        <UserPlus className="mr-1.5 h-3.5 w-3.5" />
+                                                        {__(
+                                                            'tickets.assignment.actions.self_assign',
+                                                        )}
+                                                    </Button>
+                                                )}
+                                                {canAssign && (
+                                                    <Button
+                                                        size="sm"
+                                                        onClick={() =>
+                                                            openAssignDialog(ticket.id)
+                                                        }
+                                                        className="h-7 text-xs px-2"
+                                                    >
+                                                        <UserPlus className="mr-1.5 h-3.5 w-3.5" />
+                                                        {__(
+                                                            'tickets.assignment.actions.assign',
+                                                        )}
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
                 </div>
-            </div>
             </div>
 
             <AssignDialog

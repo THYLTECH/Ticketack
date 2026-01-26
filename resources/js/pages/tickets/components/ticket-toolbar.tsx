@@ -61,9 +61,9 @@ export function TicketToolbar({
     const [date, setDate] = useState<DateRange | undefined>(
         filters.date_from && filters.date_to
             ? {
-                  from: new Date(filters.date_from),
-                  to: new Date(filters.date_to),
-              }
+                from: new Date(filters.date_from),
+                to: new Date(filters.date_to),
+            }
             : undefined,
     );
 
@@ -102,7 +102,7 @@ export function TicketToolbar({
     };
 
     return (
-        <Toolbar>
+        <Toolbar data-onboarding="tickets-filters">
             <ToolbarLabel
                 label={
                     __('tickets.pages.index.toolbar.filters.title') || 'Filters'
@@ -110,6 +110,8 @@ export function TicketToolbar({
             />
 
             <ToolbarSearch
+                id="ticket-search"
+                name="search"
                 value={searchTerm}
                 onChange={onSearchChange}
                 placeholder={

@@ -18,6 +18,7 @@ import {
 } from '@/types';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { AlertCircle, ArrowLeft, Check } from 'lucide-react';
+import { PageTutorial } from '@/components/onboarding';
 import React, { useMemo } from 'react';
 
 interface CreateProps {
@@ -79,6 +80,19 @@ export default function Create({
                     assets={assets}
                     users={users}
                 />
+                <PageTutorial
+                    page="create_ticket"
+                    steps={[
+                        {
+                            id: 'form',
+                            title: __('onboarding.create_ticket.form.title'),
+                            description: __('onboarding.create_ticket.form.description'),
+                            targetSelector: '[data-onboarding="create-form"]',
+                            position: 'bottom',
+                            disableScroll: true,
+                        },
+                    ]}
+                />
             </div>
         </AppLayout>
     );
@@ -120,8 +134,11 @@ function CreateForm({
     };
 
     const handleClearErrors = (field?: keyof TicketFormSchema) => {
-        // @ts-expect-error - Compatibilité types useForm
-        clearErrors(field);
+        if (field) {
+            clearErrors(field);
+        } else {
+            clearErrors();
+        }
     };
 
     return (
@@ -163,7 +180,7 @@ function CreateForm({
                 </Alert>
             )}
 
-            <Card className="overflow-hidden border shadow-sm">
+            <Card className="overflow-hidden border shadow-sm" data-onboarding="create-form">
                 <CardContent className="p-6">
                     <InformationsTab
                         data={data as never}
@@ -184,30 +201,30 @@ function CreateForm({
                     user: auth.user,
                     permission: 'create tickets',
                 }) && (
-                    <CardFooter className="flex items-center justify-end gap-2 border-t px-6 py-4">
-                        <Button
-                            variant="ghost"
-                            asChild
-                            disabled={processing}
-                            type="button"
-                        >
-                            <Link href={route('tickets.manage')}>
-                                {__('tickets.pages.delete.buttons.cancel')}
-                            </Link>
-                        </Button>
-                        <Button
-                            disabled={processing}
-                            className="min-w-37.5 gap-2"
-                        >
-                            {processing ? (
-                                <Spinner className="h-4 w-4 text-primary-foreground" />
-                            ) : (
-                                <Check className="h-4 w-4" />
-                            )}
-                            {__('tickets.pages.form.buttons.store')}
-                        </Button>
-                    </CardFooter>
-                )}
+                        <CardFooter className="flex items-center justify-end gap-2 border-t px-6 py-4">
+                            <Button
+                                variant="ghost"
+                                asChild
+                                disabled={processing}
+                                type="button"
+                            >
+                                <Link href={route('tickets.manage')}>
+                                    {__('tickets.pages.delete.buttons.cancel')}
+                                </Link>
+                            </Button>
+                            <Button
+                                disabled={processing}
+                                className="min-w-37.5 gap-2"
+                            >
+                                {processing ? (
+                                    <Spinner className="h-4 w-4 text-primary-foreground" />
+                                ) : (
+                                    <Check className="h-4 w-4" />
+                                )}
+                                {__('tickets.pages.form.buttons.store')}
+                            </Button>
+                        </CardFooter>
+                    )}
             </Card>
         </form>
     );

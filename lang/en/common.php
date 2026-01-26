@@ -16,6 +16,9 @@ return [
     'all_roles' => 'All Roles',
     'all' => 'All',
     'cancel' => 'Cancel',
+    'on' => 'on',
+    'yes' => 'Yes',
+    'no' => 'No',
 
     'labels' => [
         'created_at' => 'Created at',
@@ -30,6 +33,12 @@ return [
         'duration' => 'Duration',
     ],
 
+    'actions' => [
+        'select_all' => 'Select All',
+        'deselect_all' => 'Deselect All',
+        'cancel' => 'Cancel',
+    ],
+
     'filters' => [
         'title' => 'Filters',
         'reset' => 'Reset',
@@ -42,6 +51,12 @@ return [
         'weeks' => 'weeks',
         'months' => 'months',
         'years' => 'years',
+    ],
+    'buttons' => [
+        'view' => 'View',
+        'edit' => 'Edit',
+        'delete' => 'Delete',
+        'clone' => 'Clone',
     ],
 
 

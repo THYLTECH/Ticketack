@@ -1,6 +1,5 @@
 import {
     AlertDialog,
-    AlertDialogCancel,
     AlertDialogContent,
     AlertDialogDescription,
     AlertDialogFooter,
@@ -223,13 +222,11 @@ export function PermissionsTab({
                     ? __(`permissions.${group}.title`)
                     : group;
 
-            // Check if group title matches
             if (groupTitle.toLowerCase().includes(lowerQuery)) {
                 filtered[group] = groupPermissions;
                 return;
             }
 
-            // Check permissions
             const matchingPermissions = groupPermissions.filter((permission) => {
                 const actionName = getPermissionAction(permission.name);
                 const actionTitle =
@@ -387,6 +384,7 @@ export function UsersTab({
         usersWithoutRole || [],
     );
     const [assignedSearchQuery, setAssignedSearchQuery] = useState('');
+    const [selectedUsers, setSelectedUsers] = useState<Set<number>>(new Set());
 
     const isSimpleUser = data.name === 'simple_user';
 
@@ -410,12 +408,39 @@ export function UsersTab({
         );
     }, [data.users, assignedSearchQuery]);
 
-    const handleAddUser = (user: User) => {
-        setData('users', [...data.users, user]);
-        setTempUsersWithoutRole(
-            tempUsersWithoutRole.filter((u) => u.id !== user.id),
+    const toggleUserSelection = (userId: number) => {
+        const newSelected = new Set(selectedUsers);
+        if (newSelected.has(userId)) {
+            newSelected.delete(userId);
+        } else {
+            newSelected.add(userId);
+        }
+        setSelectedUsers(newSelected);
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedUsers.size === filteredAvailableUsers.length) {
+            setSelectedUsers(new Set());
+        } else {
+            setSelectedUsers(new Set(filteredAvailableUsers.map((u) => u.id)));
+        }
+    };
+
+    const handleConfirmAdd = () => {
+        const usersToAdd = tempUsersWithoutRole.filter((u) =>
+            selectedUsers.has(u.id),
         );
-        toast.success(__('roles.pages.form.users.flash.added'));
+        setData('users', [...data.users, ...usersToAdd]);
+        setTempUsersWithoutRole(
+            tempUsersWithoutRole.filter((u) => !selectedUsers.has(u.id)),
+        );
+        setSelectedUsers(new Set());
+        setOpen(false);
+        toast.success(
+            __('roles.pages.form.users.flash.added_count', undefined, {
+                count: usersToAdd.length,
+            }),
+        );
     };
 
     const handleRemoveUser = (user: User) => {
@@ -425,6 +450,11 @@ export function UsersTab({
         );
         setTempUsersWithoutRole([...tempUsersWithoutRole, user]);
         toast.success(__('roles.pages.form.users.flash.removed'));
+    };
+
+    const handleClose = () => {
+        setSelectedUsers(new Set());
+        setOpen(false);
     };
 
     return (
@@ -468,19 +498,32 @@ export function UsersTab({
                                     </AlertDialogDescription>
                                 </AlertDialogHeader>
 
-                                <div className="relative mt-4">
-                                    <Search className="absolute top-2.5 left-3 h-4 w-4 text-muted-foreground" />
-                                    <Input
-                                        placeholder={__(
-                                            'roles.pages.form.users.dialog.search_placeholder',
-                                        )}
-                                        className="bg-background pl-9"
-                                        value={searchQuery}
-                                        onChange={(e) =>
-                                            setSearchQuery(e.target.value)
-                                        }
-                                        autoFocus
-                                    />
+                                <div className="mt-4 flex gap-2">
+                                    <div className="relative flex-1">
+                                        <Search className="absolute top-2.5 left-3 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            placeholder={__(
+                                                'roles.pages.form.users.dialog.search_placeholder',
+                                            )}
+                                            className="bg-background pl-9"
+                                            value={searchQuery}
+                                            onChange={(e) =>
+                                                setSearchQuery(e.target.value)
+                                            }
+                                            autoFocus
+                                        />
+                                    </div>
+                                    <Button
+                                        variant="outline"
+                                        onClick={toggleSelectAll}
+                                        className="whitespace-nowrap"
+                                    >
+                                        {selectedUsers.size ===
+                                            filteredAvailableUsers.length &&
+                                            filteredAvailableUsers.length > 0
+                                            ? __('common.actions.deselect_all')
+                                            : __('common.actions.select_all')}
+                                    </Button>
                                 </div>
                             </div>
 
@@ -507,75 +550,87 @@ export function UsersTab({
                                     </div>
                                 ) : (
                                     <div className="divide-y">
-                                        {filteredAvailableUsers.map((user) => (
-                                            <div
-                                                key={user.id}
-                                                className="flex items-center justify-between p-4 transition-colors hover:bg-muted/40"
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <Avatar className="h-9 w-9">
-                                                        <AvatarImage
-                                                            src={
-                                                                user.avatar?.url
-                                                            }
-                                                            alt={user.name}
-                                                        />
-                                                        <AvatarFallback className="bg-muted text-sm font-medium text-muted-foreground">
-                                                            {user.name
-                                                                .substring(0, 2)
-                                                                .toUpperCase()}
-                                                        </AvatarFallback>
-                                                    </Avatar>
-
-                                                    <div>
-                                                        <p className="flex items-center gap-2 text-sm font-medium text-foreground">
-                                                            {user.name}
-                                                            {user.id ===
-                                                                auth.user
-                                                                    .id && (
-                                                                    <Badge
-                                                                        variant="outline"
-                                                                        className="h-4 px-1 text-[10px]"
-                                                                    >
-                                                                        {__(
-                                                                            'roles.pages.form.users.you',
-                                                                        )}
-                                                                    </Badge>
-                                                                )}
-                                                        </p>
-                                                        <p className="text-xs text-muted-foreground">
-                                                            {user.email}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <Button
-                                                    size="sm"
-                                                    variant="secondary"
-                                                    type="button"
-                                                    className="h-8 gap-1.5 transition-colors hover:bg-primary hover:text-primary-foreground"
+                                        {filteredAvailableUsers.map((user) => {
+                                            const isSelected = selectedUsers.has(
+                                                user.id,
+                                            );
+                                            return (
+                                                <div
+                                                    key={user.id}
+                                                    className={`flex cursor-pointer items-center justify-between p-4 transition-colors hover:bg-muted/40 ${isSelected ? 'bg-primary/5' : ''}`}
                                                     onClick={() =>
-                                                        handleAddUser(user)
+                                                        toggleUserSelection(user.id)
                                                     }
                                                 >
-                                                    <Plus className="h-3.5 w-3.5" />
-                                                    {__(
-                                                        'roles.pages.form.users.dialog.table.actions.add',
-                                                    )}
-                                                </Button>
-                                            </div>
-                                        ))}
+                                                    <div className="flex items-center gap-3">
+                                                        <Avatar className="h-9 w-9">
+                                                            <AvatarImage
+                                                                src={
+                                                                    user.avatar?.url
+                                                                }
+                                                                alt={user.name}
+                                                            />
+                                                            <AvatarFallback className="bg-muted text-sm font-medium text-muted-foreground">
+                                                                {user.name
+                                                                    .substring(0, 2)
+                                                                    .toUpperCase()}
+                                                            </AvatarFallback>
+                                                        </Avatar>
+
+                                                        <div>
+                                                            <p className="flex items-center gap-2 text-sm font-medium text-foreground">
+                                                                {user.name}
+                                                                {user.id ===
+                                                                    auth.user
+                                                                        .id && (
+                                                                        <Badge
+                                                                            variant="outline"
+                                                                            className="h-4 px-1 text-[10px]"
+                                                                        >
+                                                                            {__(
+                                                                                'roles.pages.form.users.you',
+                                                                            )}
+                                                                        </Badge>
+                                                                    )}
+                                                            </p>
+                                                            <p className="text-xs text-muted-foreground">
+                                                                {user.email}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div
+                                                        className={`flex h-5 w-5 items-center justify-center rounded border ${isSelected ? 'border-primary bg-primary text-primary-foreground' : 'border-input bg-background'}`}
+                                                    >
+                                                        {isSelected && (
+                                                            <Plus className="h-3.5 w-3.5" />
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 )}
                             </div>
 
                             <AlertDialogFooter className="border-t bg-muted/10 p-4">
-                                <AlertDialogCancel asChild>
-                                    <Button type="button" variant="outline">
-                                        {__(
-                                            'roles.pages.form.users.dialog.buttons.close',
-                                        )}
-                                    </Button>
-                                </AlertDialogCancel>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={handleClose}
+                                >
+                                    {__('common.actions.cancel')}
+                                </Button>
+                                <Button
+                                    type="button"
+                                    onClick={handleConfirmAdd}
+                                    disabled={selectedUsers.size === 0}
+                                >
+                                    {__(
+                                        'roles.pages.form.users.dialog.buttons.add_selected',
+                                        undefined,
+                                        { count: selectedUsers.size },
+                                    )}
+                                </Button>
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>

@@ -1,32 +1,25 @@
-// pages/settings/appearance.tsx
 
-// Necessary imports
 import { type Appearance, useAppearance } from '@/hooks/use-appearance';
 import { type ColorScheme, useColorScheme } from '@/hooks/use-color-scheme';
 import { cn } from '@/lib/utils';
 import { Head, useForm } from '@inertiajs/react';
 
-// Layout
 import AppLayout from '@/layouts/app/layout';
 import SettingsLayout from '@/layouts/settings/layout';
 
-// Translation Hook
 import { useTrans } from '@/lib/translation';
 
-// Shadcn UI Components
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-// Custom components
 import HeadingSmall from '@/components/heading-small';
 import { Icon } from '@/components/icon';
+import { PageTutorial } from '@/components/onboarding';
 
-// Types
 import type { BreadcrumbItem, Color, Theme } from '@/types';
 
-// Icons
 import { CheckIcon, Monitor, Moon, Sun } from 'lucide-react';
 
 export default function Appearance({
@@ -54,7 +47,7 @@ export default function Appearance({
             <Head title={__('settings.pages.appearance.head_title')} />
 
             <SettingsLayout>
-                <div className="mb-0 space-y-6">
+                <div className="mb-0 space-y-6 scroll-mt-24" data-onboarding="appearance-theme">
                     <HeadingSmall
                         title={__('settings.pages.appearance.theme_form.title')}
                         description={__(
@@ -66,7 +59,7 @@ export default function Appearance({
 
                 <Separator className="my-8" />
 
-                <div className="mb-0 space-y-6">
+                <div className="mb-0 space-y-6 scroll-mt-24" data-onboarding="appearance-color">
                     <HeadingSmall
                         title={__('settings.pages.appearance.color_form.title')}
                         description={__(
@@ -76,7 +69,8 @@ export default function Appearance({
                     <ColorDropdown colors={colors} />
                 </div>
             </SettingsLayout>
-        </AppLayout>
+            <PageTutorial page="settings_appearance" />
+        </AppLayout >
     );
 }
 
@@ -90,13 +84,12 @@ function AppearanceToggle({ themes }: { themes: Theme[] }) {
             theme.value === 'light'
                 ? Sun
                 : theme.value === 'dark'
-                  ? Moon
-                  : Monitor,
+                    ? Moon
+                    : Monitor,
         label: __(`common.themes.${theme.value}`),
     }));
 
-    // Form
-    const { put, processing } = useForm();
+    const { put, processing } = useForm({});
 
     const handleChange = (value: string) => {
         put(route('settings.appearance.update_theme', { theme: value }), {
@@ -127,8 +120,7 @@ function AppearanceToggle({ themes }: { themes: Theme[] }) {
 function ColorDropdown({ colors }: { colors: Color[] }) {
     const { scheme, updateColorScheme } = useColorScheme();
 
-    // Form
-    const { put, processing } = useForm();
+    const { put, processing } = useForm({});
 
     const handleChange = (value: string) => {
         put(

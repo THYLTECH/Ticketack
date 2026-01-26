@@ -148,8 +148,18 @@ class Users extends Controller
         if ($user->id === auth()->id()) {
             return redirect()->back()->with(['error' => [
                 'title' => __('common.flash.error'),
-                'description' => "You cannot delete your own account."
+                'description' => __('users.flash.delete_own_account')
             ]]);
+        }
+
+        if ($user->hasRole('admin')) {
+            $adminCount = User::role('admin')->count();
+            if ($adminCount <= 1) {
+                return redirect()->back()->with(['error' => [
+                    'title' => __('common.flash.error'),
+                    'description' => __('users.flash.delete_last_admin')
+                ]]);
+            }
         }
 
         $user->delete();

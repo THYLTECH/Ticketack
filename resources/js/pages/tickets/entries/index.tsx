@@ -16,6 +16,7 @@ import { format, parseISO } from 'date-fns';
 import { Globe } from 'lucide-react';
 import { useState } from 'react';
 import { DateRange } from 'react-day-picker';
+import { PageTutorial } from '@/components/onboarding';
 
 import { TimeEntryDialog } from './create-dialog';
 import { EntriesHeader } from './entries-header';
@@ -56,13 +57,34 @@ export default function EntriesIndex({
     const [filterValues, setFilterValues] = useState<FilterState>(filters);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [isReportOpen, setIsReportOpen] = useState(false);
+    const [isTutorialActive, setIsTutorialActive] = useState(false);
+
+    const demoEntry: TicketEntry = {
+        id: -1,
+        ticket_id: 0,
+        user_id: auth.user.id,
+        user: auth.user,
+        note: __('onboarding.time_entries.demo_entry.description'),
+        start_at: new Date().toISOString(),
+        end_at: new Date(Date.now() + 3600000).toISOString(),
+        duration_seconds: 3600,
+        billable: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+    };
+
+    const showDemoData = isTutorialActive && entries.data.length === 0;
+    const displayEntries = showDemoData ? [demoEntry] : entries.data;
+    const displayStats = showDemoData
+        ? { total_hours: 1, count: 1, period: __('entries.stats.today') }
+        : stats;
 
     const initialDateRange: DateRange | undefined =
         filters.start_date && filters.end_date
             ? {
-                  from: parseISO(filters.start_date),
-                  to: parseISO(filters.end_date),
-              }
+                from: parseISO(filters.start_date),
+                to: parseISO(filters.end_date),
+            }
             : undefined;
 
     const [dateRange, setDateRange] = useState<DateRange | undefined>(
@@ -73,8 +95,7 @@ export default function EntriesIndex({
         setFilterValues(newFilters);
         const cleanFilters = Object.fromEntries(
             Object.entries(newFilters).filter(
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                ([_, v]) => v != null && v !== '' && v !== 'all',
+                ([, v]) => v != null && v !== '' && v !== 'all',
             ),
         ) as Record<string, string>;
 
@@ -100,10 +121,12 @@ export default function EntriesIndex({
             };
             if (range.to || range.from) applyFilters(newFilters);
         } else {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { start_date, end_date, ...rest } = filterValues;
+            const newFilters = { ...filterValues };
+            delete newFilters.start_date;
+            delete newFilters.end_date;
+
             applyFilters({
-                ...rest,
+                ...newFilters,
                 start_date: undefined,
                 end_date: undefined,
             });
@@ -145,9 +168,9 @@ export default function EntriesIndex({
                     </span>
                 </div>
 
-                <EntriesStats stats={stats} />
+                <EntriesStats stats={displayStats} data-onboarding="entries-stats" />
 
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-4" data-onboarding="entries-table">
                     <EntriesToolbar
                         filters={filterValues}
                         onFilterChange={handleFilterChange}
@@ -159,7 +182,7 @@ export default function EntriesIndex({
                         categories={categories}
                     />
 
-                    <EntriesTable entries={entries.data} showTicketColumn />
+                    <EntriesTable entries={displayEntries} showTicketColumn />
 
                     <PaginationControl meta={entries} />
                 </div>
@@ -175,6 +198,27 @@ export default function EntriesIndex({
                 open={isReportOpen}
                 onOpenChange={setIsReportOpen}
                 filters={filterValues}
+            />
+
+            <PageTutorial
+                page="time_entries"
+                steps={[
+                    {
+                        id: 'stats',
+                        title: __('onboarding.time_entries.stats.title'),
+                        description: __('onboarding.time_entries.stats.description'),
+                        targetSelector: '[data-onboarding="entries-stats"]',
+                        position: 'bottom',
+                    },
+                    {
+                        id: 'table',
+                        title: __('onboarding.time_entries.table.title'),
+                        description: __('onboarding.time_entries.table.description'),
+                        targetSelector: '[data-onboarding="entries-table"]',
+                        position: 'top',
+                    },
+                ]}
+                onActiveChange={setIsTutorialActive}
             />
         </AppLayout>
     );

@@ -69,6 +69,7 @@ export function AppSidebar() {
             title: __('app.layout.sidebar.menugroups.platform.items.home'),
             href: route('home'),
             icon: Home,
+            onboardingId: 'home',
         }
     ];
 
@@ -106,6 +107,7 @@ export function AppSidebar() {
             title: __('app.layout.sidebar.menugroups.platform.items.tickets'),
             href: route('tickets.index'),
             icon: Ticket,
+            onboardingId: 'tickets',
         });
     }
 
@@ -173,7 +175,7 @@ export function AppSidebar() {
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild>
+                        <SidebarMenuButton size="lg" asChild data-onboarding="logo">
                             <Link href={route('home')} prefetch>
                                 <AppLogo />
                             </Link>
@@ -183,7 +185,7 @@ export function AppSidebar() {
                         <SidebarMenuButton
                             asChild
                         >
-                            <Button asChild variant={'default'} className='transition-all hover:bg-primary/90 hover:text-primary-foreground group-data-[collapsible=icon]:rounded-full'>
+                            <Button asChild variant={'default'} className='transition-all hover:bg-primary/90 hover:text-primary-foreground group-data-[collapsible=icon]:rounded-full' data-onboarding="create-ticket">
                                 <Link href={route('tickets.create')}>
                                     <Plus className="size-4 shrink-0" />
                                     <span className="font-semibold group-data-[collapsible=icon]:hidden">
@@ -297,7 +299,7 @@ function NavFooter({
                         );
                     })}
                 </SidebarMenu>
-                <SidebarSeparator className='my-2 w-full relative mx-0'/>
+                <SidebarSeparator className='my-2 w-full relative mx-0' />
                 <NavTrash />
             </SidebarGroupContent>
         </SidebarGroup>
@@ -341,8 +343,8 @@ function NavMain({ items = [] }: { items: NavItem[] }) {
                     const activeHref =
                         matchingItems.length > 0
                             ? matchingItems.sort(
-                                  (a, b) => b.length - a.length,
-                              )[0].href
+                                (a, b) => b.length - a.length,
+                            )[0].href
                             : null;
 
                     const linkUrl = normalize(
@@ -359,6 +361,7 @@ function NavMain({ items = [] }: { items: NavItem[] }) {
                                 asChild
                                 isActive={isActive}
                                 tooltip={{ children: item.title }}
+                                data-onboarding={item.onboardingId}
                             >
                                 <Link
                                     href={item.href}
@@ -371,7 +374,7 @@ function NavMain({ items = [] }: { items: NavItem[] }) {
                                     {item.badge && (
                                         <Badge
                                             variant="default"
-                                            className="/* --- Styles pour le mode fermé (Sidebar Collapsed) --- */ ml-auto h-5 min-w-5 rounded-full px-1.5 text-xs font-medium transition-all group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:top-0.5 group-data-[collapsible=icon]:right-0.5 group-data-[collapsible=icon]:z-50 group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:h-4 group-data-[collapsible=icon]:w-4 group-data-[collapsible=icon]:min-w-0 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:text-[10px] group-data-[collapsible=icon]:shadow-sm"
+                                            className="ml-auto h-5 min-w-5 rounded-full px-1.5 text-xs font-medium transition-all group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:top-0.5 group-data-[collapsible=icon]:right-0.5 group-data-[collapsible=icon]:z-50 group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:h-4 group-data-[collapsible=icon]:w-4 group-data-[collapsible=icon]:min-w-0 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:text-[10px] group-data-[collapsible=icon]:shadow-sm"
                                         >
                                             {Number(item.badge) > 99
                                                 ? '99+'
@@ -402,6 +405,7 @@ function NavUser() {
                             size="lg"
                             className="group text-sidebar-accent-foreground data-[state=open]:bg-sidebar-accent"
                             data-test="sidebar-menu-button"
+                            data-onboarding="user-menu"
                         >
                             <UserInfo user={auth.user} />
                             <ChevronsUpDown className="ml-auto size-4" />
@@ -414,8 +418,8 @@ function NavUser() {
                             isMobile
                                 ? 'bottom'
                                 : state === 'collapsed'
-                                  ? 'left'
-                                  : 'bottom'
+                                    ? 'left'
+                                    : 'bottom'
                         }
                     >
                         <UserMenuContent

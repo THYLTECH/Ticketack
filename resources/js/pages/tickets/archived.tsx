@@ -3,6 +3,7 @@ import { userHasPermission } from '@/lib/utils';
 import { BreadcrumbItem, SharedData } from '@/types';
 import { usePage } from '@inertiajs/react';
 import { ArchiveRestore, Plus } from 'lucide-react';
+import { PageTutorial } from '@/components/onboarding';
 import { TicketTable } from './components/ticket-table';
 import { TicketToolbar } from './components/ticket-toolbar';
 import { ArchivedStats } from './components/archived-stats';
@@ -96,8 +97,25 @@ export default function Archived({
             }
             paginatedData={tickets}
             onClearFilters={clearFilters}
-            tableComponent={<TicketTable tickets={tickets} auth={auth} />}
-        />
+            tableComponent={
+                <div data-onboarding="archived-list">
+                    <TicketTable tickets={tickets} auth={auth} />
+                </div>
+            }
+        >
+            <PageTutorial
+                page="archived_tickets"
+                steps={[
+                    {
+                        id: 'list',
+                        title: __('onboarding.archived.list.title'),
+                        description: __('onboarding.archived.list.description'),
+                        targetSelector: '[data-onboarding="archived-list"]',
+                        position: 'top',
+                    },
+                ]}
+            />
+        </TicketPageLayout>
     );
 }
 

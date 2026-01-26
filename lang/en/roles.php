@@ -14,6 +14,7 @@ return [
         'delete_error' => 'Cannot delete role assigned to users.',
         'deleted' => 'Role deleted successfully.',
         'delete_locked' => 'This role is locked and cannot be deleted.',
+        'delete_last_admin' => 'You cannot remove the last administrator.',
     ],
 
     /*
@@ -147,6 +148,7 @@ return [
 
                     'buttons' => [
                         'close' => 'Close',
+                        'add_selected' => 'Add Selected (:count)',
                     ],
                 ],
                 'table' => [
@@ -169,6 +171,7 @@ return [
 
                 'flash' => [
                     'added' => 'Users added to role successfully.',
+                    'added_count' => ':count users added to role successfully.',
                     'removed' => 'User removed from role successfully.',
                 ],
             ],

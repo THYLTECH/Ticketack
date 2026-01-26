@@ -394,7 +394,17 @@ export function InformationsTab({
                                 value={
                                     data.status_id ? String(data.status_id) : ''
                                 }
-                                disabled={disabled}
+                                disabled={
+                                    disabled ||
+                                    (!userHasPermission({
+                                        user: auth.user,
+                                        permission: 'update tickets',
+                                    }) &&
+                                        !userHasPermission({
+                                            user: auth.user,
+                                            permission: 'be assigned tickets',
+                                        }))
+                                }
                                 onValueChange={(val) =>
                                     setData(
                                         'status_id',
@@ -604,7 +614,7 @@ export function InformationsTab({
                 />
             </div>
 
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2" data-onboarding="attachments-section">
                 {existingAttachments.length > 0 && (
                     <div className="mb-4 space-y-3">
                         <Label>

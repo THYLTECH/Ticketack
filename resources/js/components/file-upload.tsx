@@ -7,7 +7,6 @@ import {
 import * as React from 'react';
 import { toast } from 'sonner';
 
-// UI Components
 import { Button } from '@/components/ui/button';
 import {
     Empty,
@@ -26,7 +25,6 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 
-// Icons
 import { cn } from '@/lib/utils';
 import {
     Check,
@@ -45,7 +43,6 @@ import {
     type LucideIcon,
 } from 'lucide-react';
 
-// --- TYPES ---
 
 export interface FileUploadProps
     extends Omit<
@@ -91,7 +88,6 @@ export interface FileUploadTexts {
     emptyAttachmentsText?: string;
 }
 
-// --- HELPER: ICON SELECTION ---
 
 const iconMap = [
     {
@@ -126,7 +122,6 @@ function getFileIcon(file: FileWithPreview['file']): LucideIcon {
     return found ? found.icon : FileIcon;
 }
 
-// --- SUB-COMPONENT: FILE CARD ---
 
 interface FileCardProps {
     fileWrapper: FileWithPreview;
@@ -391,13 +386,14 @@ function FileUploadInner(
                         className={cn(
                             'relative flex flex-col items-center justify-center overflow-hidden rounded-xl border border-dashed transition-colors',
                             state.isDragging &&
-                                'border-ring bg-accent/50 ring-2 ring-ring/20',
+                            'border-ring bg-accent/50 ring-2 ring-ring/20',
                             'hover:bg-accent/20',
                         )}
                         onDragEnter={actions.handleDragEnter}
                         onDragLeave={actions.handleDragLeave}
                         onDragOver={actions.handleDragOver}
                         onDrop={actions.handleDrop}
+                        data-onboarding="file-upload-dropzone"
                     >
                         <input
                             {...inputProps}

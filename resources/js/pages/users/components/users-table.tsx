@@ -33,7 +33,6 @@ import {
     Eye,
     MoreHorizontal,
     Pencil,
-    Shield,
     Trash2,
 } from 'lucide-react';
 import { SortableTableHead } from '@/components/sortable-table-head';
@@ -140,7 +139,7 @@ export function UsersTable({ users }: Props) {
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
                                         <DropdownMenuLabel>
-                                            {__('common.actions')}
+                                            {__('common.labels.actions')}
                                         </DropdownMenuLabel>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem
@@ -168,7 +167,7 @@ export function UsersTable({ users }: Props) {
                                         {userHasPermission({
                                             user: auth.user,
                                             permission: 'delete users',
-                                        }) && (
+                                        }) && auth.user.id !== user.id && (
                                                 <DropdownMenuItem
                                                     onClick={(e) =>
                                                         handleDelete(e, user)
@@ -340,7 +339,7 @@ export function UsersTable({ users }: Props) {
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
                                                 <DropdownMenuLabel>
-                                                    {__('common.actions')}
+                                                    {__('common.labels.actions')}
                                                 </DropdownMenuLabel>
                                                 <DropdownMenuSeparator />
                                                 <DropdownMenuItem
@@ -368,7 +367,7 @@ export function UsersTable({ users }: Props) {
                                                 {userHasPermission({
                                                     user: auth.user,
                                                     permission: 'delete users',
-                                                }) && (
+                                                }) && auth.user.id !== user.id && (
                                                         <DropdownMenuItem
                                                             onClick={(e) =>
                                                                 handleDelete(e, user)

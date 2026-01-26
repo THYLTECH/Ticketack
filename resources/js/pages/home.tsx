@@ -3,6 +3,7 @@ import AppLayout from '@/layouts/app/layout';
 
 import { TicketTable } from '@/components/tickets/ticket-table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PageTutorial } from '@/components/onboarding';
 
 import { useTrans } from '@/lib/translation';
 import { type BreadcrumbItem, SharedData, Ticket } from '@/types';
@@ -35,15 +36,15 @@ export default function Home({ userTickets, assignedTickets }: HomeProps) {
     const __ = useTrans();
     const { auth } = usePage<SharedData>().props;
 
-    const canSeeAssigned = userHasPermission({ 
-        user: auth.user, 
-        permission: 'be assigned tickets' 
+    const canSeeAssigned = userHasPermission({
+        user: auth.user,
+        permission: 'be assigned tickets'
     });
 
     const breadcrumbs: BreadcrumbItem[] = [
-        { 
-            title: __('app.layout.sidebar.menugroups.platform.items.home'), 
-            href: route('home') 
+        {
+            title: __('app.layout.sidebar.menugroups.platform.items.home'),
+            href: route('home')
         }
     ];
 
@@ -51,10 +52,8 @@ export default function Home({ userTickets, assignedTickets }: HomeProps) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={__('app.layout.sidebar.menugroups.platform.items.home')} />
 
-            {/* Structure de conteneur identique à la page User (resources/js/pages/users/index.tsx) */}
             <div className="container mx-auto max-w-full space-y-6 px-4 py-8 sm:px-6 lg:px-8">
-                
-                {/* En-tête de page sans Card, formaté comme sur la page User */}
+
                 <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                     <div>
                         <h2 className="text-2xl font-bold tracking-tight">
@@ -82,24 +81,23 @@ export default function Home({ userTickets, assignedTickets }: HomeProps) {
 
                     <TabsContent value="my_tickets" className="space-y-6 border-none p-0 outline-none">
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <div className="flex flex-col space-y-4">
+                            <div className="flex flex-col space-y-4" data-onboarding="open-tickets">
                                 <div className="flex items-center gap-2 px-1">
                                     <Clock className="h-4 w-4 text-orange-500" />
                                     <h3 className="text-sm font-semibold">{__('home.tabs.unresolved')}</h3>
                                 </div>
-                                {/* Le composant TicketTable est maintenant affiché directement (les Cards ont été retirées) */}
-                                <TicketTable 
-                                    data={userTickets.open} 
-                                    emptyMessage={__('home.messages.no_open_tickets')} 
+                                <TicketTable
+                                    data={userTickets.open}
+                                    emptyMessage={__('home.messages.no_open_tickets')}
                                 />
                             </div>
 
-                            <div className="flex flex-col space-y-4">
+                            <div className="flex flex-col space-y-4" data-onboarding="closed-tickets">
                                 <div className="flex items-center gap-2 px-1">
                                     <CheckCircle2 className="h-4 w-4 text-green-500" />
                                     <h3 className="text-sm font-semibold">{__('home.tabs.closed_30_days')}</h3>
                                 </div>
-                                <TicketTable 
+                                <TicketTable
                                     data={userTickets.closed}
                                     emptyMessage={__('home.messages.no_recent_closed_tickets')}
                                 />
@@ -115,10 +113,10 @@ export default function Home({ userTickets, assignedTickets }: HomeProps) {
                                         <Clock className="h-4 w-4 text-orange-500" />
                                         <h3 className="text-sm font-semibold text-primary">{__('home.tabs.assigned_unresolved')}</h3>
                                     </div>
-                                    <TicketTable 
-                                        data={assignedTickets.open} 
+                                    <TicketTable
+                                        data={assignedTickets.open}
                                         showAuthor={true}
-                                        emptyMessage={__('home.messages.no_open_tickets')} 
+                                        emptyMessage={__('home.messages.no_open_tickets')}
                                     />
                                 </div>
 
@@ -127,16 +125,42 @@ export default function Home({ userTickets, assignedTickets }: HomeProps) {
                                         <CheckCircle2 className="h-4 w-4 text-green-500" />
                                         <h3 className="text-sm font-semibold text-primary">{__('home.tabs.assigned_closed_30_days')}</h3>
                                     </div>
-                                    <TicketTable 
-                                        data={assignedTickets.closed} 
-                                        showAuthor={true} 
-                                        emptyMessage={__('home.messages.no_recent_closed_tickets')} 
+                                    <TicketTable
+                                        data={assignedTickets.closed}
+                                        showAuthor={true}
+                                        emptyMessage={__('home.messages.no_recent_closed_tickets')}
                                     />
                                 </div>
                             </div>
                         </TabsContent>
                     )}
                 </Tabs>
+                <PageTutorial
+                    page="home"
+                    steps={[
+                        {
+                            id: 'tabs',
+                            title: __('onboarding.home.tabs.title'),
+                            description: __('onboarding.home.tabs.description'),
+                            targetSelector: '[role="tablist"]',
+                            position: 'bottom',
+                        },
+                        {
+                            id: 'open-tickets',
+                            title: __('onboarding.home.open_column.title'),
+                            description: __('onboarding.home.open_column.description'),
+                            targetSelector: '[data-onboarding="open-tickets"]',
+                            position: 'right',
+                        },
+                        {
+                            id: 'closed-tickets',
+                            title: __('onboarding.home.closed_column.title'),
+                            description: __('onboarding.home.closed_column.description'),
+                            targetSelector: '[data-onboarding="closed-tickets"]',
+                            position: 'left',
+                        },
+                    ]}
+                />
             </div>
         </AppLayout>
     );
