@@ -37,7 +37,7 @@ return [
                 'footer' => [
                     'title' => '',
                     'items' => [
-                        'repository' => 'Repôt',
+                        'repository' => 'Dépôt Github',
                         'documentation' => 'Documentation',
                     ],
                 ],

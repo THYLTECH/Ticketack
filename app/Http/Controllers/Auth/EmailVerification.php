@@ -39,7 +39,7 @@ class EmailVerification extends Controller
         $user = Auth::user();
 
         if ($user && $user->hasVerifiedEmail()) {
-            return redirect()->route('dashboard');
+            return redirect()->route('home');
         }
 
         return Inertia::render('auth/verify-email');
@@ -54,7 +54,7 @@ class EmailVerification extends Controller
     {
         // Check if users is not already verified
         if (Auth::user()->email_verified_at !== null) {
-            return redirect()->route('dashboard');
+            return redirect()->route('home');
         }
 
         $token = Str::random(12);
@@ -85,7 +85,7 @@ class EmailVerification extends Controller
         }
 
         if ($user->hasVerifiedEmail()) {
-            return redirect()->route('dashboard');
+            return redirect()->route('home');
         }
 
         // Mark the user's email as verified
