@@ -50,10 +50,10 @@ return [
         ],
 
         'ticket_entry_created' => [
-            'message' => 'Une nouvelle entrée a été ajoutée au ticket ":title" sur :app. Consulter ici : :url',
+            'message' => 'Un nouveau pointage a été ajouté au ticket ":title" sur :app. Consulter ici : :url',
         ],
         'ticket_entry_deleted' => [
-            'message' => 'Une entrée a été supprimée du ticket ":title" sur :app. Voir le ticket : :url',
+            'message' => 'Un pointage a été supprimé sur le ticket ":title" sur :app. Voir le ticket : :url',
         ],
         'ticket_comment_created' => [
             'message' => 'Un nouveau commentaire a été ajouté au ticket ":title" sur :app. Voir ici : :url',
@@ -107,13 +107,13 @@ return [
         ],
 
         'ticket_entry_created' => [
-            'title' => 'Nouvelle entrée sur le ticket',
-            'message' => 'Une nouvelle entrée a été ajoutée au ticket ":title".',
+            'title' => 'Nouveau pointage sur le ticket',
+            'message' => 'Un nouveau pointage a été ajouté au ticket ":title".',
             'action' => 'Voir le ticket',
         ],
         'ticket_entry_deleted' => [
-            'title' => 'Entrée de ticket supprimée',
-            'message' => 'Une entrée a été supprimée du ticket ":title".',
+            'title' => 'Pointage d\'un ticket supprimé',
+            'message' => 'Un pointage a été supprimé sur le ticket ":title".',
             'action' => 'Voir le ticket',
         ],
         'ticket_comment_created' => [
@@ -207,15 +207,15 @@ return [
             'button' => 'Voir le ticket',
         ],
         'ticket_entry_created' => [
-            'subject' => ':app — Nouvelle entrée sur le ticket',
-            'title' => 'Nouvelle entrée sur le ticket',
-            'intro' => 'Une nouvelle entrée a été ajoutée au ticket ":title".',
+            'subject' => ':app — Nouveau pointage sur le ticket',
+            'title' => 'Nouveau pointage sur le ticket',
+            'intro' => 'Un nouveau pointage a été ajouté au ticket ":title".',
             'button' => 'Voir le ticket',
         ],
         'ticket_entry_deleted' => [
-            'subject' => ':app — Entrée de ticket supprimée',
-            'title' => 'Entrée de ticket supprimée',
-            'intro' => 'Une entrée a été supprimée du ticket ":title".',
+            'subject' => ':app — Pointage d\'un ticket supprimé',
+            'title' => 'Pointage d\'un ticket supprimé',
+            'intro' => 'Un pointage d\'un ticket a été supprimé du ticket ":title".',
             'button' => 'Voir le ticket',
         ],
         'ticket_comment_created' => [
@@ -300,12 +300,12 @@ return [
                 ],
 
                 'ticket_entry_created' => [
-                    'title' => 'Nouvelle entrée de ticket',
-                    'description' => 'Soyez averti lorsqu\'une nouvelle entrée est ajoutée à un ticket dans lequel vous êtes impliqué.',
+                    'title' => 'Nouveau pointage',
+                    'description' => 'Soyez averti lorsqu\'un nouveau pointage est ajouté à un ticket dans lequel vous êtes impliqué.',
                 ],
                 'ticket_entry_deleted' => [
-                    'title' => 'Entrée de ticket supprimée',
-                    'description' => 'Soyez alerté lorsqu\'une entrée de ticket dans laquelle vous êtes impliqué est supprimée.',
+                    'title' => 'Pointage de ticket supprimé',
+                    'description' => 'Soyez alerté lorsqu\'un pointage dans laquelle vous êtes impliqué est supprimé.',
                 ],
                 'ticket_comment_created' => [
                     'title' => 'Commentaire sur le ticket',

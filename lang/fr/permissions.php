@@ -3,7 +3,7 @@
 return [
     'assets' => [
         'title' => 'Actifs',
-        'description' => 'Gérer les permissions liées aux actifs (équipements).',
+        'description' => 'Gérer les permissions liées aux assets.',
         'items' => [
             'view' => ['title' => 'Voir les actifs', 'description' => 'Autoriser l\'accès à la liste des actifs.'],
             'show' => ['title' => 'Afficher les détails de l\'actif', 'description' => 'Autoriser la consultation des informations détaillées d\'un actif.'],
