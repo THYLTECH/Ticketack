@@ -34,38 +34,44 @@ export default function FAQ() {
     ]
 
     return (
-        <section className="py-16 md:py-24" id='help'>
-            <div className="grid gap-8 md:grid-cols-5 md:gap-12">
-                <div className="md:col-span-2">
-                    <div className='flex flex-col gap-4'>
-                        <Badge variant={'outline'}>
-                            <HelpCircle className="mr-2 size-4" />
-                            FAQs
-                        </Badge>
-                        <h2 className="text-foreground text-4xl font-semibold">Common Questions</h2>
+        <section className="py-24 md:py-32" id='help'>
+            <div className="mx-auto max-w-7xl px-6 md:px-8">
+                <div className="grid gap-12 md:grid-cols-5 md:gap-24">
+                    <div className="md:col-span-2 space-y-6">
+                        <div className='flex flex-col gap-4'>
+                            <Badge variant={'outline'} className="w-fit px-4 py-1.5 border-primary/20 bg-primary/5 text-primary">
+                                <HelpCircle className="mr-2 size-4" />
+                                FAQs
+                            </Badge>
+                            <h2 className="text-foreground text-4xl font-bold tracking-tight">Common Questions</h2>
+                        </div>
+                        <p className="text-muted-foreground text-lg leading-relaxed">
+                            Understanding Ticketack's technology.
+                        </p>
+                        <p className="text-muted-foreground leading-relaxed hidden md:block">
+                            Learn more about how our AI-powered ETL pipeline, vector databases, and secure storage work together to optimize your support workflow.
+                        </p>
                     </div>
-                    <p className="text-muted-foreground mt-4 text-balance text-lg">Understanding Ticketack's technology.</p>
-                    <p className="text-muted-foreground mt-6 hidden md:block">
-                        Learn more about how our AI-powered ETL pipeline, vector databases, and secure storage work together to optimize your support workflow.
+
+                    <div className="md:col-span-3">
+                        <Accordion type="single" collapsible className="w-full">
+                            {faqItems.map((item) => (
+                                <AccordionItem key={item.id} value={item.id} className="border-b border-border/50">
+                                    <AccordionTrigger className="cursor-pointer text-lg font-medium hover:text-primary transition-colors py-6 text-left hover:no-underline">
+                                        {item.question}
+                                    </AccordionTrigger>
+                                    <AccordionContent className="text-muted-foreground pb-6 leading-relaxed">
+                                        {item.answer}
+                                    </AccordionContent>
+                                </AccordionItem>
+                            ))}
+                        </Accordion>
+                    </div>
+
+                    <p className="text-muted-foreground mt-6 md:hidden">
+                        Learn more about how our AI-powered ETL pipeline, vector databases, and secure storage work together.
                     </p>
                 </div>
-
-                <div className="md:col-span-3">
-                    <Accordion type="single" collapsible>
-                        {faqItems.map((item) => (
-                            <AccordionItem key={item.id} value={item.id}>
-                                <AccordionTrigger className="cursor-pointer text-base hover:no-underline">{item.question}</AccordionTrigger>
-                                <AccordionContent>
-                                    <p className="text-base text-muted-foreground">{item.answer}</p>
-                                </AccordionContent>
-                            </AccordionItem>
-                        ))}
-                    </Accordion>
-                </div>
-
-                <p className="text-muted-foreground mt-6 md:hidden">
-                    Learn more about how our AI-powered ETL pipeline, vector databases, and secure storage work together.
-                </p>
             </div>
         </section>
     )
