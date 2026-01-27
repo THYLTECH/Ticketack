@@ -25,30 +25,12 @@ export default function Welcome() {
 
             <ArrowUp />
 
-            <main className='border-r border-l mx-auto max-w-6xl px-8'>
+            <main className='min-h-screen bg-background text-foreground'>
                 <Hero />
-
-                {/* Separator */}
-                <div className="relative flex w-full flex-col justify-between md:flex-row">
-                    <div className="-translate-x-1/2 -top-px pointer-events-none absolute left-1/2 w-[99vw] border-t" />
-                </div>
-
                 <About />
-
-                {/* Separator */}
-                <div className="relative flex w-full flex-col justify-between md:flex-row">
-                    <div className="-translate-x-1/2 -top-px pointer-events-none absolute left-1/2 w-[99vw] border-t" />
-                </div>
-
                 <Solution />
                 <Cta />
                 <Features />
-
-                {/* Separator */}
-                <div className="relative flex w-full flex-col justify-between md:flex-row">
-                    <div className="-translate-x-1/2 -top-px pointer-events-none absolute left-1/2 w-[99vw] border-t" />
-                </div>
-
                 <FAQ />
             </main>
 
