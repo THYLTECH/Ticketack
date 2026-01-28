@@ -146,22 +146,22 @@ return [
         'category' => 'Catégorie',
         'clear' => 'Effacer les filtres',
     ],
-    'fields'=> [
-        'id'         => 'ID',
-        'title'      => 'Titre',
-        'status'     => 'Statut',
-        'priority'   => 'Priorité',
-        'author'     => 'Auteur',
+    'fields' => [
+        'id' => 'ID',
+        'title' => 'Titre',
+        'status' => 'Statut',
+        'priority' => 'Priorité',
+        'author' => 'Auteur',
         'updated_at' => 'Mis à jour le',
     ],
     'status' => [
-        'open'   => 'Ouvert',
+        'open' => 'Ouvert',
         'closed' => 'Fermé',
     ],
     'priority' => [
-        'low'    => 'Basse',
+        'low' => 'Basse',
         'medium' => 'Moyenne',
-        'high'   => 'Haute',
+        'high' => 'Haute',
     ],
 
     'archive' => [
@@ -687,4 +687,7 @@ return [
     'ai_refine_label' => 'Précisez votre demande ou corrigez l\'IA',
     'ai_refine_placeholder' => 'Ex: Peux-tu détailler l\'étape 2 ? / L\'erreur est plus simple...',
     'ai_refine_submit' => 'Générer nouvelle solution',
+    'ai_thinking_title' => 'L\'IA réfléchit...',
+    'ai_analysis' => 'Analyse Technique',
+    'ai_missing_info' => 'Informations Manquantes',
 ];

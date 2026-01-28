@@ -44,15 +44,14 @@ ETL_API_URL = os.getenv('ETL_API_URL', 'http://etl-api:8000')
 # Pydantic model to validate the AI output
 
 class AnalysisStep(BaseModel):
-    description: str = Field(description="Titre ou action principale de l'étape")
+    description: str = Field(description="Titre concis de l'action")
     details: Optional[str] = Field(description="Détails techniques ou commande à exécuter", default="")
-    confidence_score: Optional[float] = Field(description="Confiance spécifique pour cette étape", default=None)
 
 class TicketAnalysis(BaseModel):
     summary: str = Field(description="Résumé du problème identifié en 1 phrase")
-    analysis: str = Field(description="Analyse technique de la cause probable")
+    analysis: str = Field(description="Analyse technique détaillée de la cause probable")
     steps: List[AnalysisStep] = Field(description="Liste structurée des étapes de résolution")
-    missing_info: Optional[str] = Field(description="Questions à poser au client si incomplet")
+    missing_info: Optional[str] = Field(description="Questions à poser au client si incomplet", default=None)
     confidence_score: float = Field(description="Score de confiance global entre 0.0 et 1.0")
     citations: List[str] = Field(description="IDs des documents utilisés", default_factory=list)
 
@@ -68,7 +67,7 @@ def get_db_connection():
         autocommit=True
     )
 
-def save_suggestion_to_db(ticket_id, analysis_json, prompt_text, documents, model_name, temp=0.2):
+def save_suggestion_to_db(ticket_id, analysis_json, prompt_text, documents, model_name, temp=0.2, suggestion_id=None):
     try:
         # Calculate prompt hash
         prompt_hash = hashlib.sha256(prompt_text.encode('utf-8')).hexdigest()
@@ -89,20 +88,41 @@ def save_suggestion_to_db(ticket_id, analysis_json, prompt_text, documents, mode
         
         connection = get_db_connection()
         with connection.cursor() as cursor:
-            sql = """
-            INSERT INTO ai_suggestions 
-            (ticket_id, model_config_snapshot, prompt_hash, generated_content, retrieved_chunks, confidence_score, processing_time_ms, created_at, updated_at)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
-            """
-            cursor.execute(sql, (
-                ticket_id,
-                model_snapshot,
-                prompt_hash,
-                analysis_json,
-                chunks_snapshot,
-                confidence,
-                0 # Processing time not tracked strictly yet
-            ))
+            if suggestion_id:
+                print(f"🔄 [IA] Mise à jour de la suggestion existante ID={suggestion_id}...")
+                sql = """
+                UPDATE ai_suggestions 
+                SET model_config_snapshot=%s, prompt_hash=%s, generated_content=%s, 
+                    retrieved_chunks=%s, confidence_score=%s, processing_time_ms=%s, updated_at=NOW()
+                WHERE id=%s AND ticket_id=%s
+                """
+                cursor.execute(sql, (
+                    model_snapshot,
+                    prompt_hash,
+                    analysis_json,
+                    chunks_snapshot,
+                    confidence,
+                    0,
+                    suggestion_id,
+                    ticket_id
+                ))
+            else:
+                # Fallback for old payloads (should not happen with new backend code)
+                print(f"⚠️ [IA] Pas de suggestion_id, création d'une nouvelle entrée...")
+                sql = """
+                INSERT INTO ai_suggestions 
+                (ticket_id, model_config_snapshot, prompt_hash, generated_content, retrieved_chunks, confidence_score, processing_time_ms, created_at, updated_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
+                """
+                cursor.execute(sql, (
+                    ticket_id,
+                    model_snapshot,
+                    prompt_hash,
+                    analysis_json,
+                    chunks_snapshot,
+                    confidence,
+                    0
+                ))
         connection.close()
         print(f"💾 [IA] Suggestion sauvegardée en BDD pour le ticket #{ticket_id}.")
         return True
@@ -136,7 +156,7 @@ def retrieve_context(query, limit=3):
         print(f"⚠️ [RAG] Erreur lors de la récupération du contexte : {str(e)}")
         return []
 
-def generate_ai_opinion(ticket_id, title, context_text, user_feedback=None, previous_suggestion=None):
+def generate_ai_opinion(ticket_id, title, context_text, user_feedback=None, previous_suggestion=None, suggestion_id=None):
     """
     Generates an AI opinion via LiteLLM and validates with Pydantic.
     """
@@ -186,7 +206,7 @@ def generate_ai_opinion(ticket_id, title, context_text, user_feedback=None, prev
             final_json = analysis.model_dump_json(indent=2)
             
             # 5. Save to DB
-            save_suggestion_to_db(ticket_id, final_json, prompt, documents, MODEL_NAME, temperature)
+            save_suggestion_to_db(ticket_id, final_json, prompt, documents, MODEL_NAME, temperature, suggestion_id=suggestion_id)
             
             return final_json
             
@@ -207,15 +227,16 @@ def process_ticket(payload):
     Payload expected: {'ticket_id': ..., 'title': ..., 'description': ..., 'status': ...}
     """
     ticket_id = payload.get('ticket_id')
+    suggestion_id = payload.get('suggestion_id') # Extract ID
     title = payload.get('title')
     description = payload.get('description', 'Pas de description fournie.')
 
     user_feedback = payload.get('user_feedback')
     previous_suggestion = payload.get('previous_suggestion')
 
-    print(f"🤖 [IA] Analyse du ticket #{ticket_id} : {title}")
+    print(f"🤖 [IA] Analyse du ticket #{ticket_id} (Suggestion ID: {suggestion_id}) : {title}")
     
-    opinion = generate_ai_opinion(ticket_id, title, description, user_feedback, previous_suggestion)
+    opinion = generate_ai_opinion(ticket_id, title, description, user_feedback, previous_suggestion, suggestion_id=suggestion_id)
 
     print("="*60)
     print(f"📝 OPINION IA pour le ticket #{ticket_id}")

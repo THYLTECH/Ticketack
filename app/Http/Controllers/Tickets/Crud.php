@@ -68,8 +68,15 @@ class Crud extends Controller
         $latestSuggestion = $ticket->aiSuggestions()->latest()->first();
 
         try {
+            // Create pending suggestion for follow-up
+            $suggestion = \App\Models\AiSuggestion::create([
+                'ticket_id' => $ticket->id,
+                // generated_content will be null, acting as "pending"
+            ]);
+
             $payload = [
                 'ticket_id' => $ticket->id,
+                'suggestion_id' => $suggestion->id,
                 'title' => $ticket->title,
                 'description' => $ticket->description,
                 'status' => 'pending_analysis',

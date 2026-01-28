@@ -687,4 +687,7 @@ return [
     'ai_refine_label' => 'Refine your request or correct the AI',
     'ai_refine_placeholder' => 'Ex: Can you detail step 2? / The error is simpler...',
     'ai_refine_submit' => 'Generate new solution',
+    'ai_thinking_title' => 'AI is thinking...',
+    'ai_analysis' => 'Technical Analysis',
+    'ai_missing_info' => 'Missing Information',
 ];
