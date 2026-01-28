@@ -245,7 +245,10 @@ export interface Ticket {
         id: number;
         generated_content: {
             summary: string;
-            steps: string[];
+            steps: Array<{
+                description: string;
+                details?: string;
+            }>;
             analysis: string;
             missing_info?: string;
         };

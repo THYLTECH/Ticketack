@@ -59,6 +59,8 @@ class Crud extends Controller
 
     public function aiFollowUp(Request $request, Ticket $ticket): RedirectResponse
     {
+        $this->authorize('useAiSuggestions', $ticket);
+
         $validated = $request->validate([
             'feedback' => 'required|string|max:1000',
         ]);
@@ -253,7 +255,7 @@ class Crud extends Controller
         ]);
     }
 
-    public function show(Ticket $ticket): Response
+    public function show(Request $request, Ticket $ticket): Response
     {
         $ticket->load([
             'user.avatar',
@@ -266,10 +268,28 @@ class Crud extends Controller
             'comments.attachments',
             'logs.user.avatar',
             'schedules.user.avatar',
-            'attachments',
-            'aiSuggestions' => fn($q) => $q->latest(),
+            'attachments'
         ]);
 
+        if ($request->user()->can('use ai suggestions tickets')) {
+            $ticket->load(['aiSuggestions' => fn($q) => $q->latest()]);
+        }
+
+        return Inertia::render('tickets/show', [
+            'ticket' => $ticket,
+            'events' => $this->getTicketEvents($ticket),
+            'solvers' => User::permission('be assigned tickets')->with('avatar')->get()->map(fn($user) => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'avatar' => $user->avatar,
+            ])->toArray(),
+            'similar_tickets' => $this->getSimilarTickets($ticket),
+        ]);
+    }
+
+    private function getSimilarTickets(Ticket $ticket): array
+    {
         $searchContext = implode(' ', array_filter([
             $ticket->title,
             $ticket->description,
@@ -277,40 +297,47 @@ class Crud extends Controller
             $ticket->asset?->title,
         ]));
 
-        $similarTickets = [];
-
         try {
             $results = $this->vectorSearch->search([
                 'query' => $searchContext,
                 'limit' => 6,
             ]);
 
-            if (!empty($results) && !isset($results['error'])) {
-                $filteredResults = collect($results)
-                    ->filter(fn($r) => $r['ticket_id'] != $ticket->id)
-                    ->take(6);
-
-                if ($filteredResults->isNotEmpty()) {
-                    $ticketsInfo = Ticket::whereIn('id', $filteredResults->pluck('ticket_id'))
-                        ->get(['id', 'title'])
-                        ->keyBy('id');
-
-                    $similarTickets = $filteredResults->map(function ($result) use ($ticketsInfo) {
-                        $info = $ticketsInfo->get($result['ticket_id']);
-                        if (!$info)
-                            return null;
-
-                        return [
-                            'id' => $info->id,
-                            'title' => $info->title,
-                            'similarity' => round(max(0, min(1, 1 - ($result['score'] / 2))) * 100),
-                        ];
-                    })->filter()->values()->toArray();
-                }
+            if (empty($results) || isset($results['error'])) {
+                return [];
             }
-        } catch (Throwable) {
-        }
 
+            $filteredResults = collect($results)
+                ->filter(fn($r) => $r['ticket_id'] != $ticket->id)
+                ->take(6);
+
+            if ($filteredResults->isEmpty()) {
+                return [];
+            }
+
+            $ticketsInfo = Ticket::whereIn('id', $filteredResults->pluck('ticket_id'))
+                ->get(['id', 'title'])
+                ->keyBy('id');
+
+            return $filteredResults->map(function ($result) use ($ticketsInfo) {
+                $info = $ticketsInfo->get($result['ticket_id']);
+                if (!$info)
+                    return null;
+
+                return [
+                    'id' => $info->id,
+                    'title' => $info->title,
+                    'similarity' => round(max(0, min(1, 1 - ($result['score'] / 2))) * 100),
+                ];
+            })->filter()->values()->toArray();
+
+        } catch (Throwable) {
+            return [];
+        }
+    }
+
+    private function getTicketEvents(Ticket $ticket): array
+    {
         $schedules = TicketSchedule::with(['user.avatar', 'ticket.priority', 'ticket.status', 'ticket.category'])
             ->where('ticket_id', $ticket->id)
             ->get()
@@ -337,22 +364,9 @@ class Crud extends Controller
             ->get()
             ->map(fn($entry) => $entry->toCalendarEvent())
             ->filter(fn($event) => !empty($event))
-            ->values()
-            ->toArray();
+            ->values();
 
-        $events = $schedules->concat($entries)->values()->all();
-
-        return Inertia::render('tickets/show', [
-            'ticket' => $ticket,
-            'events' => $events,
-            'solvers' => User::permission('be assigned tickets')->with('avatar')->get()->map(fn($user) => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'avatar' => $user->avatar,
-            ])->toArray(),
-            'similar_tickets' => $similarTickets,
-        ]);
+        return $schedules->concat($entries)->values()->all();
     }
 
     /**
