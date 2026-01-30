@@ -39,8 +39,8 @@ services:
     environment:
       MYSQL_DATABASE: ticketack
       MYSQL_USER: ticketack
-      MYSQL_PASSWORD: secret
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_PASSWORD: PFE2025Thyltech
+      MYSQL_ROOT_PASSWORD: PFE2025Thyltech
     volumes:
       - dbdata:/var/lib/mysql
     networks:
