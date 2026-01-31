@@ -36,6 +36,22 @@ return [
             'title' => 'Résolus',
             'description' => 'Retrouvez ici l’historique de vos demandes traitées récemment.',
         ],
+        'banner' => [
+            'title' => 'Nouvelle page d\'accueil',
+            'description' => 'Découvrez une interface modernisée. Si besoin, vous pouvez revenir à la vue classique via les paramètres ou masquer cette bannière.',
+        ],
+        'stats' => [
+            'title' => 'Statistiques',
+            'description' => 'Suivez vos tickets, vos heures et l\'activité globale en un coup d\'œil.',
+        ],
+        'quick_actions' => [
+            'title' => 'Raccourcis',
+            'description' => 'Accédez rapidement aux fonctionnalités clés de l\'application.',
+        ],
+        'widgets' => [
+            'title' => 'Personnalisation',
+            'description' => 'Ce tableau de bord est flexible. Réorganisez ces widgets selon vos besoins.',
+        ],
     ],
 
     'tickets' => [
@@ -191,7 +207,7 @@ return [
             'description' => 'En attente d\'assignation - Demande de support IT',
         ],
     ],
-    
+
     'assets' => [
         'table' => [
             'title' => 'Inventaire des actifs',

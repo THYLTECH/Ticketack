@@ -39,9 +39,6 @@ return [
         'view_all' => 'View all',
         'read_more' => 'Read more',
         'read_less' => 'Read less',
-    ],
-
-    'actions' => [
         'select_all' => 'Select All',
         'deselect_all' => 'Deselect All',
         'cancel' => 'Cancel',
@@ -59,6 +56,8 @@ return [
         'weeks' => 'weeks',
         'months' => 'months',
         'years' => 'years',
+        'today' => 'Today',
+        'tomorrow' => 'Tomorrow',
     ],
     'buttons' => [
         'view' => 'View',

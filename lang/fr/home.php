@@ -103,4 +103,19 @@ return [
         'no_closed_tickets' => 'Aucun ticket fermé récemment.',
         'no_assigned_tickets' => 'Aucun ticket assigné pour le moment.',
     ],
+
+    'banner' => [
+        'title' => 'Nouvelle expérience d\'accueil',
+        'description' => 'Découvrez la nouvelle page d\'accueil avec des statistiques améliorées et des actions rapides.',
+        'button' => 'Essayer la nouvelle version',
+        'visible' => 'Visible (Admin)',
+        'hidden' => 'Masqué (Admin)',
+    ],
+
+    'actions' => [
+        'save' => 'Enregistrer',
+        'cancel' => 'Annuler',
+        'customize' => 'Personnaliser',
+        'classic_view' => 'Vue classique',
+    ],
 ];

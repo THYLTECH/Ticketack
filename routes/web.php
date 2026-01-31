@@ -40,6 +40,7 @@ Route::get('/errors', function (Request $request) {
 Route::middleware(['auth', 'verified:auth.verification.notice'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::post('/home/settings', [HomeController::class, 'updateSettings'])->name('home.settings');
+    Route::post('/home/toggle-global-banner', [HomeController::class, 'toggleGlobalBanner'])->name('home.toggle-global-banner');
 
     Route::delete('/attachments/{attachment}', [AttachmentController::class, 'destroy'])
         ->name('attachments.destroy');

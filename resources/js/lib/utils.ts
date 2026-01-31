@@ -108,5 +108,5 @@ export function convertAttachmentsToFileWithPreview({
 
 export function userHasPermission({ user, permission }: { user: User; permission: string }): boolean {
   if (!user || !user.permissions) return false;
-  return user.permissions.some((p: Permission) => p.name === permission);
+  return user.permissions.some((p: string | Permission) => typeof p === 'string' ? p === permission : (p as Permission).name === permission);
 }

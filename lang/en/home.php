@@ -103,4 +103,19 @@ return [
         'no_closed_tickets' => 'No recent closed tickets.',
         'no_assigned_tickets' => 'No assigned tickets at the moment.',
     ],
+
+    'banner' => [
+        'title' => 'New Home Experience',
+        'description' => 'Check out the new home page with improved stats and quick actions.',
+        'button' => 'Try New Home',
+        'visible' => 'Visible (Admin)',
+        'hidden' => 'Hidden (Admin)',
+    ],
+
+    'actions' => [
+        'save' => 'Save',
+        'cancel' => 'Cancel',
+        'customize' => 'Customize',
+        'classic_view' => 'Classic View',
+    ],
 ];

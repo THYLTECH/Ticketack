@@ -67,23 +67,23 @@ class HandleInertiaRequests extends Middleware
                     'color_scheme' => $user->color_scheme,
                     'phone' => $user->phone,
                     'roles' => $user->roles,
-                    'permissions' => $user->getAllPermissions(),
+                    'permissions' => $user->getAllPermissions()->pluck('name'),
                 ] : null,
             ],
-            'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
-            'old' => fn () => session()->getOldInput(),
+            'sidebarOpen' => !$request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'old' => fn() => session()->getOldInput(),
             'flash' => [
-                'success' => fn () => $request->session()->get('success'),
-                'error' => fn () => $request->session()->get('error'),
+                'success' => fn() => $request->session()->get('success'),
+                'error' => fn() => $request->session()->get('error'),
             ],
-            'errors' => fn () => $request->session()->get('errors')
+            'errors' => fn() => $request->session()->get('errors')
                 ? $request->session()->get('errors')->getBag('default')->getMessages()
                 : (object) [],
 
             'locale' => App::getLocale(),
             'fallback_locale' => config('app.fallback_locale'),
 
-            'translations' => fn () => collect(File::files(lang_path(App::getLocale())))
+            'translations' => fn() => collect(File::files(lang_path(App::getLocale())))
                 ->mapWithKeys(function ($file) {
                     $name = pathinfo($file, PATHINFO_FILENAME);
                     $lines = Lang::get($name);
@@ -92,7 +92,7 @@ class HandleInertiaRequests extends Middleware
                 })
                 ->toArray(),
 
-            'translations_fallback' => fn () => collect(File::files(lang_path(config('app.fallback_locale'))))
+            'translations_fallback' => fn() => collect(File::files(lang_path(config('app.fallback_locale'))))
                 ->mapWithKeys(function ($file) {
                     $name = pathinfo($file, PATHINFO_FILENAME);
                     $lines = Lang::get($name, [], config('app.fallback_locale'));

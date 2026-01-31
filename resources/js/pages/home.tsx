@@ -27,7 +27,9 @@ import {
     ChevronUp,
     ChevronDown,
 } from 'lucide-react';
+import { PageTutorial } from '@/components/onboarding';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
 
 import { TicketTable } from '@/components/tickets/ticket-table';
@@ -71,7 +73,10 @@ interface DashboardLayout {
     top: Widget[];
     left: Widget[];
     right: Widget[];
+    show_banner?: boolean;
 }
+
+type WidgetContainer = 'top' | 'left' | 'right';
 
 const DEFAULT_LAYOUT: DashboardLayout = {
     top: [
@@ -143,6 +148,7 @@ interface HomeProps {
         open: PaginatedData<Ticket>;
         closed: PaginatedData<Ticket>;
     };
+    is_banner_globally_enabled?: boolean;
 }
 
 function getGreeting(): string {
@@ -314,6 +320,7 @@ export default function Home({
     home_page_mode,
     home_page_layout,
     userTickets,
+    is_banner_globally_enabled = true,
 }: HomeProps) {
     const __ = useTrans();
     const { auth } = usePage<SharedData>().props;
@@ -363,7 +370,8 @@ export default function Home({
     const filterLayout = (layout: DashboardLayout) => ({
         top: layout.top.filter(w => isWidgetPermitted(w.id)),
         left: layout.left.filter(w => isWidgetPermitted(w.id)),
-        right: layout.right.filter(w => isWidgetPermitted(w.id))
+        right: layout.right.filter(w => isWidgetPermitted(w.id)),
+        show_banner: layout.show_banner,
     });
 
     const initializeLayout = () => {
@@ -376,10 +384,23 @@ export default function Home({
         ]);
 
         if (currentIds.has('stats_overview' as unknown as WidgetId)) {
-            return DEFAULT_LAYOUT;
+            return filterLayout(DEFAULT_LAYOUT);
         }
 
-        return filterLayout(home_page_layout);
+        const filtered = filterLayout(home_page_layout);
+
+        const missingTop = DEFAULT_LAYOUT.top.filter(w => isWidgetPermitted(w.id) && !currentIds.has(w.id));
+        const missingLeft = DEFAULT_LAYOUT.left.filter(w => isWidgetPermitted(w.id) && !currentIds.has(w.id));
+        const missingRight = DEFAULT_LAYOUT.right.filter(w => isWidgetPermitted(w.id) && !currentIds.has(w.id));
+
+        filtered.top = [...filtered.top, ...missingTop];
+        filtered.left = [...filtered.left, ...missingLeft];
+        filtered.right = [...filtered.right, ...missingRight];
+
+        if (home_page_layout.show_banner !== undefined) {
+            filtered.show_banner = home_page_layout.show_banner;
+        }
+        return filtered;
     };
 
     const [layout, setLayout] = useState<DashboardLayout>(initializeLayout());
@@ -418,10 +439,12 @@ export default function Home({
         const activeId = active.id as string;
         const overId = over.id as string;
 
-        const findContainer = (id: string): keyof DashboardLayout | undefined => {
-            if (id in layout) return id as keyof DashboardLayout;
-            return (Object.keys(layout) as Array<keyof DashboardLayout>).find(key =>
-                layout[key].find(item => item.id === id)
+        const findContainer = (id: string): WidgetContainer | undefined => {
+            const containers: WidgetContainer[] = ['top', 'left', 'right'];
+            if (containers.includes(id as WidgetContainer)) return id as WidgetContainer;
+
+            return containers.find(key =>
+                (layout[key] as Widget[])?.find(item => item.id === id)
             );
         };
 
@@ -437,8 +460,8 @@ export default function Home({
 
             if (activeContainer !== overContainer) {
                 setLayout(prev => {
-                    const activeItems = prev[activeContainer];
-                    const overItems = prev[overContainer];
+                    const activeItems = prev[activeContainer] as Widget[];
+                    const overItems = prev[overContainer] as Widget[];
                     const activeIndex = activeItems.findIndex(i => i.id === activeId);
                     const overIndex = overItems.findIndex(i => i.id === overId);
 
@@ -458,22 +481,22 @@ export default function Home({
 
                     return {
                         ...prev,
-                        [activeContainer]: [...prev[activeContainer].filter(item => item.id !== activeId)],
+                        [activeContainer]: [...(prev[activeContainer] as Widget[]).filter(item => item.id !== activeId)],
                         [overContainer]: [
-                            ...prev[overContainer].slice(0, newIndex),
+                            ...(prev[overContainer] as Widget[]).slice(0, newIndex),
                             activeItems[activeIndex],
-                            ...prev[overContainer].slice(newIndex, prev[overContainer].length)
+                            ...(prev[overContainer] as Widget[]).slice(newIndex, (prev[overContainer] as Widget[]).length)
                         ]
                     };
                 });
             } else {
-                const activeIndex = layout[activeContainer].findIndex(i => i.id === activeId);
-                const overIndex = layout[activeContainer].findIndex(i => i.id === overId);
+                const activeIndex = (layout[activeContainer] as Widget[]).findIndex(i => i.id === activeId);
+                const overIndex = (layout[activeContainer] as Widget[]).findIndex(i => i.id === overId);
 
                 if (activeIndex !== overIndex) {
                     setLayout((items) => ({
                         ...items,
-                        [activeContainer]: arrayMove(items[activeContainer], activeIndex, overIndex),
+                        [activeContainer]: arrayMove((items[activeContainer] as Widget[]), activeIndex, overIndex),
                     }));
                 }
             }
@@ -482,18 +505,18 @@ export default function Home({
         setActiveId(null);
     };
 
-    const toggleWidgetVisibility = (id: string, container: keyof DashboardLayout) => {
+    const toggleWidgetVisibility = (id: string, container: WidgetContainer) => {
         setLayout(prev => ({
             ...prev,
-            [container]: prev[container].map(item =>
+            [container]: (prev[container] as Widget[]).map(item =>
                 item.id === id ? { ...item, visible: !item.visible } : item
             )
         }));
     };
 
-    const moveWidget = (id: string, container: keyof DashboardLayout, direction: 'up' | 'down') => {
+    const moveWidget = (id: string, container: WidgetContainer, direction: 'up' | 'down') => {
         setLayout(prev => {
-            const items = [...prev[container]];
+            const items = [...(prev[container] as Widget[])];
             const index = items.findIndex(item => item.id === id);
             if (index === -1) return prev;
 
@@ -517,8 +540,12 @@ export default function Home({
     };
 
     const cancelLayout = () => {
-        setLayout(filterLayout(home_page_layout || DEFAULT_LAYOUT));
+        setLayout(initializeLayout());
         setIsEditing(false);
+    };
+
+    const resetToDefault = () => {
+        setLayout(filterLayout(DEFAULT_LAYOUT));
     };
 
 
@@ -533,6 +560,70 @@ export default function Home({
     const greeting = getGreeting();
     const greetingText = __(`home.greeting.${greeting}`, undefined, { name: auth.user.name });
     const showNewHome = currentMode === 'default';
+
+    const tutorialSteps = showNewHome ? [
+        {
+            id: 'banner',
+            title: __('onboarding.home.banner.title'),
+            description: __('onboarding.home.banner.description'),
+            targetSelector: '[data-onboarding="banner"]',
+            position: 'bottom' as const,
+        },
+        {
+            id: 'quick-actions',
+            title: __('onboarding.home.quick_actions.title'),
+            description: __('onboarding.home.quick_actions.description'),
+            targetSelector: '[data-onboarding="quick-actions"]',
+            position: 'bottom' as const,
+        },
+        {
+            id: 'stats',
+            title: __('onboarding.home.stats.title'),
+            description: __('onboarding.home.stats.description'),
+            targetSelector: '[data-onboarding="stats-section"]',
+            position: 'bottom' as const,
+            disableScroll: true,
+        },
+        {
+            id: 'widgets',
+            title: __('onboarding.home.widgets.title'),
+            description: __('onboarding.home.widgets.description'),
+            targetSelector: '[data-onboarding="widgets-section"]',
+            position: 'top' as const,
+        },
+    ] : [
+        {
+            id: 'tabs',
+            title: __('onboarding.home.tabs.title'),
+            description: __('onboarding.home.tabs.description'),
+            targetSelector: '[data-onboarding="tabs"]',
+            position: 'bottom' as const,
+        },
+        {
+            id: 'open-tickets',
+            title: __('onboarding.home.open_column.title'),
+            description: __('onboarding.home.open_column.description'),
+            targetSelector: '[data-onboarding="open-tickets"]',
+            position: 'bottom' as const,
+        },
+        {
+            id: 'closed-tickets',
+            title: __('onboarding.home.closed_column.title'),
+            description: __('onboarding.home.closed_column.description'),
+            targetSelector: '[data-onboarding="closed-tickets"]',
+            position: 'top' as const,
+        },
+    ];
+
+    const isAdmin = auth.user.roles?.some(role => role.name === 'admin') ?? false;
+
+    const showBanner = !showNewHome && (isAdmin || is_banner_globally_enabled);
+    const isBannerHiddenForUsers = !is_banner_globally_enabled;
+
+    const toggleGlobalBanner = () => {
+        router.post(route('home.toggle-global-banner'), {}, { preserveScroll: true });
+    };
+
 
     const renderWidget = (id: string) => {
         if (!stats) return null;
@@ -687,7 +778,7 @@ export default function Home({
 
             <div className="container mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
 
-                {!showNewHome && userTickets && (
+                {showBanner && userTickets && (
                     <div className="space-y-6">
                         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                             <div>
@@ -697,96 +788,146 @@ export default function Home({
                                 <p className="text-muted-foreground">{__('home.pages.description')}</p>
                             </div>
                         </div>
-                        <div className="relative overflow-hidden rounded-lg border bg-background p-6 shadow-sm">
-                            <div className="flex items-center justify-between gap-4">
+                        <div className={cn(
+                            "relative overflow-hidden rounded-lg border bg-background p-6 shadow-sm group transition-all",
+                            isBannerHiddenForUsers && "opacity-75"
+                        )} data-onboarding="banner">
+                            <div className="flex items-center justify-between gap-4 relative z-10">
                                 <div className="space-y-1">
                                     <h3 className="font-semibold leading-none tracking-tight flex items-center gap-2">
                                         <Rocket className="h-4 w-4 text-indigo-500" />
-                                        New Home Experience
+                                        {__('home.banner.title')}
+                                        {isAdmin && (
+                                            <Badge
+                                                variant="outline"
+                                                className={cn(
+                                                    "ml-2 cursor-pointer transition-colors hover:bg-opacity-80 py-0.5 px-2 h-auto text-[10px] select-none",
+                                                    isBannerHiddenForUsers
+                                                        ? "bg-yellow-100 text-yellow-700 border-yellow-200 hover:bg-yellow-200"
+                                                        : "bg-green-100 text-green-700 border-green-200 hover:bg-green-200"
+                                                )}
+                                                onClick={(e: React.MouseEvent) => {
+                                                    e.stopPropagation();
+                                                    toggleGlobalBanner();
+                                                }}
+                                            >
+                                                {isBannerHiddenForUsers ? (
+                                                    <span className="flex items-center gap-1">
+                                                        <EyeOff className="h-3 w-3" />
+                                                        {__('home.banner.hidden')}
+                                                    </span>
+                                                ) : (
+                                                    <span className="flex items-center gap-1">
+                                                        <Eye className="h-3 w-3" />
+                                                        {__('home.banner.visible')}
+                                                    </span>
+                                                )}
+                                            </Badge>
+                                        )}
                                     </h3>
                                     <p className="text-sm text-muted-foreground">
-                                        Check out the new home page with improved stats and quick actions.
+                                        {__('home.banner.description')}
                                     </p>
                                 </div>
-                                <Button onClick={() => updateSettings('default')} className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md">
-                                    Try New Home
-                                </Button>
+                                <div className="flex items-center gap-2">
+                                    <Button onClick={() => updateSettings('default')} className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md">
+                                        {__('home.banner.button')}
+                                    </Button>
+                                </div>
                             </div>
                             <div className="absolute -top-12 -right-12 h-32 w-32 bg-indigo-500/10 blur-3xl rounded-full pointer-events-none" />
                             <div className="absolute -bottom-12 -left-12 h-32 w-32 bg-blue-500/10 blur-3xl rounded-full pointer-events-none" />
                         </div>
 
-                        <Tabs defaultValue="my_tickets" className="w-full space-y-6">
-                            <TabsList className={`grid w-full ${canSeeAssigned ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                                <TabsTrigger value="my_tickets">
-                                    <TicketIcon className="mr-2 h-4 w-4" />
-                                    {__('home.sections.my_tickets')}
-                                </TabsTrigger>
-                                {canSeeAssigned && (
-                                    <TabsTrigger value="assigned_tickets">
-                                        <LayoutDashboard className="mr-2 h-4 w-4" />
-                                        {__('home.sections.assigned_tickets')}
-                                    </TabsTrigger>
-                                )}
-                            </TabsList>
+                    </div>
+                )}
 
-                            <TabsContent value="my_tickets" className="space-y-6 border-none p-0 outline-none">
+                {!showBanner && !showNewHome && (
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="space-y-1">
+                            <h1 className="text-2xl font-bold tracking-tight">
+                                {greetingText}
+                            </h1>
+                            <p className="text-muted-foreground">{__('home.pages.description')}</p>
+                        </div>
+                        <Button variant="outline" onClick={() => updateSettings('default')} className="gap-2" data-onboarding="banner">
+                            <Rocket className="h-4 w-4 text-indigo-500" />
+                            {__('home.banner.button')}
+                        </Button>
+                    </div>
+                )}
+
+                {!showNewHome && userTickets && (
+                    <Tabs defaultValue="my_tickets" className="w-full space-y-6" data-onboarding="tabs">
+                        <TabsList className={`grid w-full ${canSeeAssigned ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                            <TabsTrigger value="my_tickets">
+                                <TicketIcon className="mr-2 h-4 w-4" />
+                                {__('home.sections.my_tickets')}
+                            </TabsTrigger>
+                            {canSeeAssigned && (
+                                <TabsTrigger value="assigned_tickets">
+                                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                                    {__('home.sections.assigned_tickets')}
+                                </TabsTrigger>
+                            )}
+                        </TabsList>
+
+                        <TabsContent value="my_tickets" className="space-y-6 border-none p-0 outline-none">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <div className="flex flex-col space-y-4" data-onboarding="open-tickets">
+                                    <div className="flex items-center gap-2 px-1">
+                                        <Clock className="h-4 w-4 text-orange-500" />
+                                        <h3 className="text-sm font-semibold">{__('home.tabs.unresolved')}</h3>
+                                    </div>
+                                    <TicketTable
+                                        data={userTickets.open}
+                                        emptyMessage={__('home.messages.no_open_tickets')}
+                                    />
+                                </div>
+
+                                <div className="flex flex-col space-y-4" data-onboarding="closed-tickets">
+                                    <div className="flex items-center gap-2 px-1">
+                                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                                        <h3 className="text-sm font-semibold">{__('home.tabs.closed_30_days')}</h3>
+                                    </div>
+                                    <TicketTable
+                                        data={userTickets.closed}
+                                        emptyMessage={__('home.messages.no_recent_closed_tickets')}
+                                    />
+                                </div>
+                            </div>
+                        </TabsContent>
+
+                        {canSeeAssigned && assignedTickets && (
+                            <TabsContent value="assigned_tickets" className="space-y-6 border-none p-0 outline-none">
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    <div className="flex flex-col space-y-4" data-onboarding="open-tickets">
+                                    <div className="flex flex-col space-y-4">
                                         <div className="flex items-center gap-2 px-1">
                                             <Clock className="h-4 w-4 text-orange-500" />
-                                            <h3 className="text-sm font-semibold">{__('home.tabs.unresolved')}</h3>
+                                            <h3 className="text-sm font-semibold text-primary">{__('home.tabs.assigned_unresolved')}</h3>
                                         </div>
                                         <TicketTable
-                                            data={userTickets.open}
+                                            data={!Array.isArray(assignedTickets) ? assignedTickets.open : null}
+                                            showAuthor={true}
                                             emptyMessage={__('home.messages.no_open_tickets')}
                                         />
                                     </div>
 
-                                    <div className="flex flex-col space-y-4" data-onboarding="closed-tickets">
+                                    <div className="flex flex-col space-y-4">
                                         <div className="flex items-center gap-2 px-1">
                                             <CheckCircle2 className="h-4 w-4 text-green-500" />
-                                            <h3 className="text-sm font-semibold">{__('home.tabs.closed_30_days')}</h3>
+                                            <h3 className="text-sm font-semibold text-primary">{__('home.tabs.assigned_closed_30_days')}</h3>
                                         </div>
                                         <TicketTable
-                                            data={userTickets.closed}
+                                            data={!Array.isArray(assignedTickets) ? assignedTickets.closed : null}
+                                            showAuthor={true}
                                             emptyMessage={__('home.messages.no_recent_closed_tickets')}
                                         />
                                     </div>
                                 </div>
                             </TabsContent>
-
-                            {canSeeAssigned && assignedTickets && (
-                                <TabsContent value="assigned_tickets" className="space-y-6 border-none p-0 outline-none">
-                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                        <div className="flex flex-col space-y-4">
-                                            <div className="flex items-center gap-2 px-1">
-                                                <Clock className="h-4 w-4 text-orange-500" />
-                                                <h3 className="text-sm font-semibold text-primary">{__('home.tabs.assigned_unresolved')}</h3>
-                                            </div>
-                                            <TicketTable
-                                                data={!Array.isArray(assignedTickets) ? assignedTickets.open : null}
-                                                showAuthor={true}
-                                                emptyMessage={__('home.messages.no_open_tickets')}
-                                            />
-                                        </div>
-
-                                        <div className="flex flex-col space-y-4">
-                                            <div className="flex items-center gap-2 px-1">
-                                                <CheckCircle2 className="h-4 w-4 text-green-500" />
-                                                <h3 className="text-sm font-semibold text-primary">{__('home.tabs.assigned_closed_30_days')}</h3>
-                                            </div>
-                                            <TicketTable
-                                                data={!Array.isArray(assignedTickets) ? assignedTickets.closed : null}
-                                                showAuthor={true}
-                                                emptyMessage={__('home.messages.no_recent_closed_tickets')}
-                                            />
-                                        </div>
-                                    </div>
-                                </TabsContent>
-                            )}
-                        </Tabs>
-                    </div>
+                        )}
+                    </Tabs>
                 )}
 
                 {showNewHome && (
@@ -798,18 +939,19 @@ export default function Home({
                                 </h1>
                                 <p className="text-muted-foreground">{__('home.pages.description')}</p>
                             </div>
-                            <div className="flex flex-wrap items-center gap-3 justify-start lg:justify-end">
+                            <div className="flex flex-wrap items-center gap-3 justify-start lg:justify-end" data-onboarding="quick-actions">
                                 <QuickActions user={auth.user} />
 
                                 <div className="flex items-center gap-2">
                                     {isEditing ? (
-                                        <>
-                                            <Button size="sm" onClick={saveLayout}>Save</Button>
-                                            <Button size="sm" variant="ghost" onClick={cancelLayout}>Cancel</Button>
-                                        </>
+                                        <div className="flex items-center gap-2">
+                                            <Button size="sm" onClick={saveLayout}>{__('home.actions.save')}</Button>
+                                            <Button size="sm" variant="outline" onClick={resetToDefault}>{__('home.actions.reset_default')}</Button>
+                                            <Button size="sm" variant="ghost" onClick={cancelLayout}>{__('home.actions.cancel')}</Button>
+                                        </div>
                                     ) : (
                                         <Button size="sm" variant="secondary" onClick={() => setIsEditing(true)}>
-                                            Customize
+                                            {__('home.actions.customize')}
                                         </Button>
                                     )}
 
@@ -819,7 +961,7 @@ export default function Home({
                                         onClick={() => updateSettings('classic')}
                                         className="text-muted-foreground hover:text-foreground"
                                     >
-                                        Classic View
+                                        {__('home.actions.classic_view')}
                                     </Button>
                                 </div>
                             </div>
@@ -836,7 +978,7 @@ export default function Home({
                         >
                             <div className="space-y-6">
                                 <SortableContext items={layout.top.map(w => w.id)} strategy={rectSortingStrategy}>
-                                    <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+                                    <div className="grid gap-3 grid-cols-2 lg:grid-cols-4" data-onboarding="stats-section">
                                         {layout.top.map((widget, index) => (
                                             <SortableWidget
                                                 key={widget.id}
@@ -861,7 +1003,7 @@ export default function Home({
                                     (isEditing || (layout.left.some(w => w.visible) && layout.right.some(w => w.visible)))
                                         ? "lg:grid-cols-2"
                                         : "grid-cols-1"
-                                )}>
+                                )} data-onboarding="widgets-section">
                                     <SortableContext items={layout.left.map(w => w.id)} strategy={verticalListSortingStrategy}>
                                         <div className="space-y-6">
                                             {layout.left.map((widget, index) => (
@@ -922,6 +1064,7 @@ export default function Home({
                 )}
 
             </div>
+            <PageTutorial page="home" steps={tutorialSteps} />
         </AppLayout>
     );
 }

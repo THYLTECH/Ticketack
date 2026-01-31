@@ -5,8 +5,10 @@ use App\Models\TicketStatus;
 use App\Models\User;
 use App\Models\TicketEntry;
 use App\Models\TicketSchedule;
-use Carbon\Carbon;
+use Illuminate\Support\Carbon;
 use Inertia\Testing\AssertableInertia as Assert;
+use App\Models\Setting;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
@@ -240,4 +242,36 @@ test('settings : validation des données', function () {
             'home_page_mode' => 'invalid_mode',
         ])
         ->assertSessionHasErrors('home_page_mode');
+});
+
+test('settings : un admin peut basculer la bannière globale', function () {
+    $role = Role::create(['name' => 'admin']);
+    Permission::firstOrCreate(['name' => 'view dashboard']);
+    $role->givePermissionTo('view dashboard');
+
+    $user = User::factory()->create();
+    $user->assignRole($role);
+
+
+    $this->actingAs($user)
+        ->post(route('home.toggle-global-banner'))
+        ->assertRedirect();
+
+    $setting = Setting::where('key', 'home_page_global_banner')->first();
+    expect($setting->value)->toBeFalse();
+
+    $this->actingAs($user)
+        ->post(route('home.toggle-global-banner'))
+        ->assertRedirect();
+
+    $setting->refresh();
+    expect($setting->value)->toBeTrue();
+});
+
+test('settings : un utilisateur non-admin ne peut pas basculer la bannière globale', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->post(route('home.toggle-global-banner'))
+        ->assertStatus(403);
 });

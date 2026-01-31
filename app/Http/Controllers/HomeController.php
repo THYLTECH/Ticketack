@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
+use App\Models\Setting;
 use Inertia\Inertia;
 
 class HomeController extends Controller
@@ -22,9 +23,15 @@ class HomeController extends Controller
         $mode = $user->home_page_mode ?? 'default';
 
 
+        $globalBannerState = Setting::firstOrCreate(
+            ['key' => 'home_page_global_banner'],
+            ['value' => true, 'group' => 'home']
+        );
+
         $props = [
             'home_page_mode' => $mode,
             'home_page_layout' => $user->home_page_layout,
+            'is_banner_globally_enabled' => (bool) ($globalBannerState->value ?? true),
         ];
 
         if ($mode === 'construction' || $mode === 'classic') {
@@ -175,7 +182,14 @@ class HomeController extends Controller
                 'unassigned' => $unassignedTickets,
             ];
 
-            $recentActivity = Ticket::with(['status', 'priority', 'user'])
+            $recentActivity = Ticket::query()
+                ->when(!$user->hasRole('admin'), function ($q) use ($user) {
+                    $q->where(function ($sq) use ($user) {
+                        $sq->where('author_id', $user->id)
+                            ->orWhereHas('assignees', fn($aq) => $aq->where('user_id', $user->id));
+                    });
+                })
+                ->with(['status', 'priority', 'user'])
                 ->latest('updated_at')
                 ->take(10)
                 ->get();
@@ -216,6 +230,22 @@ class HomeController extends Controller
                 'home_page_layout' => $request->input('home_page_layout'),
             ]);
         }
+
+        return redirect()->back();
+    }
+
+    public function toggleGlobalBanner(Request $request)
+    {
+        if (!$request->user()->hasRole('admin')) {
+            abort(403);
+        }
+
+        $setting = Setting::firstOrCreate(
+            ['key' => 'home_page_global_banner'],
+            ['value' => true, 'group' => 'home']
+        );
+
+        $setting->update(['value' => !($setting->value ?? true)]);
 
         return redirect()->back();
     }
