@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTrans } from '@/lib/translation';
-import { formatDate, formatDateTime, cn } from '@/lib/utils';
+import { formatDateTime, cn } from '@/lib/utils';
 import { Ticket } from '@/types';
 import { Ticket as TicketIcon, ChevronRight, Clock, ChevronDown, ChevronUp, CheckCircle2 } from 'lucide-react';
 import { useState } from 'react';

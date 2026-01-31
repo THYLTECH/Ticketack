@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1769878442">
-  <project timestamp="1769878442" name="Clover Coverage">
+<coverage generated="1769878920">
+  <project timestamp="1769878920" name="Clover Coverage">
     <package name="App\Console\Commands">
       <file name="/Users/yns/Documents/PHP/Ticketack/app/Console/Commands/PruneTrash.php">
         <class name="App\Console\Commands\PruneTrash" namespace="App\Console\Commands">

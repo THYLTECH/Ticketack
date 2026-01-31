@@ -64,7 +64,7 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
         });
 
         return parseISO(latestEvent.start_date);
-    }, []);
+    }, [events]);
 
     const [date, setDate] = useState(initialDate);
     const [view, setView] = useState<ViewType>('day');

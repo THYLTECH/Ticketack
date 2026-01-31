@@ -65,7 +65,7 @@ export function PlanningGrid({
     /**
      * Filter events for a specific day based on edit mode and selected solvers
      */
-    const filterEventsForDay = (day: Date) => {
+    const filterEventsForDay = React.useCallback((day: Date) => {
         return events.filter((e) => {
             if (!isSameDay(parseISO(e.start_date), day)) return false;
 
@@ -77,7 +77,7 @@ export function PlanningGrid({
                 return isMyEntry || isSelectedSolverSchedule;
             }
         });
-    };
+    }, [events, isEditMode, currentUserId, selectedSolvers]);
 
     /**
      * Check if an event can be dragged (entries cannot be dragged)
@@ -101,7 +101,7 @@ export function PlanningGrid({
 
             scrollAreaRef.current.scrollTop = targetHour * CELL_HEIGHT;
         }
-    }, [view, currentDate, events]);
+    }, [view, currentDate, filterEventsForDay]);
 
 
     const getEventStyle = (
