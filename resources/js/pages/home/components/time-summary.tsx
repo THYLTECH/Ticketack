@@ -2,9 +2,9 @@ import { Link } from '@inertiajs/react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTrans } from '@/lib/translation';
-import { formatDate, cn } from '@/lib/utils';
+import { formatDate } from '@/lib/utils';
 import { TicketEntry } from '@/types';
-import { Clock, ChevronRight, Timer } from 'lucide-react';
+import { Clock, Timer } from 'lucide-react';
 
 interface TimeSummaryProps {
     weeklyHours: number | null;
@@ -51,12 +51,15 @@ export function TimeSummary({ weeklyHours, recentEntries }: TimeSummaryProps) {
                                 {__('home.time.recent_entries')}
                             </p>
                             <Link href={route('tickets.entries.index')} className="text-xs text-primary hover:underline">
-                                Voir tout
+                                {__('common.actions.view_all')}
                             </Link>
                         </div>
                         <ul className="space-y-2">
                             {recentEntries.slice(0, 3).map((entry) => {
-                                const startDate = new Date(entry.start_at);
+                                let startDate = new Date(entry.start_at);
+                                if (isNaN(startDate.getTime())) {
+                                    startDate = new Date();
+                                }
                                 const endDate = new Date(startDate.getTime() + entry.duration_seconds * 1000);
                                 const timeRange = `${startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 
@@ -77,7 +80,7 @@ export function TimeSummary({ weeklyHours, recentEntries }: TimeSummaryProps) {
                                                     <span className="text-xs text-muted-foreground">{formatDate(entry.start_at)}</span>
                                                 </div>
                                                 <p className="text-sm font-medium truncate text-foreground/90 group-hover:text-foreground transition-colors">
-                                                    {entry.ticket?.title || 'Ticket sans titre'}
+                                                    {entry.ticket?.title || __('tickets.defaults.untitled')}
                                                 </p>
                                                 <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
                                                     <Clock className="h-3 w-3 opacity-70" />

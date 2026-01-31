@@ -297,7 +297,7 @@ function NavFooter({
                         );
                     })}
                 </SidebarMenu>
-                <SidebarSeparator className='my-2 w-full relative mx-0'/>
+                <SidebarSeparator className='my-2 w-full relative mx-0' />
                 <NavTrash />
             </SidebarGroupContent>
         </SidebarGroup>
@@ -341,8 +341,8 @@ function NavMain({ items = [] }: { items: NavItem[] }) {
                     const activeHref =
                         matchingItems.length > 0
                             ? matchingItems.sort(
-                                  (a, b) => b.length - a.length,
-                              )[0].href
+                                (a, b) => b.length - a.length,
+                            )[0].href
                             : null;
 
                     const linkUrl = normalize(
@@ -371,7 +371,7 @@ function NavMain({ items = [] }: { items: NavItem[] }) {
                                     {item.badge && (
                                         <Badge
                                             variant="default"
-                                            className="/* --- Styles pour le mode fermé (Sidebar Collapsed) --- */ ml-auto h-5 min-w-5 rounded-full px-1.5 text-xs font-medium transition-all group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:top-0.5 group-data-[collapsible=icon]:right-0.5 group-data-[collapsible=icon]:z-50 group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:h-4 group-data-[collapsible=icon]:w-4 group-data-[collapsible=icon]:min-w-0 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:text-[10px] group-data-[collapsible=icon]:shadow-sm"
+                                            className="ml-auto h-5 min-w-5 rounded-full px-1.5 text-xs font-medium transition-all group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:top-0.5 group-data-[collapsible=icon]:right-0.5 group-data-[collapsible=icon]:z-50 group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:h-4 group-data-[collapsible=icon]:w-4 group-data-[collapsible=icon]:min-w-0 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:text-[10px] group-data-[collapsible=icon]:shadow-sm"
                                         >
                                             {Number(item.badge) > 99
                                                 ? '99+'
@@ -414,8 +414,8 @@ function NavUser() {
                             isMobile
                                 ? 'bottom'
                                 : state === 'collapsed'
-                                  ? 'left'
-                                  : 'bottom'
+                                    ? 'left'
+                                    : 'bottom'
                         }
                     >
                         <UserMenuContent

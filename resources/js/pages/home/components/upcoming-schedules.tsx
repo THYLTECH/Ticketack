@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTrans } from '@/lib/translation';
-import { cn } from '@/lib/utils';
+
 import { TicketSchedule } from '@/types';
 import { Calendar, ChevronRight, Clock, ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
@@ -12,38 +12,40 @@ interface UpcomingSchedulesProps {
     schedules: TicketSchedule[];
 }
 
-function formatScheduleDate(dateString: string): string {
-    const date = new Date(dateString);
-    const now = new Date();
-    const tomorrow = new Date(now);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    const isToday = date.toDateString() === now.toDateString();
-    const isTomorrow = date.toDateString() === tomorrow.toDateString();
-
-    const time = date.toLocaleTimeString(undefined, {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false,
-    });
-
-    if (isToday) {
-        return `Aujourd'hui ${time}`;
-    }
-    if (isTomorrow) {
-        return `Demain ${time}`;
-    }
-    return date.toLocaleDateString(undefined, {
-        weekday: 'short',
-        day: 'numeric',
-        month: 'short',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
-}
-
 export function UpcomingSchedules({ schedules }: UpcomingSchedulesProps) {
     const __ = useTrans();
+
+    function formatScheduleDate(dateString: string): string {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return 'Invalid Date';
+        const now = new Date();
+        const tomorrow = new Date(now);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        const isToday = date.toDateString() === now.toDateString();
+        const isTomorrow = date.toDateString() === tomorrow.toDateString();
+
+        const time = date.toLocaleTimeString(undefined, {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+        });
+
+        if (isToday) {
+            return `${__('common.time.today')} ${time}`;
+        }
+        if (isTomorrow) {
+            return `${__('common.time.tomorrow')} ${time}`;
+        }
+        return date.toLocaleDateString(undefined, {
+            weekday: 'short',
+            day: 'numeric',
+            month: 'short',
+            hour: '2-digit',
+            minute: '2-digit',
+        });
+    }
+
     const [isExpanded, setIsExpanded] = useState(false);
     const limit = 5;
 

@@ -22,6 +22,7 @@ return [
         'time_tracking' => 'Time Tracking',
         'upcoming_schedules' => 'Upcoming Schedules',
         'recent_activity' => 'Recent Activity',
+        'activity_feed' => 'Activity Feed',
     ],
 
     'tabs' => [
@@ -48,6 +49,7 @@ return [
         'today' => 'Today',
         'total_users' => 'Users',
         'total_users_desc' => 'Registered on platform',
+        'time_summary' => 'Time Summary',
     ],
 
     'quick_actions' => [

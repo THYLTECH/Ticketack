@@ -30,6 +30,9 @@ class User extends Authenticatable implements MustVerifyEmail
         'verification_token',
         'email_verified_at',
         'attachment_avatar',
+        'home_page_mode',
+        'home_page_message',
+        'home_page_layout',
     ];
 
     protected $with = ['avatar'];
@@ -45,6 +48,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'home_page_layout' => 'array',
         ];
     }
 

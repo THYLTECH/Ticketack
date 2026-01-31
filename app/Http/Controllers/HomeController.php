@@ -19,6 +19,50 @@ class HomeController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
+        $mode = $user->home_page_mode ?? 'default';
+
+
+        $props = [
+            'home_page_mode' => $mode,
+            'home_page_layout' => $user->home_page_layout,
+        ];
+
+        if ($mode === 'construction' || $mode === 'classic') {
+            $userTickets = [
+                'open' => Ticket::where('author_id', $user->id)
+                    ->whereHas('status', fn($q) => $q->where('is_closed', false))
+                    ->with(['status', 'priority', 'category', 'user'])
+                    ->latest('updated_at')
+                    ->paginate(10, ['*'], 'user_open_page'),
+                'closed' => Ticket::where('author_id', $user->id)
+                    ->whereHas('status', fn($q) => $q->where('is_closed', true))
+                    ->with(['status', 'priority', 'category', 'user'])
+                    ->latest('updated_at')
+                    ->paginate(10, ['*'], 'user_closed_page'),
+            ];
+
+            $assignedTickets = null;
+            if ($user->can('be assigned tickets')) {
+                $assignedTickets = [
+                    'open' => Ticket::whereHas('assignees', fn($q) => $q->where('user_id', $user->id))
+                        ->whereHas('status', fn($q) => $q->where('is_closed', false))
+                        ->with(['status', 'priority', 'category', 'user'])
+                        ->latest('updated_at')
+                        ->paginate(10, ['*'], 'assigned_open_page'),
+                    'closed' => Ticket::whereHas('assignees', fn($q) => $q->where('user_id', $user->id))
+                        ->whereHas('status', fn($q) => $q->where('is_closed', true))
+                        ->with(['status', 'priority', 'category', 'user'])
+                        ->latest('updated_at')
+                        ->paginate(10, ['*'], 'assigned_closed_page'),
+                ];
+            }
+
+            return Inertia::render('home', array_merge($props, [
+                'userTickets' => $userTickets,
+                'assignedTickets' => $assignedTickets,
+            ]));
+        }
+
         $now = Carbon::now();
         $thirtyDaysAgo = $now->copy()->subDays(30);
         $weekStart = $now->copy()->startOfWeek();
@@ -137,7 +181,7 @@ class HomeController extends Controller
                 ->get();
         }
 
-        return Inertia::render('home', [
+        return Inertia::render('home', array_merge($props, [
             'stats' => [
                 'user' => [
                     'open' => $userOpenTicketsCount,
@@ -154,6 +198,25 @@ class HomeController extends Controller
             'recentEntries' => $recentEntries,
             'upcomingSchedules' => $upcomingSchedules,
             'recentActivity' => $recentActivity,
+        ]));
+    }
+    public function updateSettings(Request $request)
+    {
+        $data = $request->validate([
+            'home_page_mode' => 'nullable|string|in:default,classic,construction',
+            'home_page_layout' => 'nullable|array',
         ]);
+
+        $request->user()->update([
+            'home_page_mode' => $data['home_page_mode'] ?? $request->user()->home_page_mode,
+        ]);
+
+        if ($request->has('home_page_layout')) {
+            $request->user()->update([
+                'home_page_layout' => $request->input('home_page_layout'),
+            ]);
+        }
+
+        return redirect()->back();
     }
 }
