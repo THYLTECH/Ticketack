@@ -17,11 +17,20 @@ import {
     EmptyMedia,
     EmptyTitle
 } from '@/components/ui/empty';
-import { Ticket as TicketIcon } from 'lucide-react';
-// Remplacement de LaravelPagination par PaginationControl
+import { Ticket as TicketIcon, User as UserIcon } from 'lucide-react';
 import { PaginationControl } from '@/components/pagination-control';
+import {
+    Avatar,
+    AvatarFallback,
+    AvatarImage,
+} from "@/components/ui/avatar";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 
-// Interface mise à jour pour correspondre à PaginationMeta de PaginationControl
 interface PaginatedTickets {
     data: Ticket[];
     current_page: number;
@@ -63,7 +72,6 @@ export function TicketTable({ data, emptyMessage, showAuthor = false }: TicketTa
                     </div>
                 ) : (
                     <>
-                        {/* Mobile View */}
                         <div className="md:hidden divide-y divide-border">
                             {tickets.map((ticket) => (
                                 <div
@@ -115,9 +123,8 @@ export function TicketTable({ data, emptyMessage, showAuthor = false }: TicketTa
                             ))}
                         </div>
 
-                        {/* Desktop View */}
-                        <div className="hidden md:block">
-                            <Table className="table-fixed w-full">
+                        <div className="hidden md:block overflow-auto">
+                            <Table className="w-full">
                                 <TableHeader className="bg-muted/50 sticky top-0 z-10">
                                     <TableRow>
                                         <TableHead className="w-[80px] pl-6 font-semibold text-foreground">
@@ -133,8 +140,8 @@ export function TicketTable({ data, emptyMessage, showAuthor = false }: TicketTa
                                             {__('tickets.fields.priority')}
                                         </TableHead>
                                         {showAuthor && (
-                                            <TableHead className="w-[140px] font-semibold text-foreground">
-                                                {__('tickets.fields.author')}
+                                            <TableHead className="w-[80px] text-center font-semibold text-foreground px-0">
+                                                <UserIcon className="h-4 w-4 mx-auto" />
                                             </TableHead>
                                         )}
                                         <TableHead className="w-[130px] pr-6 text-right font-semibold text-foreground">
@@ -156,7 +163,7 @@ export function TicketTable({ data, emptyMessage, showAuthor = false }: TicketTa
                                             <TableCell className="font-medium text-sm relative">
                                                 <Link href={route('tickets.show', ticket.id)} className="absolute inset-0 z-0" />
                                                 <span
-                                                    className="relative z-10 block truncate group-hover:underline decoration-primary/30"
+                                                    className="relative z-10 block truncate max-w-[200px] md:max-w-[300px] lg:max-w-[400px] group-hover:underline decoration-primary/30"
                                                     title={ticket.title}
                                                 >
                                                     {ticket.title}
@@ -190,8 +197,24 @@ export function TicketTable({ data, emptyMessage, showAuthor = false }: TicketTa
                                             </TableCell>
 
                                             {showAuthor && (
-                                                <TableCell className="text-sm font-medium truncate">
-                                                    {ticket.user?.name}
+                                                <TableCell className="w-[80px] text-center px-0">
+                                                    <div className="flex justify-center items-center">
+                                                        <TooltipProvider>
+                                                            <Tooltip delayDuration={300}>
+                                                                <TooltipTrigger asChild>
+                                                                    <Avatar className="h-6 w-6 cursor-help border">
+                                                                        <AvatarImage src={ticket.user?.avatar?.url} alt={ticket.user?.name} />
+                                                                        <AvatarFallback className="text-[9px] bg-muted text-muted-foreground">
+                                                                            {ticket.user?.name?.charAt(0).toUpperCase() || <UserIcon className="h-3 w-3" />}
+                                                                        </AvatarFallback>
+                                                                    </Avatar>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>
+                                                                    <p>{ticket.user?.name}</p>
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                        </TooltipProvider>
+                                                    </div>
                                                 </TableCell>
                                             )}
 
@@ -207,7 +230,6 @@ export function TicketTable({ data, emptyMessage, showAuthor = false }: TicketTa
                 )}
             </div>
 
-            {/* Intégration de PaginationControl en bas du tableau */}
             <div className="px-6 py-4 bg-muted/5 mt-auto">
                 <PaginationControl meta={data} />
             </div>

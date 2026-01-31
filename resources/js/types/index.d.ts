@@ -22,7 +22,7 @@ export interface User {
     theme: string;
     color_scheme: string;
     phone?: string;
-    permissions: Permission[];
+    permissions: (string | Permission)[];
     roles?: Role[];
     roles_count?: number;
     onboarding_state?: OnboardingState;
@@ -63,7 +63,7 @@ export interface UserSimplified {
     theme: string;
     color_scheme: string;
     phone?: string;
-    permissions: Permission[];
+    permissions: (string | Permission)[];
     created_at: string;
     updated_at: string;
 }

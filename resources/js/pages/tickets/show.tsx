@@ -57,7 +57,12 @@ export default function Show({
 }: ShowProps) {
     const __ = useTrans();
     const { auth } = usePage<SharedData>().props;
-    const [currentTab, setCurrentTab] = React.useState('informations');
+    const params = new URLSearchParams(window.location.search);
+    const defaultTab = params.get('tab') || 'informations';
+    const validTabs = ['informations', 'comments', 'calendar', 'logs'];
+    const activeTab = validTabs.includes(defaultTab) ? defaultTab : 'informations';
+
+    const [currentTab, setCurrentTab] = React.useState(activeTab);
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -77,6 +82,8 @@ export default function Show({
             href: '#',
         },
     ];
+
+
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>

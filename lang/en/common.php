@@ -31,9 +31,14 @@ return [
         'actions' => 'Actions',
         'date' => 'Date',
         'duration' => 'Duration',
+        'in_progress' => 'In progress',
+        'closed' => 'Closed',
     ],
 
     'actions' => [
+        'view_all' => 'View all',
+        'read_more' => 'Read more',
+        'read_less' => 'Read less',
         'select_all' => 'Select All',
         'deselect_all' => 'Deselect All',
         'cancel' => 'Cancel',
@@ -51,6 +56,8 @@ return [
         'weeks' => 'weeks',
         'months' => 'months',
         'years' => 'years',
+        'today' => 'Today',
+        'tomorrow' => 'Tomorrow',
     ],
     'buttons' => [
         'view' => 'View',

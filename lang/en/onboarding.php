@@ -36,6 +36,22 @@ return [
             'title' => 'Resolved',
             'description' => 'Find the history of your recently processed requests here.',
         ],
+        'banner' => [
+            'title' => 'New Home Page',
+            'description' => 'Discover a modernized interface. If needed, you can switch back to classic view via settings or hide this banner.',
+        ],
+        'stats' => [
+            'title' => 'Statistics',
+            'description' => 'Track your tickets, hours, and global activity at a glance.',
+        ],
+        'quick_actions' => [
+            'title' => 'Shortcuts',
+            'description' => 'Quickly access key application features.',
+        ],
+        'widgets' => [
+            'title' => 'Customization',
+            'description' => 'This dashboard is flexible. Reorganize these widgets as needed.',
+        ],
     ],
 
     'tickets' => [
@@ -187,7 +203,7 @@ return [
             'description' => 'Awaiting assignment - IT Support Request',
         ],
     ],
-    
+
     'assets' => [
         'table' => [
             'title' => 'Assets Inventory',
