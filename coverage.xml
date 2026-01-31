@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1769870022">
-  <project timestamp="1769870022" name="Clover Coverage">
+<coverage generated="1769870127">
+  <project timestamp="1769870127" name="Clover Coverage">
     <package name="App\Console\Commands">
       <file name="/Users/yns/Documents/PHP/Ticketack/app/Console/Commands/PruneTrash.php">
         <class name="App\Console\Commands\PruneTrash" namespace="App\Console\Commands">
@@ -4738,7 +4738,7 @@
         <line num="49" type="method" name="updated" visibility="public" complexity="13" crap="21.33" count="15"/>
         <line num="51" type="stmt" count="15"/>
         <line num="52" type="stmt" count="15"/>
-        <line num="53" type="stmt" count="3"/>
+        <line num="53" type="stmt" count="4"/>
         <line num="56" type="stmt" count="12"/>
         <line num="58" type="stmt" count="12"/>
         <line num="59" type="stmt" count="12"/>
