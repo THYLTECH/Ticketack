@@ -34,9 +34,8 @@ import {
     X,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import ReactMarkdown, { Components } from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import { toast } from 'sonner';
+import { MarkdownViewer } from '@/components/markdown/markdown-viewer';
 
 interface CommentListProps {
     comments: TicketComment[];
@@ -132,43 +131,6 @@ export function CommentList({
         );
     };
 
-    const markdownComponents: Components = {
-        ul: ({ ...props }) => (
-            <ul className="my-2 list-disc space-y-1 pl-5" {...props} />
-        ),
-        ol: ({ ...props }) => (
-            <ol className="my-2 list-decimal space-y-1 pl-5" {...props} />
-        ),
-        li: ({ ...props }) => <li className="pl-1" {...props} />,
-        a: ({ ...props }) => (
-            <a
-                className="font-medium underline underline-offset-2 hover:opacity-80"
-                target="_blank"
-                rel="noopener noreferrer"
-                {...props}
-            />
-        ),
-        code: ({ className, children, ...props }) => {
-            const isBlock = /language-(\w+)/.test(className || '');
-            return isBlock ? (
-                <pre className="my-2 overflow-x-auto rounded-lg border border-border/50 bg-black/10 p-3 font-mono text-xs dark:bg-black/30">
-                    <code className={className} {...props}>
-                        {children}
-                    </code>
-                </pre>
-            ) : (
-                <code
-                    className="rounded bg-black/10 px-1.5 py-0.5 font-mono text-[0.9em] font-medium dark:bg-white/10"
-                    {...props}
-                >
-                    {children}
-                </code>
-            );
-        },
-        p: ({ ...props }) => (
-            <p className="mb-2 leading-normal last:mb-0" {...props} />
-        ),
-    };
 
     if (comments.length === 0) {
         return (
@@ -313,28 +275,18 @@ export function CommentList({
                                                         ? 'rounded-tr-none border-primary bg-primary text-primary-foreground'
                                                         : 'rounded-tl-none border-border/60 bg-card text-card-foreground',
                                                     isBeingEdited &&
-                                                        'ring-2 ring-primary ring-offset-2',
+                                                    'ring-2 ring-primary ring-offset-2',
                                                 )}
                                             >
-                                                <div
-                                                    className={cn(
-                                                        'prose prose-sm max-w-none leading-relaxed wrap-break-word',
+                                                <MarkdownViewer
+                                                    content={comment.content}
+                                                    proseClass={cn(
+                                                        'prose-sm max-w-none leading-relaxed wrap-break-word',
                                                         isMe
                                                             ? 'prose-invert'
-                                                            : 'dark:prose-invert',
+                                                            : 'dark:prose-invert'
                                                     )}
-                                                >
-                                                    <ReactMarkdown
-                                                        remarkPlugins={[
-                                                            remarkGfm,
-                                                        ]}
-                                                        components={
-                                                            markdownComponents
-                                                        }
-                                                    >
-                                                        {comment.content}
-                                                    </ReactMarkdown>
-                                                </div>
+                                                />
                                             </div>
                                         )}
                                     </div>
@@ -393,7 +345,7 @@ export function CommentList({
                                                                             <span className="text-[9px] text-muted-foreground">
                                                                                 {formatFileSize(
                                                                                     att.file_size ||
-                                                                                        0,
+                                                                                    0,
                                                                                 )}
                                                                             </span>
                                                                         </div>

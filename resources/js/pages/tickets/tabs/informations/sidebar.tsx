@@ -100,7 +100,7 @@ export function TicketSidebar({ ticket }: { ticket: Ticket }) {
 
                 <Separator className="opacity-50" />
 
-                <div className="space-y-3">
+                <div className="space-y-3" data-onboarding="ticket-properties">
                     <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                         {__('tickets.pages.show.tabs.info_content.properties')}
                     </span>

@@ -69,6 +69,7 @@ export function AppSidebar() {
             title: __('app.layout.sidebar.menugroups.platform.items.home'),
             href: route('home'),
             icon: Home,
+            onboardingId: 'home',
         }
     ];
 
@@ -106,6 +107,7 @@ export function AppSidebar() {
             title: __('app.layout.sidebar.menugroups.platform.items.tickets'),
             href: route('tickets.index'),
             icon: Ticket,
+            onboardingId: 'tickets',
         });
     }
 
@@ -173,7 +175,7 @@ export function AppSidebar() {
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild>
+                        <SidebarMenuButton size="lg" asChild data-onboarding="logo">
                             <Link href={route('home')} prefetch>
                                 <AppLogo />
                             </Link>
@@ -183,7 +185,7 @@ export function AppSidebar() {
                         <SidebarMenuButton
                             asChild
                         >
-                            <Button asChild variant={'default'} className='transition-all hover:bg-primary/90 hover:text-primary-foreground group-data-[collapsible=icon]:rounded-full'>
+                            <Button asChild variant={'default'} className='transition-all hover:bg-primary/90 hover:text-primary-foreground group-data-[collapsible=icon]:rounded-full' data-onboarding="create-ticket">
                                 <Link href={route('tickets.create')}>
                                     <Plus className="size-4 shrink-0" />
                                     <span className="font-semibold group-data-[collapsible=icon]:hidden">
@@ -359,6 +361,7 @@ function NavMain({ items = [] }: { items: NavItem[] }) {
                                 asChild
                                 isActive={isActive}
                                 tooltip={{ children: item.title }}
+                                data-onboarding={item.onboardingId}
                             >
                                 <Link
                                     href={item.href}
@@ -402,6 +405,7 @@ function NavUser() {
                             size="lg"
                             className="group text-sidebar-accent-foreground data-[state=open]:bg-sidebar-accent"
                             data-test="sidebar-menu-button"
+                            data-onboarding="user-menu"
                         >
                             <UserInfo user={auth.user} />
                             <ChevronsUpDown className="ml-auto size-4" />

@@ -96,6 +96,8 @@ export function TrashToolbar({
             <ToolbarLabel label={__('common.filters.title') || 'Filters'} />
 
             <ToolbarSearch
+                id="trash-search"
+                name="search"
                 value={searchTerm}
                 onChange={onSearchChange}
                 placeholder={
@@ -112,13 +114,14 @@ export function TrashToolbar({
                     onTabChange(val as 'ticket' | 'user' | 'asset' | 'role')
                 }
                 placeholder={__('trash.pages.index.toolbar.type') || 'Type'}
+                disableAllOption={true}
             />
 
             <ToolbarSeparator />
 
-            <div className="flex items-center">
+            <div className="flex items-center" data-onboarding="trash-retention">
                 <Select
-                    value={String(retentionDays)}
+                    value={String(retentionDays || 30)}
                     onValueChange={handleRetentionSelect}
                     disabled={!canManageSettings}
                 >

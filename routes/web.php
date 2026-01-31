@@ -32,7 +32,7 @@ Route::get('/errors', function (Request $request) {
     ]);
 
     return Inertia::render('errors/show', [
-        'statusCode' => $data['statusCode'],
+        'statusCode' => (int) $data['statusCode'],
         'title' => $data['title'] ?? null,
     ]);
 })->name('errors.show');
@@ -43,8 +43,14 @@ Route::middleware(['auth', 'verified:auth.verification.notice'])->group(function
 
     Route::delete('/attachments/{attachment}', [AttachmentController::class, 'destroy'])
         ->name('attachments.destroy');
-});
 
+    Route::post('/onboarding/mark-page-seen', [\App\Http\Controllers\OnboardingController::class, 'markPageSeen'])
+        ->name('onboarding.mark-page-seen');
+    Route::post('/onboarding/skip-all', [\App\Http\Controllers\OnboardingController::class, 'skipAll'])
+        ->name('onboarding.skip-all');
+    Route::post('/onboarding/reset', [\App\Http\Controllers\OnboardingController::class, 'reset'])
+        ->name('onboarding.reset');
+});
 
 require __DIR__ . '/auth.php';
 
@@ -65,8 +71,6 @@ require __DIR__ . '/tickets.php';
 require __DIR__ . '/dashboard.php';
 
 require __DIR__ . '/knowledge.php';
-
-
 
 
 

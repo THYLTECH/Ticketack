@@ -11,6 +11,7 @@ import { useDebounce } from 'use-debounce';
 import { AssetsEmpty } from './components/assets-empty';
 import { AssetsTable } from './components/assets-table';
 import { AssetsToolbar } from './components/assets-toolbar';
+import { PageTutorial } from '@/components/onboarding';
 
 interface PaginatedData<T> {
     data: T[];
@@ -49,6 +50,20 @@ export default function AssetsIndex({
     );
 
     const [globalExpand, setGlobalExpand] = useState<boolean | null>(null);
+    const [isTutorialActive, setIsTutorialActive] = useState(false);
+
+    const demoAsset: Asset = {
+        id: 'demo-1',
+        title: __('onboarding.assets.demo_asset.title'),
+        description: __('onboarding.assets.demo_asset.description'),
+        parent_id: null,
+        parent: null,
+        icon: null,
+        attributes: [],
+        attachments: [],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+    };
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -90,6 +105,9 @@ export default function AssetsIndex({
     };
 
     const hasData = assets.data.length > 0;
+    const showDemoData = isTutorialActive && !hasData;
+    const displayAssets = showDemoData ? [demoAsset] : assets.data;
+    const shouldShowTable = hasData || showDemoData;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -110,13 +128,13 @@ export default function AssetsIndex({
                             user: auth.user,
                             permission: 'create assets',
                         }) && (
-                            <Button asChild size="sm">
-                                <Link href={route('assets.create')}>
-                                    <Plus className="mr-2 h-4 w-4" />
-                                    {__('assets.pages.index.buttons.create')}
-                                </Link>
-                            </Button>
-                        )}
+                                <Button asChild size="sm">
+                                    <Link href={route('assets.create')}>
+                                        <Plus className="mr-2 h-4 w-4" />
+                                        {__('assets.pages.index.buttons.create')}
+                                    </Link>
+                                </Button>
+                            )}
                     </div>
                 </div>
 
@@ -133,15 +151,17 @@ export default function AssetsIndex({
                         hasData={hasData}
                     />
 
-                    {!hasData ? (
+                    {!shouldShowTable ? (
                         <AssetsEmpty />
                     ) : (
-                        <AssetsTable
-                            assets={assets.data}
-                            searchTerm={searchTerm}
-                            globalExpand={globalExpand}
-                            setGlobalExpand={setGlobalExpand}
-                        />
+                        <div data-onboarding="assets-table">
+                            <AssetsTable
+                                assets={displayAssets}
+                                searchTerm={searchTerm}
+                                globalExpand={globalExpand}
+                                setGlobalExpand={setGlobalExpand}
+                            />
+                        </div>
                     )}
 
                     {hasData && (
@@ -150,6 +170,20 @@ export default function AssetsIndex({
                         />
                     )}
                 </div>
+
+                <PageTutorial
+                    page="assets"
+                    steps={[
+                        {
+                            id: 'table',
+                            title: __('onboarding.assets.table.title'),
+                            description: __('onboarding.assets.table.description'),
+                            targetSelector: '[data-onboarding="assets-table"]',
+                            position: 'top',
+                        },
+                    ]}
+                    onActiveChange={setIsTutorialActive}
+                />
             </div>
         </AppLayout>
     );

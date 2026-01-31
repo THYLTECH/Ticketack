@@ -54,30 +54,30 @@ export function AssignmentStats({ stats }: AssignmentStatsProps) {
         variant: 'default' | 'primary' | 'success' | 'warning';
         description: string;
     }> = [
-        {
-            label: __('tickets.assignment.stats.total_unassigned'),
-            value: stats.total_unassigned,
-            icon: ListTodo,
-            variant: 'primary',
-            description: __('tickets.assignment.stats.total_unassigned_description'),
-        },
-        ...stats.priority_stats.map((priority) => ({
-            label: priority.title,
-            value: priority.count,
-            icon: getPriorityIcon(priority.sort_order),
-            customColor: priority.color,
-            variant: 'default' as const,
-            description: __('tickets.assignment.stats.priority_description').replace(':priority', priority.title),
-        })),
-        {
-            label: __('tickets.assignment.stats.oldest_unassigned'),
-            value: stats.oldest_unassigned_days,
-            suffix: __('tickets.assignment.stats.days'),
-            icon: Clock,
-            variant: 'default' as const,
-            description: __('tickets.assignment.stats.oldest_unassigned_description'),
-        },
-    ];
+            {
+                label: __('tickets.assignment.stats.total_unassigned'),
+                value: stats.total_unassigned,
+                icon: ListTodo,
+                variant: 'primary',
+                description: __('tickets.assignment.stats.total_unassigned_description'),
+            },
+            ...stats.priority_stats.map((priority) => ({
+                label: priority.title,
+                value: priority.count,
+                icon: getPriorityIcon(priority.sort_order),
+                customColor: priority.color,
+                variant: 'default' as const,
+                description: __('tickets.assignment.stats.priority_description').replace(':priority', priority.title),
+            })),
+            {
+                label: __('tickets.assignment.stats.oldest_unassigned'),
+                value: stats.oldest_unassigned_days,
+                suffix: __('tickets.assignment.stats.days'),
+                icon: Clock,
+                variant: 'default' as const,
+                description: __('tickets.assignment.stats.oldest_unassigned_description'),
+            },
+        ];
 
     const getVariantStyles = (variant: string, customColor?: string) => {
         if (customColor) {
@@ -118,7 +118,7 @@ export function AssignmentStats({ stats }: AssignmentStatsProps) {
     };
 
     return (
-        <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="flex flex-wrap gap-4">
             <TooltipProvider delayDuration={200}>
                 {statItems.map((stat, index) => {
                     const styles = getVariantStyles(stat.variant, stat.customColor);
@@ -128,7 +128,7 @@ export function AssignmentStats({ stats }: AssignmentStatsProps) {
                             <TooltipTrigger asChild>
                                 <Card
                                     className={cn(
-                                        'relative overflow-hidden transition-all hover:shadow-md h-full',
+                                        'relative overflow-hidden transition-all hover:shadow-md h-full w-full sm:w-[calc(33%-1rem)] lg:w-40 xl:w-48 flex-1 min-w-[150px]',
                                         styles.card,
                                     )}
                                 >

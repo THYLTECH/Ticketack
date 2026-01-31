@@ -21,7 +21,10 @@ return [
         'color_scheme_loading' => 'Updating color scheme...',
         'color_scheme_updated' => 'Color scheme updated successfully.',
 
+        'color_scheme_updated' => 'Color scheme updated successfully.',
+
         'notifications_updated' => 'Notifications preferences updated successfully.',
+        'delete_last_admin_account' => 'You cannot delete the last administrator account.',
     ],
 
     /*
@@ -53,7 +56,8 @@ return [
                 'title' => 'Profile information',
                 'description' => 'Update your profile information such as name and email address.',
 
-                // NEW FRONT ERRORS (React)
+                'description' => 'Update your profile information such as name and email address.',
+
                 'avatar_too_big_title' => 'The image is too large',
                 'avatar_too_big_description' => 'The maximum allowed size is :size MB.',
 
@@ -74,6 +78,7 @@ return [
                     'avatar' => [
                         'label' => 'Profile picture',
                         'description' => 'Drop a file or click to select one — max :size MB',
+                        'no_avatar' => 'No avatar',
                     ],
                     'phone' => [
                         'label' => 'Phone number',

@@ -1,6 +1,5 @@
 <?php
 
-// app/Http/Middleware/HandleInertiaRequests.php
 
 namespace App\Http\Middleware;
 
@@ -109,16 +108,14 @@ class HandleInertiaRequests extends Middleware
             'unassigned_tickets_count' => $request->user() && $request->user()->can('be assigned tickets')
                 ? Ticket::whereDoesntHave('assignees')->whereNull('deleted_at')->count()
                 : 0,
+
+            'show_onboarding' => $request->user()
+                && $request->user()->hasRole('simple_user'),
+
+            'onboarding_state' => $request->user()
+                ? ($request->user()->onboarding_state ?? [])
+                : [],
         ]);
 
-        // 'translations' => fn () => Cache::rememberForever('translations_'.App::getLocale(), function () {
-        //     return collect(File::files(lang_path(App::getLocale())))
-        //         ->mapWithKeys(function ($file) {
-        //             $name = pathinfo($file, PATHINFO_FILENAME);
-
-        //             return [$name => trans($name)];
-        //         })
-        //         ->toArray();
-        // }),
     }
 }

@@ -36,6 +36,8 @@ export function UsersToolbar({
             <ToolbarLabel label={__('common.filters.title') || 'Filters'} />
 
             <ToolbarSearch
+                id="users-search"
+                name="search"
                 value={searchTerm}
                 onChange={onSearchChange}
                 placeholder={

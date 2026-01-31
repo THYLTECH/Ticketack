@@ -31,6 +31,7 @@ import { FilterDropdown } from './components/filter-dropdown';
 import { ResultCard } from './components/result-card';
 import { ResultSkeleton } from './components/result-skeleton';
 import { SearchProps, SearchResult } from './types';
+import { PageTutorial } from '@/components/onboarding';
 
 const INITIAL_VISIBLE_COUNT = 6;
 const LOAD_MORE_STEP = 6;
@@ -171,7 +172,7 @@ export default function KnowledgeSearch({
                             {__('knowledge.pages.search.hero_description')}
                         </p>
 
-                        <div className="mx-auto mt-8 mb-8 max-w-2xl">
+                        <div className="mx-auto mt-8 mb-8 max-w-2xl" data-onboarding="knowledge-search">
                             <form onSubmit={handleSearch} className="relative">
                                 <div className="group relative flex h-14 w-full items-center overflow-hidden rounded-full border border-input bg-background shadow-sm transition-all focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10 hover:border-primary/50 hover:shadow-md">
                                     <div className="flex h-full items-center pl-4 text-muted-foreground transition-colors group-focus-within:text-primary">
@@ -211,18 +212,18 @@ export default function KnowledgeSearch({
                                         >
                                             {isLoading
                                                 ? __(
-                                                      'knowledge.buttons.loading',
-                                                  )
+                                                    'knowledge.buttons.loading',
+                                                )
                                                 : __(
-                                                      'knowledge.buttons.search',
-                                                  )}
+                                                    'knowledge.buttons.search',
+                                                )}
                                         </Button>
                                     </div>
                                 </div>
                             </form>
                         </div>
 
-                        <div className="flex flex-wrap items-center justify-center gap-2">
+                        <div className="inline-flex flex-wrap items-center justify-center gap-2" data-onboarding="knowledge-filters">
                             <Popover>
                                 <PopoverTrigger asChild>
                                     <Button
@@ -419,6 +420,26 @@ export default function KnowledgeSearch({
                     ) : null}
                 </div>
             </div>
+
+            <PageTutorial
+                page="knowledge"
+                steps={[
+                    {
+                        id: 'search',
+                        title: __('onboarding.knowledge.search.title'),
+                        description: __('onboarding.knowledge.search.description'),
+                        targetSelector: '[data-onboarding="knowledge-search"]',
+                        position: 'bottom',
+                    },
+                    {
+                        id: 'filters',
+                        title: __('onboarding.knowledge.filters.title'),
+                        description: __('onboarding.knowledge.filters.description'),
+                        targetSelector: '[data-onboarding="knowledge-filters"]',
+                        position: 'bottom',
+                    },
+                ]}
+            />
         </AppLayout>
     );
 }

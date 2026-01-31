@@ -33,6 +33,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'home_page_mode',
         'home_page_message',
         'home_page_layout',
+        'onboarding_state',
     ];
 
     protected $with = ['avatar'];
@@ -49,6 +50,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'home_page_layout' => 'array',
+            'onboarding_state' => 'array',
         ];
     }
 
