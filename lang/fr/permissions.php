@@ -3,7 +3,7 @@
 return [
     'assets' => [
         'title' => 'Actifs',
-        'description' => 'Gérer les permissions liées aux actifs (équipements).',
+        'description' => 'Gérer les permissions liées aux assets.',
         'items' => [
             'view' => ['title' => 'Voir les actifs', 'description' => 'Autoriser l\'accès à la liste des actifs.'],
             'show' => ['title' => 'Afficher les détails de l\'actif', 'description' => 'Autoriser la consultation des informations détaillées d\'un actif.'],
@@ -86,7 +86,7 @@ return [
         'description' => 'Gérer les éléments supprimés.',
         'items' => [
             'view' => ['title' => 'Voir la corbeille', 'description' => 'Accéder à la corbeille.'],
-            'edit' => ['title' => 'Gérer la corbeille', 'description' => 'Effectuer des actions dans la corbeille.'],
+            'manage' => ['title' => 'Gérer la corbeille', 'description' => 'Gérer les paramètres de la corbeille (rétention, etc).'],
             'restore' => ['title' => 'Restaurer des éléments', 'description' => 'Restaurer des éléments depuis la corbeille.'],
             'force delete' => ['title' => 'Vider la corbeille', 'description' => 'Supprimer définitivement des éléments de la corbeille.'],
         ],

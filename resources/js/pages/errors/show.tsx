@@ -45,7 +45,7 @@ export default function ErrorPage({
                     {title ?? __(`common.errors.${statusCode}.message`, __('common.errors.default.message'))}
                 </p>
                 <Button asChild variant='secondary' className='mt-4'>
-                    <Link href={auth.user ? route('dashboard') : route('home')}>
+                    <Link href={auth.user ? route('home') : route('home')}>
                         <ArrowLeft />
                         {__('common.errors.button_back')}
                     </Link>

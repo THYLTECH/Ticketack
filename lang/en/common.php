@@ -13,8 +13,36 @@ return [
         'error' => 'An error occurred',
     ],
 
+    'all_roles' => 'All Roles',
     'all' => 'All',
     'cancel' => 'Cancel',
+    'on' => 'on',
+    'yes' => 'Yes',
+    'no' => 'No',
+
+    'labels' => [
+        'created_at' => 'Created at',
+        'updated_at' => 'Updated at',
+        'deleted_at' => 'Deleted at',
+        'author' => 'Author',
+        'assignees' => 'Assignees',
+        'technician' => 'Technician',
+        'user' => 'User',
+        'actions' => 'Actions',
+        'date' => 'Date',
+        'duration' => 'Duration',
+        'in_progress' => 'In progress',
+        'closed' => 'Closed',
+    ],
+
+    'actions' => [
+        'view_all' => 'View all',
+        'read_more' => 'Read more',
+        'read_less' => 'Read less',
+        'select_all' => 'Select All',
+        'deselect_all' => 'Deselect All',
+        'cancel' => 'Cancel',
+    ],
 
     'filters' => [
         'title' => 'Filters',
@@ -28,6 +56,14 @@ return [
         'weeks' => 'weeks',
         'months' => 'months',
         'years' => 'years',
+        'today' => 'Today',
+        'tomorrow' => 'Tomorrow',
+    ],
+    'buttons' => [
+        'view' => 'View',
+        'edit' => 'Edit',
+        'delete' => 'Delete',
+        'clone' => 'Clone',
     ],
 
 

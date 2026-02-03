@@ -22,10 +22,32 @@ export interface User {
     theme: string;
     color_scheme: string;
     phone?: string;
-    permissions: Permission[];
+    permissions: (string | Permission)[];
     roles?: Role[];
+    roles_count?: number;
+    onboarding_state?: OnboardingState;
     created_at: string;
     updated_at: string;
+}
+
+export interface OnboardingState {
+    welcome?: boolean;
+    home?: boolean;
+    tickets?: boolean;
+    ticket_detail?: boolean;
+    create_ticket?: boolean;
+    notifications?: boolean;
+    settings?: boolean;
+    archived_tickets?: boolean;
+    planning?: boolean;
+    time_entries?: boolean;
+    knowledge?: boolean;
+    assignment?: boolean;
+    assets?: boolean;
+    users?: boolean;
+    roles?: boolean;
+    trash?: boolean;
+    [key: string]: boolean | undefined;
 }
 
 export interface UserSimplified {
@@ -41,7 +63,7 @@ export interface UserSimplified {
     theme: string;
     color_scheme: string;
     phone?: string;
-    permissions: Permission[];
+    permissions: (string | Permission)[];
     created_at: string;
     updated_at: string;
 }
@@ -58,6 +80,7 @@ export interface Timezone {
 
 export interface Theme {
     value: string;
+    color: string;
 }
 
 export interface Color {
@@ -86,6 +109,7 @@ export interface NavItem {
     isActive?: boolean;
     external?: boolean;
     badge?: number;
+    onboardingId?: string;
 }
 
 export interface SharedData {
@@ -95,6 +119,8 @@ export interface SharedData {
     sidebarOpen: boolean;
     unread_notifications: number;
     unassigned_tickets_count: number;
+    show_onboarding: boolean;
+    onboarding_state: OnboardingState;
     [key: string]: unknown;
 }
 

@@ -1,6 +1,6 @@
 <?php
 
-// routes/web.php
+
 
 use App\Http\Controllers\AttachmentController;
 use Illuminate\Support\Facades\Route;
@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Notification;
 use App\Http\Controllers\HomeController;
 
 Route::get('/', function () {
-    // abort(404);
+
     return Inertia::render('landing');
 })->name('landing');
 
@@ -22,65 +22,56 @@ Route::get('/terms', function () {
 })->name('terms');
 
 Route::middleware(['auth', 'verified:auth.verification.notice'])->group(function () {
-    // Nouvelle route Home
     Route::get('/home', [HomeController::class, 'index'])->name('home');
-
-    // Route::get('/dashboard', function () {
-
-    //     return Inertia::render('dashboard');
-    // })->name('dashboard');
 });
 
-Route::get('/errors', function(Request $request) {
+Route::get('/errors', function (Request $request) {
     $data = $request->validate([
         'statusCode' => 'required|integer',
         'title' => 'nullable|string',
     ]);
 
     return Inertia::render('errors/show', [
-        'statusCode' => $data['statusCode'],
+        'statusCode' => (int) $data['statusCode'],
         'title' => $data['title'] ?? null,
     ]);
 })->name('errors.show');
 
 Route::middleware(['auth', 'verified:auth.verification.notice'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
+    Route::post('/home/settings', [HomeController::class, 'updateSettings'])->name('home.settings');
+    Route::post('/home/toggle-global-banner', [HomeController::class, 'toggleGlobalBanner'])->name('home.toggle-global-banner');
 
     Route::delete('/attachments/{attachment}', [AttachmentController::class, 'destroy'])
         ->name('attachments.destroy');
+
+    Route::post('/onboarding/mark-page-seen', [\App\Http\Controllers\OnboardingController::class, 'markPageSeen'])
+        ->name('onboarding.mark-page-seen');
+    Route::post('/onboarding/skip-all', [\App\Http\Controllers\OnboardingController::class, 'skipAll'])
+        ->name('onboarding.skip-all');
+    Route::post('/onboarding/reset', [\App\Http\Controllers\OnboardingController::class, 'reset'])
+        ->name('onboarding.reset');
 });
 
-// Authentication routes
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
 
-// Settings routes
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';
 
-// Notifications routes
-require __DIR__.'/notifications.php';
+require __DIR__ . '/notifications.php';
 
-// Assets routes
-require __DIR__.'/assets.php';
+require __DIR__ . '/assets.php';
 
-// Roles routes
-require __DIR__.'/roles.php';
+require __DIR__ . '/roles.php';
 
-// Users routes
-require __DIR__.'/users.php';
+require __DIR__ . '/users.php';
 
-// Trash routes
-require __DIR__.'/trash.php';
+require __DIR__ . '/trash.php';
 
-// Tickets routes
-require __DIR__.'/tickets.php';
+require __DIR__ . '/tickets.php';
 
-// Dashboard routes
-require __DIR__.'/dashboard.php';
+require __DIR__ . '/dashboard.php';
 
-// Knowledge routes
-require __DIR__.'/knowledge.php';
-
-// Todo : Tickets, assets, settings etc....
+require __DIR__ . '/knowledge.php';
 
 
 

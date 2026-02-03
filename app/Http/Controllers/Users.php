@@ -27,7 +27,7 @@ class Users extends Controller
 
     public function index(Request $request): Response
     {
-        $query = User::with(['roles', 'avatar']);
+        $query = User::with(['roles', 'avatar'])->withCount('roles');
 
         if ($request->filled('search')) {
             $search = $request->input('search');
@@ -37,11 +37,29 @@ class Users extends Controller
             });
         }
 
+        if ($request->filled('role')) {
+            $roleId = $request->input('role');
+            $query->whereHas('roles', function ($q) use ($roleId) {
+                $q->where('id', $roleId);
+            });
+        }
+
+        $sort = $request->input('sort');
+        $direction = $request->input('direction', 'desc');
+
+        if ($sort) {
+            $query->orderBy($sort, $direction);
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
         $perPage = $request->input('per_page', 10);
+        $users = $query->paginate($perPage)->withQueryString();
 
         return Inertia::render('users/index', [
-            'users' => $query->paginate($perPage)->withQueryString(),
-            'filters' => $request->only(['search']),
+            'users' => $users,
+            'filters' => $request->only(['search', 'role']),
+            'roles' => Role::orderBy('name')->get(),
         ]);
     }
 
@@ -130,8 +148,18 @@ class Users extends Controller
         if ($user->id === auth()->id()) {
             return redirect()->back()->with(['error' => [
                 'title' => __('common.flash.error'),
-                'description' => "You cannot delete your own account."
+                'description' => __('users.flash.delete_own_account')
             ]]);
+        }
+
+        if ($user->hasRole('admin')) {
+            $adminCount = User::role('admin')->count();
+            if ($adminCount <= 1) {
+                return redirect()->back()->with(['error' => [
+                    'title' => __('common.flash.error'),
+                    'description' => __('users.flash.delete_last_admin')
+                ]]);
+            }
         }
 
         $user->delete();

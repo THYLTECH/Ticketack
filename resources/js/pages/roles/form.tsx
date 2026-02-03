@@ -1,6 +1,5 @@
 import {
     AlertDialog,
-    AlertDialogCancel,
     AlertDialogContent,
     AlertDialogDescription,
     AlertDialogFooter,
@@ -102,13 +101,11 @@ export function InformationsTab({
                         )}
                         disabled={disabled}
                         readOnly={isSystemRole}
-                        className={`pr-10 ${
-                            errors.name ? 'border-destructive' : ''
-                        } ${
-                            isSystemRole
+                        className={`pr-10 ${errors.name ? 'border-destructive' : ''
+                            } ${isSystemRole
                                 ? 'cursor-not-allowed bg-muted/50 text-foreground focus-visible:ring-0'
                                 : ''
-                        }`}
+                            }`}
                         autoFocus={!isSystemRole}
                     />
                     {isSystemRole && (
@@ -147,24 +144,28 @@ export function PermissionsTab({
 }) {
     const __ = useTrans();
 
-    const groupedPermissions = permissions.reduce(
-        (acc: GroupedPermissions, permission: Permission) => {
-            const parts = permission.name.split(' ');
-            const moduleName =
-                parts.length > 1 ? parts[parts.length - 1] : 'other';
-            const finalGroup =
-                parts.length > 2 &&
-                parts[1] === 'ticket' &&
-                parts[2] === 'entries'
-                    ? 'entries'
-                    : moduleName;
+    const [searchQuery, setSearchQuery] = useState('');
 
-            if (!acc[finalGroup]) acc[finalGroup] = [];
-            acc[finalGroup].push(permission);
-            return acc;
-        },
-        {},
-    );
+    const groupedPermissions = useMemo(() => {
+        return permissions.reduce(
+            (acc: GroupedPermissions, permission: Permission) => {
+                const parts = permission.name.split(' ');
+                const moduleName =
+                    parts.length > 1 ? parts[parts.length - 1] : 'other';
+                const finalGroup =
+                    parts.length > 2 &&
+                        parts[1] === 'ticket' &&
+                        parts[2] === 'entries'
+                        ? 'entries'
+                        : moduleName;
+
+                if (!acc[finalGroup]) acc[finalGroup] = [];
+                acc[finalGroup].push(permission);
+                return acc;
+            },
+            {},
+        );
+    }, [permissions]);
 
     const getPermissionAction = (permissionName: string) => {
         const parts = permissionName.split(' ');
@@ -209,103 +210,156 @@ export function PermissionsTab({
         setData('permissions', newPermissions);
     };
 
+    const filteredPermissions = useMemo(() => {
+        if (!searchQuery) return groupedPermissions;
+
+        const lowerQuery = searchQuery.toLowerCase();
+        const filtered: GroupedPermissions = {};
+
+        Object.entries(groupedPermissions).forEach(([group, groupPermissions]) => {
+            const groupTitle =
+                __(`permissions.${group}.title`) !== `permissions.${group}.title`
+                    ? __(`permissions.${group}.title`)
+                    : group;
+
+            if (groupTitle.toLowerCase().includes(lowerQuery)) {
+                filtered[group] = groupPermissions;
+                return;
+            }
+
+            const matchingPermissions = groupPermissions.filter((permission) => {
+                const actionName = getPermissionAction(permission.name);
+                const actionTitle =
+                    __(`permissions.${group}.items.${actionName}.title`) !==
+                        `permissions.${group}.items.${actionName}.title`
+                        ? __(`permissions.${group}.items.${actionName}.title`)
+                        : actionName;
+
+                return actionTitle.toLowerCase().includes(lowerQuery);
+            });
+
+            if (matchingPermissions.length > 0) {
+                filtered[group] = matchingPermissions;
+            }
+        });
+
+        return filtered;
+    }, [groupedPermissions, searchQuery, __]);
+
     return (
         <TabsContent
             value="permissions"
             className="animate-in pt-6 fade-in-50 slide-in-from-bottom-2"
         >
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-                {Object.entries(groupedPermissions).map(
-                    ([group, groupPermissions]) => {
-                        const isModuleFullyChecked = groupPermissions.every(
-                            (p) =>
-                                data.permissions.some((dp) => dp.id === p.id),
-                        );
-
-                        const groupTitle =
-                            __(`permissions.${group}.title`) !==
-                            `permissions.${group}.title`
-                                ? __(`permissions.${group}.title`)
-                                : group;
-
-                        return (
-                            <div
-                                key={group}
-                                className={`flex flex-col rounded-xl border bg-card text-card-foreground shadow-sm transition-all duration-200 hover:shadow-md ${isModuleFullyChecked ? 'border-primary/40 ring-1 ring-primary/20' : ''}`}
-                            >
-                                <div className="flex items-center justify-between rounded-t-xl border-b bg-muted/30 p-4">
-                                    <div className="flex items-center gap-2.5">
-                                        <div
-                                            className={`rounded-md p-1.5 ${isModuleFullyChecked ? 'bg-primary/10 text-primary' : 'border bg-background text-muted-foreground'}`}
-                                        >
-                                            <Shield className="h-4 w-4" />
-                                        </div>
-                                        <h3 className="font-semibold tracking-tight capitalize">
-                                            {groupTitle}
-                                        </h3>
-                                    </div>
-                                    <Switch
-                                        checked={isModuleFullyChecked}
-                                        onCheckedChange={(checked) =>
-                                            toggleModule(
-                                                groupPermissions,
-                                                checked,
-                                            )
-                                        }
-                                        disabled={disabled}
-                                        className="data-[state=checked]:bg-primary"
-                                    />
-                                </div>
-
-                                <div className="space-y-4 p-4">
-                                    {groupPermissions.map((permission) => {
-                                        const isChecked = data.permissions.some(
-                                            (p) => p.id === permission.id,
-                                        );
-                                        const actionName = getPermissionAction(
-                                            permission.name,
-                                        );
-                                        const actionTitle =
-                                            __(
-                                                `permissions.${group}.items.${actionName}.title`,
-                                            ) !==
-                                            `permissions.${group}.items.${actionName}.title`
-                                                ? __(
-                                                      `permissions.${group}.items.${actionName}.title`,
-                                                  )
-                                                : actionName;
-
-                                        return (
-                                            <div
-                                                key={permission.id}
-                                                className="group/item flex items-center justify-between gap-3"
-                                            >
-                                                <Label
-                                                    htmlFor={`perm-${permission.id}`}
-                                                    className={`cursor-pointer text-sm leading-none font-medium transition-colors ${isChecked ? 'text-foreground' : 'text-muted-foreground group-hover/item:text-foreground'}`}
-                                                >
-                                                    {actionTitle}
-                                                </Label>
-                                                <Switch
-                                                    id={`perm-${permission.id}`}
-                                                    checked={isChecked}
-                                                    onCheckedChange={() =>
-                                                        togglePermission(
-                                                            permission,
-                                                        )
-                                                    }
-                                                    disabled={disabled}
-                                                    className="scale-90"
-                                                />
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        );
-                    },
-                )}
+            <div className="mb-6 relative">
+                <Search className="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                    placeholder={__('roles.pages.form.tabs.permissions_search_placeholder')}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9"
+                />
             </div>
+
+            {Object.keys(filteredPermissions).length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
+                    <Search className="mb-3 h-10 w-10 opacity-20" />
+                    <p>{__('roles.pages.index.empty_search')}</p>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+                    {Object.entries(filteredPermissions).map(
+                        ([group, groupPermissions]) => {
+                            const isModuleFullyChecked = groupPermissions.every(
+                                (p) =>
+                                    data.permissions.some((dp) => dp.id === p.id),
+                            );
+
+                            const groupTitle =
+                                __(`permissions.${group}.title`) !==
+                                    `permissions.${group}.title`
+                                    ? __(`permissions.${group}.title`)
+                                    : group;
+
+                            return (
+                                <div
+                                    key={group}
+                                    className={`flex flex-col rounded-xl border bg-card text-card-foreground shadow-sm transition-all duration-200 hover:shadow-md ${isModuleFullyChecked ? 'border-primary/40 ring-1 ring-primary/20' : ''}`}
+                                >
+                                    <div className="flex items-center justify-between rounded-t-xl border-b bg-muted/30 p-4">
+                                        <div className="flex items-center gap-2.5">
+                                            <div
+                                                className={`rounded-md p-1.5 ${isModuleFullyChecked ? 'bg-primary/10 text-primary' : 'border bg-background text-muted-foreground'}`}
+                                            >
+                                                <Shield className="h-4 w-4" />
+                                            </div>
+                                            <h3 className="font-semibold tracking-tight capitalize">
+                                                {groupTitle}
+                                            </h3>
+                                        </div>
+                                        <Switch
+                                            checked={isModuleFullyChecked}
+                                            onCheckedChange={(checked) =>
+                                                toggleModule(
+                                                    groupPermissions,
+                                                    checked,
+                                                )
+                                            }
+                                            disabled={disabled}
+                                            className="data-[state=checked]:bg-primary"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-4 p-4">
+                                        {groupPermissions.map((permission) => {
+                                            const isChecked = data.permissions.some(
+                                                (p) => p.id === permission.id,
+                                            );
+                                            const actionName = getPermissionAction(
+                                                permission.name,
+                                            );
+                                            const actionTitle =
+                                                __(
+                                                    `permissions.${group}.items.${actionName}.title`,
+                                                ) !==
+                                                    `permissions.${group}.items.${actionName}.title`
+                                                    ? __(
+                                                        `permissions.${group}.items.${actionName}.title`,
+                                                    )
+                                                    : actionName;
+
+                                            return (
+                                                <div
+                                                    key={permission.id}
+                                                    className="group/item flex items-center justify-between gap-3"
+                                                >
+                                                    <Label
+                                                        htmlFor={`perm-${permission.id}`}
+                                                        className={`cursor-pointer text-sm leading-none font-medium transition-colors ${isChecked ? 'text-foreground' : 'text-muted-foreground group-hover/item:text-foreground'}`}
+                                                    >
+                                                        {actionTitle}
+                                                    </Label>
+                                                    <Switch
+                                                        id={`perm-${permission.id}`}
+                                                        checked={isChecked}
+                                                        onCheckedChange={() =>
+                                                            togglePermission(
+                                                                permission,
+                                                            )
+                                                        }
+                                                        disabled={disabled}
+                                                        className="scale-90"
+                                                    />
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            );
+                        },
+                    )}
+                </div>
+            )}
         </TabsContent>
     );
 }
@@ -330,6 +384,7 @@ export function UsersTab({
         usersWithoutRole || [],
     );
     const [assignedSearchQuery, setAssignedSearchQuery] = useState('');
+    const [selectedUsers, setSelectedUsers] = useState<Set<number>>(new Set());
 
     const isSimpleUser = data.name === 'simple_user';
 
@@ -353,12 +408,39 @@ export function UsersTab({
         );
     }, [data.users, assignedSearchQuery]);
 
-    const handleAddUser = (user: User) => {
-        setData('users', [...data.users, user]);
-        setTempUsersWithoutRole(
-            tempUsersWithoutRole.filter((u) => u.id !== user.id),
+    const toggleUserSelection = (userId: number) => {
+        const newSelected = new Set(selectedUsers);
+        if (newSelected.has(userId)) {
+            newSelected.delete(userId);
+        } else {
+            newSelected.add(userId);
+        }
+        setSelectedUsers(newSelected);
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedUsers.size === filteredAvailableUsers.length) {
+            setSelectedUsers(new Set());
+        } else {
+            setSelectedUsers(new Set(filteredAvailableUsers.map((u) => u.id)));
+        }
+    };
+
+    const handleConfirmAdd = () => {
+        const usersToAdd = tempUsersWithoutRole.filter((u) =>
+            selectedUsers.has(u.id),
         );
-        toast.success(__('roles.pages.form.users.flash.added'));
+        setData('users', [...data.users, ...usersToAdd]);
+        setTempUsersWithoutRole(
+            tempUsersWithoutRole.filter((u) => !selectedUsers.has(u.id)),
+        );
+        setSelectedUsers(new Set());
+        setOpen(false);
+        toast.success(
+            __('roles.pages.form.users.flash.added_count', undefined, {
+                count: usersToAdd.length,
+            }),
+        );
     };
 
     const handleRemoveUser = (user: User) => {
@@ -368,6 +450,11 @@ export function UsersTab({
         );
         setTempUsersWithoutRole([...tempUsersWithoutRole, user]);
         toast.success(__('roles.pages.form.users.flash.removed'));
+    };
+
+    const handleClose = () => {
+        setSelectedUsers(new Set());
+        setOpen(false);
     };
 
     return (
@@ -411,19 +498,32 @@ export function UsersTab({
                                     </AlertDialogDescription>
                                 </AlertDialogHeader>
 
-                                <div className="relative mt-4">
-                                    <Search className="absolute top-2.5 left-3 h-4 w-4 text-muted-foreground" />
-                                    <Input
-                                        placeholder={__(
-                                            'roles.pages.form.users.dialog.search_placeholder',
-                                        )}
-                                        className="bg-background pl-9"
-                                        value={searchQuery}
-                                        onChange={(e) =>
-                                            setSearchQuery(e.target.value)
-                                        }
-                                        autoFocus
-                                    />
+                                <div className="mt-4 flex gap-2">
+                                    <div className="relative flex-1">
+                                        <Search className="absolute top-2.5 left-3 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            placeholder={__(
+                                                'roles.pages.form.users.dialog.search_placeholder',
+                                            )}
+                                            className="bg-background pl-9"
+                                            value={searchQuery}
+                                            onChange={(e) =>
+                                                setSearchQuery(e.target.value)
+                                            }
+                                            autoFocus
+                                        />
+                                    </div>
+                                    <Button
+                                        variant="outline"
+                                        onClick={toggleSelectAll}
+                                        className="whitespace-nowrap"
+                                    >
+                                        {selectedUsers.size ===
+                                            filteredAvailableUsers.length &&
+                                            filteredAvailableUsers.length > 0
+                                            ? __('common.actions.deselect_all')
+                                            : __('common.actions.select_all')}
+                                    </Button>
                                 </div>
                             </div>
 
@@ -450,75 +550,87 @@ export function UsersTab({
                                     </div>
                                 ) : (
                                     <div className="divide-y">
-                                        {filteredAvailableUsers.map((user) => (
-                                            <div
-                                                key={user.id}
-                                                className="flex items-center justify-between p-4 transition-colors hover:bg-muted/40"
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <Avatar className="h-9 w-9">
-                                                        <AvatarImage
-                                                            src={
-                                                                user.avatar?.url
-                                                            }
-                                                            alt={user.name}
-                                                        />
-                                                        <AvatarFallback className="bg-muted text-sm font-medium text-muted-foreground">
-                                                            {user.name
-                                                                .substring(0, 2)
-                                                                .toUpperCase()}
-                                                        </AvatarFallback>
-                                                    </Avatar>
-
-                                                    <div>
-                                                        <p className="flex items-center gap-2 text-sm font-medium text-foreground">
-                                                            {user.name}
-                                                            {user.id ===
-                                                                auth.user
-                                                                    .id && (
-                                                                <Badge
-                                                                    variant="outline"
-                                                                    className="h-4 px-1 text-[10px]"
-                                                                >
-                                                                    {__(
-                                                                        'roles.pages.form.users.you',
-                                                                    )}
-                                                                </Badge>
-                                                            )}
-                                                        </p>
-                                                        <p className="text-xs text-muted-foreground">
-                                                            {user.email}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <Button
-                                                    size="sm"
-                                                    variant="secondary"
-                                                    type="button"
-                                                    className="h-8 gap-1.5 transition-colors hover:bg-primary hover:text-primary-foreground"
+                                        {filteredAvailableUsers.map((user) => {
+                                            const isSelected = selectedUsers.has(
+                                                user.id,
+                                            );
+                                            return (
+                                                <div
+                                                    key={user.id}
+                                                    className={`flex cursor-pointer items-center justify-between p-4 transition-colors hover:bg-muted/40 ${isSelected ? 'bg-primary/5' : ''}`}
                                                     onClick={() =>
-                                                        handleAddUser(user)
+                                                        toggleUserSelection(user.id)
                                                     }
                                                 >
-                                                    <Plus className="h-3.5 w-3.5" />
-                                                    {__(
-                                                        'roles.pages.form.users.dialog.table.actions.add',
-                                                    )}
-                                                </Button>
-                                            </div>
-                                        ))}
+                                                    <div className="flex items-center gap-3">
+                                                        <Avatar className="h-9 w-9">
+                                                            <AvatarImage
+                                                                src={
+                                                                    user.avatar?.url
+                                                                }
+                                                                alt={user.name}
+                                                            />
+                                                            <AvatarFallback className="bg-muted text-sm font-medium text-muted-foreground">
+                                                                {user.name
+                                                                    .substring(0, 2)
+                                                                    .toUpperCase()}
+                                                            </AvatarFallback>
+                                                        </Avatar>
+
+                                                        <div>
+                                                            <p className="flex items-center gap-2 text-sm font-medium text-foreground">
+                                                                {user.name}
+                                                                {user.id ===
+                                                                    auth.user
+                                                                        .id && (
+                                                                        <Badge
+                                                                            variant="outline"
+                                                                            className="h-4 px-1 text-[10px]"
+                                                                        >
+                                                                            {__(
+                                                                                'roles.pages.form.users.you',
+                                                                            )}
+                                                                        </Badge>
+                                                                    )}
+                                                            </p>
+                                                            <p className="text-xs text-muted-foreground">
+                                                                {user.email}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div
+                                                        className={`flex h-5 w-5 items-center justify-center rounded border ${isSelected ? 'border-primary bg-primary text-primary-foreground' : 'border-input bg-background'}`}
+                                                    >
+                                                        {isSelected && (
+                                                            <Plus className="h-3.5 w-3.5" />
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 )}
                             </div>
 
                             <AlertDialogFooter className="border-t bg-muted/10 p-4">
-                                <AlertDialogCancel asChild>
-                                    <Button type="button" variant="outline">
-                                        {__(
-                                            'roles.pages.form.users.dialog.buttons.close',
-                                        )}
-                                    </Button>
-                                </AlertDialogCancel>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={handleClose}
+                                >
+                                    {__('common.actions.cancel')}
+                                </Button>
+                                <Button
+                                    type="button"
+                                    onClick={handleConfirmAdd}
+                                    disabled={selectedUsers.size === 0}
+                                >
+                                    {__(
+                                        'roles.pages.form.users.dialog.buttons.add_selected',
+                                        undefined,
+                                        { count: selectedUsers.size },
+                                    )}
+                                </Button>
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>
@@ -628,15 +740,15 @@ export function UsersTab({
                                                     </span>
                                                     {user.id ===
                                                         auth.user.id && (
-                                                        <Badge
-                                                            variant="secondary"
-                                                            className="h-4 px-1 text-[10px]"
-                                                        >
-                                                            {__(
-                                                                'roles.pages.form.users.you',
-                                                            )}
-                                                        </Badge>
-                                                    )}
+                                                            <Badge
+                                                                variant="secondary"
+                                                                className="h-4 px-1 text-[10px]"
+                                                            >
+                                                                {__(
+                                                                    'roles.pages.form.users.you',
+                                                                )}
+                                                            </Badge>
+                                                        )}
                                                 </div>
                                             </div>
                                         </div>

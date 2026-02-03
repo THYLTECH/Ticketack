@@ -68,20 +68,20 @@ class TrashController extends Controller
                 ->paginate(5, ['*'], 'assets_page')
                 ->withQueryString(),
 
-            'filters' => $request->only(['search']),
+            'filters' => $request->only(['search', 'type']),
             'retentionSettings' => [
                 'ticket' => $getRetention('ticket'),
                 'user' => $getRetention('user'),
                 'role' => $getRetention('role'),
                 'asset' => $getRetention('asset'),
             ],
-            'canManageSettings' => Gate::allows('manage trash settings'),
+            'canManageSettings' => Gate::allows('manage trash'),
         ]);
     }
 
     public function updateRetention(Request $request): RedirectResponse
     {
-        Gate::authorize('manage trash settings');
+        Gate::authorize('manage trash');
 
         $request->validate([
             'type' => 'required|string|in:ticket,user,role,asset',

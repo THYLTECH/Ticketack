@@ -62,39 +62,49 @@ const links = [
 
 export default function Footer() {
     return (
-        <footer className="border-t bg-white dark:bg-transparent">
-            <div className="mx-auto max-w-6xl  border-l border-r pt-20">
-                <div className="flex items-start justify-between gap-12  px-6">
-                    <div className="md:col-span-2">
+        <footer className="border-t bg-background pt-16 md:pt-24 pb-8">
+            <div className="mx-auto max-w-7xl px-6 md:px-8">
+                <div className="flex flex-col xl:flex-row justify-between gap-12 xl:gap-20">
+                    <div className="xl:w-1/3 space-y-4">
                         <Link
                             href="/"
                             aria-label="go home"
-                            className="block size-fit">
-                            <Logo />
+                            className="flex items-center gap-2 max-w-max">
+                            <Logo className="h-8 w-8" />
                         </Link>
+                        <p className="text-muted-foreground text-sm max-w-xs leading-relaxed">
+                            Advanced AI-powered ticketing intelligence for modern support teams. Streamline your workflows today.
+                        </p>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-6 sm:gap-12 md:col-span-3">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-8 xl:w-2/3">
                         {links.map((link, index) => (
                             <div
                                 key={index}
-                                className="space-y-4 text-sm col-span-1">
-                                <span className="block font-medium">{link.group}</span>
-                                {link.items.map((item, index) => (
-                                    <a
-                                        key={index}
-                                        href={item.href}
-                                        target={item.target}
-                                        className="text-muted-foreground hover:text-primary block duration-150">
-                                        <span>{item.title}</span>
-                                    </a>
-                                ))}
+                                className="space-y-4">
+                                <span className="block text-sm font-semibold tracking-wider uppercase text-foreground/90">{link.group}</span>
+                                <ul className="space-y-2">
+                                    {link.items.map((item, index) => (
+                                        <li key={index}>
+                                            <a
+                                                href={item.href}
+                                                target={item.target}
+                                                className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200 block py-1">
+                                                {item.title}
+                                            </a>
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
                         ))}
                     </div>
                 </div>
-                <div className="mt-12 flex flex-wrap items-end justify-between gap-6 border-t py-6 px-6">
-                    <span className="text-muted-foreground order-last block text-center text-sm md:order-first">© {new Date().getFullYear()} Ticketack, All rights reserved</span>
+                
+                <div className="mt-16 pt-8 border-t border-border/40 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <span className="text-muted-foreground text-sm">© {new Date().getFullYear()} Ticketack. All rights reserved.</span>
+                    <div className="flex items-center gap-6">
+                        {/* Social icons could go here */}
+                    </div>
                 </div>
             </div>
         </footer>

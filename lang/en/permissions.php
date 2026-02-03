@@ -86,7 +86,7 @@ return [
         'description' => 'Manage deleted items.',
         'items' => [
             'view' => ['title' => 'View Trash', 'description' => 'Access the recycle bin.'],
-            'edit' => ['title' => 'Manage Trash', 'description' => 'Perform actions in the trash.'],
+            'manage' => ['title' => 'Manage Trash', 'description' => 'Manage trash settings (retention, etc).'],
             'restore' => ['title' => 'Restore Items', 'description' => 'Restore items from trash.'],
             'force delete' => ['title' => 'Empty Trash', 'description' => 'Permanently delete items from trash.'],
         ],

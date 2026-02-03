@@ -33,6 +33,6 @@ test('does not send verification notification if email is verified', function ()
 
     $response = $this->actingAs($user)->post(route('auth.verification.send'));
 
-    $response->assertRedirect(route('dashboard'));
+    $response->assertRedirect(route('home'));
     Queue::assertNothingPushed();
 });

@@ -26,6 +26,7 @@ import {
     formatPeriodTitle,
     navigateByView,
 } from '@/pages/tickets/planning/utils';
+import { userHasPermission } from '@/lib/utils';
 import {
     SharedData,
     Ticket,
@@ -55,13 +56,18 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
     const __ = useTrans();
     const { auth } = usePage<SharedData>().props;
 
-    const initialDate =
-        ticket.schedules && ticket.schedules.length > 0
-            ? parseISO(ticket.schedules[0].start_date)
-            : new Date();
+    const initialDate = useMemo(() => {
+        if (!events || events.length === 0) return new Date();
+
+        const latestEvent = events.reduce((max, current) => {
+            return new Date(current.start_date) > new Date(max.start_date) ? current : max;
+        });
+
+        return parseISO(latestEvent.start_date);
+    }, [events]);
 
     const [date, setDate] = useState(initialDate);
-    const [view, setView] = useState<ViewType>('week');
+    const [view, setView] = useState<ViewType>('day');
     const [isEditMode, setIsEditMode] = useState(false);
     const [showListView, setShowListView] = useState(false);
     const [selectedEvent, setSelectedEvent] = useState<TicketSchedule | null>(
@@ -298,27 +304,33 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                             )}
                         </div>
 
-                        <div
-                            className={cn(
-                                'flex h-8 items-center space-x-2 rounded-md border px-2 transition-colors sm:hidden',
-                                isEditMode
-                                    ? 'border-primary/30 bg-primary/5'
-                                    : 'bg-card',
+                        {userHasPermission({
+                            user: auth.user,
+                            permission: 'manage planning',
+                        }) && (
+                                <div
+                                    className={cn(
+                                        'flex h-8 items-center space-x-2 rounded-md border px-2 transition-colors sm:hidden',
+                                        isEditMode
+                                            ? 'border-primary/30 bg-primary/5'
+                                            : 'bg-card',
+                                    )}
+                                >
+                                    <Switch
+                                        id="edit-mode-tab"
+                                        checked={isEditMode}
+                                        onCheckedChange={setIsEditMode}
+                                        className="scale-75"
+                                        disabled={!!ticket.archived_at}
+                                    />
+                                    <Label
+                                        htmlFor="edit-mode-tab"
+                                        className="cursor-pointer text-xs font-medium"
+                                    >
+                                        {__('tickets.pages.show.calendar.edit_mode')}
+                                    </Label>
+                                </div>
                             )}
-                        >
-                            <Switch
-                                id="edit-mode-tab"
-                                checked={isEditMode}
-                                onCheckedChange={setIsEditMode}
-                                className="scale-75"
-                            />
-                            <Label
-                                htmlFor="edit-mode-tab"
-                                className="cursor-pointer text-xs font-medium"
-                            >
-                                {__('tickets.pages.show.calendar.edit_mode')}
-                            </Label>
-                        </div>
                     </div>
 
                     <div className="flex items-center justify-between gap-2 sm:gap-3">
@@ -355,26 +367,32 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                             </TabsList>
                         </Tabs>
 
-                        <div
-                            className={cn(
-                                'hidden h-9 items-center space-x-2 rounded-md border px-3 transition-colors sm:flex',
-                                isEditMode
-                                    ? 'border-primary/30 bg-primary/5'
-                                    : 'bg-card',
+                        {userHasPermission({
+                            user: auth.user,
+                            permission: 'manage planning',
+                        }) && (
+                                <div
+                                    className={cn(
+                                        'hidden h-9 items-center space-x-2 rounded-md border px-3 transition-colors sm:flex',
+                                        isEditMode
+                                            ? 'border-primary/30 bg-primary/5'
+                                            : 'bg-card',
+                                    )}
+                                >
+                                    <Switch
+                                        id="edit-mode-tab-desktop"
+                                        checked={isEditMode}
+                                        onCheckedChange={setIsEditMode}
+                                        disabled={!!ticket.archived_at}
+                                    />
+                                    <Label
+                                        htmlFor="edit-mode-tab-desktop"
+                                        className="cursor-pointer text-xs font-medium"
+                                    >
+                                        {__('tickets.pages.show.calendar.edit_mode')}
+                                    </Label>
+                                </div>
                             )}
-                        >
-                            <Switch
-                                id="edit-mode-tab-desktop"
-                                checked={isEditMode}
-                                onCheckedChange={setIsEditMode}
-                            />
-                            <Label
-                                htmlFor="edit-mode-tab-desktop"
-                                className="cursor-pointer text-xs font-medium"
-                            >
-                                {__('tickets.pages.show.calendar.edit_mode')}
-                            </Label>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -423,7 +441,7 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-hidden bg-background">
+                    <div className="flex-1 overflow-hidden bg-background" data-onboarding="planning-grid">
                         <PlanningGrid
                             events={filteredEvents}
                             view={view}
@@ -442,11 +460,11 @@ export function CalendarTab({ ticket, events, solvers }: Props) {
                                         solvers.find(
                                             (s) => s.id === evt.user_id,
                                         ) || {
-                                            id: evt.user_id,
-                                            name: 'Technicien',
-                                            email: '',
-                                            avatar: null,
-                                        },
+                                        id: evt.user_id,
+                                        name: 'Technicien',
+                                        email: '',
+                                        avatar: null,
+                                    },
                                     ticket: evt.ticket || ticket,
                                 };
                                 setSelectedEvent(fullEvent);

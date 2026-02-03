@@ -52,6 +52,10 @@ class Ticket
      */
     public function update(User $user, ModelsTicket $ticket): bool
     {
+        if ($ticket->archived_at !== null) {
+            return false;
+        }
+
         if ($user->hasRole(['admin', 'solver'])) {
             return $user->can('update tickets');
         }

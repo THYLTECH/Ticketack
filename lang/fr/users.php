@@ -14,6 +14,8 @@ return [
         'deleted' => 'Utilisateur supprimé avec succès.',
         'restored' => 'Utilisateur restauré avec succès.',
         'forced_deleted' => 'Utilisateur supprimé définitivement avec succès.',
+        'delete_own_account' => 'Vous ne pouvez pas supprimer votre propre compte.',
+        'delete_last_admin' => 'Vous ne pouvez pas supprimer le dernier administrateur.',
     ],
 
     /*
@@ -34,6 +36,10 @@ return [
         'index' => [
             'head_title' => 'Utilisateurs',
             'search_placeholder' => 'Rechercher des utilisateurs...',
+            'filter_role_placeholder' => 'Filtrer par rôle',
+            'filters' => [
+                'role_placeholder' => 'Filtrer par rôle',
+            ],
             'title' => 'Utilisateurs',
             'description' => 'Gérez et visualisez tous les utilisateurs au même endroit.',
 

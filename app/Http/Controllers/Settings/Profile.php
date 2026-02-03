@@ -1,7 +1,5 @@
 <?php
 
-// app/Http/Controllers/Settings/Profile.php
-
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
@@ -11,12 +9,10 @@ use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
-// Requests
 use App\Http\Requests\Settings\Profile as RequestsProfile;
 use App\Http\Requests\Settings\Lang as RequestsLang;
 use App\Http\Requests\Settings\DeleteAccount as RequestsDeleteAccount;
 
-// Models
 use App\Models\User;
 use App\Models\Attachment;
 
@@ -50,8 +46,8 @@ class Profile extends Controller
         $emailChanged = array_key_exists('email', $data) && $data['email'] !== $user->email;
 
         unset($data['avatar']);
-        // Normalize phone number by removing spaces
-        if($data['phone']) {
+
+        if (isset($data['phone']) && $data['phone']) {
             $data['phone'] = preg_replace('/\s+/', '', $data['phone']);
         }
 
@@ -76,11 +72,11 @@ class Profile extends Controller
             $path = Storage::disk('public')->putFile("users/{$user->id}/avatars", $file);
 
             $attachment = Attachment::create([
-                'file_name'      => $file->getClientOriginalName(),
-                'file_path'      => $path,
-                'mime_type'      => $file->getMimeType(),
+                'file_name' => $file->getClientOriginalName(),
+                'file_path' => $path,
+                'mime_type' => $file->getMimeType(),
                 'file_extension' => $file->getClientOriginalExtension(),
-                'file_size'      => $file->getSize(),
+                'file_size' => $file->getSize(),
             ]);
 
             $user->avatar()->associate($attachment);
@@ -123,10 +119,22 @@ class Profile extends Controller
         $data = $request->validated();
         $user = Auth::user();
 
-        if(!Auth::validate(['email' => $user->email, 'password' => $data['password']])) {
+        if (!Auth::validate(['email' => $user->email, 'password' => $data['password']])) {
             return back()->withErrors([
                 'password' => __('settings.flash.incorrect_current_password'),
             ]);
+        }
+
+        if ($user->hasRole('admin')) {
+            $adminCount = User::role('admin')->count();
+            if ($adminCount <= 1) {
+                return back()->with([
+                    'error' => [
+                        'title' => __('common.flash.error'),
+                        'description' => __('settings.flash.delete_last_admin_account')
+                    ]
+                ]);
+            }
         }
 
         Auth::logout();

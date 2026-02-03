@@ -373,7 +373,22 @@ class Crud extends Controller
             ->filter(fn($event) => !empty($event))
             ->values();
 
-        return $schedules->concat($entries)->values()->all();
+        $events = $schedules->concat($entries)->values()->all();
+
+        return Inertia::render('tickets/show', [
+            'ticket' => $ticket,
+            'events' => $events,
+            'solvers' => User::permission('be assigned tickets')->with('avatar')->get()->map(fn($user) => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'avatar' => $user->avatar,
+            ])->toArray(),
+            'similar_tickets' => $similarTickets,
+            'priorities' => TicketPriority::orderBy('sort_order')->get(),
+            'categories' => TicketCategory::orderBy('sort_order')->get(),
+            'statuses' => TicketStatus::orderBy('sort_order')->get(),
+        ]);
     }
 
     /**

@@ -1,27 +1,36 @@
 import { Link, router } from '@inertiajs/react';
-import { 
-    Table, 
-    TableBody, 
-    TableCell, 
-    TableHead, 
-    TableHeader, 
-    TableRow 
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { useTrans } from '@/lib/translation';
 import { Ticket } from '@/types';
 import { formatDate } from '@/lib/utils';
-import { 
-    Empty, 
-    EmptyHeader, 
-    EmptyMedia, 
-    EmptyTitle 
+import {
+    Empty,
+    EmptyHeader,
+    EmptyMedia,
+    EmptyTitle
 } from '@/components/ui/empty';
-import { Ticket as TicketIcon } from 'lucide-react';
-// Remplacement de LaravelPagination par PaginationControl
+import { Ticket as TicketIcon, User as UserIcon } from 'lucide-react';
 import { PaginationControl } from '@/components/pagination-control';
+import {
+    Avatar,
+    AvatarFallback,
+    AvatarImage,
+} from "@/components/ui/avatar";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 
-// Interface mise à jour pour correspondre à PaginationMeta de PaginationControl
 interface PaginatedTickets {
     data: Ticket[];
     current_page: number;
@@ -47,7 +56,7 @@ export function TicketTable({ data, emptyMessage, showAuthor = false }: TicketTa
 
     return (
         <div className="flex flex-col h-full min-h-[400px] justify-between border rounded-md bg-card overflow-hidden">
-            <div className="flex-1 overflow-x-auto">
+            <div className="flex-1 overflow-auto">
                 {tickets.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-[300px]">
                         <Empty className="border-none">
@@ -62,96 +71,166 @@ export function TicketTable({ data, emptyMessage, showAuthor = false }: TicketTa
                         </Empty>
                     </div>
                 ) : (
-                    <Table className="table-fixed w-full">
-                        <TableHeader className="bg-muted/50">
-                            <TableRow>
-                                <TableHead className="w-[80px] pl-6 font-semibold text-foreground">
-                                    {__('tickets.fields.id', 'ID')}
-                                </TableHead>
-                                <TableHead className="font-semibold text-foreground">
-                                    {__('tickets.fields.title')}
-                                </TableHead>
-                                <TableHead className="w-[120px] font-semibold text-foreground text-center">
-                                    {__('tickets.fields.status')}
-                                </TableHead>
-                                <TableHead className="w-[110px] font-semibold text-foreground text-center">
-                                    {__('tickets.fields.priority')}
-                                </TableHead>
-                                {showAuthor && (
-                                    <TableHead className="w-[140px] font-semibold text-foreground">
-                                        {__('tickets.fields.author')}
-                                    </TableHead>
-                                )}
-                                <TableHead className="w-[130px] pr-6 text-right font-semibold text-foreground">
-                                    {__('tickets.fields.updated_at')}
-                                </TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
+                    <>
+                        <div className="md:hidden divide-y divide-border">
                             {tickets.map((ticket) => (
-                                <TableRow 
-                                    key={ticket.id} 
-                                    className="group cursor-pointer transition-colors hover:bg-muted/40"
+                                <div
+                                    key={ticket.id}
+                                    className="p-4 flex flex-col gap-3 active:bg-muted/50 transition-colors cursor-pointer"
                                     onClick={() => router.get(route('tickets.show', ticket.id))}
                                 >
-                                    <TableCell className="pl-6 text-xs text-muted-foreground font-mono truncate">
-                                        #{ticket.id}
-                                    </TableCell>
-                                    
-                                    <TableCell className="font-medium text-sm relative">
-                                        <Link href={route('tickets.show', ticket.id)} className="absolute inset-0 z-0" />
-                                        <span 
-                                            className="relative z-10 block truncate group-hover:underline decoration-primary/30" 
-                                            title={ticket.title}
-                                        >
-                                            {ticket.title}
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-xs text-muted-foreground font-mono">
+                                            #{ticket.id}
                                         </span>
-                                    </TableCell>
-                                    
-                                    <TableCell className="text-center">
-                                        <Badge 
-                                            variant="outline" 
-                                            className="text-[10px] uppercase font-bold px-2 py-0.5 max-w-full truncate"
-                                            style={{ 
-                                                backgroundColor: ticket.status?.color + '15', 
+                                        <Badge
+                                            variant="outline"
+                                            className="text-[10px] uppercase font-bold px-2 py-0.5"
+                                            style={{
+                                                backgroundColor: ticket.status?.color + '15',
                                                 color: ticket.status?.color,
                                                 borderColor: ticket.status?.color + '30'
                                             }}
                                         >
                                             {ticket.status?.title}
                                         </Badge>
-                                    </TableCell>
-                                    
-                                    <TableCell className="text-center">
-                                        <div className="flex items-center justify-center gap-2 text-xs">
-                                            <span 
-                                                className="h-2 w-2 rounded-full shrink-0" 
-                                                style={{ backgroundColor: ticket.priority?.color }} 
+                                    </div>
+
+                                    <div>
+                                        <h4 className="font-medium text-sm line-clamp-2 leading-tight">
+                                            {ticket.title}
+                                        </h4>
+                                        {showAuthor && (
+                                            <p className="text-xs text-muted-foreground mt-1">
+                                                {__('tickets.fields.author')}: {ticket.user?.name}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                        <div className="flex items-center gap-2">
+                                            <span
+                                                className="h-2 w-2 rounded-full shrink-0"
+                                                style={{ backgroundColor: ticket.priority?.color }}
                                             />
-                                            <span className="hidden xl:inline opacity-80 italic truncate">
-                                                {ticket.priority?.title}
-                                            </span>
+                                            <span>{ticket.priority?.title}</span>
                                         </div>
-                                    </TableCell>
-                                    
-                                    {showAuthor && (
-                                        <TableCell className="text-sm font-medium truncate">
-                                            {ticket.user?.name}
-                                        </TableCell>
-                                    )}
-                                    
-                                    <TableCell className="pr-6 text-right text-xs text-muted-foreground font-medium truncate tabular-nums">
-                                        {formatDate(ticket.updated_at)}
-                                    </TableCell>
-                                </TableRow>
+                                        <span className="tabular-nums">
+                                            {formatDate(ticket.updated_at)}
+                                        </span>
+                                    </div>
+                                </div>
                             ))}
-                        </TableBody>
-                    </Table>
+                        </div>
+
+                        <div className="hidden md:block overflow-auto">
+                            <Table className="w-full">
+                                <TableHeader className="bg-muted/50 sticky top-0 z-10">
+                                    <TableRow>
+                                        <TableHead className="w-[80px] pl-6 font-semibold text-foreground">
+                                            {__('tickets.fields.id', 'ID')}
+                                        </TableHead>
+                                        <TableHead className="font-semibold text-foreground">
+                                            {__('tickets.fields.title')}
+                                        </TableHead>
+                                        <TableHead className="w-[120px] font-semibold text-foreground text-center">
+                                            {__('tickets.fields.status')}
+                                        </TableHead>
+                                        <TableHead className="w-[110px] font-semibold text-foreground text-center">
+                                            {__('tickets.fields.priority')}
+                                        </TableHead>
+                                        {showAuthor && (
+                                            <TableHead className="w-[80px] text-center font-semibold text-foreground px-0">
+                                                <UserIcon className="h-4 w-4 mx-auto" />
+                                            </TableHead>
+                                        )}
+                                        <TableHead className="w-[130px] pr-6 text-right font-semibold text-foreground">
+                                            {__('tickets.fields.updated_at')}
+                                        </TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {tickets.map((ticket) => (
+                                        <TableRow
+                                            key={ticket.id}
+                                            className="group cursor-pointer transition-colors hover:bg-muted/40"
+                                            onClick={() => router.get(route('tickets.show', ticket.id))}
+                                        >
+                                            <TableCell className="pl-6 text-xs text-muted-foreground font-mono truncate">
+                                                #{ticket.id}
+                                            </TableCell>
+
+                                            <TableCell className="font-medium text-sm relative">
+                                                <Link href={route('tickets.show', ticket.id)} className="absolute inset-0 z-0" />
+                                                <span
+                                                    className="relative z-10 block truncate max-w-[200px] md:max-w-[300px] lg:max-w-[400px] group-hover:underline decoration-primary/30"
+                                                    title={ticket.title}
+                                                >
+                                                    {ticket.title}
+                                                </span>
+                                            </TableCell>
+
+                                            <TableCell className="text-center">
+                                                <Badge
+                                                    variant="outline"
+                                                    className="text-[10px] uppercase font-bold px-2 py-0.5 max-w-full truncate"
+                                                    style={{
+                                                        backgroundColor: ticket.status?.color + '15',
+                                                        color: ticket.status?.color,
+                                                        borderColor: ticket.status?.color + '30'
+                                                    }}
+                                                >
+                                                    {ticket.status?.title}
+                                                </Badge>
+                                            </TableCell>
+
+                                            <TableCell className="text-center">
+                                                <div className="flex items-center justify-center gap-2 text-xs">
+                                                    <span
+                                                        className="h-2 w-2 rounded-full shrink-0"
+                                                        style={{ backgroundColor: ticket.priority?.color }}
+                                                    />
+                                                    <span className="hidden xl:inline opacity-80 italic truncate">
+                                                        {ticket.priority?.title}
+                                                    </span>
+                                                </div>
+                                            </TableCell>
+
+                                            {showAuthor && (
+                                                <TableCell className="w-[80px] text-center px-0">
+                                                    <div className="flex justify-center items-center">
+                                                        <TooltipProvider>
+                                                            <Tooltip delayDuration={300}>
+                                                                <TooltipTrigger asChild>
+                                                                    <Avatar className="h-6 w-6 cursor-help border">
+                                                                        <AvatarImage src={ticket.user?.avatar?.url} alt={ticket.user?.name} />
+                                                                        <AvatarFallback className="text-[9px] bg-muted text-muted-foreground">
+                                                                            {ticket.user?.name?.charAt(0).toUpperCase() || <UserIcon className="h-3 w-3" />}
+                                                                        </AvatarFallback>
+                                                                    </Avatar>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>
+                                                                    <p>{ticket.user?.name}</p>
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                        </TooltipProvider>
+                                                    </div>
+                                                </TableCell>
+                                            )}
+
+                                            <TableCell className="pr-6 text-right text-xs text-muted-foreground font-medium truncate tabular-nums">
+                                                {formatDate(ticket.updated_at)}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </>
                 )}
             </div>
-            
-            {/* Intégration de PaginationControl en bas du tableau */}
-            <div className="px-6 py-4 border-t bg-muted/5 mt-auto">
+
+            <div className="px-6 py-4 bg-muted/5 mt-auto">
                 <PaginationControl meta={data} />
             </div>
         </div>

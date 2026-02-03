@@ -22,7 +22,6 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
-import { Textarea } from '@/components/ui/textarea';
 import {
     Tooltip,
     TooltipContent,
@@ -168,7 +167,7 @@ export function InformationsTab({
         <div className="animate-in space-y-8 fade-in slide-in-from-bottom-2">
             {canManageKnowledgeBase && (
                 <Card className="border-l-4 border-l-emerald-500 bg-emerald-50/20 shadow-sm transition-all hover:shadow-md dark:bg-emerald-950/10">
-                    <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-4">
+                    <CardHeader className="flex flex-col gap-4 space-y-0 pb-4 sm:flex-row sm:items-start sm:justify-between">
                         <div className="space-y-1">
                             <CardTitle className="flex items-center gap-2 text-lg font-semibold text-emerald-900 dark:text-emerald-100">
                                 <BookOpenCheck className="h-5 w-5" />
@@ -180,18 +179,18 @@ export function InformationsTab({
                                 )}
                             </p>
                         </div>
-                        <div className="flex items-center gap-3 rounded-lg border bg-background/50 px-3 py-2 shadow-sm">
+                        <div className="flex w-full items-center justify-between gap-3 rounded-lg border bg-background/50 px-3 py-2 shadow-sm sm:w-auto sm:justify-start">
                             <Label
                                 htmlFor="reference-mode"
-                                className="cursor-pointer text-sm font-medium text-emerald-800 dark:text-emerald-200"
+                                className="line-clamp-2 flex-1 cursor-pointer text-sm font-medium text-emerald-800 dark:text-emerald-200"
                             >
                                 {data.is_referenced
                                     ? __(
-                                          'tickets.pages.form.knowledge_base.status_on',
-                                      )
+                                        'tickets.pages.form.knowledge_base.status_on',
+                                    )
                                     : __(
-                                          'tickets.pages.form.knowledge_base.status_off',
-                                      )}
+                                        'tickets.pages.form.knowledge_base.status_off',
+                                    )}
                             </Label>
                             <Switch
                                 id="reference-mode"
@@ -200,7 +199,7 @@ export function InformationsTab({
                                     setData('is_referenced', checked)
                                 }
                                 disabled={disabled}
-                                className="data-[state=checked]:bg-emerald-600"
+                                className="shrink-0 data-[state=checked]:bg-emerald-600"
                             />
                         </div>
                     </CardHeader>
@@ -232,38 +231,38 @@ export function InformationsTab({
                 user: auth.user,
                 permission: 'unarchive tickets',
             })) && (
-                <div className="flex items-center justify-between rounded-xl border bg-card p-4 shadow-sm transition-all hover:border-primary/20 hover:shadow-md">
-                    <div className="space-y-1">
-                        <Label className="text-base font-semibold">
-                            {__('tickets.column.archive_status')}
-                        </Label>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            {data.is_archived ? (
-                                <>
-                                    <Archive className="h-4 w-4 text-amber-600" />{' '}
-                                    <span className="font-medium text-amber-700 dark:text-amber-400">
-                                        {__(
-                                            'tickets.pages.form.fields.archived_label',
-                                        )}
-                                    </span>
-                                </>
-                            ) : (
-                                <>
-                                    <CheckCircle className="h-4 w-4 text-emerald-600" />{' '}
-                                    <span className="font-medium text-emerald-700 dark:text-emerald-400">
-                                        {__('tickets.pages.form.fields.active_label')}
-                                    </span>
-                                </>
-                            )}
+                    <div className="flex items-center justify-between rounded-xl border bg-card p-4 shadow-sm transition-all hover:border-primary/20 hover:shadow-md">
+                        <div className="space-y-1">
+                            <Label className="text-base font-semibold">
+                                {__('tickets.column.archive_status')}
+                            </Label>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                {data.is_archived ? (
+                                    <>
+                                        <Archive className="h-4 w-4 text-amber-600" />{' '}
+                                        <span className="font-medium text-amber-700 dark:text-amber-400">
+                                            {__(
+                                                'tickets.pages.form.fields.archived_label',
+                                            )}
+                                        </span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <CheckCircle className="h-4 w-4 text-emerald-600" />{' '}
+                                        <span className="font-medium text-emerald-700 dark:text-emerald-400">
+                                            {__('tickets.pages.form.fields.active_label')}
+                                        </span>
+                                    </>
+                                )}
+                            </div>
                         </div>
+                        <Switch
+                            checked={data.is_archived}
+                            onCheckedChange={(checked) => setData('is_archived', checked)}
+                            disabled={disabled}
+                        />
                     </div>
-                    <Switch
-                        checked={data.is_archived}
-                        onCheckedChange={(checked) => setData('is_archived', checked)}
-                        disabled={disabled}
-                    />
-                </div>
-            )}
+                )}
 
             <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-2 md:col-span-2">
@@ -299,16 +298,10 @@ export function InformationsTab({
                     <Label htmlFor="description" indicator="required">
                         {__('tickets.column.description')}
                     </Label>
-                    <Textarea
-                        id="description"
-                        placeholder={__(
-                            'tickets.pages.form.placeholders.description',
-                        )}
-                        className={`min-h-40 resize-y ${errors.description ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+                    <MarkdownEditor
                         value={data.description}
-                        required
-                        onChange={(e) => {
-                            setData('description', e.target.value);
+                        onChange={(val: string) => {
+                            setData('description', val);
                             clearErrors?.('description');
                         }}
                         disabled={disabled}
@@ -377,12 +370,12 @@ export function InformationsTab({
                             user: auth.user,
                             permission: 'manage priority tickets',
                         }) && (
-                            <PrioritiesSheet priorities={priorities}>
-                                <Button type="button" size="icon" variant="outline">
-                                    <Ellipsis className="h-4 w-4" />
-                                </Button>
-                            </PrioritiesSheet>
-                        )}
+                                <PrioritiesSheet priorities={priorities}>
+                                    <Button type="button" size="icon" variant="outline">
+                                        <Ellipsis className="h-4 w-4" />
+                                    </Button>
+                                </PrioritiesSheet>
+                            )}
                     </div>
                     {errors.priority_id && (
                         <p className="text-sm font-medium text-destructive">
@@ -401,7 +394,17 @@ export function InformationsTab({
                                 value={
                                     data.status_id ? String(data.status_id) : ''
                                 }
-                                disabled={disabled}
+                                disabled={
+                                    disabled ||
+                                    (!userHasPermission({
+                                        user: auth.user,
+                                        permission: 'update tickets',
+                                    }) &&
+                                        !userHasPermission({
+                                            user: auth.user,
+                                            permission: 'be assigned tickets',
+                                        }))
+                                }
                                 onValueChange={(val) =>
                                     setData(
                                         'status_id',
@@ -445,12 +448,12 @@ export function InformationsTab({
                             user: auth.user,
                             permission: 'manage status tickets',
                         }) && (
-                            <StatusesSheet statuses={statuses}>
-                                <Button type="button" size="icon" variant="outline">
-                                    <Ellipsis className="h-4 w-4" />
-                                </Button>
-                            </StatusesSheet>
-                        )}
+                                <StatusesSheet statuses={statuses}>
+                                    <Button type="button" size="icon" variant="outline">
+                                        <Ellipsis className="h-4 w-4" />
+                                    </Button>
+                                </StatusesSheet>
+                            )}
                     </div>
                     {errors.status_id && (
                         <p className="text-sm font-medium text-destructive">
@@ -516,12 +519,12 @@ export function InformationsTab({
                             user: auth.user,
                             permission: 'manage category tickets',
                         }) && (
-                            <CategoriesSheet categories={categories}>
-                                <Button type="button" size="icon" variant="outline">
-                                    <Ellipsis className="h-4 w-4" />
-                                </Button>
-                            </CategoriesSheet>
-                        )}
+                                <CategoriesSheet categories={categories}>
+                                    <Button type="button" size="icon" variant="outline">
+                                        <Ellipsis className="h-4 w-4" />
+                                    </Button>
+                                </CategoriesSheet>
+                            )}
                     </div>
                     {errors.category_id && (
                         <p className="text-sm font-medium text-destructive">
@@ -584,17 +587,17 @@ export function InformationsTab({
                             user: auth.user,
                             permission: 'view assets',
                         }) && (
-                            <Button
-                                asChild
-                                type="button"
-                                size="icon"
-                                variant="outline"
-                            >
-                                <Link href={route('assets.index')}>
-                                    <Ellipsis className="h-4 w-4" />
-                                </Link>
-                            </Button>
-                        )}
+                                <Button
+                                    asChild
+                                    type="button"
+                                    size="icon"
+                                    variant="outline"
+                                >
+                                    <Link href={route('assets.index')}>
+                                        <Ellipsis className="h-4 w-4" />
+                                    </Link>
+                                </Button>
+                            )}
                     </div>
                     {errors.asset_id && (
                         <p className="text-sm font-medium text-destructive">
@@ -611,7 +614,7 @@ export function InformationsTab({
                 />
             </div>
 
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2" data-onboarding="attachments-section">
                 {existingAttachments.length > 0 && (
                     <div className="mb-4 space-y-3">
                         <Label>
@@ -639,7 +642,7 @@ export function InformationsTab({
                                                 <p>
                                                     {formatBytes(
                                                         attachment.file_size ||
-                                                            0,
+                                                        0,
                                                     )}
                                                 </p>
                                                 {attachment.mime_type && (
@@ -674,7 +677,7 @@ export function InformationsTab({
                                                             {attachment.mime_type?.startsWith(
                                                                 'image/',
                                                             ) ||
-                                                            attachment.mime_type ===
+                                                                attachment.mime_type ===
                                                                 'application/pdf' ? (
                                                                 <SquareArrowOutUpRight className="size-4" />
                                                             ) : (

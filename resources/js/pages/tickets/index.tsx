@@ -3,6 +3,7 @@ import { userHasPermission } from '@/lib/utils';
 import { BreadcrumbItem, SharedData } from '@/types';
 import { usePage } from '@inertiajs/react';
 import { Archive, Cog, Plus } from 'lucide-react';
+import { PageTutorial } from '@/components/onboarding';
 import { TicketTable } from './components/ticket-table';
 import { TicketToolbar } from './components/ticket-toolbar';
 import { TicketStats } from './components/ticket-stats';
@@ -81,32 +82,54 @@ export default function Index({
     ];
 
     return (
-        <TicketPageLayout
-            headTitle={__('tickets.pages.index.head_title')}
-            breadcrumbs={breadcrumbs}
-            title={__('tickets.pages.index.title')}
-            description={__('tickets.pages.index.description')}
-            headerActions={<HeaderActions actions={actions} />}
-            statsComponent={<TicketStats stats={stats} />}
-            toolbar={
-                <TicketToolbar
-                    searchTerm={searchTerm}
-                    onSearchChange={setSearchTerm}
-                    filters={filters}
-                    onFilterChange={updateFilters}
-                    onClearFilters={clearFilters}
-                    statuses={statuses}
-                    priorities={priorities}
-                    categories={categories}
-                    assets={assets}
-                    solvers={solvers}
-                    hasActiveFilters={hasActiveFilters}
-                    routeName="tickets.index"
+        <>
+            <TicketPageLayout
+                headTitle={__('tickets.pages.index.head_title')}
+                breadcrumbs={breadcrumbs}
+                title={__('tickets.pages.index.title')}
+                description={__('tickets.pages.index.description')}
+                headerActions={<HeaderActions actions={actions} />}
+                statsComponent={<TicketStats stats={stats} />}
+                toolbar={
+                    <TicketToolbar
+                        searchTerm={searchTerm}
+                        onSearchChange={setSearchTerm}
+                        filters={filters}
+                        onFilterChange={updateFilters}
+                        onClearFilters={clearFilters}
+                        statuses={statuses}
+                        priorities={priorities}
+                        categories={categories}
+                        assets={assets}
+                        solvers={solvers}
+                        hasActiveFilters={hasActiveFilters}
+                        routeName="tickets.index"
+                    />
+                }
+                paginatedData={tickets}
+                onClearFilters={clearFilters}
+                tableComponent={<TicketTable tickets={tickets} auth={auth} />}
+            >
+                <PageTutorial
+                    page="tickets"
+                    steps={[
+                        {
+                            id: 'list',
+                            title: __('onboarding.tickets.list.title'),
+                            description: __('onboarding.tickets.list.description'),
+                            targetSelector: '[data-onboarding="tickets-list"]',
+                            position: 'top',
+                        },
+                        {
+                            id: 'filters',
+                            title: __('onboarding.tickets.filters.title'),
+                            description: __('onboarding.tickets.filters.description'),
+                            targetSelector: '[data-onboarding="tickets-filters"]',
+                            position: 'bottom',
+                        },
+                    ]}
                 />
-            }
-            paginatedData={tickets}
-            onClearFilters={clearFilters}
-            tableComponent={<TicketTable tickets={tickets} auth={auth} />}
-        />
+            </TicketPageLayout>
+        </>
     );
 }

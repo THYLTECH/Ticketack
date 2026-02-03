@@ -91,4 +91,58 @@ class ProfileAvatarTest extends TestCase
         $user->refresh();
         $this->assertNull($user->attachment_avatar);
     }
+
+    /**
+     * Test that uploading a new avatar replaces the old one (deletes old file and updates DB).
+     */
+    public function test_uploading_new_avatar_replaces_old_one()
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        
+        // 1. Setup : On crée un "ancien" avatar manuellement
+        $oldFile = UploadedFile::fake()->create('old.jpg', 100);
+        $oldPath = $oldFile->store("users/{$user->id}/avatars", 'public');
+        
+        $oldAttachment = Attachment::create([
+            'file_name' => 'old.jpg',
+            'file_path' => $oldPath, // Note: sans 'public/' selon votre logique
+            'mime_type' => 'image/jpeg',
+            'file_extension' => 'jpg',
+            'file_size' => 100,
+        ]);
+        
+        $user->avatar()->associate($oldAttachment);
+        $user->save();
+
+        $this->actingAs($user);
+
+        // 2. Action : On upload un "nouveau" fichier
+        $newFile = UploadedFile::fake()->create('new.jpg', 200);
+
+        $response = $this->patch(route('settings.profile.update'), [
+            'name' => $user->name,
+            'email' => $user->email,
+            'avatar' => $newFile,
+        ]);
+
+        $response->assertSessionHas('success');
+
+        // 3. Vérifications
+        
+        // L'ancien fichier doit avoir disparu du disque
+        Storage::disk('public')->assertMissing($oldPath);
+        
+        // L'ancienne entrée Attachment doit être supprimée de la BDD
+        $this->assertDatabaseMissing('attachments', ['id' => $oldAttachment->id]);
+        
+        // Le nouvel avatar doit être lié à l'utilisateur
+        $user->refresh();
+        $this->assertNotEquals($oldAttachment->id, $user->attachment_avatar);
+        
+        // Le nouveau fichier existe sur le disque (on récupère le path via le nouvel attachement)
+        $newAttachment = Attachment::find($user->attachment_avatar);
+        Storage::disk('public')->assertExists($newAttachment->file_path);
+    }
 }

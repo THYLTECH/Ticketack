@@ -16,7 +16,7 @@ class TicketCategoryFactory extends Factory
     {
         return [
             'title' => $this->faker->word(),
-            'sort_order' => $this->faker->numberBetween(1, 100),
+            'sort_order' => TicketCategory::max('sort_order') + 1 ?? 1,
             'color' => $this->faker->hexColor(),
         ];
     }

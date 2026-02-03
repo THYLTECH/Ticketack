@@ -13,6 +13,7 @@ use function Pest\Laravel\{actingAs, delete, get, post, patch};
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
+    /** @var \Tests\TestCase $this */
     Permission::firstOrCreate(['name' => 'view roles']);
     Permission::firstOrCreate(['name' => 'show roles']);
     Permission::firstOrCreate(['name' => 'create roles']);
@@ -40,10 +41,11 @@ test('role index page loads and shows roles', function () {
 
     $response
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('roles/index')
-            ->has('roles.data', 2)
-            ->where('roles.data.0.name', 'Admin')
-            ->where('roles.data.1.name', 'Guest')
+        ->assertInertia(
+            fn($page) => $page->component('roles/index')
+                ->has('roles.data', 2)
+                ->where('roles.data.0.name', 'Admin')
+                ->where('roles.data.1.name', 'Guest')
         );
 });
 
@@ -52,9 +54,10 @@ test('role create page loads and passes necessary data', function () {
 
     $response
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('roles/create')
-            ->has('permissions')
-            ->has('usersWithoutRole')
+        ->assertInertia(
+            fn($page) => $page->component('roles/create')
+                ->has('permissions')
+                ->has('usersWithoutRole')
         );
 });
 
@@ -66,10 +69,11 @@ test('role show page loads and passes necessary data', function () {
 
     $response
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('roles/show')
-            ->where('role.name', 'Viewer')
-            ->has('role.users', 1)
-            ->has('usersWithoutRole')
+        ->assertInertia(
+            fn($page) => $page->component('roles/show')
+                ->where('role.name', 'Viewer')
+                ->has('role.users', 1)
+                ->has('usersWithoutRole')
         );
 });
 
@@ -82,10 +86,11 @@ test('role edit page loads and passes necessary data', function () {
 
     $response
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('roles/edit')
-            ->where('role.name', 'Editor')
-            ->has('role.permissions', 1)
-            ->has('usersWithoutRole')
+        ->assertInertia(
+            fn($page) => $page->component('roles/edit')
+                ->where('role.name', 'Editor')
+                ->has('role.permissions', 1)
+                ->has('usersWithoutRole')
         );
 });
 
@@ -114,28 +119,30 @@ test('user can store a new role with minimum data', function () {
 test(/**
  * @throws JsonException
  */ /**
- * @throws JsonException
- */ 'user can store a new role with permissions and users', function () {
-    $p1 = Permission::firstWhere('name', 'view roles');
-    $p2 = Permission::firstWhere('name', 'edit articles');
+   * @throws JsonException
+   */ 'user can store a new role with permissions and users',
+    function () {
+        $p1 = Permission::firstWhere('name', 'view roles');
+        $p2 = Permission::firstWhere('name', 'edit articles');
 
-    $data = [
-        'name' => 'Power User',
-        'permissions' => [['id' => $p1->id], ['id' => $p2->id]],
-        'users' => [['id' => $this->testUser1->id], ['id' => $this->testUser2->id]],
-    ];
+        $data = [
+            'name' => 'Power User',
+            'permissions' => [['id' => $p1->id], ['id' => $p2->id]],
+            'users' => [['id' => $this->testUser1->id], ['id' => $this->testUser2->id]],
+        ];
 
-    $response = post(route('roles.store'), $data);
+        $response = post(route('roles.store'), $data);
 
-    $role = Role::where('name', 'Power User')->first();
+        $role = Role::where('name', 'Power User')->first();
 
-    $response->assertSessionHasNoErrors();
-    $this->assertDatabaseHas('roles', ['name' => 'Power User']);
+        $response->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('roles', ['name' => 'Power User']);
 
-    $this->assertCount(2, $role->permissions);
-    $this->assertCount(2, $role->users);
-    $this->assertTrue($this->testUser1->fresh()->hasRole('Power User'));
-});
+        $this->assertCount(2, $role->permissions);
+        $this->assertCount(2, $role->users);
+        $this->assertTrue($this->testUser1->fresh()->hasRole('Power User'));
+    }
+);
 
 test('store fails on duplicate role name', function () {
     Role::create(['name' => 'Existing Role']);
@@ -152,29 +159,31 @@ test('store fails on duplicate role name', function () {
 
 test(/**
  * @throws JsonException
- */ 'user can update role name and sync permissions', function () {
-    $role = Role::create(['name' => 'Old Name']);
-    $p_new = Permission::firstWhere('name', 'edit articles');
+ */ 'user can update role name and sync permissions',
+    function () {
+        $role = Role::create(['name' => 'Old Name']);
+        $p_new = Permission::firstWhere('name', 'edit articles');
 
-    $data = [
-        'name' => 'New Role Name',
-        'permissions' => [['id' => $p_new->id]],
-        'users' => [],
-    ];
+        $data = [
+            'name' => 'New Role Name',
+            'permissions' => [['id' => $p_new->id]],
+            'users' => [],
+        ];
 
-    $response = patch(route('roles.update', $role), $data);
+        $response = patch(route('roles.update', $role), $data);
 
-    $role->refresh();
+        $role->refresh();
 
-    $response
-        ->assertSessionHasNoErrors()
-        ->assertRedirect(route('roles.show', $role))
-        ->assertSessionHas('success');
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('roles.show', $role))
+            ->assertSessionHas('success');
 
-    $this->assertDatabaseHas('roles', ['id' => $role->id, 'name' => 'New Role Name']);
-    $this->assertCount(1, $role->permissions);
-    $this->assertTrue($role->hasPermissionTo('edit articles'));
-});
+        $this->assertDatabaseHas('roles', ['id' => $role->id, 'name' => 'New Role Name']);
+        $this->assertCount(1, $role->permissions);
+        $this->assertTrue($role->hasPermissionTo('edit articles'));
+    }
+);
 
 test('user can sync users during role update (add and remove)', function () {
     $role = Role::create(['name' => 'Test Role']);
@@ -221,17 +230,20 @@ test('update fails on duplicate role name (except self)', function () {
 
 test(/**
  * @throws JsonException
- */ 'user can delete a role if no users are assigned', function () {
-    $role = Role::create(['name' => 'Deletable Role']);
+ */ 'user can delete a role if no users are assigned',
+    function () {
+        $role = Role::create(['name' => 'Deletable Role']);
 
-    $response = delete(route('roles.destroy', $role));
+        $response = delete(route('roles.destroy', $role));
 
-    $response
-        ->assertSessionHasNoErrors()
-        ->assertRedirect(route('roles.index'))
-        ->assertSessionHas('success');
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('roles.index'))
+            ->assertSessionHas('success');
 
-    $this->assertSoftDeleted('roles', ['id' => $role->id]);});
+        $this->assertSoftDeleted('roles', ['id' => $role->id]);
+    }
+);
 
 test('user cannot delete a role if users are assigned', function () {
     $role = Role::create(['name' => 'Locked Role']);
@@ -380,8 +392,9 @@ test('index page shows role with user count', function () {
 
     get(route('roles.index'))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->where('roles.data.0.nbrOfUsers', 2)
+        ->assertInertia(
+            fn($page) => $page
+                ->where('roles.data.0.nbrOfUsers', 2)
         );
 });
 
@@ -392,11 +405,14 @@ test('edit page excludes users who already have the role', function () {
 
     get(route('roles.edit', $role))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->has('usersWithoutRole')
-            ->where('usersWithoutRole', fn ($users) =>
-            collect($users)->doesntContain('id', $this->testUser1->id)
-            )
+        ->assertInertia(
+            fn($page) => $page
+                ->has('usersWithoutRole')
+                ->where(
+                    'usersWithoutRole',
+                    fn($users) =>
+                    collect($users)->doesntContain('id', $this->testUser1->id)
+                )
         );
 });
 
@@ -406,11 +422,14 @@ test('show page excludes users who already have the role', function () {
 
     get(route('roles.show', $role))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->has('usersWithoutRole')
-            ->where('usersWithoutRole', fn ($users) =>
-            collect($users)->doesntContain('id', $this->testUser1->id)
-            )
+        ->assertInertia(
+            fn($page) => $page
+                ->has('usersWithoutRole')
+                ->where(
+                    'usersWithoutRole',
+                    fn($users) =>
+                    collect($users)->doesntContain('id', $this->testUser1->id)
+                )
         );
 });
 
@@ -534,8 +553,9 @@ test('index page loads roles with permissions relationship', function () {
 
     get(route('roles.index'))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->has('roles.data.0.permissions', 1)
+        ->assertInertia(
+            fn($page) => $page
+                ->has('roles.data.0.permissions', 1)
         );
 });
 
@@ -547,9 +567,10 @@ test('edit page loads role with permissions and users relationships', function (
 
     get(route('roles.edit', $role))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->has('role.permissions', 1)
-            ->has('role.users', 1)
+        ->assertInertia(
+            fn($page) => $page
+                ->has('role.permissions', 1)
+                ->has('role.users', 1)
         );
 });
 
@@ -560,9 +581,10 @@ test('show page loads role with permissions and users relationships', function (
 
     get(route('roles.show', $role))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->has('role.permissions', 1)
-            ->has('role.users', 1)
+        ->assertInertia(
+            fn($page) => $page
+                ->has('role.permissions', 1)
+                ->has('role.users', 1)
         );
 });
 
@@ -586,8 +608,9 @@ test('delete returns correct error message when users are assigned', function ()
 test('create page returns all permissions', function () {
     get(route('roles.create'))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->has('permissions', Permission::count())
+        ->assertInertia(
+            fn($page) => $page
+                ->has('permissions', Permission::count())
         );
 });
 
@@ -597,7 +620,106 @@ test('edit page returns all permissions including those not assigned', function 
 
     get(route('roles.edit', $role))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->has('permissions', Permission::count())
+        ->assertInertia(
+            fn($page) => $page
+                ->has('permissions', Permission::count())
         );
 });
+
+test('index applies usage filter', function () {
+    $usedRole = Role::create(['name' => 'Used Role']);
+    $unusedRole = Role::create(['name' => 'Unused Role']);
+
+    $usedRole->users()->attach($this->testUser1->id);
+
+    get(route('roles.index', ['usage' => 'used']))
+        ->assertOk()
+        ->assertInertia(
+            fn($page) => $page
+                ->where(
+                    'roles.data',
+                    fn($roles) =>
+                    count($roles) === 1 &&
+                    collect($roles)->contains('name', 'Used Role') &&
+                    collect($roles)->doesntContain('name', 'Unused Role')
+                )
+        );
+
+    get(route('roles.index', ['usage' => 'unused']))
+        ->assertOk()
+        ->assertInertia(
+            fn($page) => $page
+                ->where(
+                    'roles.data',
+                    fn($roles) =>
+                    collect($roles)->contains('name', 'Unused Role') &&
+                    collect($roles)->doesntContain('name', 'Used Role')
+                )
+        );
+});
+
+test('role clone page loads and passes necessary data', function () {
+    $role = Role::create(['name' => 'Source Role']);
+    $role->syncPermissions(['view roles']);
+
+    get(route('roles.clone', $role))
+        ->assertOk()
+        ->assertInertia(
+            fn($page) => $page->component('roles/create')
+                ->has('sourceRole')
+                ->where('sourceRole.name', 'Source Role')
+                ->has('sourceRole.permissions', 1)
+        );
+});
+
+test('cannot update system role name', function () {
+    $role = Role::create(['name' => 'admin']);
+
+    patch(route('roles.update', $role), [
+        'name' => 'New Admin Name',
+        'permissions' => [],
+        'users' => []
+    ])->assertSessionHasErrors(['name']);
+});
+
+test('system role permissions are immutable', function () {
+    $role = Role::create(['name' => 'admin']);
+    $originalPermissions = $role->permissions->pluck('id')->toArray();
+
+    $newPermission = Permission::create(['name' => 'new permission']);
+
+    // Send update with SAME name to pass validation
+    patch(route('roles.update', $role), [
+        'name' => 'admin',
+        'permissions' => [['id' => $newPermission->id]],
+        'users' => []
+    ])->assertSessionHasNoErrors();
+
+    $role->refresh();
+
+    // Permissions should NOT change
+    expect($role->permissions->pluck('id')->toArray())->toBe($originalPermissions);
+    expect($role->hasPermissionTo('new permission'))->toBeFalse();
+});
+
+test('cannot remove last user from admin role', function () {
+    $adminRole = Role::create(['name' => 'admin']);
+    // Ensure testUser1 is the ONLY admin
+    $this->testUser1->syncRoles([$adminRole]);
+    $this->testUser1->save();
+
+    // Safety check
+    expect($adminRole->users()->count())->toBe(1);
+
+    patch(route('roles.update', $adminRole), [
+        'name' => 'admin',
+        'permissions' => [],
+        'users' => [] // Attempt to remove all users
+    ])
+        ->assertRedirect()
+        ->assertSessionHas('error');
+
+    expect($adminRole->fresh()->users()->count())->toBe(1);
+});
+
+

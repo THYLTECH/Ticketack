@@ -5,12 +5,12 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- @if (app()->environment('production'))
+    @if (app()->environment('production') || request()->secure())
         <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
-    @endif -->
+    @endif
 
     <script>
-        (function() {
+        (function () {
             const appearance = '{{ $appearance ?? 'system' }}';
             const colorScheme = '{{ $color_scheme ?? 'default' }}';
             const user = '{{ Auth::check() }}'
@@ -23,7 +23,7 @@
                 }
             }
 
-            if(user) {
+            if (user) {
                 localStorage.setItem('color-scheme', colorScheme);
                 localStorage.setItem('appearance', appearance);
             }

@@ -52,8 +52,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Schema::defaultStringLength(191);
 
-        // Force HTTPS in Production
-        if ($this->app->environment('production')) {
+        if ($this->app->environment('production') || \Illuminate\Support\Str::contains(config('app.url'), 'https')) {
             URL::forceScheme('https');
         }
 

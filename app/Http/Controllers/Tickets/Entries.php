@@ -49,6 +49,7 @@ class Entries extends Controller
                 $q->where('user_id', $user->id);
             })
             ->orWhere('author_id', $user->id)
+            ->whereNull('archived_at')
             ->orderByDesc('created_at')
             ->limit(50)
             ->get();
@@ -117,6 +118,12 @@ class Entries extends Controller
             'billable' => 'boolean',
             'schedule_id' => 'nullable|exists:ticket_schedules,id',
         ]);
+
+        $ticket = Ticket::findOrFail($data['ticket_id']);
+
+        if ($ticket->archived_at) {
+            abort(403, __('entries.controller.store.archived_error'));
+        }
 
         $durationSeconds = ($data['hours'] * 3600) + ($data['minutes'] * 60);
 

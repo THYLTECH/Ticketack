@@ -66,6 +66,7 @@ import {
 } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { PageTutorial } from '@/components/onboarding';
 
 import { PreFillData, TimeEntryDialog } from '../entries/create-dialog';
 import { EventDialog } from './event-dialog';
@@ -110,6 +111,76 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [highlightedEventId, setHighlightedEventId] = useState<number | string | null>(null);
+    const [isTutorialActive, setIsTutorialActive] = useState(false);
+
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 9, 0, 0);
+    const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 11, 0, 0);
+
+    const demoEvent: TicketSchedule = {
+        id: 'demo-event',
+        ticket_id: 0,
+        user_id: auth.user.id,
+        user: auth.user,
+        ticket: {
+            id: 0,
+            user: auth.user,
+            priority: { id: 1, title: 'Normal', description: '', sort_order: 1, color: '#3b82f6', created_at: '', updated_at: '' },
+            status: { id: 1, title: 'Open', description: '', sort_order: 1, color: '#22c55e', is_default: true, is_closed: false, progress: 0, created_at: '', updated_at: '' },
+            category: { id: 1, title: __('onboarding.planning.demo_event.title'), description: '', sort_order: 1, color: '#8b5cf6', icon: undefined, created_at: '', updated_at: '' },
+            asset: { id: '', title: '', description: '', parent_id: null, parent: null, icon: null, attributes: [], attachments: [], updated_at: '', created_at: '' },
+            assignees: [],
+            comments: [],
+            logs: [],
+            entries: [],
+            schedules: [],
+            attachments: [],
+            title: __('onboarding.planning.demo_event.title'),
+            description: __('onboarding.planning.demo_event.description'),
+            is_archived: false,
+            archived_at: null,
+            is_referenced: false,
+            detailed_solution: null,
+            updated_at: now.toISOString(),
+            created_at: now.toISOString(),
+        },
+        description: __('onboarding.planning.demo_event.description'),
+        start_date: startOfDay.toISOString(),
+        end_date: endOfDay.toISOString(),
+        duration_minutes: 120,
+        created_at: now.toISOString(),
+        updated_at: now.toISOString(),
+    };
+
+    const demoTicket: Ticket = {
+        id: 0,
+        user: auth.user,
+        priority: { id: 1, title: 'Normal', description: '', sort_order: 1, color: '#3b82f6', created_at: '', updated_at: '' },
+        status: { id: 1, title: 'Open', description: '', sort_order: 1, color: '#22c55e', is_default: true, is_closed: false, progress: 0, created_at: '', updated_at: '' },
+        category: { id: 1, title: __('onboarding.planning.demo_ticket.title'), description: '', sort_order: 1, color: '#8b5cf6', icon: undefined, created_at: '', updated_at: '' },
+        asset: { id: '', title: '', description: '', parent_id: null, parent: null, icon: null, attributes: [], attachments: [], updated_at: '', created_at: '' },
+        assignees: [{ id: 1, user: auth.user }],
+        comments: [],
+        logs: [],
+        entries: [],
+        schedules: [],
+        attachments: [],
+        title: __('onboarding.planning.demo_ticket.title'),
+        description: __('onboarding.planning.demo_ticket.description'),
+        is_archived: false,
+        archived_at: null,
+        is_referenced: false,
+        detailed_solution: null,
+        updated_at: now.toISOString(),
+        created_at: now.toISOString(),
+    };
+
+    const showDemoData = isTutorialActive && events.length === 0;
+    const displayEvents = showDemoData ? [demoEvent] : events;
+    const displayTickets = isTutorialActive && myTickets.length === 0 ? [demoTicket] : myTickets;
+    const displaySolvers = isTutorialActive && !selectedSolvers.includes(auth.user.id)
+        ? [...selectedSolvers, auth.user.id]
+        : selectedSolvers;
 
     const searchResults = useMemo(() => {
         if (!searchQuery) return [];
@@ -363,11 +434,11 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                                 <div className="py-8 text-center text-xs text-muted-foreground">
                                                     {searchQuery
                                                         ? __(
-                                                              'schedule.toolbar.no_results',
-                                                          )
+                                                            'schedule.toolbar.no_results',
+                                                        )
                                                         : __(
-                                                              'schedule.toolbar.start_typing',
-                                                          )}
+                                                            'schedule.toolbar.start_typing',
+                                                        )}
                                                 </div>
                                             ) : (
                                                 searchResults.map((evt) => (
@@ -504,8 +575,8 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                                 setSelectedSolvers((prev) =>
                                                     prev.includes(id)
                                                         ? prev.filter(
-                                                              (s) => s !== id,
-                                                          )
+                                                            (s) => s !== id,
+                                                        )
                                                         : [...prev, id],
                                                 )
                                             }
@@ -584,6 +655,7 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                         ? 'border-primary/30 bg-primary/5'
                                         : 'bg-card',
                                 )}
+                                data-onboarding="edit-mode-switch"
                             >
                                 <Switch
                                     id="mode-switch"
@@ -620,9 +692,9 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                                 : '-ml-4 w-0 -translate-x-4 opacity-0',
                         )}
                     >
-                        <div className="h-full w-64 overflow-hidden rounded-xl border bg-card shadow-sm">
+                        <div className="h-full w-64 overflow-hidden rounded-xl border bg-card shadow-sm" data-onboarding="ticket-sidebar">
                             <TicketSidebar
-                                tickets={myTickets}
+                                tickets={displayTickets}
                                 selectedId={selectedTicketId}
                                 onSelect={setSelectedTicketId}
                                 onUnschedule={handleDeleteEvent}
@@ -630,14 +702,14 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                         </div>
                     </aside>
 
-                    <main className="relative flex-1 overflow-hidden rounded-xl border bg-card shadow-sm transition-all duration-300">
+                    <main className="relative flex-1 overflow-hidden rounded-xl border bg-card shadow-sm transition-all duration-300" data-onboarding="planning-grid">
                         <PlanningGrid
-                            events={events}
+                            events={displayEvents}
                             view={view}
                             currentDate={date}
                             isEditMode={isEditMode}
                             currentUserId={auth.user.id}
-                            selectedSolvers={selectedSolvers}
+                            selectedSolvers={displaySolvers}
                             highlightedEventId={highlightedEventId}
                             onDrop={handleDropEvent}
                             onUpdate={handleUpdateEvent}
@@ -650,7 +722,7 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                         />
                     </main>
 
-                    <aside className="relative hidden shrink-0 flex-col overflow-hidden lg:flex h-[calc(100vh-10rem)]">
+                    <aside className="relative hidden shrink-0 flex-col overflow-hidden lg:flex h-[calc(100vh-10rem)]" data-onboarding="solver-filters">
                         <SolverFilters
                             solvers={solvers}
                             selectedIds={selectedSolvers}
@@ -695,6 +767,43 @@ export default function PlanningPage({ events, myTickets, solvers }: Props) {
                     asset: t.asset,
                 }))}
                 initialValues={prefillData}
+            />
+
+            <PageTutorial
+                page="planning"
+                steps={[
+                    {
+                        id: 'calendar',
+                        title: __('onboarding.planning.calendar.title'),
+                        description: __('onboarding.planning.calendar.description'),
+                        targetSelector: '[data-onboarding="planning-grid"]',
+                        position: 'left',
+                    },
+                    {
+                        id: 'edit_mode',
+                        title: __('onboarding.planning.edit_mode.title'),
+                        description: __('onboarding.planning.edit_mode.description'),
+                        targetSelector: '[data-onboarding="edit-mode-switch"]',
+                        position: 'bottom',
+                        onEnter: () => setIsEditMode(true),
+                    },
+                    {
+                        id: 'sidebar',
+                        title: __('onboarding.planning.sidebar.title'),
+                        description: __('onboarding.planning.sidebar.description'),
+                        targetSelector: '[data-onboarding="ticket-sidebar"]',
+                        position: 'right',
+                    },
+                    {
+                        id: 'filters',
+                        title: __('onboarding.planning.filters.title'),
+                        description: __('onboarding.planning.filters.description'),
+                        targetSelector: '[data-onboarding="solver-filters"]',
+                        position: 'left',
+                        onEnter: () => setIsEditMode(false),
+                    },
+                ]}
+                onActiveChange={setIsTutorialActive}
             />
         </AppLayout>
     );
@@ -814,7 +923,7 @@ function PlanningStatsDialog({
                     </span>
                 </Button>
             </DialogTrigger>
-                <DialogContent className="max-h-[90vh] w-[90vw] overflow-y-auto sm:max-w-150">
+            <DialogContent className="max-h-[90vh] w-[90vw] overflow-y-auto sm:max-w-150">
                 <DialogHeader className="border-b pb-4">
                     <DialogTitle>{__('schedule.stats.title')}</DialogTitle>
                     <DialogDescription>

@@ -14,6 +14,7 @@ return [
         'delete_error' => 'Impossible de supprimer un rôle assigné à des utilisateurs.',
         'deleted' => 'Rôle supprimé avec succès.',
         'delete_locked' => 'Ce rôle est verrouillé et ne peut pas être supprimé.',
+        'delete_last_admin' => 'Vous ne pouvez pas supprimer le dernier administrateur.',
     ],
 
     /*
@@ -30,12 +31,23 @@ return [
             'show' => 'Voir le rôle',
             'edit' => 'Modifier le rôle',
         ],
+
         'index' => [
             'head_title' => 'Rôles',
             'title' => 'Rôles',
             'description' => 'Gérez et visualisez tous vos rôles au même endroit.',
             'search_placeholder' => 'Rechercher un rôle...',
             'empty_search' => 'Aucun rôle ne correspond à votre recherche.',
+
+            'filters' => [
+                'type_placeholder' => 'Filtrer par type',
+                'usage_placeholder' => 'Filtrer par utilisation',
+                'usage_options' => [
+                    'used' => 'Utilisé (A des utilisateurs)',
+                    'unused' => 'Inutilisé (Vide)',
+                ],
+                'system_roles' => 'Rôles systèmes',
+            ],
 
             'buttons' => [
                 'create' => 'Créer un rôle',
@@ -63,6 +75,7 @@ return [
                     'view' => 'Voir',
                     'edit' => 'Modifier',
                     'delete' => 'Supprimer',
+                    'clone' => 'Dupliquer',
                 ],
             ],
         ],
@@ -95,6 +108,7 @@ return [
             'tabs' => [
                 'informations' => 'Informations',
                 'permissions' => 'Permissions',
+                'permissions_search_placeholder' => 'Rechercher une permission...',
                 'users' => 'Utilisateurs',
             ],
             'fields' => [
@@ -134,6 +148,7 @@ return [
 
                     'buttons' => [
                         'close' => 'Fermer',
+                        'add_selected' => 'Ajouter la sélection (:count)',
                     ],
                 ],
                 'table' => [
@@ -156,6 +171,7 @@ return [
 
                 'flash' => [
                     'added' => 'Utilisateurs ajoutés au rôle avec succès.',
+                    'added_count' => ':count utilisateurs ajoutés au rôle avec succès.',
                     'removed' => 'Utilisateur retiré du rôle avec succès.',
                 ],
             ],
@@ -168,5 +184,9 @@ return [
                 'confirm' => 'Oui, supprimer le rôle',
             ],
         ],
+    ],
+
+    'filters' => [
+        'system_roles' => 'Rôles Système',
     ],
 ];

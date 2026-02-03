@@ -128,20 +128,11 @@ test('user can delete their account', function () {
 
     $this->assertGuest();
 
-    // ❌ AVANT (Fonctionnait en Hard Delete)
-    // expect($user->fresh())->toBeNull();
-
-    // ✅ APRÈS (Pour le Soft Delete)
-    // On recharge l'utilisateur pour vérifier son état
     $user = $user->fresh();
 
-    // Il ne doit pas être null (car toujours en BDD)
     expect($user)->not->toBeNull();
-    // Mais il doit avoir une date de suppression
     expect($user->deleted_at)->not->toBeNull();
 
-    // Alternativement, tu peux utiliser l'assertion Laravel :
-    // $this->assertSoftDeleted($user);
 });
 test('correct password must be provided to delete account', function () {
     $user = User::factory()->create([
@@ -160,4 +151,70 @@ test('correct password must be provided to delete account', function () {
         ->assertRedirect(route('settings.profile.edit'));
 
     expect($user->fresh())->not->toBeNull();
+});
+
+test('phone number is formatted to remove spaces', function () {
+    $user = User::factory()->create([
+        'phone' => null,
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->patch(route('settings.profile.update'), [
+            'name' => $user->name,
+            'email' => $user->email,
+            'phone' => '+33 6 12 34 56 78', // Avec espaces et format international
+        ]);
+
+    $response->assertSessionHasNoErrors();
+
+    // Vérifie que les espaces sont retirés en BDD
+    expect($user->refresh()->phone)->toBe('+33612345678');
+});
+
+test('last admin cannot delete their account', function () {
+    // Création du rôle admin si nécessaire (adapter selon votre gestion des rôles)
+    $role = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'admin']);
+
+    $user = User::factory()->create(['password' => bcrypt('password')]);
+    $user->assignRole('admin');
+
+    // On s'assure qu'il est le seul admin
+    expect(User::role('admin')->count())->toBe(1);
+
+    $response = $this
+        ->actingAs($user)
+        ->delete(route('settings.profile.destroy'), [
+            'password' => 'password',
+        ]);
+
+    // Doit rediriger avec une erreur (flash 'error')
+    $response->assertRedirect();
+    $response->assertSessionHas('error');
+
+    // L'utilisateur ne doit PAS être supprimé
+    expect($user->fresh()->deleted_at)->toBeNull();
+});
+
+test('admin can delete account if other admins exist', function () {
+    $role = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'admin']);
+
+    // Créer un autre admin
+    $otherAdmin = User::factory()->create();
+    $otherAdmin->assignRole('admin');
+
+    // Créer l'admin à supprimer
+    $user = User::factory()->create(['password' => bcrypt('password')]);
+    $user->assignRole('admin');
+
+    $response = $this
+        ->actingAs($user)
+        ->delete(route('settings.profile.destroy'), [
+            'password' => 'password',
+        ]);
+
+    $response->assertSessionHas('success');
+
+    // L'utilisateur doit être supprimé (Soft Delete)
+    expect($user->fresh()->deleted_at)->not->toBeNull();
 });

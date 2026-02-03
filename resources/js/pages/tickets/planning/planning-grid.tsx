@@ -65,7 +65,7 @@ export function PlanningGrid({
     /**
      * Filter events for a specific day based on edit mode and selected solvers
      */
-    const filterEventsForDay = (day: Date) => {
+    const filterEventsForDay = React.useCallback((day: Date) => {
         return events.filter((e) => {
             if (!isSameDay(parseISO(e.start_date), day)) return false;
 
@@ -77,7 +77,7 @@ export function PlanningGrid({
                 return isMyEntry || isSelectedSolverSchedule;
             }
         });
-    };
+    }, [events, isEditMode, currentUserId, selectedSolvers]);
 
     /**
      * Check if an event can be dragged (entries cannot be dragged)
@@ -88,9 +88,20 @@ export function PlanningGrid({
 
     useEffect(() => {
         if (scrollAreaRef.current && (view === 'week' || view === 'day')) {
-            scrollAreaRef.current.scrollTop = WORK_START_HOUR * CELL_HEIGHT - 20;
+            const dayEvents = filterEventsForDay(currentDate);
+
+            let targetHour = WORK_START_HOUR;
+
+            if (dayEvents.length > 0) {
+                const earliestStart = Math.min(...dayEvents.map(e => getHours(parseISO(e.start_date))));
+                targetHour = Math.max(0, earliestStart - 0.5);
+            } else if (isToday(currentDate)) {
+                targetHour = Math.max(0, getHours(new Date()) - 1);
+            }
+
+            scrollAreaRef.current.scrollTop = targetHour * CELL_HEIGHT;
         }
-    }, [view]);
+    }, [view, currentDate, filterEventsForDay]);
 
 
     const getEventStyle = (
@@ -260,7 +271,7 @@ export function PlanningGrid({
                                     className={cn(
                                         'group relative min-h-15 border-r border-b p-1 transition-colors sm:min-h-30 sm:p-2 cursor-pointer hover:bg-muted/50',
                                         !isSameMonth(day, currentDate) &&
-                                            'bg-muted text-muted-foreground',
+                                        'bg-muted text-muted-foreground',
                                         idx % 7 === 6 && 'border-r-0',
                                     )}
                                     onDragOver={handleDragOver}
@@ -317,12 +328,12 @@ export function PlanningGrid({
                                                                     isEntry
                                                                         ? 'cursor-default bg-muted-foreground/40'
                                                                         : cn(
-                                                                              'cursor-pointer',
-                                                                              DOT_COLORS[
-                                                                                  evt.user_id %
-                                                                                      DOT_COLORS.length
-                                                                              ],
-                                                                          ),
+                                                                            'cursor-pointer',
+                                                                            DOT_COLORS[
+                                                                            evt.user_id %
+                                                                            DOT_COLORS.length
+                                                                            ],
+                                                                        ),
                                                                 )}
                                                             />
                                                         </TooltipTrigger>
@@ -368,18 +379,16 @@ export function PlanningGrid({
         view === 'day'
             ? [currentDate]
             : Array.from({ length: 7 }, (_, i) =>
-                  addDays(startOfWeek(currentDate, { weekStartsOn: 1 }), i),
-              );
+                addDays(startOfWeek(currentDate, { weekStartsOn: 1 }), i),
+            );
     const colWidth = `${100 / days.length}%`;
 
-return (
+    return (
         <div className="flex h-full flex-col overflow-hidden bg-background">
-            {/* 1. Le conteneur scrollable unique (scrollbar tout en haut) */}
             <div
                 ref={scrollAreaRef}
                 className="relative z-0 flex flex-1 flex-col overflow-y-auto"
             >
-                {/* 2. L'en-tête (sticky pour rester fixe au scroll) */}
                 <div className="sticky top-0 z-[70] flex h-28 shrink-0 border-b bg-card shadow-sm ring-1 ring-border/5">
                     <div className="w-17 shrink-0 border-r border-border bg-card"></div>
                     <div className="flex h-full flex-1">
@@ -408,12 +417,10 @@ return (
                     </div>
                 </div>
 
-                {/* 3. La grille (Le contenu du planning) */}
                 <div
                     className="relative flex shrink-0"
                     style={{ height: HOURS.length * CELL_HEIGHT }}
                 >
-                    {/* Colonne des heures */}
                     <div className="z-30 flex w-17 shrink-0 flex-col border-r bg-card shadow-[4px_0_24px_rgba(0,0,0,0.02)] select-none">
                         {HOURS.map((hour) => (
                             <div key={hour} className="relative h-15 border-b border-transparent">
@@ -424,7 +431,6 @@ return (
                         ))}
                     </div>
 
-                    {/* Colonnes des jours et événements */}
                     <div className="relative flex flex-1">
                         <div className="pointer-events-none absolute inset-0 z-0 w-full">
                             {HOURS.map((hour) => (

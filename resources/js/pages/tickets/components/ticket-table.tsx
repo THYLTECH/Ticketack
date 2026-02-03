@@ -36,7 +36,7 @@ import {
 } from '@/components/ui/tooltip';
 import { GetIcon } from '@/lib/render';
 import { useTrans } from '@/lib/translation';
-import { userHasPermission } from '@/lib/utils';
+import { formatDateTime, userHasPermission } from '@/lib/utils';
 import { SharedData, Ticket } from '@/types';
 import { router } from '@inertiajs/react';
 import {
@@ -48,6 +48,7 @@ import {
     Pencil,
     TicketIcon,
     Trash,
+    Clock,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -227,8 +228,19 @@ export function TicketTable({ tickets, auth }: Props) {
                                     )}
                                 </div>
 
+                                <div className="flex items-center gap-4 text-xs text-muted-foreground pb-2 border-b border-border/40">
+                                    <div className="flex items-center gap-1.5">
+                                        <Clock className="h-3.5 w-3.5" />
+                                        <span className="font-semibold">{__('common.labels.updated_at')}:</span>
+                                        <span>{formatDateTime(ticket.updated_at)}</span>
+                                    </div>
+                                </div>
+
                                 {validAssignees && validAssignees.length > 0 && (
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <span className="text-[10px] uppercase font-bold text-muted-foreground/70 tracking-wider">
+                                            {__('common.labels.assignees')} :
+                                        </span>
                                         <div className="flex -space-x-2">
                                             {validAssignees.slice(0, 3).map((assignee) => (
                                                 <TooltipProvider key={assignee.user.id}>
@@ -261,13 +273,18 @@ export function TicketTable({ tickets, auth }: Props) {
 
                                 <div className="flex items-center justify-between pt-2 border-t border-border/50">
                                     <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/40 text-xs text-muted-foreground">
-                                        <Avatar className="h-4 w-4">
-                                            <AvatarImage src={ticket.user?.avatar?.url} alt={ticket.user?.name} />
-                                            <AvatarFallback className="text-[8px]">
-                                                {ticket.user?.name.substring(0, 2).toUpperCase()}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                        <span className="font-medium">{ticket.user?.name}</span>
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="text-[10px] uppercase font-bold text-muted-foreground/70 tracking-wider hidden sm:inline-block">
+                                                {__('common.labels.author')}:
+                                            </span>
+                                            <Avatar className="h-4 w-4">
+                                                <AvatarImage src={ticket.user?.avatar?.url} alt={ticket.user?.name} />
+                                                <AvatarFallback className="text-[8px]">
+                                                    {ticket.user?.name.substring(0, 2).toUpperCase()}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            <span className="font-medium">{ticket.user?.name}</span>
+                                        </div>
                                     </div>
 
                                     <DropdownMenu>
@@ -292,10 +309,16 @@ export function TicketTable({ tickets, auth }: Props) {
                                             )}
                                             {(isAdmin || isAuthor || isAssigned) &&
                                                 userHasPermission({ user: auth.user, permission: 'update tickets' }) && (
-                                                    <DropdownMenuItem onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        router.get(route('tickets.edit', ticket.id));
-                                                    }}>
+                                                    <DropdownMenuItem
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            if (!ticket.is_archived) {
+                                                                router.get(route('tickets.edit', ticket.id));
+                                                            }
+                                                        }}
+                                                        disabled={!!ticket.is_archived}
+                                                        className={ticket.is_archived ? "opacity-50 cursor-not-allowed" : ""}
+                                                    >
                                                         <Pencil className="mr-2 h-4 w-4" />
                                                         {__('tickets.pages.form.buttons.edit')}
                                                     </DropdownMenuItem>
@@ -613,15 +636,15 @@ export function TicketTable({ tickets, auth }: Props) {
                                                                     </TooltipContent>
                                                                 </Tooltip>
                                                             </TooltipProvider>
-                                                       ))}
+                                                        ))}
                                                     {validAssignees.length >
                                                         3 && (
-                                                        <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-background bg-muted text-[9px] font-medium text-muted-foreground ring-1 ring-border/10">
-                                                            \+
-                                                            {validAssignees.length -
-                                                                3}
-                                                        </div>
-                                                    )}
+                                                            <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-background bg-muted text-[9px] font-medium text-muted-foreground ring-1 ring-border/10">
+                                                                \+
+                                                                {validAssignees.length -
+                                                                    3}
+                                                            </div>
+                                                        )}
                                                 </div>
                                             ) : (
                                                 <span className="text-xs text-muted-foreground/30 italic">
@@ -701,22 +724,22 @@ export function TicketTable({ tickets, auth }: Props) {
                                                         permission:
                                                             'update tickets',
                                                     }) && (
-                                                        <DropdownMenuItem
-                                                            onClick={() =>
-                                                                router.get(
-                                                                    route(
-                                                                        'tickets.edit',
-                                                                        ticket.id,
-                                                                    ),
-                                                                )
-                                                            }
-                                                        >
-                                                            <Pencil className="mr-2 h-4 w-4" />
-                                                            {__(
-                                                                'tickets.pages.form.buttons.edit',
-                                                            )}
-                                                        </DropdownMenuItem>
-                                                    )}
+                                                            <DropdownMenuItem
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    if (!ticket.is_archived) {
+                                                                        router.get(route('tickets.edit', ticket.id));
+                                                                    }
+                                                                }}
+                                                                disabled={!!ticket.is_archived}
+                                                                className={ticket.is_archived ? "opacity-50 cursor-not-allowed" : ""}
+                                                            >
+                                                                <Pencil className="mr-2 h-4 w-4" />
+                                                                {__(
+                                                                    'tickets.pages.form.buttons.edit',
+                                                                )}
+                                                            </DropdownMenuItem>
+                                                        )}
 
                                                     {canArchive && userHasPermission({ user: auth.user, permission: 'archive tickets' }) && (
                                                         <>

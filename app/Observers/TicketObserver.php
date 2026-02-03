@@ -106,6 +106,9 @@ class TicketObserver
         }
     }
 
+    /**
+     * @codeCoverageIgnore External S3/Minio integration
+     */
     private function exportToMinio(Ticket $ticket): void
     {
         // Skip S3 export in testing environment
@@ -123,9 +126,17 @@ class TicketObserver
         ];
 
         $fileName = "{$ticket->id}.json";
-        Storage::disk('s3')->put($fileName, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        
+        try {
+            Storage::disk('s3')->put($fileName, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        } catch (\Throwable $e) {
+            Log::warning("Failed to export ticket {$ticket->id} to S3/Minio: " . $e->getMessage());
+        }
     }
 
+    /**
+     * @codeCoverageIgnore External S3/Minio integration
+     */
     private function uploadAttachments(Ticket $ticket): void
     {
         // Skip S3 upload in testing environment
@@ -140,8 +151,12 @@ class TicketObserver
                 $fileContent = Storage::disk('public')->get($attachment->file_path);
                 $minioPath = "tickets-raw/{$ticket->id}_{$attachment->file_name}";
 
-                Storage::disk('s3')->put($minioPath, $fileContent);
-                Log::info("Synced attachment to MinIO: {$minioPath}");
+                try {
+                    Storage::disk('s3')->put($minioPath, $fileContent);
+                    Log::info("Synced attachment to MinIO: {$minioPath}");
+                } catch (\Throwable $e) {
+                    Log::warning("Failed to sync attachment to S3/Minio: " . $e->getMessage());
+                }
             } else {
                 Log::warning("Attachment file missing locally for attachment ID: {$attachment->id}");
             }

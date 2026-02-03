@@ -64,7 +64,8 @@ return [
             ],
             'filter' => [
                 'placeholder' => 'Search assets...',
-            ]
+            ],
+            'children' => 'children',
         ],
         'create' => [
             'head_title' => 'Create Asset',

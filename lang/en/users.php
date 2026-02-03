@@ -14,6 +14,8 @@ return [
         'deleted' => 'User deleted successfully.',
         'restored' => 'User restored successfully.',
         'forced_deleted' => 'User permanently deleted successfully.',
+        'delete_own_account' => 'You cannot delete your own account.',
+        'delete_last_admin' => 'You cannot delete the last administrator.',
     ],
 
     /*
@@ -35,6 +37,10 @@ return [
         'index' => [
             'head_title' => 'Users',
             'search_placeholder' => 'Search users...',
+            'filter_role_placeholder' => 'Filter by role',
+            'filters' => [
+                'role_placeholder' => 'Filter by role',
+            ],
             'title' => 'Users',
             'description' => 'Manage and view every user in one place.',
 

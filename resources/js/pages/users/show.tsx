@@ -1,19 +1,8 @@
-// resources/js/pages/users/show.tsx
-
-// Necessary imports
 import { userHasPermission } from '@/lib/utils';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-
-// Layout
 import AppLayout from '@/layouts/app/layout';
-
-// Translation Hook
 import { useTrans } from '@/lib/translation';
-
-// Custom components
 import { InformationsTab } from '@/pages/users/form';
-
-// Shadnc UI Components
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -25,11 +14,7 @@ import {
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
-// Types
 import type { BreadcrumbItem, Role, SharedData, User } from '@/types';
-
-// Icons
 import { ArrowLeft, File, Pen } from 'lucide-react';
 
 export default function Show({ roles, user }: { roles: Role[]; user: User }) {
@@ -95,15 +80,7 @@ function ShowForm({
     return (
         <Card>
             <CardHeader>
-                <CardTitle>
-                    {__('users.pages.show.title', undefined, {
-                        name: user.name,
-                    })}
-                </CardTitle>
-                <CardDescription>
-                    {__('users.pages.show.description')}
-                </CardDescription>
-                <CardAction className="space-x-2">
+                <CardAction className="space-x-2 row-span-1 order-1 md:order-none self-end md:self-start md:mb-0">
                     <Button asChild variant={'secondary'}>
                         <Link href={route('users.index')}>
                             <ArrowLeft />
@@ -114,14 +91,22 @@ function ShowForm({
                         user: usePage<SharedData>().props.auth.user,
                         permission: 'update users',
                     }) && (
-                        <Button asChild variant={'default'}>
-                            <Link href={route('users.edit', { user: user.id })}>
-                                <Pen />
-                                {__('users.pages.form.buttons.edit')}
-                            </Link>
-                        </Button>
-                    )}
+                            <Button asChild variant={'default'}>
+                                <Link href={route('users.edit', { user: user.id })}>
+                                    <Pen />
+                                    {__('users.pages.form.buttons.edit')}
+                                </Link>
+                            </Button>
+                        )}
                 </CardAction>
+                <CardTitle className="order-2 md:order-none">
+                    {__('users.pages.show.title', undefined, {
+                        name: user.name,
+                    })}
+                </CardTitle>
+                <CardDescription className="col-span-2 order-3 md:order-none">
+                    {__('users.pages.show.description')}
+                </CardDescription>
             </CardHeader>
             <Separator />
 

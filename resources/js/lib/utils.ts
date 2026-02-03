@@ -46,6 +46,18 @@ export function formatDate(dateString: string): string {
   return date.toLocaleDateString();
 }
 
+export function formatDateTime(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+}
+
 export function getIcon(icon: string): LucideIcon | null {
   const normalized = icon
     .split('-')
@@ -62,11 +74,11 @@ export function getIcon(icon: string): LucideIcon | null {
 }
 
 export function formatFileSize(bytes: number): string {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 }
 
 export function convertAttachmentsToFileWithPreview({
@@ -95,6 +107,6 @@ export function convertAttachmentsToFileWithPreview({
 }
 
 export function userHasPermission({ user, permission }: { user: User; permission: string }): boolean {
-    if (!user || !user.permissions) return false;
-    return user.permissions.some((p: Permission) => p.name === permission);
+  if (!user || !user.permissions) return false;
+  return user.permissions.some((p: string | Permission) => typeof p === 'string' ? p === permission : (p as Permission).name === permission);
 }

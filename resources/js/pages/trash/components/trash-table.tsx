@@ -12,6 +12,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
     DropdownMenu,
@@ -58,7 +59,7 @@ import { useState } from 'react';
 import { TrashEmpty } from './trash-empty';
 
 interface DeletedItem {
-    id: number;
+    id: number | string;
     deleted_at: string;
     title?: string;
     name?: string;
@@ -67,7 +68,7 @@ interface DeletedItem {
     priority?: { title: string; color: string };
     assignees?: {
         id: number;
-        user?: { name: string; avatar?: { url: string } };
+        user?: { name: string; avatar?: { url: string } | null };
     }[];
     roles?: { name: string }[];
     tickets_count?: number;
@@ -102,11 +103,11 @@ type SortDirection = 'asc' | 'desc';
 
 export function TrashTable({ data, type, retentionDays }: Props) {
     const __ = useTrans();
-    const [selectedIds, setSelectedIds] = useState<number[]>([]);
+    const [selectedIds, setSelectedIds] = useState<(number | string)[]>([]);
 
     const [deleteConfirm, setDeleteConfirm] = useState<{
         isOpen: boolean;
-        id?: number;
+        id?: number | string;
         isBulk: boolean;
     }>({ isOpen: false, isBulk: false });
 
@@ -135,7 +136,7 @@ export function TrashTable({ data, type, retentionDays }: Props) {
         setSelectedIds(checked ? data.data.map((item) => item.id) : []);
     };
 
-    const handleSelectRow = (checked: boolean, id: number) => {
+    const handleSelectRow = (checked: boolean, id: number | string) => {
         if (checked) {
             setSelectedIds((prev) => [...prev, id]);
         } else {
@@ -143,7 +144,7 @@ export function TrashTable({ data, type, retentionDays }: Props) {
         }
     };
 
-    const handleRestore = (id: number) => {
+    const handleRestore = (id: number | string) => {
         router.put(
             route('trash.restore', { type, id }),
             {},
@@ -151,7 +152,7 @@ export function TrashTable({ data, type, retentionDays }: Props) {
         );
     };
 
-    const initiateForceDelete = (id: number) => {
+    const initiateForceDelete = (id: number | string) => {
         setDeleteConfirm({ isOpen: true, id, isBulk: false });
     };
 
@@ -195,11 +196,16 @@ export function TrashTable({ data, type, retentionDays }: Props) {
     };
 
     const getDaysRemaining = (deletedAt: string) => {
-        if (!deletedAt) return 0;
-        const deletionDate = parseISO(deletedAt);
-        const purgeDate = addDays(deletionDate, retentionDays);
-        const remaining = differenceInDays(purgeDate, new Date());
-        return Math.max(0, remaining);
+        if (!deletedAt || !retentionDays) return 0;
+        try {
+            const deletionDate = parseISO(deletedAt);
+            const purgeDate = addDays(deletionDate, retentionDays);
+            const remaining = differenceInDays(purgeDate, new Date());
+            return Math.max(0, remaining);
+        } catch (e) {
+            console.error('Error calculating days remaining:', e);
+            return 0;
+        }
     };
 
     const getRetentionStatus = (days: number) => {
@@ -275,7 +281,201 @@ export function TrashTable({ data, type, retentionDays }: Props) {
                 </div>
             )}
 
-            <div className="overflow-hidden rounded-lg border bg-background shadow-sm">
+            <div className="block lg:hidden space-y-3">
+                {data.data.map((item) => {
+                    const daysLeft = getDaysRemaining(item.deleted_at);
+                    const status = getRetentionStatus(daysLeft);
+                    const StatusIcon = status.icon;
+
+                    return (
+                        <Card
+                            key={item.id}
+                            className={cn(
+                                "group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 border-border/60 bg-linear-to-br from-card to-card/80 cursor-pointer",
+                                selectedIds.includes(item.id) && "border-primary/50 ring-1 ring-primary/20",
+                                daysLeft <= 3 && "border-destructive/30 bg-destructive/5"
+                            )}
+                            onClick={() => handleSelectRow(!selectedIds.includes(item.id), item.id)}
+                        >
+                            <div className="absolute inset-0 bg-linear-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                            <CardContent className="relative p-4 space-y-3">
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                                        <Checkbox
+                                            checked={selectedIds.includes(item.id)}
+                                            onCheckedChange={(c) => handleSelectRow(!!c, item.id)}
+                                            onClick={(e) => e.stopPropagation()}
+                                            className="mt-1"
+                                        />
+                                        <div className="flex flex-col min-w-0">
+                                            {type === 'ticket' && (
+                                                <div className="flex items-center gap-2 min-w-0">
+                                                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-blue-500/10">
+                                                        <TicketIcon className="h-3.5 w-3.5 text-blue-600" />
+                                                    </div>
+                                                    <span className="truncate text-sm font-semibold text-foreground">
+                                                        {item.title}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            {type === 'user' && (
+                                                <div className="flex items-center gap-2 min-w-0">
+                                                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                                                        <User className="h-3.5 w-3.5 text-primary" />
+                                                    </div>
+                                                    <div className="flex flex-col min-w-0">
+                                                        <span className="truncate text-sm font-semibold text-foreground">
+                                                            {item.name}
+                                                        </span>
+                                                        <span className="text-xs text-muted-foreground truncate">
+                                                            {item.email}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {type === 'asset' && (
+                                                <div className="flex items-center gap-2 min-w-0">
+                                                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-orange-500/10">
+                                                        <Box className="h-3.5 w-3.5 text-orange-600" />
+                                                    </div>
+                                                    <span className="truncate text-sm font-semibold text-foreground">
+                                                        {item.title || item.name}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            {type === 'role' && (
+                                                <div className="flex items-center gap-2 min-w-0">
+                                                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-purple-500/10">
+                                                        <Shield className="h-3.5 w-3.5 text-purple-600" />
+                                                    </div>
+                                                    <span className="truncate text-sm font-semibold text-foreground">
+                                                        {item.name}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-8 w-8 text-muted-foreground/60 transition-all hover:bg-muted hover:text-foreground -mr-2 -mt-2"
+                                            >
+                                                <MoreHorizontal className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                                            <DropdownMenuItem
+                                                onClick={() => handleRestore(item.id)}
+                                                className="text-green-600 focus:text-green-700"
+                                            >
+                                                <RotateCcw className="mr-2 h-4 w-4" />
+                                                {__('trash.pages.index.buttons.restore')}
+                                            </DropdownMenuItem>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem
+                                                onClick={() => initiateForceDelete(item.id)}
+                                                className="text-destructive focus:text-destructive"
+                                            >
+                                                <Trash2 className="mr-2 h-4 w-4" />
+                                                {__('trash.pages.index.buttons.force_delete')}
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
+
+                                <div className="pl-9 space-y-2">
+                                    {type === 'ticket' && (
+                                        <div className="flex flex-wrap gap-2 text-xs">
+                                            {item.status && (
+                                                <Badge
+                                                    variant="outline"
+                                                    className="rounded-md border-transparent px-1.5 py-0 text-[10px] font-bold tracking-wide uppercase h-5"
+                                                    style={{
+                                                        backgroundColor: `${item.status.color}25`,
+                                                        color: item.status.color,
+                                                        border: `1px solid ${item.status.color}40`,
+                                                    }}
+                                                >
+                                                    {item.status.title}
+                                                </Badge>
+                                            )}
+                                            {item.priority && (
+                                                <div className="flex items-center gap-1.5 bg-muted/50 px-2 rounded-full h-5">
+                                                    <div
+                                                        className="h-1.5 w-1.5 rounded-full"
+                                                        style={{ backgroundColor: item.priority.color }}
+                                                    />
+                                                    <span className="font-medium text-muted-foreground">
+                                                        {item.priority.title}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {type === 'user' && item.roles && item.roles.length > 0 && (
+                                        <div className="flex flex-wrap gap-1">
+                                            {item.roles.map((role, idx) => (
+                                                <Badge
+                                                    key={idx}
+                                                    variant="secondary"
+                                                    className="h-5 px-1.5 text-[10px] font-normal"
+                                                >
+                                                    {role.name}
+                                                </Badge>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {type === 'asset' && item.tickets_count !== undefined && (
+                                        <Badge variant="outline" className="font-mono text-[10px] h-5">
+                                            {item.tickets_count} {__('trash.table.badges.linked_tickets') || 'Linked tickets'}
+                                        </Badge>
+                                    )}
+
+                                    {type === 'role' && (
+                                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                                            <div className="flex items-center gap-1">
+                                                <Users className="h-3 w-3" />
+                                                {item.users_count ?? 0}
+                                            </div>
+                                            <div className="flex items-center gap-1">
+                                                <Lock className="h-3 w-3" />
+                                                {item.permissions_count ?? 0}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                            <Clock className="h-3 w-3" />
+                                            <div className="flex items-center gap-1">
+                                                <span className="font-semibold">{__('common.labels.deleted_at')}:</span>
+                                                <span>{format(parseISO(item.deleted_at), 'dd MMM yyyy')}</span>
+                                            </div>
+                                        </div>
+                                        <div
+                                            className={cn(
+                                                'inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] shadow-sm transition-colors',
+                                                status.style,
+                                                status.pulse && 'animate-pulse'
+                                            )}
+                                        >
+                                            <StatusIcon className="h-3 w-3" />
+                                            <span>{status.label}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    );
+                })}
+            </div>
+
+            <div className="hidden lg:block overflow-hidden rounded-lg border bg-background shadow-sm">
                 <Table>
                     <TableHeader className="bg-muted/30">
                         <TableRow className="hover:bg-transparent">
@@ -504,7 +704,7 @@ export function TrashTable({ data, type, retentionDays }: Props) {
 
                                             <TableCell className="hidden align-middle md:table-cell">
                                                 {item.assignees &&
-                                                item.assignees.length > 0 ? (
+                                                    item.assignees.length > 0 ? (
                                                     <div className="flex -space-x-2 overflow-hidden py-1">
                                                         {item.assignees
                                                             .filter(
@@ -555,14 +755,14 @@ export function TrashTable({ data, type, retentionDays }: Props) {
                                                         {item.assignees.filter(
                                                             (a) => a.user,
                                                         ).length > 3 && (
-                                                            <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-background bg-muted text-[9px] font-medium text-muted-foreground ring-1 ring-border/10">
-                                                                +
-                                                                {item.assignees.filter(
-                                                                    (a) =>
-                                                                        a.user,
-                                                                ).length - 3}
-                                                            </div>
-                                                        )}
+                                                                <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-background bg-muted text-[9px] font-medium text-muted-foreground ring-1 ring-border/10">
+                                                                    +
+                                                                    {item.assignees.filter(
+                                                                        (a) =>
+                                                                            a.user,
+                                                                    ).length - 3}
+                                                                </div>
+                                                            )}
                                                     </div>
                                                 ) : (
                                                     <span className="text-xs text-muted-foreground/50 italic">
@@ -589,7 +789,7 @@ export function TrashTable({ data, type, retentionDays }: Props) {
                                                         {item.tickets_count !==
                                                             undefined &&
                                                             item.tickets_count >
-                                                                0 && (
+                                                            0 && (
                                                                 <span className="text-[10px] text-muted-foreground">
                                                                     {
                                                                         item.tickets_count
@@ -611,7 +811,7 @@ export function TrashTable({ data, type, retentionDays }: Props) {
                                             <TableCell className="hidden align-middle lg:table-cell">
                                                 <div className="flex flex-wrap gap-1">
                                                     {item.roles &&
-                                                    item.roles.length > 0 ? (
+                                                        item.roles.length > 0 ? (
                                                         item.roles.map(
                                                             (role, idx) => (
                                                                 <Badge
@@ -649,29 +849,29 @@ export function TrashTable({ data, type, retentionDays }: Props) {
                                             <TableCell className="hidden text-center align-middle md:table-cell">
                                                 {item.tickets_count !==
                                                     undefined && (
-                                                    <TooltipProvider>
-                                                        <Tooltip>
-                                                            <TooltipTrigger>
-                                                                <Badge
-                                                                    variant="outline"
-                                                                    className="font-mono text-xs"
-                                                                >
-                                                                    {
-                                                                        item.tickets_count
-                                                                    }
-                                                                </Badge>
-                                                            </TooltipTrigger>
-                                                            <TooltipContent>
-                                                                <p>
-                                                                    {__(
-                                                                        'trash.table.badges.linked_tickets',
-                                                                    ) ||
-                                                                        'Linked tickets'}
-                                                                </p>
-                                                            </TooltipContent>
-                                                        </Tooltip>
-                                                    </TooltipProvider>
-                                                )}
+                                                        <TooltipProvider>
+                                                            <Tooltip>
+                                                                <TooltipTrigger>
+                                                                    <Badge
+                                                                        variant="outline"
+                                                                        className="font-mono text-xs"
+                                                                    >
+                                                                        {
+                                                                            item.tickets_count
+                                                                        }
+                                                                    </Badge>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>
+                                                                    <p>
+                                                                        {__(
+                                                                            'trash.table.badges.linked_tickets',
+                                                                        ) ||
+                                                                            'Linked tickets'}
+                                                                    </p>
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                        </TooltipProvider>
+                                                    )}
                                             </TableCell>
                                         </>
                                     )}
@@ -723,7 +923,7 @@ export function TrashTable({ data, type, retentionDays }: Props) {
                                                     'inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] shadow-sm transition-colors',
                                                     status.style,
                                                     status.pulse &&
-                                                        'animate-pulse',
+                                                    'animate-pulse',
                                                 )}
                                             >
                                                 <StatusIcon className="h-3 w-3" />

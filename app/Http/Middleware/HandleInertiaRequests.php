@@ -1,6 +1,5 @@
 <?php
 
-// app/Http/Middleware/HandleInertiaRequests.php
 
 namespace App\Http\Middleware;
 
@@ -68,23 +67,23 @@ class HandleInertiaRequests extends Middleware
                     'color_scheme' => $user->color_scheme,
                     'phone' => $user->phone,
                     'roles' => $user->roles,
-                    'permissions' => $user->getAllPermissions(),
+                    'permissions' => $user->getAllPermissions()->pluck('name'),
                 ] : null,
             ],
-            'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
-            'old' => fn () => session()->getOldInput(),
+            'sidebarOpen' => !$request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'old' => fn() => session()->getOldInput(),
             'flash' => [
-                'success' => fn () => $request->session()->get('success'),
-                'error' => fn () => $request->session()->get('error'),
+                'success' => fn() => $request->session()->get('success'),
+                'error' => fn() => $request->session()->get('error'),
             ],
-            'errors' => fn () => $request->session()->get('errors')
+            'errors' => fn() => $request->session()->get('errors')
                 ? $request->session()->get('errors')->getBag('default')->getMessages()
                 : (object) [],
 
             'locale' => App::getLocale(),
             'fallback_locale' => config('app.fallback_locale'),
 
-            'translations' => fn () => collect(File::files(lang_path(App::getLocale())))
+            'translations' => fn() => collect(File::files(lang_path(App::getLocale())))
                 ->mapWithKeys(function ($file) {
                     $name = pathinfo($file, PATHINFO_FILENAME);
                     $lines = Lang::get($name);
@@ -93,7 +92,7 @@ class HandleInertiaRequests extends Middleware
                 })
                 ->toArray(),
 
-            'translations_fallback' => fn () => collect(File::files(lang_path(config('app.fallback_locale'))))
+            'translations_fallback' => fn() => collect(File::files(lang_path(config('app.fallback_locale'))))
                 ->mapWithKeys(function ($file) {
                     $name = pathinfo($file, PATHINFO_FILENAME);
                     $lines = Lang::get($name, [], config('app.fallback_locale'));
@@ -109,16 +108,14 @@ class HandleInertiaRequests extends Middleware
             'unassigned_tickets_count' => $request->user() && $request->user()->can('be assigned tickets')
                 ? Ticket::whereDoesntHave('assignees')->whereNull('deleted_at')->count()
                 : 0,
+
+            'show_onboarding' => $request->user()
+                && $request->user()->hasRole('simple_user'),
+
+            'onboarding_state' => $request->user()
+                ? ($request->user()->onboarding_state ?? [])
+                : [],
         ]);
 
-        // 'translations' => fn () => Cache::rememberForever('translations_'.App::getLocale(), function () {
-        //     return collect(File::files(lang_path(App::getLocale())))
-        //         ->mapWithKeys(function ($file) {
-        //             $name = pathinfo($file, PATHINFO_FILENAME);
-
-        //             return [$name => trans($name)];
-        //         })
-        //         ->toArray();
-        // }),
     }
 }

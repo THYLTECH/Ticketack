@@ -142,7 +142,7 @@ return [
         'status' => 'Statut',
         'priority' => 'Priorité',
         'assignee' => 'Assigné à',
-        'equipment' => 'Équipement',
+        'equipment' => 'Asset',
         'category' => 'Catégorie',
         'clear' => 'Effacer les filtres',
     ],

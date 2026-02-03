@@ -63,11 +63,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'view knowledge explorer',
 
             // Trash
-            'view trash',
-            'edit trash',
-            'restore trash',
-            'force delete trash',
-            'manage trash settings',
+            'view trash', 'manage trash', 'restore trash', 'force delete trash',
 
             // Planning
             'view planning',

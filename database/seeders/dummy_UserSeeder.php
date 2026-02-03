@@ -14,27 +14,48 @@ class dummy_UserSeeder extends Seeder
      */
     public function run(): void
     {
+        $createdCount = 0;
+        
         // 5 simple_users 
         for ($i = 1; $i <= 5; $i++) {
-            $user = User::create([
-                'name' => fake()->name(),
-                'email' => "testuser$i@example.com",
-                'password' => Hash::make('password'),
-                'email_verified_at' => now(),
-            ]);
+            $user = User::firstOrCreate(
+                ['email' => "testuser$i@example.com"],
+                [
+                    'name' => fake()->name(),
+                    'password' => Hash::make('password'),
+                    'email_verified_at' => now(),
+                ]
+            );
             
-            $user->assignRole('simple_user');
+            if (!$user->hasRole('simple_user')) {
+                $user->assignRole('simple_user');
+            }
+            
+            if ($user->wasRecentlyCreated) {
+                $createdCount++;
+            }
         }
+        
         //5 solvers
         for ($i = 1; $i <= 5; $i++) {
-            $solver = User::create([
-                'name' => fake()->name(),
-                'email' => "testsolver$i@example.com",
-                'password' => Hash::make('password'),
-                'email_verified_at' => now(),
-            ]);
-            $solver->assignRole('solver');
+            $solver = User::firstOrCreate(
+                ['email' => "testsolver$i@example.com"],
+                [
+                    'name' => fake()->name(),
+                    'password' => Hash::make('password'),
+                    'email_verified_at' => now(),
+                ]
+            );
+            
+            if (!$solver->hasRole('solver')) {
+                $solver->assignRole('solver');
+            }
+            
+            if ($solver->wasRecentlyCreated) {
+                $createdCount++;
+            }
         }
-        $this->command->info('10 users created: 5 simple_users and 5 solvers.');
+        
+        $this->command->info("$createdCount new users created (skipped existing).");
     }
 }

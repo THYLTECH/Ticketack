@@ -14,6 +14,7 @@ return [
         'delete_error' => 'Cannot delete role assigned to users.',
         'deleted' => 'Role deleted successfully.',
         'delete_locked' => 'This role is locked and cannot be deleted.',
+        'delete_last_admin' => 'You cannot remove the last administrator.',
     ],
 
     /*
@@ -30,12 +31,23 @@ return [
             'show' => 'View Role',
             'edit' => 'Edit Role',
         ],
+
         'index' => [
             'head_title' => 'Roles',
             'title' => 'Roles',
             'description' => 'Manage and view all your roles in one place.',
             'search_placeholder' => 'Search a role...',
             'empty_search' => 'No roles found matching your search.',
+
+            'filters' => [
+                'type_placeholder' => 'Filter by type',
+                'usage_placeholder' => 'Filter by usage',
+                'usage_options' => [
+                    'used' => 'Used (Has users)',
+                    'unused' => 'Unused (Empty)',
+                ],
+                'system_roles' => 'System Roles',
+            ],
 
             'buttons' => [
                 'create' => 'Create a Role',
@@ -63,6 +75,7 @@ return [
                     'view' => 'View',
                     'edit' => 'Edit',
                     'delete' => 'Delete',
+                    'clone' => 'Clone',
                 ],
             ],
         ],
@@ -95,6 +108,7 @@ return [
             'tabs' => [
                 'informations' => 'Informations',
                 'permissions' => 'Permissions',
+                'permissions_search_placeholder' => 'Search for a permission...',
                 'users' => 'Users',
             ],
             'fields' => [
@@ -134,6 +148,7 @@ return [
 
                     'buttons' => [
                         'close' => 'Close',
+                        'add_selected' => 'Add Selected (:count)',
                     ],
                 ],
                 'table' => [
@@ -156,6 +171,7 @@ return [
 
                 'flash' => [
                     'added' => 'Users added to role successfully.',
+                    'added_count' => ':count users added to role successfully.',
                     'removed' => 'User removed from role successfully.',
                 ],
             ],
@@ -168,5 +184,9 @@ return [
                 'confirm' => 'Yes, delete role',
             ],
         ],
+    ],
+
+    'filters' => [
+        'system_roles' => 'System Roles',
     ],
 ];

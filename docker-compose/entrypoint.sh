@@ -39,7 +39,7 @@ php artisan storage:link
 
 # 3a. Wait for Database to be ready
 echo "Attente de la base de données..."
-until php -r "try { new PDO('mysql:host=db;port=3306', 'ticketack', 'secret'); } catch (PDOException \$e) { exit(1); }"; do
+until php -r "try { new PDO('mysql:host=db;port=3306', 'ticketack', 'PFE2025Thyltech'); } catch (PDOException \$e) { exit(1); }"; do
   echo "Base de données indisponible - nouvelle tentative dans 2s..."
   sleep 2
 done
