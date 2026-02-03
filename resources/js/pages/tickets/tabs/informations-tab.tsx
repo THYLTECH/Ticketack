@@ -8,15 +8,18 @@ import {
 } from '@/components/ui/dialog';
 import { TabsContent } from '@/components/ui/tabs';
 import { useTrans } from '@/lib/translation';
-import { Ticket } from '@/types';
-import { Link } from '@inertiajs/react';
+import { userHasPermission } from '@/lib/utils';
+import { SharedData, Ticket } from '@/types';
+import { Link, usePage } from '@inertiajs/react';
 import { ArrowUpRight, Download, Sparkles } from 'lucide-react';
 import * as React from 'react';
 
+import AiAssistantPanel from '@/pages/tickets/partials/AiAssistantPanel';
 import { TicketAttachments } from '@/pages/tickets/tabs/informations/attachments';
 import { TicketDescription } from '@/pages/tickets/tabs/informations/description';
 import { ReferenceSolution } from '@/pages/tickets/tabs/informations/reference-solution';
 import { TicketSidebar } from '@/pages/tickets/tabs/informations/sidebar';
+import { toast } from 'sonner';
 
 interface SimilarTicket {
     id: number;
@@ -32,6 +35,7 @@ interface Props {
 export function InformationsTab({ ticket, similarTickets = [] }: Props) {
     const trans = useTrans();
     const __ = (key: string): string => trans(key) as string;
+    const { auth } = usePage<SharedData>().props;
 
     const [previewImage, setPreviewImage] = React.useState<{
         url: string;
@@ -55,6 +59,24 @@ export function InformationsTab({ ticket, similarTickets = [] }: Props) {
 
                 <div className="flex w-full flex-col gap-6 lg:w-80">
                     <TicketSidebar ticket={ticket} />
+
+                    {/* AI Assistant Panel */}
+                    {!ticket.status.is_closed &&
+                        ticket.ai_suggestions &&
+                        ticket.ai_suggestions.length > 0 &&
+                        userHasPermission({
+                            user: auth.user,
+                            permission: 'use ai suggestions tickets',
+                        }) && (
+                            <AiAssistantPanel
+                                ticketId={ticket.id}
+                                suggestions={ticket.ai_suggestions}
+                                onAccept={(content) => {
+                                    navigator.clipboard.writeText(content);
+                                    toast.success(__('ticket.ai_solution_copied'));
+                                }}
+                            />
+                        )}
 
                     {similarTickets.length > 0 && (
                         <div className="flex flex-col gap-3">

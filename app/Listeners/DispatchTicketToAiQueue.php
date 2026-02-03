@@ -14,11 +14,17 @@ class DispatchTicketToAiQueue implements ShouldQueue
     public function handle(TicketCreated $event): void
     {
         try {
+            // Create pending suggestion
+            $suggestion = \App\Models\AiSuggestion::create([
+                'ticket_id' => $event->ticket->id,
+            ]);
+
             $payload = [
-                'ticket_id'   => $event->ticket->id,
-                'title'       => $event->ticket->title,
+                'ticket_id' => $event->ticket->id,
+                'suggestion_id' => $suggestion->id,
+                'title' => $event->ticket->title,
                 'description' => $event->ticket->description,
-                'status'      => 'pending_analysis'
+                'status' => 'pending_analysis'
             ];
 
             // Usage of the 'ai_worker' connection defined above

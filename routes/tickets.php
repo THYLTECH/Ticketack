@@ -55,6 +55,7 @@ Route::prefix('tickets')->name('tickets.')->middleware(['auth', 'verified:auth.v
         Route::delete('/{ticket}', 'destroy')->name('destroy');
         Route::post('/{ticket}/restore', 'restore')->name('restore')->withTrashed();
         Route::delete('/{ticket}/force', 'forceDelete')->name('force_delete')->withTrashed();
+        Route::post('/{ticket}/ai-followup', 'aiFollowUp')->name('ai_followup');
     });
 
     Route::controller(ControllersPriorities::class)->group(function () {

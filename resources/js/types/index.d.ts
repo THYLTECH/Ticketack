@@ -237,8 +237,23 @@ export interface Ticket {
     archived_at: string | null;
     is_referenced: boolean;
     detailed_solution: string | null;
+    detailed_solution: string | null;
     updated_at: string;
     created_at: string;
+
+    ai_suggestions?: {
+        id: number;
+        generated_content: {
+            summary: string;
+            steps: Array<{
+                description: string;
+                details?: string;
+            }>;
+            analysis: string;
+            missing_info?: string;
+        };
+        confidence_score?: number;
+    }[];
 }
 
 export interface TicketPriority {

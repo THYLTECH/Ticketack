@@ -2,3 +2,4 @@ redis==5.0.1
 requests
 jinja2
 openai
+pymysql

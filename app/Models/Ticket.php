@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class   Ticket extends Model
+class Ticket extends Model
 {
     use HasFactory, SoftDeletes;
 
@@ -141,6 +141,14 @@ class   Ticket extends Model
     public function author(): BelongsTo
     {
         return $this->belongsTo(User::class, 'author_id');
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function aiSuggestions(): HasMany
+    {
+        return $this->hasMany(AiSuggestion::class);
     }
 
     /**

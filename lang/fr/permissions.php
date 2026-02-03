@@ -58,6 +58,7 @@ return [
             'manage priority' => ['title' => 'Gérer les priorités', 'description' => 'Autoriser la gestion des priorités de tickets.'],
             'manage status' => ['title' => 'Gérer les statuts', 'description' => 'Autoriser la gestion des statuts de tickets.'],
             'manage category' => ['title' => 'Gérer les catégories', 'description' => 'Autoriser la gestion des catégories de tickets.'],
+            'use ai suggestions' => ['title' => 'Utiliser les suggestions IA', 'description' => 'Autoriser la consultation et l\'interaction avec les suggestions générées par l\'IA.'],
         ],
     ],
 

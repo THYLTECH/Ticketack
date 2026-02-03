@@ -126,4 +126,12 @@ class Ticket
         return false;
     }
 
+    /**
+     * Determine whether the user can use AI suggestions.
+     */
+    public function useAiSuggestions(User $user): bool
+    {
+        return $user->can('use ai suggestions tickets');
+    }
+
 }

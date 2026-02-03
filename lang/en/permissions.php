@@ -58,6 +58,7 @@ return [
             'manage priority' => ['title' => 'Manage Ticket Priorities', 'description' => 'Allow managing ticket priorities.'],
             'manage status' => ['title' => 'Manage Ticket Statuses', 'description' => 'Allow managing ticket statuses.'],
             'manage category' => ['title' => 'Manage Ticket Categories', 'description' => 'Allow managing ticket categories.'],
+            'use ai suggestions' => ['title' => 'Use AI Suggestions', 'description' => 'Allow viewing and interacting with AI-generated suggestions.'],
         ],
     ],
 
