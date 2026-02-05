@@ -117,5 +117,6 @@ return [
         'cancel' => 'Cancel',
         'customize' => 'Customize',
         'classic_view' => 'Classic View',
+        'reset_default' => 'Reset Default',
     ],
 ];
