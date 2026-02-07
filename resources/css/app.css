@@ -6,6 +6,7 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
 @custom-variant dark (&:is(.dark *));
+@custom-variant xs (@media (min-width: 475px));
 
 @theme {
     --font-sans:
@@ -654,4 +655,9 @@
     body {
         @apply bg-background text-foreground;
     }
+}
+
+html {
+    scroll-padding-top: 4rem;
+    scroll-behavior: smooth;
 }

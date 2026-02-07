@@ -68,7 +68,7 @@ class Login extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: true))
+        return redirect()->intended(route('home', absolute: true))
             ->with(['success' => __('auth.flash.login.success')]);
     }
 

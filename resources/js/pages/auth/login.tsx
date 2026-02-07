@@ -69,6 +69,7 @@ export default function Login({
                                         errors.email ? 'true' : 'false'
                                     }
                                     tabIndex={1}
+                                    disabled={processing}
                                 />
                                 <InputGroupAddon>
                                     <User />
@@ -110,10 +111,13 @@ export default function Login({
                                     type={visible ? 'text' : 'password'}
                                     name="password"
                                     required
-                                    placeholder="Password"
+                                    placeholder={__(
+                                        'auth.pages.login.password_placeholder',
+                                    )}
                                     aria-invalid={
                                         errors.password ? 'true' : 'false'
                                     }
+                                    disabled={processing}
                                     tabIndex={2}
                                 />
                                 <InputGroupAddon>
@@ -152,6 +156,7 @@ export default function Login({
                                 value={'1'}
                                 defaultChecked={old.remember === '1'}
                                 tabIndex={3}
+                                disabled={processing}
                             />
                             <Label htmlFor="remember">
                                 {__('auth.pages.login.remember_label')}
@@ -175,7 +180,7 @@ export default function Login({
                                 asChild
                                 tabIndex={7}
                             >
-                                <Link href={route('home')}>
+                                <Link href={route('landing')}>
                                     {__(
                                         'auth.pages.login.home_link',
                                     )}

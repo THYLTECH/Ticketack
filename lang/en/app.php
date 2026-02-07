@@ -22,7 +22,16 @@ return [
                 'platform' => [
                     'title' => 'Platform',
                     'items' => [
+                        'home'      => 'Home',
                         'dashboard' => 'Dashboard',
+                        'tickets'   => 'Tickets',
+                        'assignment' => 'Assignment',
+                        'assets'    => 'Assets',
+                        'roles'     => 'Roles',
+                        'users'     => 'Users',
+                        'planning' => 'Planning',
+                        'trash'     => 'Trash',
+                        'entries'    => 'Time Entries',
                     ],
                 ],
                 'footer' => [
@@ -39,6 +48,9 @@ return [
                     'settings' => 'Settings',
                     'logout' => 'Logout',
                 ],
+            ],
+            'actions' => [
+                'create_ticket' => 'Create ticket',
             ],
         ],
     ],

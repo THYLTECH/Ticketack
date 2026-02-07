@@ -35,6 +35,23 @@ class Profile extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->phone) {
+            $this->merge([
+                'phone' => preg_replace('/\s+/', '', $this->phone),
+            ]);
+        }
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
     public function rules(): array
     {
         return [
@@ -57,7 +74,8 @@ class Profile extends FormRequest
                 'max:20',
                 Rule::unique(User::class)->ignore(Auth::id()),
                 function ($attribute, $value, $fail) {
-                    if (!$value) return;
+                    if (!$value)
+                        return;
 
                     $phoneUtil = PhoneNumberUtil::getInstance();
 

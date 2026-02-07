@@ -1,10 +1,51 @@
+# Ticketack
+
 ## Prerequisites
 
 > php >= v8.3
 > node >= v20
 > composer >= 2.6
+> pm2 (npm install pm2 -g)
 
-## Installation (once)
+## 🐳 Docker Installation
+
+The application is fully containerized to ensure a quick start without complex
+local configuration.
+
+### 1. Start the application
+The following command builds the containers, installs dependencies
+(PHP & Node), configures the environment, and initializes the database:
+
+```bash
+docker-compose up -d --build
+```
+
+```bash
+npm i
+```
+
+```bash
+npm run dev
+```
+
+> **Note:** The very first launch may take a few minutes while the installation
+completes.
+
+Once ready, access the application at:
+**[http://localhost:8000](http://localhost:8000)**
+
+**Default credentials:**
+* **Email:** `test@example.com`
+* **Password:** `password`
+
+### 2. Stop the application
+To stop and remove the containers:
+
+```bash
+docker-compose down
+```
+
+## 🛠️ Local Installation (once)
 
 ### Installation from git
 
@@ -45,6 +86,25 @@ php artisan migrate
 ```
 
 ## Starting project
+## Automated Start (Recommended)
+The project uses PM2 to manage all background services (Server, Vite, WebSockets, and Queues) with a single command via the ecosystem.config.cjs file.
+
+### Start all services (Backend, Frontend, Reverb, Queue)
+```bash
+pm2 start ecosystem.config.cjs
+```
+
+### Monitor services status
+```bash
+pm2 status
+```
+
+### View logs in real-time
+```bash
+pm2 logs
+```
+
+## Manual Start (Alternative)
 
 ### Apache server
 ```bash
@@ -63,4 +123,8 @@ php artisan queue:work
 
 ## Projet's workflow
 
-> Every feature needs its own branch, never push on develop itself, always do PR from a feature branch to the develop and assign one of the technical engineer for a Code Review. Don't forget to tag improvements, on minor feature = 0.0.X, X is incremented, the v0.1.0 will mark the end of the starter kit when the real development of the application will begin.
+> Every feature needs its own branch, never push on develop itself, always do
+PR from a feature branch to the develop and assign one of the technical
+engineer for a Code Review. Don't forget to tag improvements, on minor
+feature = 0.0.X, X is incremented, the v0.1.0 will mark the end of the starter
+kit when the real development of the application will begin.

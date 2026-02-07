@@ -5,10 +5,12 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    @if (app()->environment('production') || request()->secure())
+        <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    @endif
 
-    {{-- Inline script to detect system dark mode preference and apply it immediately --}}
     <script>
-        (function() {
+        (function () {
             const appearance = '{{ $appearance ?? 'system' }}';
             const colorScheme = '{{ $color_scheme ?? 'default' }}';
             const user = '{{ Auth::check() }}'
@@ -21,15 +23,14 @@
                 }
             }
 
-            if(user) {
+            if (user) {
                 localStorage.setItem('color-scheme', colorScheme);
                 localStorage.setItem('appearance', appearance);
             }
-            
+
         })();
     </script>
 
-    {{-- Inline style to set the HTML background color based on our theme in app.css --}}
     <style>
         html {
             background-color: oklch(1 0 0);

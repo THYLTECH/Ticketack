@@ -56,7 +56,7 @@ return [
             'url' => env('AWS_URL'),
             'endpoint' => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
-            'throw' => false,
+            'throw' => true,
             'report' => false,
         ],
 
@@ -77,4 +77,9 @@ return [
         public_path('storage') => storage_path('app/public'),
     ],
 
+    /**
+     * Maximum upload size 8M
+     */
+
+    'upload_max_size' => 8192,
 ];

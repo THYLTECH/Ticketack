@@ -21,7 +21,10 @@ return [
         'color_scheme_loading' => 'Mise à jour du thème de couleur...',
         'color_scheme_updated' => 'Le thème de couleur a été mis à jour avec succès.',
 
+        'color_scheme_updated' => 'Le thème de couleur a été mis à jour avec succès.',
+
         'notifications_updated' => 'Les préférences de notifications ont été mises à jour avec succès.',
+        'delete_last_admin_account' => 'Vous ne pouvez pas supprimer le dernier compte administrateur.',
     ],
 
     /*
@@ -52,7 +55,6 @@ return [
             'info_form' => [
                 'title' => 'Informations du profil',
                 'description' => 'Mettez à jour vos informations de profil telles que le nom et l’adresse e-mail.',
-                // FRONT ERRORS (React)
                 'avatar_too_big_title' => 'L’image est trop lourde',
                 'avatar_too_big_description' => 'La taille maximale autorisée est de :size MB.',
 
@@ -73,6 +75,7 @@ return [
                     'avatar' => [
                         'label' => 'Photo de profil',
                         'description' => 'Glisser ou cliquer pour choisir un fichier — max : :size MB',
+                        'no_avatar' => 'Aucun avatar',
                     ],
                     'phone' => [
                         'label' => 'Numéro de téléphone',

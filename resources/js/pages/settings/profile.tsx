@@ -1,19 +1,13 @@
-
-// Necessary imports
 import { Form, Head, useForm, usePage } from '@inertiajs/react';
 import { useCallback, useRef } from 'react';
 
-// Layout
 import AppLayout from '@/layouts/app/layout';
 import SettingsLayout from '@/layouts/settings/layout';
 
-// Translation Hook
 import { useTrans } from '@/lib/translation';
 
-// Custom components
 import HeadingSmall from '@/components/heading-small';
 
-// Shadcn UI Components
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -39,18 +33,17 @@ import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
 import { PhoneInput } from '@/components/ui/phone-input';
 
-// Types
 import type { BreadcrumbItem, Language, SharedData, Timezone } from '@/types';
 
-// Icons
 import { Save, Trash2 } from 'lucide-react';
 
 import AvatarUpload from '@/components/avatar-upload';
+import { PageTutorial } from '@/components/onboarding';
 
 export default function Profile({
-                                    languages,
-                                    timezones,
-                                }: {
+    languages,
+    timezones,
+}: {
     languages: Language[];
     timezones: Timezone[];
 }) {
@@ -73,7 +66,7 @@ export default function Profile({
             <Head title={__('settings.pages.profile.head_title')} />
 
             <SettingsLayout>
-                <div className="space-y-6">
+                <div className="space-y-6 scroll-mt-24" data-onboarding="profile-info">
                     <HeadingSmall
                         title={__('settings.pages.profile.info_form.title')}
                         description={__(
@@ -86,7 +79,7 @@ export default function Profile({
 
                 <Separator className="my-8" />
 
-                <div className="space-y-6">
+                <div className="space-y-6 scroll-mt-24" data-onboarding="profile-preferences">
                     <HeadingSmall
                         title={__('settings.pages.profile.lang_form.title')}
                         description={__(
@@ -101,6 +94,18 @@ export default function Profile({
 
                 <DeleteUser />
             </SettingsLayout>
+            <PageTutorial
+                page="settings"
+                steps={[
+                    {
+                        id: 'profile',
+                        title: __('onboarding.settings.profile.title'),
+                        description: __('onboarding.settings.profile.description'),
+                        targetSelector: '[data-onboarding="profile-info"]',
+                        position: 'bottom',
+                    },
+                ]}
+            />
         </AppLayout>
     );
 }
@@ -146,28 +151,21 @@ function InformationForm({ auth }: { auth: SharedData['auth'] }) {
             encType="multipart/form-data"
             className="grid md:grid-cols-3 gap-x-8 gap-y-4"
         >
-            <div className="md:col-span-2 flex flex-col gap-2">
-                <Label htmlFor="name">
-                    {__('settings.pages.profile.info_form.fields.name.label')}
-                </Label>
-            </div>
-
-            <div className="flex flex-col justify-end">
-                <Label htmlFor="avatar" className="text-left">
-                    {__('settings.pages.profile.info_form.fields.avatar.label')}
-                </Label>
-            </div>
-
             <div className="space-y-4 md:col-span-2">
-                <Input
-                    id="name"
-                    name="name"
-                    value={data.name}
-                    onChange={(e) => setData('name', e.target.value)}
-                    required
-                    placeholder={__('settings.pages.profile.info_form.fields.name.placeholder')}
-                    aria-invalid={errors.name ? 'true' : 'false'}
-                />
+                <div className="grid gap-2">
+                    <Label htmlFor="name">
+                        {__('settings.pages.profile.info_form.fields.name.label')}
+                    </Label>
+                    <Input
+                        id="name"
+                        name="name"
+                        value={data.name}
+                        onChange={(e) => setData('name', e.target.value)}
+                        required
+                        placeholder={__('settings.pages.profile.info_form.fields.name.placeholder')}
+                        aria-invalid={errors.name ? 'true' : 'false'}
+                    />
+                </div>
 
                 <div className="grid gap-2">
                     <Label htmlFor="email">
@@ -201,17 +199,20 @@ function InformationForm({ auth }: { auth: SharedData['auth'] }) {
                 </div>
             </div>
 
-            <div className="flex flex-col items-start gap-3 md:col-span-1">
+            <div className="flex flex-col items-center gap-3 md:col-span-1">
+                <Label htmlFor="avatar" className="text-left w-full text-center md:text-left">
+                    {__('settings.pages.profile.info_form.fields.avatar.label')}
+                </Label>
                 <AvatarUpload
-                    defaultUrl={auth.user?.avatar ?? null}
+                    defaultUrl={auth.user?.avatar?.url ?? null}
                     onFileChange={(file) => {
                         setData('avatar', file);
                     }}
                 />
             </div>
 
-            <div className="md:col-span-2 flex pt-2">
-                <Button disabled={processing} type="submit">
+            <div className="md:col-span-3 flex pt-2">
+                <Button disabled={processing} type="submit" className='w-full'>
                     {processing ? <Spinner /> : <Save />}
                     {__('settings.pages.profile.info_form.buttons.submit')}
                 </Button>
@@ -221,10 +222,10 @@ function InformationForm({ auth }: { auth: SharedData['auth'] }) {
 }
 
 function LangForm({
-                      auth,
-                      languages,
-                      timezones,
-                  }: {
+    auth,
+    languages,
+    timezones,
+}: {
     auth: SharedData['auth'];
     languages: Language[];
     timezones: Timezone[];

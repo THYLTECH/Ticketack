@@ -1,14 +1,9 @@
-// resources/js/pages/notifications/index.tsx
-
-// Necessary imports
 import { Form, Head, Link, router, useForm } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 
-// Translation Hook
 import { useTrans } from '@/lib/translation';
 
-// Shadcn UI Components
 import {
     AlertDialog,
     AlertDialogAction,
@@ -57,17 +52,15 @@ import {
     TableRow,
 } from '@/components/ui/table';
 
-// Custom components
 import Heading from '@/components/heading';
 import AppLayout from '@/layouts/app/layout';
 
-// Helpers
+import { PageTutorial, useOnboarding } from '@/components/onboarding';
+
 import { cn, formatNotificationDate } from '@/lib/utils';
+import type { BreadcrumbItem, Notification, PaginationProps, SharedData } from '@/types';
+import { usePage } from '@inertiajs/react';
 
-// Types
-import type { BreadcrumbItem, Notification, PaginationProps } from '@/types';
-
-// Icons
 import {
     Tooltip,
     TooltipContent,
@@ -89,13 +82,14 @@ export default function Notifications({
     total_notifications: number;
 }) {
     const { ...pagination_props } = notifications;
-
+    const { show_onboarding } = usePage<SharedData>().props;
+    const { hasSeenPage } = useOnboarding();
     const __ = useTrans();
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
-            title: __('dashboard.pages.breadcrumbs.dashboard'),
-            href: route('dashboard'),
+            title: __('home.pages.breadcrumbs.home'),
+            href: route('home'),
         },
         {
             title: __('notifications.pages.breadcrumbs.index'),
@@ -112,20 +106,49 @@ export default function Notifications({
                 description={__('notifications.pages.index.description')}
             />
 
-            {total_notifications === 0 ? (
+            {total_notifications === 0 && !show_onboarding ? (
                 <NotificationEmpty />
             ) : (
-                <div className="grid gap-6">
+                <div className="grid gap-6" data-onboarding="notifications-list">
                     <NotificationSearchForm search={search} />
 
-                    <NotificationTable notifications={notifications} />
+                    <NotificationTable notifications={total_notifications === 0 && show_onboarding && !hasSeenPage('notifications') ? {
+                        ...notifications,
+                        data: [{
+                            id: 'fake-notification',
+                            type: 'system_alert',
+                            data: {
+                                type: 'system_alert',
+                                category: 'system',
+                                title: __('onboarding.notifications.fake.title'),
+                                message: __('onboarding.notifications.fake.message'),
+                            },
+                            created_at: new Date().toISOString(),
+                            read_at: null,
+                        }]
+                    } : notifications} />
 
                     <NotificationPagination
                         pagination_props={pagination_props}
                     />
                 </div>
             )}
-        </AppLayout>
+            <PageTutorial
+                page="notifications"
+                steps={[
+                    {
+                        id: 'list',
+                        title: __('onboarding.notifications.list.title'),
+                        description: __('onboarding.notifications.list.description'),
+                        targetSelector: '[data-onboarding="notifications-list"]',
+                        position: 'bottom',
+                        onEnter: () => {
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }
+                    },
+                ]}
+            />
+        </AppLayout >
     );
 }
 
@@ -231,14 +254,13 @@ function NotificationTable({
     notifications: NotificationsProps;
 }) {
     const __ = useTrans();
-    const { put, delete: destroy } = useForm();
+    const { put, delete: destroy } = useForm({});
 
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const { data } = notifications;
 
-    // Sélecteur principal
     const allSelected = selectedIds.length === data.length && data.length > 0;
-    const partiallySelected = selectedIds.length > 0 && !allSelected;
+    const partiallySelected = selectedIds.length > 0 && selectedIds.length < data.length;
 
     const toggleSelectAll = () => {
         if (allSelected) setSelectedIds([]);
@@ -246,13 +268,11 @@ function NotificationTable({
     };
 
     const toggleSelect = (id: string) => {
-        // e?.stopPropagation();
         setSelectedIds((prev) =>
             prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
         );
     };
 
-    // Action solitaires
     const handleMarkAsRead = (
         notification: Notification,
         e?: React.MouseEvent<HTMLButtonElement>,
@@ -278,7 +298,6 @@ function NotificationTable({
         );
     };
 
-    // Actions groupées
     const handleBulkMarkAsRead = () => {
         put(route('notifications.markManyAsRead', { ids: selectedIds }), {
             preserveScroll: true,
@@ -340,7 +359,7 @@ function NotificationTable({
 
             <Table className="w-full table-fixed overflow-hidden">
                 <TableHeader>
-                    <TableRow className="!bg-background">
+                    <TableRow className="bg-background!">
                         {notifications.data.length > 0 && (
                             <TableHead className="w-[4%]">
                                 <Checkbox
@@ -348,8 +367,8 @@ function NotificationTable({
                                         allSelected
                                             ? true
                                             : partiallySelected
-                                              ? 'indeterminate'
-                                              : false
+                                                ? 'indeterminate'
+                                                : false
                                     }
                                     onCheckedChange={toggleSelectAll}
                                 />
@@ -376,6 +395,33 @@ function NotificationTable({
                             notification.created_at,
                         );
 
+                        let typeLabel = type;
+
+                        if (category) {
+                            const categoryTranslation = __(
+                                `notifications.preferences.${category}.items.${type}.title`,
+                            );
+                            if (categoryTranslation && !categoryTranslation.includes('notifications.preferences')) {
+                                typeLabel = categoryTranslation;
+                            }
+                        }
+
+                        if (typeLabel === type) {
+                            const directTranslation = __(
+                                `notifications.${type}.title`,
+                            );
+                            if (directTranslation && !directTranslation.includes('notifications.')) {
+                                typeLabel = directTranslation;
+                            }
+                        }
+
+                        if (typeLabel === type) {
+                            typeLabel = type
+                                .split('_')
+                                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                                .join(' ');
+                        }
+
                         return (
                             <NotificationDetail
                                 key={notification.id}
@@ -389,9 +435,10 @@ function NotificationTable({
                                         selectedIds.includes(notification.id)
                                             ? 'bg-muted hover:bg-muted'
                                             : notification.read_at
-                                              ? 'bg-muted text-muted-foreground hover:bg-muted'
-                                              : '',
+                                                ? 'bg-muted text-muted-foreground hover:bg-muted'
+                                                : '',
                                         'group relative cursor-pointer',
+                                        notification.id === 'fake-notification' && 'pointer-events-none opacity-75'
                                     )}
                                 >
                                     <TableCell>
@@ -406,10 +453,7 @@ function NotificationTable({
                                         />
                                     </TableCell>
                                     <TableCell className="text-left font-medium">
-                                        {__(
-                                            `notifications.preferences.${category}.items.${type}.title`,
-                                            type,
-                                        )}
+                                        {typeLabel}
                                     </TableCell>
                                     <TableCell className="truncate overflow-hidden whitespace-nowrap">
                                         <strong>
@@ -491,7 +535,7 @@ function NotificationTable({
                 </TableBody>
                 {notifications.total > 0 && (
                     <TableFooter>
-                        <TableRow className="!bg-background">
+                        <TableRow className="bg-background!">
                             <TableCell colSpan={4} className="py-2 text-center">
                                 <span className="flex text-sm font-light text-muted-foreground">
                                     {__(
@@ -501,12 +545,12 @@ function NotificationTable({
                                             first:
                                                 (notifications.current_page -
                                                     1) *
-                                                    notifications.per_page +
+                                                notifications.per_page +
                                                 1,
                                             last:
                                                 (notifications.current_page -
                                                     1) *
-                                                    notifications.per_page +
+                                                notifications.per_page +
                                                 data.length,
                                             total: notifications.total,
                                         },
@@ -547,7 +591,7 @@ function NotificationDetail({
                     </AlertDialogTitle>
                 </AlertDialogHeader>
                 <div className="flex w-full flex-col gap-2">
-                    <p className="text-sm leading-6 break-words whitespace-pre-wrap text-muted-foreground">
+                    <p className="text-sm leading-6 wrap-break-word whitespace-pre-wrap text-muted-foreground">
                         {notification.data.message}
                     </p>
                 </div>
@@ -584,9 +628,8 @@ function NotificationPagination({
     const delta = 2; // nbr of pages to show around current
     const range: number[] = [];
     const rangeWithDots: (number | string)[] = [];
-    let l: number | undefined;
+    let l: number | undefined = undefined;
 
-    // Always include start and end + interval around current
     for (let i = 1; i <= totalPages; i++) {
         if (
             i === 1 ||
@@ -597,7 +640,6 @@ function NotificationPagination({
         }
     }
 
-    // Add dots
     for (const i of range) {
         if (l !== undefined) {
             if (i - l === 2) {
@@ -610,7 +652,6 @@ function NotificationPagination({
         l = i;
     }
 
-    // Avoid refresh when switching page
     function handleVisit(e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) {
         if (e.currentTarget.getAttribute('href') !== '#') {
             e.preventDefault();
@@ -646,8 +687,8 @@ function NotificationPagination({
                                             page === current
                                                 ? '#'
                                                 : route('notifications.index', {
-                                                      page,
-                                                  })
+                                                    page,
+                                                })
                                         }
                                         isActive={page === current}
                                         onClick={handleVisit}

@@ -3,10 +3,12 @@ name: Laravel 12 CI + SonarCloud
 on:
   push:
     branches:
-      - main          # Analyse uniquement main
+      - main
+      - develop
   pull_request:
     branches:
-      - main          # Analyse uniquement les PR ciblant main
+      - main
+      - develop
   workflow_dispatch:
 
 permissions:
@@ -23,10 +25,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up PHP 8.3
+      - name: Set up PHP 8.4
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
+          php-version: '8.4'
           coverage: xdebug
           extensions: mbstring, xml, bcmath, intl, zip, sqlite3, pdo_mysql
 

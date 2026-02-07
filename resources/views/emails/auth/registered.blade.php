@@ -5,6 +5,12 @@
 
 {{ __('notifications.mail.registered.intro', ['app' => config('app.name')]) }}
 
+@if(!empty($plain_password))
+@component('mail::panel')
+{{ __('notifications.mail.registered.password', ['password' => $plain_password]) }}
+@endcomponent
+@endif
+
 @component('mail::button', ['url' => $url])
 {{ __('notifications.mail.registered.button') }}
 @endcomponent

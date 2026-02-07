@@ -34,6 +34,8 @@ const createImage = (url: string): Promise<HTMLImageElement> =>
         image.src = url;
     });
 
+import { cn } from "@/lib/utils";
+
 async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<File | null> {
     try {
         const image = await createImage(imageSrc);
@@ -71,15 +73,17 @@ async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<File | 
 interface AvatarUploaderProps {
     defaultUrl?: string | null;
     onFileChange?: (file: File | null) => void;
+    disabled?: boolean;
+    className?: string;
 }
 
 export default function AvatarUploader({
     defaultUrl = null,
+    disabled = false,
     onFileChange,
+    className,
 }: Readonly<AvatarUploaderProps>) {
     const __ = useTrans();
-
-    // --- Normalisation du defaultUrl (id, chemin storage, URL complète) ---
     const normalizedDefault = typeof defaultUrl === 'string' ? defaultUrl : null;
     const [
         { files },
@@ -115,7 +119,7 @@ export default function AvatarUploader({
         if (!ALLOWED_TYPES.has(file.type)) {
             toast.error(
                 __('settings.pages.profile.info_form.avatar_error_type') ||
-                    'Invalid file type',
+                'Invalid file type',
                 {
                     description:
                         __(
@@ -161,7 +165,7 @@ export default function AvatarUploader({
         if (!croppedFile) {
             toast.error(
                 __('settings.pages.profile.info_form.avatar_error_crop') ||
-                    'Error during cropping image.',
+                'Error during cropping image.',
             );
             setIsDialogOpen(false);
             return;
@@ -214,16 +218,22 @@ export default function AvatarUploader({
     }, [files]);
 
     return (
-        <div className="flex flex-col items-center gap-2">
+        <div className={cn("flex flex-col items-center gap-2", className)}>
             <div className="relative inline-flex">
                 <button
                     type="button"
-                    className="relative flex size-25 items-center justify-center overflow-hidden rounded-full border border-dashed border-input transition-colors outline-none hover:bg-accent/50 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 has-[img]:border-none data-[dragging=true]:bg-accent/50"
-                    onClick={openFileDialog}
-                    onDragEnter={handleDragEnter}
-                    onDragLeave={handleDragLeave}
-                    onDragOver={handleDragOver}
-                    onDrop={handleDrop}
+                    className={cn(
+                        "relative flex aspect-square h-32 w-32 items-center justify-center overflow-hidden rounded-full border border-dashed border-input transition-colors outline-none",
+                        !disabled && "hover:bg-accent/50 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 data-[dragging=true]:bg-accent/50",
+                        finalImageUrl && "border-none",
+                        disabled && "cursor-default opacity-80"
+                    )}
+                    onClick={!disabled ? openFileDialog : undefined}
+                    onDragEnter={!disabled ? handleDragEnter : undefined}
+                    onDragLeave={!disabled ? handleDragLeave : undefined}
+                    onDragOver={!disabled ? handleDragOver : undefined}
+                    onDrop={!disabled ? handleDrop : undefined}
+                    disabled={disabled}
                 >
                     {finalImageUrl ? (
                         <img
@@ -231,6 +241,12 @@ export default function AvatarUploader({
                             src={finalImageUrl}
                             alt="avatar"
                         />
+                    ) : disabled ? (
+                        <div className="flex flex-col items-center justify-center text-muted-foreground/50">
+                            <span className="text-xs">
+                                {__('settings.pages.profile.info_form.fields.avatar.no_avatar') || 'No avatar'}
+                            </span>
+                        </div>
                     ) : (
                         <span className="px-4 text-center text-[11px] leading-tight break-words text-muted-foreground">
                             {__(
@@ -240,7 +256,7 @@ export default function AvatarUploader({
                     )}
                 </button>
 
-                {finalImageUrl && (
+                {finalImageUrl && !disabled && (
                     <Button
                         type="button"
                         onClick={(e) => {
@@ -255,7 +271,7 @@ export default function AvatarUploader({
                     </Button>
                 )}
 
-                <input {...getInputProps()} className="sr-only" />
+                <input {...getInputProps()} className="sr-only" disabled={disabled} />
             </div>
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

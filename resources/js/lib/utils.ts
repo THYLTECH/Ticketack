@@ -1,9 +1,12 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-
+import * as LucideIcons from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import { Attachment, Permission, User } from '@/types';
+import { FileWithPreview } from '@/hooks/use-file-upload';
 
 export function cn(...inputs: ClassValue[]) {
-    return twMerge(clsx(inputs));
+  return twMerge(clsx(inputs));
 }
 
 export function formatNotificationDate(dateString: string): string {
@@ -36,4 +39,74 @@ export function formatNotificationDate(dateString: string): string {
     month: 'short',
     year: 'numeric',
   });
+}
+
+export function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleDateString();
+}
+
+export function formatDateTime(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+}
+
+export function getIcon(icon: string): LucideIcon | null {
+  const normalized = icon
+    .split('-')
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join('');
+
+  const icons = LucideIcons as unknown as Record<string, LucideIcon>;
+
+  const Icon = icons[normalized];
+
+  if (!Icon) return null;
+
+  return Icon;
+}
+
+export function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+export function convertAttachmentsToFileWithPreview({
+  attachments,
+}: {
+  attachments: Attachment[];
+}): FileWithPreview[] {
+
+  return attachments.map((attachment) => {
+    const fileMetadata = {
+      name: attachment.file_name || attachment.title || String(attachment.id),
+      url: attachment.url,
+      type: attachment.mime_type || '',
+      size: attachment.file_size || 0,
+      id: String(attachment.id),
+    };
+
+    return {
+      id: String(attachment.id),
+      file: fileMetadata,
+      preview: attachment.url,
+      title: attachment.title,
+      description: attachment.description,
+    };
+  });
+}
+
+export function userHasPermission({ user, permission }: { user: User; permission: string }): boolean {
+  if (!user || !user.permissions) return false;
+  return user.permissions.some((p: string | Permission) => typeof p === 'string' ? p === permission : (p as Permission).name === permission);
 }

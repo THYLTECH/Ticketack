@@ -1,8 +1,8 @@
 <?php
 
-// app/Http/Controllers/Notifications/Index.php
+// app/Http/Controllers/Notifications.php
 
-namespace App\Http\Controllers\Notifications;
+namespace App\Http\Controllers;
 
 // Necessary imports
 use App\Http\Controllers\Controller;
@@ -15,13 +15,13 @@ use App\Http\Requests\Notifications\Search as RequestsSearch;
 use App\Http\Requests\Notifications\Many as RequestsMany;
 
 /**
- * Class Index
+ * Class Notifications
  * 
  * Controller for managing user notifications.
  * 
- * @package App\Http\Controllers\Notifications
+ * @package App\Http\Controllers
  */
-class Index extends Controller
+class Notifications extends Controller
 {
     /**
      * Display a listing of the user's notifications.
@@ -62,7 +62,7 @@ class Index extends Controller
 
         $notification->markAsRead();
 
-        return redirect()->back()->with(['success' => 'Notification marked as read.']);
+        return redirect()->back()->with(['success' => __('notifications.flash.read_success')]);
     }
 
     /**
@@ -84,7 +84,7 @@ class Index extends Controller
             $notification->markAsRead();
         }
 
-        return redirect()->back()->with(['success' => count($data['ids']) . ' notifications marked as read.']);
+        return redirect()->back()->with(['success' => count($data['ids']) . ' ' . __('notifications.flash.read_many_success')]);
     }
 
     /**
@@ -100,7 +100,7 @@ class Index extends Controller
 
         $notification->delete();
 
-        return redirect()->back()->with(['success' => 'Notification deleted successfully.']);
+        return redirect()->back()->with(['success' => __('notifications.flash.delete_success')]);
     }
 
     /**
@@ -121,6 +121,6 @@ class Index extends Controller
             $notification->delete();
         }
 
-        return redirect()->back()->with(['success' => count($data['ids']) . ' notifications deleted successfully.']);
+        return redirect()->back()->with(['success' => count($data['ids']) . ' ' . __('notifications.flash.delete_many_success')]);
     }
 }

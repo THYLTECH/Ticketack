@@ -1,19 +1,8 @@
-// layouts/app/sidebar.tsx
-
-// Necessary imports
-import { Link, router, usePage } from '@inertiajs/react';
-import { type ComponentPropsWithoutRef } from 'react';
-
-// Hooks
-import { useInitials } from '@/hooks/use-initials';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
-
-// Translation Hook
-import { useTrans } from '@/lib/translation';
-
-// Shadcn UI Components
+import AppLogoIcon from '@/components/app-logo-icon';
+import { Icon } from '@/components/icon';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -34,29 +23,38 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    SidebarSeparator,
     useSidebar,
 } from '@/components/ui/sidebar';
-
-// Custom components
-import { Icon } from '@/components/icon';
-
-// Types
+import { useInitials } from '@/hooks/use-initials';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
+import { useTrans } from '@/lib/translation';
+import { userHasPermission } from '@/lib/utils';
 import type { NavItem, SharedData, User } from '@/types';
-
-// Icons
-import AppLogoIcon from '@/components/app-logo-icon';
+import { Link, router, usePage } from '@inertiajs/react';
 import {
     Bell,
     BookOpen,
+    Calendar,
     ChevronsUpDown,
+    Clock,
     Folder,
+    Home,
     LayoutGrid,
+    ListTree,
     LogOut,
+    Plus,
     Settings,
+    Shield,
+    Sparkles,
+    Ticket,
+    Trash2,
+    UserCheck,
+    Users,
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { type ComponentPropsWithoutRef } from 'react';
 
-// Interfaces
 interface UserMenuContentProps {
     user: User;
     unread_notifications: number;
@@ -64,28 +62,111 @@ interface UserMenuContentProps {
 
 export function AppSidebar() {
     const __ = useTrans();
+    const { auth, unassigned_tickets_count } = usePage<SharedData>().props;
 
-    // Sidebar menus
     const mainNavItems: NavItem[] = [
         {
+            title: __('app.layout.sidebar.menugroups.platform.items.home'),
+            href: route('home'),
+            icon: Home,
+            onboardingId: 'home',
+        }
+    ];
+
+    if (userHasPermission({ user: auth.user, permission: 'view dashboard' })) {
+        mainNavItems.push({
             title: __('app.layout.sidebar.menugroups.platform.items.dashboard'),
             href: route('dashboard'),
             icon: LayoutGrid,
-        },
-    ];
+        });
+    }
+
+    if (userHasPermission({ user: auth.user, permission: 'view planning' })) {
+        mainNavItems.push({
+            title: __('app.layout.sidebar.menugroups.platform.items.planning'),
+            href: route('tickets.planning.index'),
+            icon: Calendar,
+        });
+    }
+
+    if (
+        userHasPermission({
+            user: auth.user,
+            permission: 'view ticket entries',
+        })
+    ) {
+        mainNavItems.push({
+            title: __('app.layout.sidebar.menugroups.platform.items.entries'),
+            href: route('tickets.entries.index'),
+            icon: Clock,
+        });
+    }
+
+    if (userHasPermission({ user: auth.user, permission: 'view tickets' })) {
+        mainNavItems.push({
+            title: __('app.layout.sidebar.menugroups.platform.items.tickets'),
+            href: route('tickets.index'),
+            icon: Ticket,
+            onboardingId: 'tickets',
+        });
+    }
+
+    if (userHasPermission({ user: auth.user, permission: 'be assigned tickets' })) {
+        mainNavItems.push({
+            title: __('app.layout.sidebar.menugroups.platform.items.assignment'),
+            href: route('tickets.assignment.index'),
+            icon: UserCheck,
+            badge: unassigned_tickets_count > 0 ? unassigned_tickets_count : undefined,
+        });
+    }
+
+
+    if (userHasPermission({ user: auth.user, permission: 'view knowledge explorer' })) {
+        mainNavItems.push({
+            title: __('knowledge.pages.search.title'),
+            href: route('knowledge.search'),
+            icon: Sparkles,
+        });
+    }
+
+    if (userHasPermission({ user: auth.user, permission: 'view assets' })) {
+        mainNavItems.push({
+            title: __('app.layout.sidebar.menugroups.platform.items.assets'),
+            href: route('assets.index'),
+            icon: ListTree,
+        });
+    }
+
+    if (userHasPermission({ user: auth.user, permission: 'view users' })) {
+        mainNavItems.push({
+            title: __('app.layout.sidebar.menugroups.platform.items.users'),
+            href: route('users.index'),
+            icon: Users,
+        });
+    }
+
+    if (userHasPermission({ user: auth.user, permission: 'view roles' })) {
+        mainNavItems.push({
+            title: __('app.layout.sidebar.menugroups.platform.items.roles'),
+            href: route('roles.index'),
+            icon: Shield,
+        });
+    }
 
     const footerNavItems: NavItem[] = [
         {
             title: __('app.layout.sidebar.menugroups.footer.items.repository'),
             href: 'https://github.com/THYLTECH/Ticketack',
             icon: Folder,
+            external: true,
         },
         {
             title: __(
                 'app.layout.sidebar.menugroups.footer.items.documentation',
             ),
-            href: '#',
+            href: '/docs/api',
             icon: BookOpen,
+            external: true,
         },
     ];
 
@@ -94,12 +175,28 @@ export function AppSidebar() {
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild>
-                            <Link href={route('dashboard')} prefetch>
+                        <SidebarMenuButton size="lg" asChild data-onboarding="logo">
+                            <Link href={route('home')} prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
+                    <SidebarMenuItem className="mt-2 px-2 pb-2 group-data-[collapsible=icon]:px-0">
+                        <SidebarMenuButton
+                            asChild
+                        >
+                            <Button asChild variant={'default'} className='transition-all hover:bg-primary/90 hover:text-primary-foreground group-data-[collapsible=icon]:rounded-full' data-onboarding="create-ticket">
+                                <Link href={route('tickets.create')}>
+                                    <Plus className="size-4 shrink-0" />
+                                    <span className="font-semibold group-data-[collapsible=icon]:hidden">
+                                        {__(
+                                            'app.layout.sidebar.actions.create_ticket',
+                                        )}
+                                    </span>
+                                </Link>
+                            </Button>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>{' '}
                 </SidebarMenu>
             </SidebarHeader>
 
@@ -112,6 +209,36 @@ export function AppSidebar() {
                 <NavUser />
             </SidebarFooter>
         </Sidebar>
+    );
+}
+
+function NavTrash() {
+    const __ = useTrans();
+    const { auth } = usePage<SharedData>().props;
+
+    if (!userHasPermission({ user: auth.user, permission: 'view trash' })) {
+        return null;
+    }
+
+    return (
+        <SidebarMenu>
+            <SidebarMenuItem>
+                <SidebarMenuButton
+                    asChild
+                    className="text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive data-[active=true]:bg-destructive/10 data-[active=true]:text-destructive"
+                    isActive={route().current('trash.*')}
+                >
+                    <Link href={route('trash.index')}>
+                        <Trash2 />
+                        <span>
+                            {__(
+                                'app.layout.sidebar.menugroups.platform.items.trash',
+                            )}
+                        </span>
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+        </SidebarMenu>
     );
 }
 
@@ -129,33 +256,51 @@ function NavFooter({
         >
             <SidebarGroupContent>
                 <SidebarMenu>
-                    {items.map((item) => (
-                        <SidebarMenuItem key={item.title}>
-                            <SidebarMenuButton
-                                asChild
-                                className="text-neutral-600 hover:text-neutral-800 dark:text-neutral-300 dark:hover:text-neutral-100"
-                            >
-                                <a
-                                    href={
-                                        typeof item.href === 'string'
-                                            ? item.href
-                                            : item.href.url
-                                    }
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                    {items.map((item) => {
+                        const url =
+                            typeof item.href === 'string'
+                                ? item.href
+                                : item.href.url;
+                        const isExternal = item.external ?? false;
+
+                        return (
+                            <SidebarMenuItem key={item.title}>
+                                <SidebarMenuButton
+                                    asChild
+                                    className="text-muted-foreground hover:text-foreground"
                                 >
-                                    {item.icon && (
-                                        <Icon
-                                            iconNode={item.icon}
-                                            className="h-5 w-5"
-                                        />
+                                    {isExternal ? (
+                                        <a
+                                            href={url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            {item.icon && (
+                                                <Icon
+                                                    iconNode={item.icon}
+                                                    className="h-4 w-4"
+                                                />
+                                            )}
+                                            <span>{item.title}</span>
+                                        </a>
+                                    ) : (
+                                        <Link href={url} prefetch>
+                                            {item.icon && (
+                                                <Icon
+                                                    iconNode={item.icon}
+                                                    className="h-4 w-4"
+                                                />
+                                            )}
+                                            <span>{item.title}</span>
+                                        </Link>
                                     )}
-                                    <span>{item.title}</span>
-                                </a>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                    ))}
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                        );
+                    })}
                 </SidebarMenu>
+                <SidebarSeparator className='my-2 w-full relative mx-0' />
+                <NavTrash />
             </SidebarGroupContent>
         </SidebarGroup>
     );
@@ -167,24 +312,80 @@ function NavMain({ items = [] }: { items: NavItem[] }) {
         <SidebarGroup className="px-2 py-0">
             <SidebarGroupLabel>Platform</SidebarGroupLabel>
             <SidebarMenu>
-                {items.map((item) => (
-                    <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton
-                            asChild
-                            isActive={page.url.startsWith(
+                {items.map((item) => {
+                    const currentPath = new URL(
+                        page.url,
+                        window.location.origin,
+                    ).pathname;
+
+                    const normalize = (url: string) =>
+                        new URL(url, window.location.origin).pathname;
+
+                    const matchingItems = items
+                        .map((item) => {
+                            const rawHref =
                                 typeof item.href === 'string'
                                     ? item.href
-                                    : item.href.url,
-                            )}
-                            tooltip={{ children: item.title }}
-                        >
-                            <Link href={item.href} prefetch>
-                                {item.icon && <item.icon />}
-                                <span>{item.title}</span>
-                            </Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                ))}
+                                    : item.href.url;
+
+                            const href = normalize(rawHref);
+
+                            return {
+                                href,
+                                length: href.length,
+                                matches:
+                                    currentPath === href ||
+                                    currentPath.startsWith(href + '/'),
+                            };
+                        })
+                        .filter((i) => i.matches);
+
+                    const activeHref =
+                        matchingItems.length > 0
+                            ? matchingItems.sort(
+                                (a, b) => b.length - a.length,
+                            )[0].href
+                            : null;
+
+                    const linkUrl = normalize(
+                        typeof item.href === 'string'
+                            ? item.href
+                            : item.href.url,
+                    );
+
+                    const isActive = linkUrl === activeHref;
+
+                    return (
+                        <SidebarMenuItem key={item.title}>
+                            <SidebarMenuButton
+                                asChild
+                                isActive={isActive}
+                                tooltip={{ children: item.title }}
+                                data-onboarding={item.onboardingId}
+                            >
+                                <Link
+                                    href={item.href}
+                                    prefetch
+                                    className="relative"
+                                >
+                                    {item.icon && <item.icon />}
+                                    <span>{item.title}</span>
+
+                                    {item.badge && (
+                                        <Badge
+                                            variant="default"
+                                            className="ml-auto h-5 min-w-5 rounded-full px-1.5 text-xs font-medium transition-all group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:top-0.5 group-data-[collapsible=icon]:right-0.5 group-data-[collapsible=icon]:z-50 group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:h-4 group-data-[collapsible=icon]:w-4 group-data-[collapsible=icon]:min-w-0 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:text-[10px] group-data-[collapsible=icon]:shadow-sm"
+                                        >
+                                            {Number(item.badge) > 99
+                                                ? '99+'
+                                                : item.badge}
+                                        </Badge>
+                                    )}
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    );
+                })}
             </SidebarMenu>
         </SidebarGroup>
     );
@@ -204,6 +405,7 @@ function NavUser() {
                             size="lg"
                             className="group text-sidebar-accent-foreground data-[state=open]:bg-sidebar-accent"
                             data-test="sidebar-menu-button"
+                            data-onboarding="user-menu"
                         >
                             <UserInfo user={auth.user} />
                             <ChevronsUpDown className="ml-auto size-4" />
@@ -216,11 +418,14 @@ function NavUser() {
                             isMobile
                                 ? 'bottom'
                                 : state === 'collapsed'
-                                  ? 'left'
-                                  : 'bottom'
+                                    ? 'left'
+                                    : 'bottom'
                         }
                     >
-                        <UserMenuContent user={auth.user} unread_notifications={unread_notifications} />
+                        <UserMenuContent
+                            user={auth.user}
+                            unread_notifications={unread_notifications}
+                        />
                     </DropdownMenuContent>
                 </DropdownMenu>
             </SidebarMenuItem>
@@ -257,7 +462,7 @@ function UserMenuContent({ user, unread_notifications }: UserMenuContentProps) {
                         {__('app.layout.sidebar.usermenu.items.notifications')}
 
                         {unread_notifications > 0 && (
-                            <Badge variant={'default'} className='ml-auto'>
+                            <Badge variant={'default'} className="ml-auto">
                                 {unread_notifications}
                             </Badge>
                         )}
@@ -300,7 +505,7 @@ function UserInfo({ user }: { user: User }) {
         <>
             <Avatar className="h-8 w-8 overflow-hidden rounded-full">
                 <AvatarImage
-                    src={user.avatar ?? undefined}
+                    src={user.avatar?.url ?? undefined}
                     alt={user.name}
                 />
                 <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
@@ -316,7 +521,6 @@ function UserInfo({ user }: { user: User }) {
         </>
     );
 }
-
 
 function AppLogo() {
     const { name } = usePage<SharedData>().props;

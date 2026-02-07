@@ -1,12 +1,8 @@
-// pages/settings/notification.tsx
 
-// Necessary imports
 import { Form, Head, usePage } from '@inertiajs/react';
 
-// Translation Hook
 import { useTrans } from '@/lib/translation';
 
-// Shadcn UI Components
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Combobox } from '@/components/ui/combobox';
@@ -14,14 +10,12 @@ import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
 
-// Custom components
 import HeadingSmall from '@/components/heading-small';
+import { PageTutorial } from '@/components/onboarding';
 
-// Layout
 import AppLayout from '@/layouts/app/layout';
 import SettingsLayout from '@/layouts/settings/layout';
 
-// Types
 import type { ComboboxOption } from '@/components/ui/combobox';
 import type {
     BreadcrumbItem,
@@ -29,10 +23,8 @@ import type {
     SharedData,
 } from '@/types';
 
-// Icons
 import { AlertCircleIcon, Save } from 'lucide-react';
 
-// Interfaces for local use
 type NotificationProps = {
     existing_notifications: {
         [category: string]: {
@@ -67,7 +59,7 @@ export default function Notification({
             <Head title={__('settings.pages.notification.head_title')} />
 
             <SettingsLayout>
-                <div className="space-y-6">
+                <div className="space-y-6 scroll-mt-24" data-onboarding="notification-preferences">
                     <HeadingSmall
                         title={__('settings.pages.notification.form.title')}
                         description={__(
@@ -81,12 +73,12 @@ export default function Notification({
                             <AlertTitle>
                                 {__(
                                     'settings.pages.notification.phone_number.title',
-                                )}
+                                ) || 'Missing Phone Number'}
                             </AlertTitle>
                             <AlertDescription>
                                 {__(
                                     'settings.pages.notification.phone_number.description',
-                                )}
+                                ) || 'Please add a phone number to your profile to enable SMS notifications.'}
                             </AlertDescription>
                         </Alert>
                     )}
@@ -98,6 +90,19 @@ export default function Notification({
                     />
                 </div>
             </SettingsLayout>
+            <PageTutorial
+                page="settings_notifications"
+                steps={[
+                    {
+                        id: 'preferences',
+                        title: __('onboarding.settings.notifications.preferences.title'),
+                        description: __('onboarding.settings.notifications.preferences.description'),
+                        targetSelector: '[data-onboarding="notification-preferences"]',
+                        position: 'bottom',
+                        disableScroll: true,
+                    },
+                ]}
+            />
         </AppLayout>
     );
 }
@@ -144,8 +149,6 @@ function PreferenceForm({
                                             notification,
                                             available_channels,
                                         ]) => {
-                                            // If the user has no phone number, disable the Vonage (SMS) option
-                                            // Or if the channel is not in the available channels for this item
                                             const channelIsDisabled = (
                                                 channel: string,
                                                 phone: string | undefined,

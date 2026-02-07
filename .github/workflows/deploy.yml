@@ -1,0 +1,65 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [ "develop" ]    
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Execute remote ssh commands
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            set -e
+            cd /var/www/ticketack
+
+            echo "Fixing permissions for deployment... "
+            sudo chown -R $USER:$USER .
+
+            echo "Pulling latest code from branch ${{ github.ref_name }}..."
+            git fetch origin ${{ github.ref_name }}
+            git reset --hard origin/${{ github.ref_name }}
+
+            echo "Pre-setting Laravel permissions... "
+            sudo chown -R www-data:www-data storage bootstrap/cache
+            sudo chmod -R 775 storage bootstrap/cache
+
+            echo "Rebuilding containers..."
+            docker compose up -d --build --force-recreate
+
+            echo "Waiting for container stability..."
+            sleep 10
+
+            # Check if app is actually running before trying exec
+            if [ -z "$(docker compose ps -q app)" ]; then
+              echo "ERROR: App container failed to start. Printing logs:"
+              docker compose logs app
+              exit 1
+            fi
+
+            echo "Running Laravel commands..."
+            docker compose exec -T app sh -c "
+              git config --global --add safe.directory /var/www/html &&
+              composer install --optimize-autoloader --no-dev &&
+              npm install &&
+              npm run build &&
+              php artisan migrate --force &&
+              php artisan config:clear &&
+              php artisan route:clear &&
+              php artisan view:clear &&
+              php artisan config:cache &&
+              php artisan route:cache &&
+              php artisan view:cache
+            "
+
+            echo "Deployment finished successfully!"
